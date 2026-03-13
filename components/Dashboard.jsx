@@ -352,9 +352,9 @@ const INJ_HISTORY=[
     lesson:"Lesão 2A de sóleo por sobrecarga em treino. Mais recente do elenco (11/Mar). Zagueiro com padrão de perna posterior — investigar volume de corrida em exercícios de transição.",
     protocol:"Avaliação imediata + plano de reabilitação. Monitorar progressão diária."},
   {id:15,n:"ERICSON",pos:"ZAG",date:"2026-03-13",saida_dm:null,ini_trans:null,fim_trans:null,
-    dias_dm:0,dias_trans:0,total:0,classif:"Cirurgia",regiao:"Joelho",lado:"Direito",evento:"Treino",mecanismo:"Lesão meniscal",estrutura:"Menisco",exame:"RNM",estagio:"Pré-op",conduta:"Cirurgia programada",prognostico:"4-6 meses",
-    lesson:"Ericson será submetido a cirurgia de menisco do joelho direito. Afastamento estimado de 4-6 meses. Perda significativa para a linha defensiva — zagueiro titular com 75 sessões na temporada.",
-    protocol:"Pré-operatório: manter condicionamento cardiovascular e força de MMSS. Pós-op: protocolo de reabilitação meniscal progressivo (fases 1-5). Retorno gradual com critérios funcionais de RTP."}
+    dias_dm:0,dias_trans:0,total:0,classif:"Cirurgia (leve)",regiao:"Joelho",lado:"Direito",evento:"Treino",mecanismo:"Lesão meniscal",estrutura:"Menisco (artroscopia)",exame:"RNM",estagio:"Pré-op",conduta:"Cirurgia programada",prognostico:"4-6 semanas",
+    lesson:"Artroscopia de menisco do joelho direito — procedimento minimamente invasivo. Afastamento estimado de 4-6 semanas. Zagueiro titular com 75 sessões na temporada.",
+    protocol:"Pré-op: manter condicionamento cardiovascular e força de MMSS. Pós-artroscopia: protocolo acelerado — carga parcial D+1, bicicleta D+7, corrida D+14-21, retorno ao treino coletivo 4-6 semanas."}
 ];
 
 // Status atual do DM — 13/Mar/2026
@@ -364,7 +364,7 @@ const DM_ATUAL=[
   {n:"GABRIEL INOCENCIO",pos:"LAT",classif:"Contratura",regiao:"Perna Post. E — Sóleo",dias:6,estagio:"Fase 1",conduta:"Afastado",prognostico:"Em avaliação",desde:"06/Mar"},
   {n:"THALLES",pos:"MEI",classif:"2A",regiao:"Perna Post. D — Gastrocnêmio Med.",dias:3,estagio:"Fase 1",conduta:"Afastado",prognostico:"13/Abr",desde:"09/Mar"},
   {n:"GUI MARIANO",pos:"ZAG",classif:"2A",regiao:"Perna Post. E — Sóleo",dias:1,estagio:"Fase 1",conduta:"Afastado",prognostico:"Em avaliação",desde:"11/Mar"},
-  {n:"ERICSON",pos:"ZAG",classif:"Cirurgia",regiao:"Joelho D — Menisco",dias:0,estagio:"Pré-op",conduta:"Cirurgia programada",prognostico:"4-6 meses",desde:"13/Mar"}
+  {n:"ERICSON",pos:"ZAG",classif:"Cirurgia",regiao:"Joelho D — Menisco (artroscopia)",dias:0,estagio:"Pré-op",conduta:"Cirurgia programada",prognostico:"4-6 semanas",desde:"13/Mar"}
 ];
 
 // Correlação epidemiológica — padrões reais do elenco (14 lesões documentadas)
