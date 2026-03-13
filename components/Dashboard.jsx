@@ -524,6 +524,14 @@ const ScoreRing=({v,sz=48,th=4})=>{
   </div>;
 };
 
+const PlayerPhoto=({name,sz=40})=>{
+  const src=`/players/${encodeURIComponent(name)}.png`;
+  return <div style={{width:sz,height:sz,borderRadius:"50%",background:"#f1f5f9",border:"2px solid #e2e8f0",overflow:"hidden",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
+    <img src={src} alt={name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";e.target.parentNode.querySelector("span").style.display="flex";}} />
+    <span style={{display:"none",alignItems:"center",justifyContent:"center",width:"100%",height:"100%",fontFamily:"'Inter Tight'",fontWeight:700,fontSize:sz/3,color:"#94a3b8"}}>{name.slice(0,2)}</span>
+  </div>;
+};
+
 const Badge=({level})=>{const l=LV[level];return <span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,background:l.bg,color:l.c,border:`1px solid ${l.bc}`}}>{l.l}</span>;};
 
 const WBar=({label,v,max=10,inv})=>{
@@ -581,7 +589,8 @@ export default function Dashboard(){
         <div style={{fontSize:10,fontWeight:700,color:"#94a3b8",letterSpacing:1.5,textTransform:"uppercase",marginBottom:8,paddingLeft:4}}>Elenco — Risco</div>
         <div style={{display:"flex",flexDirection:"column",gap:4,maxHeight:"calc(100vh - 100px)",overflowY:"auto",paddingRight:4}}>
           {players.map(p=><div key={p.n} onClick={()=>{setSel(p.n);setTab("player")}} style={{background:sel===p.n?"#fff":"transparent",border:`1px solid ${sel===p.n?"#e2e8f0":"transparent"}`,borderRadius:10,padding:"8px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,transition:"all .15s",boxShadow:sel===p.n?"0 2px 8px rgba(0,0,0,.04)":"none"}}>
-            <ScoreRing v={p.riskScore} sz={38} th={3}/>
+            <PlayerPhoto name={p.n} sz={34}/>
+            <ScoreRing v={p.riskScore} sz={32} th={3}/>
             <div style={{flex:1,minWidth:0}}>
               <div style={{fontSize:11,fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",color:"#1e293b"}}>{p.n}</div>
               <div style={{display:"flex",gap:4,marginTop:2,alignItems:"center"}}>
@@ -684,6 +693,7 @@ export default function Dashboard(){
             return <div key={i} style={{background:"#fff",borderRadius:12,border:`1px solid ${lv.bc}`,padding:16,marginBottom:10,boxShadow:"0 1px 3px rgba(0,0,0,.04)"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
                 <div style={{display:"flex",alignItems:"center",gap:12}}>
+                  <PlayerPhoto name={p.n} sz={44}/>
                   <ScoreRing v={p.riskScore} sz={48} th={4}/>
                   <div>
                     <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:15,color:"#1e293b"}}>{p.n} <Badge level={p.risk}/> <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:"#94a3b8",fontWeight:400,marginLeft:4}}>{p.pos} · {p.w}kg</span></div>
@@ -912,9 +922,7 @@ export default function Dashboard(){
           <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
             <div style={{display:"flex",gap:20,alignItems:"center"}}>
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
-                <div style={{width:80,height:80,borderRadius:"50%",background:"#f1f5f9",border:"3px solid #e2e8f0",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0}}>
-                  <Users size={32} color="#94a3b8"/>
-                </div>
+                <PlayerPhoto name={sp.n} sz={80}/>
                 <ScoreRing v={sp.riskScore} sz={48} th={4}/>
               </div>
               <div style={{flex:1}}>
