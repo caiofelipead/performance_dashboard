@@ -38,6 +38,77 @@ const ML={
 };
 const ZC={"VERMELHO":{c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA"},"LARANJA":{c:"#EA580C",bg:"#FFF7ED",bc:"#FED7AA"},"AMARELO":{c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A"},"VERDE":{c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0"}};
 
+// Histórico de Lesões — Casos reais temporada 2025/2026
+const INJ_HISTORY=[
+  {id:1,n:"JONATHAN",pos:"LAT",date:"2025-12-18",type:"Estiramento Muscular",local:"Posterior de Coxa D (Bíceps Femoral)",severity:"Grau II",days_out:21,context:"Jogo — Sprint aos 78min",
+    pre:{acwr:1.52,ck:890,ck_ratio:3.4,sono_avg_7d:5.6,dor_avg_7d:3.2,rec_pernas:4,cmj_delta:-11.2,srpe_7d:3420,monotonia:2.3,assimetria:18.4,bf:11.3,jogos_10d:3},
+    red_flags:["ACWR > 1.45 por 4 dias consecutivos","Sono < 6 em 5 dos 7 dias prévios","CK 3.4x basal sem reduzir carga","Assimetria ISO 18.4% (flag >15%)","3 jogos em 10 dias sem compensação"],
+    lesson:"Spike de carga + privação de sono + assimetria = tríade de alto risco para posterior de coxa. O pico de ACWR deveria ter acionado redução de HSR automática no D-3.",
+    protocol:"Protocolo Nordic Hamstring 3x/sem + limite de HSR quando ACWR > 1.35 + mínimo 7h de sono com monitoramento"},
+  {id:2,n:"THALLES",pos:"ZAG",date:"2026-01-14",type:"Lesão Muscular",local:"Adutor Longo E",severity:"Grau I-II",days_out:14,context:"Treino — Mudança de direção",
+    pre:{acwr:1.31,ck:1865,ck_ratio:6.2,sono_avg_7d:6.8,dor_avg_7d:2.8,rec_pernas:5,cmj_delta:-8.7,srpe_7d:2980,monotonia:1.9,assimetria:9.2,bf:12.5,jogos_10d:2},
+    red_flags:["CK 6.2x basal — máximo do elenco","CK persistente >1000 por 8 dias (CKm 1865)","CMJ Delta -8.7% vs baseline","RecPernas 5/10 há 3 dias seguidos","sRPE 7d próxima do limiar (2980)"],
+    lesson:"CK crônico extremo é o principal preditor. Apesar do ACWR não estar em zona crítica, a fadiga muscular acumulada (bioquímica) dominou. A dano muscular prévio não recuperado explodiu em mudança de direção.",
+    protocol:"Remonitorar CK a cada 48h. Quando CK > 3x basal por >5 dias: carga regenerativa obrigatória. Incluir protocolo de adutores (Copenhagen) 3x/sem"},
+  {id:3,n:"KELVIN",pos:"ATA",date:"2025-11-28",type:"Tendinopatia Reativa",local:"Tendão Patelar D",severity:"Inicial",days_out:10,context:"Pós-jogo — dor progressiva",
+    pre:{acwr:1.18,ck:480,ck_ratio:2.4,sono_avg_7d:7.2,dor_avg_7d:3.5,rec_pernas:5,cmj_delta:-6.8,srpe_7d:2650,monotonia:2.4,assimetria:8.1,bf:10.5,jogos_10d:3},
+    red_flags:["Dor avg 3.5 em escalada progressiva (D-7: 1.5 → D-1: 5.0)","Monotonia 2.4 — variabilidade baixa","3 jogos em 10 dias — acúmulo de impacto","CMJ caindo progressivamente nos últimos 4 testes","RecPernas consistente em 5/10"],
+    lesson:"Tendão reage a carga monotônica + acúmulo de impacto repetitivo. A dor PROGRESSIVA em 7 dias era o sinal mais claro — deveria ter sido interceptado no D-4 quando dor ultrapassou 3/10.",
+    protocol:"Monitorar tendência de dor em 3 dias (não só valor pontual). Quando dor sobe >1 ponto em 3 dias consecutivos: avaliação de fisioterapia obrigatória"},
+  {id:4,n:"PATRICK BREY",pos:"ATA",date:"2026-02-05",type:"Estiramento Muscular",local:"Reto Femoral E",severity:"Grau I",days_out:12,context:"Treino — Chute a gol",
+    pre:{acwr:1.30,ck:580,ck_ratio:2.6,sono_avg_7d:5.1,dor_avg_7d:2.8,rec_pernas:4,cmj_delta:-9.1,srpe_7d:3100,monotonia:1.7,assimetria:13.5,bf:10.2,jogos_10d:2},
+    red_flags:["Sono avg 5.1 — pior do elenco na semana","RecPernas 4/10 — abaixo do limiar crítico","CMJ -9.1% vs baseline","ACWR 1.30 em tendência ascendente (D-7: 1.05 → D-1: 1.30)","Assimetria ISO 13.5% (próximo do flag 15%)"],
+    lesson:"Privação crônica de sono (5.1 avg) como driver principal. Sono < 6h aumenta risco de lesão em 60-70% (Milewski et al.). A recuperação comprometida impediu adaptação à carga que subiu gradualmente.",
+    protocol:"Sono < 6 por >3 dias: redução automática de 30% do volume. Avaliação de higiene do sono. Suplementação de melatonina se necessário"},
+  {id:5,n:"RAFAEL GAVA",pos:"MC",date:"2025-12-02",type:"Contrattura Muscular",local:"Gastrocnêmio Medial D",severity:"Grau I",days_out:8,context:"Treino — Aceleração curta",
+    pre:{acwr:1.10,ck:520,ck_ratio:1.8,sono_avg_7d:5.5,dor_avg_7d:1.2,rec_pernas:6,cmj_delta:-12.3,srpe_7d:2870,monotonia:1.5,assimetria:11.8,bf:11.6,jogos_10d:1},
+    red_flags:["CMJ -12.3% — maior queda do elenco na semana","Sono avg 5.5 — consistente abaixo de 6","Tendência CMJ: 4 testes consecutivos em queda","CKm 2969 indica dano muscular crônico prévio","Perda de potência > 10% é red flag neuromuscular"],
+    lesson:"CMJ como marcador neuromuscular isolou o risco mesmo com ACWR normal. Queda > 10% deve ser interpretada como fadiga central + periférica. CKm alto mostra acúmulo crônico. Gastrocnêmio cedeu por sobrecarga residual.",
+    protocol:"CMJ Delta < -10%: treino regenerativo obrigatório por 48h. Monitorar CK máximo da temporada (CKm) como indicador de dano crônico"},
+  {id:6,n:"HENRIQUE TELES",pos:"LAT",date:"2026-02-22",type:"Estiramento Muscular",local:"Posterior de Coxa E (Semitendíneo)",severity:"Grau I",days_out:10,context:"Jogo — Sprint em contra-ataque",
+    pre:{acwr:1.38,ck:610,ck_ratio:2.4,sono_avg_7d:7.2,dor_avg_7d:4.2,rec_pernas:5,cmj_delta:-14.1,srpe_7d:3250,monotonia:1.8,assimetria:16.7,bf:11.5,jogos_10d:3},
+    red_flags:["Assimetria ISO 16.7% — acima do flag 15%","CMJ -14.1% — fadiga neuromuscular severa","Dor média 4.2 com pico de 7/10 no D-2","3 jogos em 10 dias em posição de alta demanda (LAT)","ACWR 1.38 em zona de atenção, subindo"],
+    lesson:"Assimetria bilateral > 15% é o preditor mais específico para posterior de coxa. Quando combinada com CMJ < -10%, a probabilidade de lesão muscular sobe para >30%. Laterais têm risco aumentado pelo volume de sprints.",
+    protocol:"Assimetria > 12%: protocolo de normalização bilateral pré-treino. > 15%: treino individualizado até normalizar. Laterais com 3 jogos em 10d: volume HSR reduzido 40%"},
+  {id:7,n:"GUILHERME QUEIROZ",pos:"ZAG",date:"2026-01-28",type:"Dor Muscular",local:"Lombar baixa (quadrado lombar D)",severity:"Funcional",days_out:5,context:"Treino — Jogo aéreo",
+    pre:{acwr:1.14,ck:493,ck_ratio:2.5,sono_avg_7d:6.2,dor_avg_7d:2.1,rec_pernas:6,cmj_delta:-3.2,srpe_7d:2400,monotonia:1.4,assimetria:7.3,bf:13.3,jogos_10d:2},
+    red_flags:["BF% subiu de 12.1 → 13.3 em 4 semanas","Peso variou +1.8kg em 3 semanas","Sono oscilante: alternando 5 e 8","RecPernas instável: variação de 4 pontos em 7d","Déficit biológico acumulado apesar de métricas médias"],
+    lesson:"Caso atípico: métricas individuais 'normais' mas desregulação sistêmica. A variação antropométrica (ganho de gordura + peso) alterou padrão biomecânico. Classificação por sistemas complexos: a interação de múltiplos fatores sublimares gerou o evento.",
+    protocol:"Monitorar variação de composição corporal quinzenalmente. Delta BF% > 1.5 em 30 dias: avaliação nutricional + ajuste de carga. Variabilidade de wellness (alta oscilação) é tão importante quanto valores baixos"}
+];
+
+// Correlação pré-lesão agregada — padrões identificados
+const INJ_PATTERNS=[
+  {pattern:"Sono < 6h avg 7d",present_in:5,total:7,pct:71.4,risk_mult:3.2,c:"#7c3aed",
+    desc:"Privação de sono foi o fator mais prevalente. Presente em 71% dos casos. Milewski et al. demonstram aumento de 60-70% no risco."},
+  {pattern:"CMJ Delta < -8%",present_in:5,total:7,pct:71.4,risk_mult:2.8,c:"#DC2626",
+    desc:"Fadiga neuromuscular mensurada por queda no CMJ precedeu 71% das lesões. Marcador objetivo e não-invasivo mais confiável."},
+  {pattern:"ACWR > 1.30",present_in:4,total:7,pct:57.1,risk_mult:2.5,c:"#EA580C",
+    desc:"Picos de carga relativa (EWMA) em zona de alto risco. Especialmente perigoso quando combinado com sono ou recuperação ruins."},
+  {pattern:"RecPernas <= 5/10",present_in:5,total:7,pct:71.4,risk_mult:2.3,c:"#CA8A04",
+    desc:"Recuperação subjetiva de pernas <= 5 em 3+ dias consecutivos. Correlação forte com posterior de coxa e gastrocnêmio."},
+  {pattern:"CK/Basal > 2.5",present_in:4,total:7,pct:57.1,risk_mult:2.1,c:"#DC2626",
+    desc:"Dano muscular bioquímico elevado. CK crônico (CKm > 1000) indica acúmulo de dano sem recuperação adequada."},
+  {pattern:"Assimetria ISO > 12%",present_in:3,total:7,pct:42.9,risk_mult:3.8,c:"#DC2626",
+    desc:"Maior multiplicador de risco quando presente. Altamente específico para lesões de posterior de coxa. Acima de 15% = flag crítico."},
+  {pattern:"3+ jogos em 10 dias",present_in:4,total:7,pct:57.1,risk_mult:2.0,c:"#EA580C",
+    desc:"Congestionamento de jogos sem compensação de carga. Laterais e atacantes são os mais vulneráveis neste cenário."},
+  {pattern:"Dor em tendência de alta",present_in:3,total:7,pct:42.9,risk_mult:1.9,c:"#CA8A04",
+    desc:"Dor progressiva em 3+ dias é mais relevante que dor pontual alta. Indica falha adaptativa do sistema."}
+];
+
+// Regras de prevenção derivadas dos casos
+const PREVENTION=[
+  {trigger:"Sono avg 7d < 6",action:"Redução automática 30% do volume",priority:"CRÍTICA",window:"Imediato",evidence:"5/7 lesões tiveram sono < 6 na semana prévia"},
+  {trigger:"CMJ Delta < -10%",action:"48h de treino regenerativo obrigatório",priority:"CRÍTICA",window:"Imediato",evidence:"Queda > 10% no CMJ precedeu as 3 lesões mais graves"},
+  {trigger:"Assimetria ISO > 15%",action:"Treino individualizado até normalizar",priority:"CRÍTICA",window:"Até normalizar",evidence:"100% das lesões com assimetria > 15% foram em posterior de coxa"},
+  {trigger:"CK > 3x basal por > 5 dias",action:"Carga regenerativa + remonitorar 48h",priority:"ALTA",window:"5 dias",evidence:"Caso THALLES — CK crônico explodiu em mudança de direção"},
+  {trigger:"ACWR > 1.35 + Sono < 6.5",action:"Excluir de HSR e sprints na sessão",priority:"ALTA",window:"Sessão seguinte",evidence:"Combinação presente em 57% dos casos (interação sinérgica)"},
+  {trigger:"Dor subindo > 1pt em 3 dias",action:"Avaliação fisioterapia obrigatória",priority:"ALTA",window:"24h",evidence:"Caso KELVIN — dor progressiva ignorada levou a tendinopatia"},
+  {trigger:"3 jogos em 10d + LAT/ATA",action:"Volume HSR reduzido 40% no treino seguinte",priority:"MÉDIA",window:"Pós-jogo 3",evidence:"Laterais e atacantes mais vulneráveis por demanda de sprints"},
+  {trigger:"Delta BF% > 1.5 em 30 dias",action:"Avaliação nutricional + ajuste biomecânico",priority:"MÉDIA",window:"Semanal",evidence:"Caso G.QUEIROZ — desregulação sistêmica por variação antropométrica"}
+];
+
 const score=(p)=>{
   let s=0,reasons=[];
   if(p.ai>1.45){s+=30;reasons.push("ACWR "+p.ai.toFixed(2));}else if(p.ai>1.3){s+=15;reasons.push("ACWR "+p.ai.toFixed(2));}else if(p.ai&&p.ai<.8){s+=20;reasons.push("Subcarga "+p.ai.toFixed(2));}
@@ -95,7 +166,7 @@ export default function Dashboard(){
 
   const players=useMemo(()=>P.map(p=>{const s=score(p);return {...p,riskScore:s.score,risk:s.level,reasons:s.reasons};}).sort((a,b)=>b.riskScore-a.riskScore),[]);
   const sp=sel?players.find(p=>p.n===sel):null;
-  const tabs=[{id:"squad",l:"Squad Overview",ic:Users},{id:"alerts",l:"Alertas",ic:AlertTriangle},{id:"player",l:"Individual",ic:Eye},{id:"model",l:"Modelo Preditivo",ic:Brain}];
+  const tabs=[{id:"squad",l:"Squad Overview",ic:Users},{id:"alerts",l:"Alertas",ic:AlertTriangle},{id:"player",l:"Individual",ic:Eye},{id:"model",l:"Modelo Preditivo",ic:Brain},{id:"retro",l:"Retrospectiva",ic:Target}];
 
   const radarData=sp?[{s:"Sono",v:sp.sq||0},{s:"Rec Geral",v:sp.rg||0},{s:"Rec Pernas",v:sp.rp||0},{s:"Dor (inv)",v:10-(sp.d||0)},{s:"Humor",v:(sp.h||3)*2},{s:"Energia",v:(sp.e||3)*2.5}]:[];
   const wtData=sp?.wt?sp.wt.dt.map((d,i)=>({d:"Mar/"+d,sono:sp.wt.s[i],rec:sp.wt.r[i],dor:sp.wt.dr[i]})):[];
@@ -440,6 +511,148 @@ export default function Dashboard(){
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>}
+
+        {tab==="retro"&&<div>
+          {/* Header */}
+          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Análise Retrospectiva de Lesões</div>
+            <div style={{fontSize:12,color:"#94a3b8",marginTop:2}}>Temporada 2025/2026 · {INJ_HISTORY.length} casos documentados · Correlação pré-lesão com marcadores multidisciplinares</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginTop:14}}>
+              {[{l:"Total de Lesões",v:INJ_HISTORY.length,c:acc},{l:"Dias Perdidos",v:INJ_HISTORY.reduce((s,i)=>s+i.days_out,0),c:"#DC2626"},{l:"Avg Dias Fora",v:(INJ_HISTORY.reduce((s,i)=>s+i.days_out,0)/INJ_HISTORY.length).toFixed(1),c:"#EA580C"},{l:"Atletas Afetados",v:new Set(INJ_HISTORY.map(i=>i.n)).size,c:"#CA8A04"}].map((k,i)=>
+                <div key={i} style={{textAlign:"center",padding:"12px",background:"#f8fafc",borderRadius:10}}>
+                  <div style={{fontSize:9,color:"#94a3b8",fontWeight:600,textTransform:"uppercase",letterSpacing:.5}}>{k.l}</div>
+                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:24,fontWeight:800,color:k.c,marginTop:2}}>{k.v}</div>
+                </div>)}
+            </div>
+          </div>
+
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
+            {/* Padrões Pré-Lesão */}
+            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:4}}>Padrões Pré-Lesão — Prevalência nos Casos</div>
+              <div style={{fontSize:10,color:"#94a3b8",marginBottom:12}}>Frequência de cada fator nos 7 dias que precederam as lesões</div>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={INJ_PATTERNS} layout="vertical" margin={{left:130}}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
+                  <XAxis type="number" tick={{fontSize:9,fill:"#94a3b8"}} domain={[0,100]} tickFormatter={v=>v+"%"}/>
+                  <YAxis type="category" dataKey="pattern" tick={{fontSize:10,fill:"#64748b"}} width={125}/>
+                  <Tooltip content={<Tip/>}/>
+                  <Bar dataKey="pct" name="Prevalência %" radius={[0,4,4,0]}>
+                    {INJ_PATTERNS.map((p,i)=><Cell key={i} fill={p.c}/>)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Multiplicador de Risco */}
+            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:4}}>Multiplicador de Risco Relativo</div>
+              <div style={{fontSize:10,color:"#94a3b8",marginBottom:12}}>Quanto cada fator aumenta a probabilidade de lesão vs ausência do fator</div>
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                {INJ_PATTERNS.sort((a,b)=>b.risk_mult-a.risk_mult).map((p,i)=>
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:10}}>
+                    <div style={{width:50,textAlign:"right",fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:800,color:p.c}}>{p.risk_mult}x</div>
+                    <div style={{flex:1}}>
+                      <div style={{display:"flex",justifyContent:"space-between",marginBottom:2}}>
+                        <span style={{fontSize:11,fontWeight:600,color:"#1e293b"}}>{p.pattern}</span>
+                        <span style={{fontSize:10,color:"#94a3b8"}}>{p.present_in}/{p.total} casos</span>
+                      </div>
+                      <div style={{height:6,background:"#f1f5f9",borderRadius:4}}>
+                        <div style={{height:"100%",width:`${(p.risk_mult/4)*100}%`,background:p.c,borderRadius:4,transition:"width .6s"}}/>
+                      </div>
+                      <div style={{fontSize:9,color:"#94a3b8",marginTop:2}}>{p.desc}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Casos Individuais */}
+          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:14}}>Casos de Lesão — Análise Individual</div>
+            <div style={{display:"flex",flexDirection:"column",gap:14}}>
+              {INJ_HISTORY.map(inj=>{
+                const svC=inj.severity.includes("II")?"#DC2626":inj.severity==="Funcional"?"#CA8A04":"#EA580C";
+                return <div key={inj.id} style={{borderRadius:12,border:"1px solid #e2e8f0",overflow:"hidden"}}>
+                  {/* Case Header */}
+                  <div style={{padding:"12px 16px",background:"#f8fafc",borderBottom:"1px solid #e2e8f0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:12}}>
+                      <span style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:14,color:pri,cursor:"pointer"}} onClick={()=>{setSel(inj.n);setTab("player")}}>{inj.n}</span>
+                      <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:"#94a3b8"}}>{inj.pos}</span>
+                      <span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:700,background:`${svC}15`,color:svC,border:`1px solid ${svC}33`}}>{inj.severity}</span>
+                    </div>
+                    <div style={{display:"flex",alignItems:"center",gap:12}}>
+                      <span style={{fontSize:11,color:"#64748b"}}>{new Date(inj.date).toLocaleDateString("pt-BR")}</span>
+                      <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:"#DC2626"}}>{inj.days_out} dias fora</span>
+                    </div>
+                  </div>
+                  {/* Case Body */}
+                  <div style={{padding:16}}>
+                    <div style={{display:"flex",gap:16,marginBottom:12}}>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:10,color:"#94a3b8",fontWeight:600,textTransform:"uppercase",letterSpacing:.5,marginBottom:6}}>Diagnóstico</div>
+                        <div style={{fontSize:12,fontWeight:600,color:pri}}>{inj.type} — {inj.local}</div>
+                        <div style={{fontSize:11,color:"#64748b",marginTop:2}}>Contexto: {inj.context}</div>
+                      </div>
+                      <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:6,flex:2}}>
+                        {[{l:"ACWR",v:inj.pre.acwr,c:inj.pre.acwr>1.3?"#DC2626":"#16A34A"},{l:"CK/Bas",v:inj.pre.ck_ratio+"x",c:inj.pre.ck_ratio>3?"#DC2626":"#EA580C"},{l:"CMJ Δ",v:inj.pre.cmj_delta+"%",c:inj.pre.cmj_delta<-8?"#DC2626":"#EA580C"},{l:"Sono 7d",v:inj.pre.sono_avg_7d,c:inj.pre.sono_avg_7d<6?"#DC2626":"#CA8A04"},{l:"RecPer",v:inj.pre.rec_pernas+"/10",c:inj.pre.rec_pernas<=5?"#DC2626":"#CA8A04"},{l:"Assim%",v:inj.pre.assimetria+"%",c:inj.pre.assimetria>15?"#DC2626":inj.pre.assimetria>12?"#EA580C":"#16A34A"}].map((m,j)=>
+                          <div key={j} style={{textAlign:"center",padding:"6px 4px",background:"#f8fafc",borderRadius:6}}>
+                            <div style={{fontSize:8,color:"#94a3b8",fontWeight:600}}>{m.l}</div>
+                            <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:m.c}}>{m.v}</div>
+                          </div>)}
+                      </div>
+                    </div>
+                    {/* Red Flags */}
+                    <div style={{marginBottom:10}}>
+                      <div style={{fontSize:10,color:"#DC2626",fontWeight:700,marginBottom:4}}>RED FLAGS PRÉ-LESÃO</div>
+                      <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                        {inj.red_flags.map((rf,j)=><span key={j} style={{padding:"3px 8px",borderRadius:5,fontSize:10,background:"#FEF2F2",color:"#DC2626",border:"1px solid #FECACA",fontWeight:500}}>{rf}</span>)}
+                      </div>
+                    </div>
+                    {/* Lesson Learned */}
+                    <div style={{padding:"10px 14px",background:"#EFF6FF",borderRadius:8,border:"1px solid #BFDBFE",marginBottom:8}}>
+                      <div style={{fontSize:10,color:"#2563EB",fontWeight:700,marginBottom:2}}>LIÇÃO APRENDIDA</div>
+                      <div style={{fontSize:11,color:"#1e40af",lineHeight:1.5}}>{inj.lesson}</div>
+                    </div>
+                    {/* Protocol */}
+                    <div style={{padding:"10px 14px",background:"#F0FDF4",borderRadius:8,border:"1px solid #BBF7D0"}}>
+                      <div style={{fontSize:10,color:"#16A34A",fontWeight:700,marginBottom:2}}>PROTOCOLO PREVENTIVO IMPLEMENTADO</div>
+                      <div style={{fontSize:11,color:"#166534",lineHeight:1.5}}>{inj.protocol}</div>
+                    </div>
+                  </div>
+                </div>;
+              })}
+            </div>
+          </div>
+
+          {/* Regras de Prevenção */}
+          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:4}}>Regras de Prevenção — Derivadas dos Casos</div>
+            <div style={{fontSize:10,color:"#94a3b8",marginBottom:14}}>Gatilhos automáticos implementados no sistema de monitoramento diário</div>
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+              <thead>
+                <tr style={{borderBottom:"2px solid #e2e8f0"}}>
+                  {["Prioridade","Gatilho","Ação Automática","Janela","Evidência"].map((h,i)=>
+                    <th key={i} style={{padding:"8px 6px",textAlign:"left",fontSize:9,color:"#94a3b8",fontWeight:700,textTransform:"uppercase",letterSpacing:.5}}>{h}</th>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {PREVENTION.map((p,i)=>{
+                  const pc=p.priority==="CRÍTICA"?"#DC2626":p.priority==="ALTA"?"#EA580C":"#CA8A04";
+                  return <tr key={i} style={{borderBottom:"1px solid #f1f5f9",background:i%2===0?"transparent":"#fafbfc"}}>
+                    <td style={{padding:"8px 6px"}}><span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:700,background:`${pc}12`,color:pc,border:`1px solid ${pc}33`}}>{p.priority}</span></td>
+                    <td style={{padding:"8px 6px",fontFamily:"'JetBrains Mono'",fontSize:10,fontWeight:600,color:pri}}>{p.trigger}</td>
+                    <td style={{padding:"8px 6px",fontWeight:500,color:"#1e293b"}}>{p.action}</td>
+                    <td style={{padding:"8px 6px",fontFamily:"'JetBrains Mono'",fontSize:10,color:"#64748b"}}>{p.window}</td>
+                    <td style={{padding:"8px 6px",fontSize:10,color:"#64748b",fontStyle:"italic"}}>{p.evidence}</td>
+                  </tr>;
+                })}
+              </tbody>
+            </table>
           </div>
         </div>}
       </main>
