@@ -65,7 +65,7 @@ ATHLETES = [
      "cmj_baseline": 47.0, "iso_baseline_l": 320, "iso_baseline_r": 310, "ck_basal": 200},
     {"name": "ERIK", "pos": "ATA", "weight": 75.5, "height": 176, "bf": 9.8, "mm": 35.4,
      "cmj_baseline": 53.0, "iso_baseline_l": 240, "iso_baseline_r": 245, "ck_basal": 150},
-    {"name": "FELIPINHO", "pos": "LAT", "weight": 78.0, "height": 179, "bf": 11.2, "mm": 36.0,
+    {"name": "THIAGUINHO", "pos": "LAT", "weight": 78.0, "height": 179, "bf": 11.2, "mm": 36.0,
      "cmj_baseline": 42.0, "iso_baseline_l": 250, "iso_baseline_r": 255, "ck_basal": 165},
     {"name": "GABRIEL INOCENCIO", "pos": "MC", "weight": 78.5, "height": 177, "bf": 10.8, "mm": 36.5,
      "cmj_baseline": 49.5, "iso_baseline_l": 270, "iso_baseline_r": 275, "ck_basal": 175},
