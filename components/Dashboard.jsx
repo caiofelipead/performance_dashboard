@@ -289,63 +289,97 @@ const ML={
 };
 const ZC={"VERMELHO":{c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA"},"LARANJA":{c:"#EA580C",bg:"#FFF7ED",bc:"#FED7AA"},"AMARELO":{c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A"},"VERDE":{c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0"}};
 
-// Histórico de Lesões — Casos reais temporada 2025/2026
+// ═══════════════════════════════════════════════════════════════════════════════
+// LESÕES REAIS — Fonte: Planilha Botafogo FSA - Dados Performance-2.xlsx (aba lesoes)
+// Responsável: TIAGO ROCHA · Temporada 2025/2026 (elenco atual)
+// ═══════════════════════════════════════════════════════════════════════════════
 const INJ_HISTORY=[
-  {id:1,n:"JONATHAN",pos:"LAT",date:"2025-12-18",type:"Estiramento Muscular",local:"Posterior de Coxa D (Bíceps Femoral)",severity:"Grau II",days_out:21,context:"Jogo — Sprint aos 78min",
-    pre:{acwr:1.52,ck:890,ck_ratio:3.4,sono_avg_7d:5.6,dor_avg_7d:3.2,rec_pernas:4,cmj_delta:-11.2,srpe_7d:3420,monotonia:2.3,assimetria:18.4,bf:11.3,jogos_10d:3},
-    red_flags:["ACWR > 1.45 por 4 dias consecutivos","Sono < 6 em 5 dos 7 dias prévios","CK 3.4x basal sem reduzir carga","Assimetria ISO 18.4% (flag >15%)","3 jogos em 10 dias sem compensação"],
-    lesson:"Spike de carga + privação de sono + assimetria = tríade de alto risco para posterior de coxa. O pico de ACWR deveria ter acionado redução de HSR automática no D-3.",
-    protocol:"Protocolo Nordic Hamstring 3x/sem + limite de HSR quando ACWR > 1.35 + mínimo 7h de sono com monitoramento"},
-  {id:2,n:"THALLES",pos:"ZAG",date:"2026-01-14",type:"Lesão Muscular",local:"Adutor Longo E",severity:"Grau I-II",days_out:14,context:"Treino — Mudança de direção",
-    pre:{acwr:1.31,ck:1865,ck_ratio:6.2,sono_avg_7d:6.8,dor_avg_7d:2.8,rec_pernas:5,cmj_delta:-8.7,srpe_7d:2980,monotonia:1.9,assimetria:9.2,bf:12.5,jogos_10d:2},
-    red_flags:["CK 6.2x basal — máximo do elenco","CK persistente >1000 por 8 dias (CKm 1865)","CMJ Delta -8.7% vs baseline","RecPernas 5/10 há 3 dias seguidos","sRPE 7d próxima do limiar (2980)"],
-    lesson:"CK crônico extremo é o principal preditor. Apesar do ACWR não estar em zona crítica, a fadiga muscular acumulada (bioquímica) dominou. A dano muscular prévio não recuperado explodiu em mudança de direção.",
-    protocol:"Remonitorar CK a cada 48h. Quando CK > 3x basal por >5 dias: carga regenerativa obrigatória. Incluir protocolo de adutores (Copenhagen) 3x/sem"},
-  {id:3,n:"KELVIN",pos:"ATA",date:"2025-11-28",type:"Tendinopatia Reativa",local:"Tendão Patelar D",severity:"Inicial",days_out:10,context:"Pós-jogo — dor progressiva",
-    pre:{acwr:1.18,ck:480,ck_ratio:2.4,sono_avg_7d:7.2,dor_avg_7d:3.5,rec_pernas:5,cmj_delta:-6.8,srpe_7d:2650,monotonia:2.4,assimetria:8.1,bf:10.5,jogos_10d:3},
-    red_flags:["Dor avg 3.5 em escalada progressiva (D-7: 1.5 → D-1: 5.0)","Monotonia 2.4 — variabilidade baixa","3 jogos em 10 dias — acúmulo de impacto","CMJ caindo progressivamente nos últimos 4 testes","RecPernas consistente em 5/10"],
-    lesson:"Tendão reage a carga monotônica + acúmulo de impacto repetitivo. A dor PROGRESSIVA em 7 dias era o sinal mais claro — deveria ter sido interceptado no D-4 quando dor ultrapassou 3/10.",
-    protocol:"Monitorar tendência de dor em 3 dias (não só valor pontual). Quando dor sobe >1 ponto em 3 dias consecutivos: avaliação de fisioterapia obrigatória"},
-  {id:4,n:"PATRICK BREY",pos:"ATA",date:"2026-02-05",type:"Estiramento Muscular",local:"Reto Femoral E",severity:"Grau I",days_out:12,context:"Treino — Chute a gol",
-    pre:{acwr:1.30,ck:580,ck_ratio:2.6,sono_avg_7d:5.1,dor_avg_7d:2.8,rec_pernas:4,cmj_delta:-9.1,srpe_7d:3100,monotonia:1.7,assimetria:13.5,bf:10.2,jogos_10d:2},
-    red_flags:["Sono avg 5.1 — pior do elenco na semana","RecPernas 4/10 — abaixo do limiar crítico","CMJ -9.1% vs baseline","ACWR 1.30 em tendência ascendente (D-7: 1.05 → D-1: 1.30)","Assimetria ISO 13.5% (próximo do flag 15%)"],
-    lesson:"Privação crônica de sono (5.1 avg) como driver principal. Sono < 6h aumenta risco de lesão em 60-70% (Milewski et al.). A recuperação comprometida impediu adaptação à carga que subiu gradualmente.",
-    protocol:"Sono < 6 por >3 dias: redução automática de 30% do volume. Avaliação de higiene do sono. Suplementação de melatonina se necessário"},
-  {id:5,n:"RAFAEL GAVA",pos:"MC",date:"2025-12-02",type:"Contrattura Muscular",local:"Gastrocnêmio Medial D",severity:"Grau I",days_out:8,context:"Treino — Aceleração curta",
-    pre:{acwr:1.10,ck:520,ck_ratio:1.8,sono_avg_7d:5.5,dor_avg_7d:1.2,rec_pernas:6,cmj_delta:-12.3,srpe_7d:2870,monotonia:1.5,assimetria:11.8,bf:11.6,jogos_10d:1},
-    red_flags:["CMJ -12.3% — maior queda do elenco na semana","Sono avg 5.5 — consistente abaixo de 6","Tendência CMJ: 4 testes consecutivos em queda","CKm 2969 indica dano muscular crônico prévio","Perda de potência > 10% é red flag neuromuscular"],
-    lesson:"CMJ como marcador neuromuscular isolou o risco mesmo com ACWR normal. Queda > 10% deve ser interpretada como fadiga central + periférica. CKm alto mostra acúmulo crônico. Gastrocnêmio cedeu por sobrecarga residual.",
-    protocol:"CMJ Delta < -10%: treino regenerativo obrigatório por 48h. Monitorar CK máximo da temporada (CKm) como indicador de dano crônico"},
-  {id:6,n:"HENRIQUE TELES",pos:"LAT",date:"2026-02-22",type:"Estiramento Muscular",local:"Posterior de Coxa E (Semitendíneo)",severity:"Grau I",days_out:10,context:"Jogo — Sprint em contra-ataque",
-    pre:{acwr:1.38,ck:610,ck_ratio:2.4,sono_avg_7d:7.2,dor_avg_7d:4.2,rec_pernas:5,cmj_delta:-14.1,srpe_7d:3250,monotonia:1.8,assimetria:16.7,bf:11.5,jogos_10d:3},
-    red_flags:["Assimetria ISO 16.7% — acima do flag 15%","CMJ -14.1% — fadiga neuromuscular severa","Dor média 4.2 com pico de 7/10 no D-2","3 jogos em 10 dias em posição de alta demanda (LAT)","ACWR 1.38 em zona de atenção, subindo"],
-    lesson:"Assimetria bilateral > 15% é o preditor mais específico para posterior de coxa. Quando combinada com CMJ < -10%, a probabilidade de lesão muscular sobe para >30%. Laterais têm risco aumentado pelo volume de sprints.",
-    protocol:"Assimetria > 12%: protocolo de normalização bilateral pré-treino. > 15%: treino individualizado até normalizar. Laterais com 3 jogos em 10d: volume HSR reduzido 40%"},
-  {id:7,n:"GUILHERME QUEIROZ",pos:"ZAG",date:"2026-01-28",type:"Dor Muscular",local:"Lombar baixa (quadrado lombar D)",severity:"Funcional",days_out:5,context:"Treino — Jogo aéreo",
-    pre:{acwr:1.14,ck:493,ck_ratio:2.5,sono_avg_7d:6.2,dor_avg_7d:2.1,rec_pernas:6,cmj_delta:-3.2,srpe_7d:2400,monotonia:1.4,assimetria:7.3,bf:13.3,jogos_10d:2},
-    red_flags:["BF% subiu de 12.1 → 13.3 em 4 semanas","Peso variou +1.8kg em 3 semanas","Sono oscilante: alternando 5 e 8","RecPernas instável: variação de 4 pontos em 7d","Déficit biológico acumulado apesar de métricas médias"],
-    lesson:"Caso atípico: métricas individuais 'normais' mas desregulação sistêmica. A variação antropométrica (ganho de gordura + peso) alterou padrão biomecânico. Classificação por sistemas complexos: a interação de múltiplos fatores sublimares gerou o evento.",
-    protocol:"Monitorar variação de composição corporal quinzenalmente. Delta BF% > 1.5 em 30 dias: avaliação nutricional + ajuste de carga. Variabilidade de wellness (alta oscilação) é tão importante quanto valores baixos"}
+  {id:1,n:"JEFERSON",pos:"LAT",date:"2025-10-07",saida_dm:"2026-01-01",ini_trans:"2026-01-02",fim_trans:"2026-01-05",
+    dias_dm:87,dias_trans:4,total:91,classif:"4C",regiao:"Coxa Posterior",lado:"Esquerdo",evento:"Brasileiro",mecanismo:"Sprint",estrutura:"Semitendíneo",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",
+    lesson:"Lesão grau 4C com 91 dias de afastamento. Sprint como mecanismo em jogo oficial. Semitendíneo é a estrutura mais vulnerável em laterais com alta demanda de HSR.",
+    protocol:"Protocolo Nordic Hamstring 3x/sem. Monitorar assimetria bilateral pós-retorno. Restrição de sprint máximo por 14 dias após fase 4."},
+  {id:2,n:"WALLACE",pos:"ZAG",date:"2025-12-27",saida_dm:"2026-01-18",ini_trans:"2026-01-19",fim_trans:"2026-02-03",
+    dias_dm:23,dias_trans:16,total:39,classif:"2B",regiao:"Perna Posterior",lado:"Direito",evento:"Time de empréstimo",mecanismo:"Dor Tardia",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",
+    lesson:"Sóleo com dor tardia — padrão de sobrecarga. 39 dias total indica comprometimento significativo. Perna posterior direita é padrão recorrente no elenco.",
+    protocol:"Excêntrico de sóleo progressivo. Monitorar CK como indicador de dano residual. Atenção a padrão compensatório contralateral."},
+  {id:3,n:"GUILHERME QUEIROZ",pos:"ATA",date:"2025-12-31",saida_dm:"2026-01-06",ini_trans:"2026-01-07",fim_trans:"2026-01-08",
+    dias_dm:7,dias_trans:2,total:9,classif:"1A",regiao:"Perna Posterior",lado:"Direito",evento:"Amistoso",mecanismo:"Sobrecarga",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",
+    lesson:"Lesão 1A em sóleo por sobrecarga em amistoso. Retorno rápido (9 dias) mas padrão de perna posterior D precisa de atenção preventiva.",
+    protocol:"Protocolo de fortalecimento de sóleo bilateral. Monitorar volume de corrida nos amistosos."},
+  {id:4,n:"JEFERSON",pos:"LAT",date:"2026-01-06",saida_dm:"2026-01-18",ini_trans:"2026-01-19",fim_trans:"2026-02-03",
+    dias_dm:13,dias_trans:16,total:29,classif:"2A",regiao:"Perna Posterior",lado:"Direito",evento:"Aquecimento",mecanismo:"Sobrecarga",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",
+    obs:"Estava retornando de lesão de posterior",
+    lesson:"RECIDIVA — Retornou da lesão de 91d (posterior E) e lesionou perna posterior D em 5 dias. Sobrecarga no aquecimento indica preparação insuficiente para retorno. Padrão contralateral clássico.",
+    protocol:"RTP mínimo de 21 dias após lesão > 60 dias. Protocolo bilateral obrigatório. Monitorar assimetria SLCMJ e COP antes de liberar."},
+  {id:5,n:"HYGOR",pos:"ATA",date:"2026-01-12",saida_dm:"2026-01-23",ini_trans:"2026-01-24",fim_trans:"2026-01-27",
+    dias_dm:12,dias_trans:4,total:16,classif:"2B",regiao:"Coxa Posterior",lado:"Direito",evento:"Camp. Paulista",mecanismo:"Trauma direto",estrutura:"Cabeça Longa do Bíceps",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",
+    lesson:"Trauma direto em jogo oficial. Cabeça longa do bíceps femoral em extremo/atacante — perfil de risco pela demanda de sprints repetidos.",
+    protocol:"Fortalecimento excêntrico de bíceps femoral. Monitorar CMJ como marcador de recuperação NM."},
+  {id:6,n:"JONATHAN",pos:"LD",date:"2026-01-21",saida_dm:"2026-01-23",ini_trans:"2026-01-24",fim_trans:"2026-01-24",
+    dias_dm:3,dias_trans:1,total:4,classif:"Ligamentar II",regiao:"Tornozelo",lado:"Direito",evento:"Treino",mecanismo:"Entorse",estrutura:"Lig Talofibular Anterior",exame:"AV Clínica",estagio:"Fase 4",conduta:"Manutenção",
+    lesson:"Entorse de tornozelo grau II em treino. Retorno rápido (4 dias). Atenção a instabilidade residual que pode alterar biomecânica de corrida.",
+    protocol:"Propriocepção + fortalecimento eversores. Bandagem funcional por 2 semanas. Monitorar COP sway."},
+  {id:7,n:"MORELLI",pos:"MEI",date:"2026-01-23",saida_dm:"2026-01-27",ini_trans:"2026-01-28",fim_trans:"2026-01-29",
+    dias_dm:5,dias_trans:2,total:7,classif:"1B",regiao:"Coxa Posterior",lado:"Esquerdo",evento:"Camp. Paulista",mecanismo:"Passe",estrutura:"Cabeça Longa do Bíceps",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",
+    lesson:"Morelli tem histórico de 3 lombalgias prévias (ago-set/2024) que podem ter gerado compensação na cadeia posterior. Lesão em passe sugere déficit de flexibilidade/força excêntrica.",
+    protocol:"Avaliação de cadeia posterior completa. Protocolo Nordic + flexibilidade. Monitorar lombar como fator predisponente."},
+  {id:8,n:"ERIK",pos:"LAT",date:"2026-01-24",saida_dm:"2026-03-08",ini_trans:"2026-03-09",fim_trans:null,
+    dias_dm:44,dias_trans:3,total:47,classif:"4C",regiao:"Coxa Medial",lado:"Esquerdo",evento:"Treino",mecanismo:"Passe",estrutura:"Adutor Longo",exame:"RNM",estagio:"Fase 3",conduta:"Afastado",
+    lesson:"Lesão grau 4C em adutor longo — a mais grave do elenco (47 dias). Mecanismo de passe em treino sugere déficit de força adutora e/ou fadiga acumulada. Ainda em transição (Fase 3 em 13/Mar).",
+    protocol:"Copenhagen adutor progressivo. RTP completo (Fase 1-4) antes de retorno ao elenco. Monitorar assimetria de adução pré-retorno."},
+  {id:9,n:"JONATHAN",pos:"LD",date:"2026-02-08",saida_dm:"2026-02-17",ini_trans:"2026-02-18",fim_trans:"2026-02-25",
+    dias_dm:10,dias_trans:8,total:18,classif:"2A",regiao:"Coxa Posterior",lado:"Esquerdo",evento:"Camp. Paulista",mecanismo:"Alongamento",estrutura:"Semitendíneo",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",
+    lesson:"SEGUNDA lesão de semitendíneo (mesma estrutura da lesão de out/2025). Mecanismo de alongamento indica flexibilidade comprometida e/ou retorno incompleto. Lateral com histórico recorrente = alto risco.",
+    protocol:"Protocolo de flexibilidade + excêntrico Nordic intensificado. Limite de HSR permanente. Avaliação biomecânica completa antes de jogo."},
+  {id:10,n:"RAFAEL GAVA",pos:"MEI",date:"2026-02-08",saida_dm:"2026-02-17",ini_trans:"2026-02-18",fim_trans:"2026-02-25",
+    dias_dm:10,dias_trans:8,total:18,classif:"1A",regiao:"Perna Posterior",lado:"Esquerdo",evento:"Camp. Paulista",mecanismo:"Sprint",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",
+    lesson:"Sprint em jogo oficial. Sóleo esquerdo — padrão de perna posterior que domina as lesões do elenco. CKm 2969 no histórico indica dano crônico acumulado.",
+    protocol:"Excêntrico de sóleo bilateral. Limitar volume de sprint pós-retorno. Monitorar CK como indicador de recarga tecidual."},
+  {id:11,n:"PATRICK BREY",pos:"EXT",date:"2026-02-08",saida_dm:"2026-03-02",ini_trans:"2026-03-02",fim_trans:null,
+    dias_dm:23,dias_trans:10,total:33,classif:"Ligamentar II",regiao:"Joelho",lado:"Esquerdo",evento:"Camp. Paulista",mecanismo:"Trauma direto",estrutura:"LCM",exame:"RNM",estagio:"Fase 3",conduta:"Afastado",prognostico:"2026-04-02",
+    lesson:"Lesão ligamentar grau II de LCM por trauma direto em jogo. Prognóstico de retorno em 02/Abr. Fase 3 — ainda afastado. Perda estimada de 4-5 jogos da Série B.",
+    protocol:"Reabilitação ligamentar progressiva. Fortalecimento de quadríceps + isquiotibiais bilateral. Propriocepção + agilidade antes de retorno."},
+  {id:12,n:"GABRIEL INOCENCIO",pos:"LAT",date:"2026-03-06",saida_dm:"2026-03-12",ini_trans:"2026-03-13",fim_trans:null,
+    dias_dm:7,dias_trans:null,total:6,classif:"Contratura",regiao:"Perna Posterior",lado:"Esquerdo",evento:"Amistoso",mecanismo:"Dor Tardia",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 1",conduta:"Afastado",
+    lesson:"Contratura de sóleo com dor tardia pós-amistoso. Fase 1 em 13/Mar — início da reabilitação. Padrão de sóleo + perna posterior se repete no elenco.",
+    protocol:"Regenerativo + mobilidade ativa. Progressão cuidadosa. Monitorar antes de liberar para treino coletivo."},
+  {id:13,n:"THALLES",pos:"MEI",date:"2026-03-09",saida_dm:null,ini_trans:null,fim_trans:null,
+    dias_dm:3,dias_trans:0,total:3,classif:"2A",regiao:"Perna Posterior",lado:"Direito",evento:"Treino",mecanismo:"Dor Tardia",estrutura:"Gastrocnêmio Medial",exame:"RNM",estagio:"Fase 1",conduta:"Afastado",prognostico:"2026-04-13",
+    lesson:"Lesão 2A de gastrocnêmio medial com dor tardia em treino. Prognóstico 13/Abr (35 dias). Fase 1 — início do tratamento. CK 1865 prévio indica dano muscular crônico como fator predisponente.",
+    protocol:"Excêntrico de gastrocnêmio progressivo. Monitorar CK antes de progredir fases. Atenção ao CKm histórico."},
+  {id:14,n:"GUI MARIANO",pos:"ZAG",date:"2026-03-11",saida_dm:null,ini_trans:null,fim_trans:null,
+    dias_dm:1,dias_trans:0,total:1,classif:"2A",regiao:"Perna Posterior",lado:"Esquerdo",evento:"Treino",mecanismo:"Sobrecarga",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 1",conduta:"Afastado",
+    lesson:"Lesão 2A de sóleo por sobrecarga em treino. Mais recente do elenco (11/Mar). Zagueiro com padrão de perna posterior — investigar volume de corrida em exercícios de transição.",
+    protocol:"Avaliação imediata + plano de reabilitação. Monitorar progressão diária."}
 ];
 
-// Correlação pré-lesão agregada — padrões identificados
+// Status atual do DM — 13/Mar/2026
+const DM_ATUAL=[
+  {n:"ERIK",pos:"LAT",classif:"4C",regiao:"Coxa Medial E — Adutor Longo",dias:47,estagio:"Fase 3",conduta:"Em transição",prognostico:"Indefinido",desde:"24/Jan"},
+  {n:"PATRICK BREY",pos:"EXT",classif:"Lig. II",regiao:"Joelho E — LCM",dias:33,estagio:"Fase 3",conduta:"Afastado",prognostico:"02/Abr",desde:"08/Fev"},
+  {n:"GABRIEL INOCENCIO",pos:"LAT",classif:"Contratura",regiao:"Perna Post. E — Sóleo",dias:6,estagio:"Fase 1",conduta:"Afastado",prognostico:"Em avaliação",desde:"06/Mar"},
+  {n:"THALLES",pos:"MEI",classif:"2A",regiao:"Perna Post. D — Gastrocnêmio Med.",dias:3,estagio:"Fase 1",conduta:"Afastado",prognostico:"13/Abr",desde:"09/Mar"},
+  {n:"GUI MARIANO",pos:"ZAG",classif:"2A",regiao:"Perna Post. E — Sóleo",dias:1,estagio:"Fase 1",conduta:"Afastado",prognostico:"Em avaliação",desde:"11/Mar"}
+];
+
+// Correlação epidemiológica — padrões reais do elenco (14 lesões documentadas)
 const INJ_PATTERNS=[
-  {pattern:"Sono < 6h avg 7d",present_in:5,total:7,pct:71.4,risk_mult:3.2,c:"#7c3aed",
-    desc:"Privação de sono foi o fator mais prevalente. Presente em 71% dos casos. Milewski et al. demonstram aumento de 60-70% no risco."},
-  {pattern:"CMJ Delta < -8%",present_in:5,total:7,pct:71.4,risk_mult:2.8,c:"#DC2626",
-    desc:"Fadiga neuromuscular mensurada por queda no CMJ precedeu 71% das lesões. Marcador objetivo e não-invasivo mais confiável."},
-  {pattern:"ACWR > 1.30",present_in:4,total:7,pct:57.1,risk_mult:2.5,c:"#EA580C",
-    desc:"Picos de carga relativa (EWMA) em zona de alto risco. Especialmente perigoso quando combinado com sono ou recuperação ruins."},
-  {pattern:"RecPernas <= 5/10",present_in:5,total:7,pct:71.4,risk_mult:2.3,c:"#CA8A04",
-    desc:"Recuperação subjetiva de pernas <= 5 em 3+ dias consecutivos. Correlação forte com posterior de coxa e gastrocnêmio."},
-  {pattern:"CK/Basal > 2.5",present_in:4,total:7,pct:57.1,risk_mult:2.1,c:"#DC2626",
-    desc:"Dano muscular bioquímico elevado. CK crônico (CKm > 1000) indica acúmulo de dano sem recuperação adequada."},
-  {pattern:"Assimetria ISO > 12%",present_in:3,total:7,pct:42.9,risk_mult:3.8,c:"#DC2626",
-    desc:"Maior multiplicador de risco quando presente. Altamente específico para lesões de posterior de coxa. Acima de 15% = flag crítico."},
-  {pattern:"3+ jogos em 10 dias",present_in:4,total:7,pct:57.1,risk_mult:2.0,c:"#EA580C",
-    desc:"Congestionamento de jogos sem compensação de carga. Laterais e atacantes são os mais vulneráveis neste cenário."},
-  {pattern:"Dor em tendência de alta",present_in:3,total:7,pct:42.9,risk_mult:1.9,c:"#CA8A04",
-    desc:"Dor progressiva em 3+ dias é mais relevante que dor pontual alta. Indica falha adaptativa do sistema."}
+  {pattern:"Perna Posterior / Sóleo",present_in:9,total:14,pct:64.3,risk_mult:3.5,c:"#DC2626",
+    desc:"Padrão dominante: 64% das lesões envolvem perna posterior (sóleo, gastrocnêmio, semitendíneo, bíceps femoral). Região mais vulnerável do elenco."},
+  {pattern:"Mecanismo: Dor Tardia / Sobrecarga",present_in:6,total:14,pct:42.9,risk_mult:2.8,c:"#EA580C",
+    desc:"42.9% dos casos são por sobrecarga (dor tardia, sobrecarga). Indicam acúmulo de carga sem recuperação adequada."},
+  {pattern:"Camp. Paulista (jogos oficiais)",present_in:6,total:14,pct:42.9,risk_mult:2.5,c:"#7c3aed",
+    desc:"6 lesões ocorreram em jogos do Campeonato Paulista. Intensidade competitiva como fator de risco."},
+  {pattern:"Recidiva / Mesmo grupo muscular",present_in:4,total:14,pct:28.6,risk_mult:4.2,c:"#DC2626",
+    desc:"JEFERSON (2x posterior), JONATHAN (2x semitendíneo), MORELLI (4x lombar/posterior). Recidiva = maior multiplicador de risco."},
+  {pattern:"Laterais (LAT/LD)",present_in:6,total:14,pct:42.9,risk_mult:2.3,c:"#EA580C",
+    desc:"Laterais representam 42.9% das lesões. Jeferson (2), Jonathan (3), Henrique Teles, Gabriel Inocêncio. Posição de maior demanda HSR."},
+  {pattern:"Classif. 2A-2B (moderada)",present_in:6,total:14,pct:42.9,risk_mult:2.0,c:"#CA8A04",
+    desc:"42.9% das lesões são grau 2A-2B. Lesões moderadas que afastam 10-39 dias. Padrão que pode ser prevenido com monitoramento."},
+  {pattern:"Classif. 4C (grave)",present_in:2,total:14,pct:14.3,risk_mult:5.0,c:"#DC2626",
+    desc:"2 lesões 4C: Jeferson (91d) e Erik (47d). As mais graves e custosas. Ambas em treino/jogo com carga alta."},
+  {pattern:"Sóleo específico",present_in:5,total:14,pct:35.7,risk_mult:2.6,c:"#EA580C",
+    desc:"5 lesões de sóleo (Wallace, Queiroz, Jeferson, Gava, G.Inocêncio, G.Mariano). Estrutura mais afetada — protocolo preventivo urgente."}
 ];
 
 // Regras de prevenção derivadas dos casos
@@ -360,48 +394,74 @@ const PREVENTION=[
   {trigger:"Delta BF% > 1.5 em 30 dias",action:"Avaliação nutricional + ajuste biomecânico",priority:"MÉDIA",window:"Semanal",evidence:"Caso G.QUEIROZ — desregulação sistêmica por variação antropométrica"}
 ];
 
-// Mapa Semanal — Microciclo 09-15/Mar/2026
+// Calendário Série B 2026
+const SERIE_B=[
+  {rod:1,date:"15/02/2026",time:"FIM",home:"Botafogo SP",away:"Capivariano",local:"casa",score:"0-1",result:"D",played:true},
+  {rod:2,date:"21/03/2026",time:"19:15",home:"Botafogo SP",away:"Fortaleza",local:"casa",score:null,result:null,played:false},
+  {rod:3,date:"02/04/2026",time:"A confirmar",home:"América-MG",away:"Botafogo SP",local:"fora",score:null,result:null,played:false},
+  {rod:4,date:"05/04/2026",time:"20:30",home:"Botafogo SP",away:"São Bernardo",local:"casa",score:null,result:null,played:false},
+  {rod:5,date:"10/04/2026",time:"20:30",home:"Criciúma",away:"Botafogo SP",local:"fora",score:null,result:null,played:false},
+  {rod:6,date:"20/04/2026",time:"A confirmar",home:"Botafogo SP",away:"Atlético-GO",local:"casa",score:null,result:null,played:false}
+];
+
+// Mapa Semanal — Quadro de Trabalho 09/03 a 15/03/2026
+// Fonte: Departamento de Futebol Profissional — Sérgio do Prado / Fillipe Soutto / André Leite
 const WEEK_MAP={
-  week:"09-15 Mar 2026",
-  match_day:"Sáb 15/Mar",
+  week:"09/03 a 15/03/2026",
+  next_match:{rod:2,opponent:"Fortaleza",date:"21/03",time:"19:15",local:"casa",days_to:8},
   days:[
-    {d:"Seg 09",md:"MD-6",type:"FOLGA",focus:"Recuperação pós-jogo",
+    {d:"2ª 09",md:"MD+1",type:"TREINO",focus:"Treino",local:"Campo Auxiliar",
+      sessions:[
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
+        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
+        {name:"Treino",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
+      ],
+      almoco:true,tarde:"Descanso Programado",
+      wellness:true,cmj:false,ck:true,notes:"Pós-jogo R1 (15/02 foi há 22d). Semana de preparação. DM: chegar 30min antes."},
+    {d:"3ª 10",md:"MD+2",type:"TREINO",focus:"Treino",local:"Campo Auxiliar",
+      sessions:[
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
+        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
+        {name:"Treino",time:"09:00",dur:80,rpe_alvo:"6-7",content:"Treino de campo",group:"Elenco"}
+      ],
+      almoco:true,tarde:"Descanso Programado",
+      wellness:true,cmj:false,ck:false,notes:"Semana sem jogo — volume de treino normal."},
+    {d:"4ª 11",md:"MD-10",type:"TREINO",focus:"Treino",local:"Campo Auxiliar",
+      sessions:[
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
+        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
+        {name:"Treino",time:"09:00",dur:80,rpe_alvo:"6-7",content:"Treino de campo",group:"Elenco"}
+      ],
+      almoco:true,tarde:"Descanso Programado",
+      wellness:true,cmj:true,ck:false,notes:"CMJ como marcador de prontidão neuromuscular."},
+    {d:"5ª 12",md:"MD-9",type:"TREINO",focus:"Treino (Estádio)",local:"Estádio Santa Cruz",
+      sessions:[
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
+        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
+        {name:"Treino",time:"09:00",dur:80,rpe_alvo:"7-8",content:"Treino no estádio — adaptação ao campo de jogo",group:"Elenco"}
+      ],
+      almoco:true,tarde:"Descanso Programado",
+      wellness:true,cmj:false,ck:false,notes:"Treino no Estádio Santa Cruz. Maior intensidade da semana."},
+    {d:"6ª 13",md:"MD-8",type:"TREINO",focus:"Treino",local:"Campo Auxiliar",
+      sessions:[
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
+        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
+        {name:"Treino",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
+      ],
+      almoco:true,tarde:"Descanso Programado",
+      wellness:true,cmj:true,ck:true,notes:"CK + CMJ — monitoramento de carga acumulada da semana."},
+    {d:"Sáb 14",md:"MD-7",type:"JOGO-TREINO",focus:"Jogo-Treino (Estádio)",local:"Estádio Santa Cruz",
+      sessions:[
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
+        {name:"Pré Treino",time:"08:30",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
+        {name:"Jogo-Treino",time:"09:30",dur:90,rpe_alvo:"7-9",content:"Jogo-treino no estádio — simulação de jogo",group:"Elenco"}
+      ],
+      almoco:true,tarde:"Descanso Programado",
+      wellness:true,cmj:false,ck:false,notes:"Jogo-Treino no Estádio Santa Cruz. Monitorar PSE pós. Avaliação para relacionação R2."},
+    {d:"Dom 15",md:"MD-6",type:"FOLGA",focus:"Descanso Programado",local:"-",
       sessions:[],
-      wellness:true,notes:"Pós-jogo (Dom 08). Monitorar wellness + CK dos titulares."},
-    {d:"Ter 10",md:"MD-5",type:"TREINO",focus:"Regenerativo + Força",
-      sessions:[
-        {name:"Regenerativo (titulares)",time:"09:00",dur:40,rpe_alvo:"3-4",content:"Corrida leve + mobilidade + alongamento ativo",group:"Titulares Jogo"},
-        {name:"Técnico-Tático (reservas)",time:"09:00",dur:70,rpe_alvo:"5-6",content:"Posse 4v4+2 + Finalização + Transições",group:"Reservas"},
-        {name:"Força — Manutenção",time:"15:00",dur:45,rpe_alvo:"6-7",content:"Agachamento + RDL + Nordic + Plio leve",group:"Elenco dividido"}
-      ],
-      wellness:true,cmj:false,ck:true,notes:"CK seriado titulares. Excluir VERMELHO do regenerativo (apenas fisio)."},
-    {d:"Qua 11",md:"MD-4",type:"TREINO",focus:"Técnico-Tático + Potência",
-      sessions:[
-        {name:"Técnico-Tático",time:"09:00",dur:80,rpe_alvo:"6-7",content:"Posse posicional 11v11 (campo reduzido) + Set pieces + Saída de bola",group:"Elenco"},
-        {name:"Potência NM",time:"15:00",dur:35,rpe_alvo:"7-8",content:"CMJ + Drop Jump + Sprint 10-20m + CoD",group:"Liberados"}
-      ],
-      wellness:true,cmj:true,ck:false,notes:"CMJ como marcador de prontidão NM. LARANJA: excluir da potência NM."},
-    {d:"Qui 12",md:"MD-3",type:"TREINO",focus:"Intensidade Máxima",
-      sessions:[
-        {name:"Tactical High Intensity",time:"09:00",dur:75,rpe_alvo:"7-8",content:"Jogo-treino 11v11 (campo inteiro) + Transições rápidas + Pressing alto",group:"Provável escalação"},
-        {name:"Complementar",time:"09:00",dur:60,rpe_alvo:"5-6",content:"Posse reduzida + Finalização + Trabalho individual",group:"Não-relacionados"}
-      ],
-      wellness:true,cmj:false,ck:false,notes:"Dia de maior carga da semana. Monitorar PSE pós-treino. Limitar HSR do AMARELO em 70%."},
-    {d:"Sex 13",md:"MD-2",type:"TREINO",focus:"Ativação + Set Pieces",
-      sessions:[
-        {name:"Ativação Pré-Jogo",time:"09:00",dur:50,rpe_alvo:"4-5",content:"Rondo + Posse curta + Ensaio cobranças + Bola parada + Ativação NM leve",group:"Relacionados"}
-      ],
-      wellness:true,cmj:true,ck:true,notes:"CMJ final (prontidão). CK final. WELLNESS decisório para relacionação."},
-    {d:"Sáb 14",md:"MD-1",type:"PRÉ-JOGO",focus:"Preparação final",
-      sessions:[
-        {name:"Reconhecimento / Passeio",time:"10:00",dur:20,rpe_alvo:"2-3",content:"Caminhada leve + alongamento + preparação mental",group:"Relacionados"}
-      ],
-      wellness:true,cmj:false,ck:false,notes:"Relacionação final. Decisão baseada no wellness MD-2 + CK + CMJ."},
-    {d:"Dom 15",md:"MD",type:"JOGO",focus:"Série B — Rodada 2",
-      sessions:[
-        {name:"Jogo — Série B",time:"16:00",dur:90,rpe_alvo:"8-10",content:"",group:"Escalados"}
-      ],
-      wellness:false,cmj:false,ck:false,notes:"Pós-jogo: GPS download + PSE coletada 30min pós."}
+      almoco:false,tarde:"Descanso Programado",
+      wellness:false,cmj:false,ck:false,notes:"Descanso programado. Recuperação total."}
   ]
 };
 
@@ -651,7 +711,7 @@ export default function Dashboard(){
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <div>
                 <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Mapa Semanal — Microciclo</div>
-                <div style={{fontSize:12,color:"#94a3b8",marginTop:2}}>{WEEK_MAP.week} · Jogo: {WEEK_MAP.match_day} · Série B Rodada 2</div>
+                <div style={{fontSize:12,color:"#94a3b8",marginTop:2}}>{WEEK_MAP.week} · Próximo Jogo: {WEEK_MAP.next_match.opponent} ({WEEK_MAP.next_match.date} — {WEEK_MAP.next_match.time}) · Série B Rodada {WEEK_MAP.next_match.rod}</div>
               </div>
               <div style={{display:"flex",gap:8}}>
                 {["Wellness","CMJ","CK"].map((t,i)=><span key={i} style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#f8fafc",color:"#64748b",border:"1px solid #e2e8f0"}}>{t}</span>)}
@@ -681,8 +741,8 @@ export default function Dashboard(){
                     day.sessions.map((s,j)=>
                       <div key={j} style={{padding:"4px 6px",background:"#f8fafc",borderRadius:6,marginBottom:4,fontSize:9}}>
                         <div style={{fontWeight:600,color:pri,marginBottom:1}}>{s.name}</div>
-                        <div style={{color:"#64748b"}}>{s.time} · {s.dur}min</div>
-                        <div style={{color:"#94a3b8",marginTop:1}}>RPE alvo: <span style={{fontFamily:"'JetBrains Mono'",fontWeight:600}}>{s.rpe_alvo}</span></div>
+                        <div style={{color:"#64748b"}}>{s.time}{s.dur?` · ${s.dur}min`:""}</div>
+                        {s.rpe_alvo&&<div style={{color:"#94a3b8",marginTop:1}}>RPE alvo: <span style={{fontFamily:"'JetBrains Mono'",fontWeight:600}}>{s.rpe_alvo}</span></div>}
                         {s.content&&<div style={{color:"#64748b",marginTop:2,lineHeight:1.3}}>{s.content}</div>}
                         <div style={{fontSize:8,color:tc,fontWeight:500,marginTop:2}}>{s.group}</div>
                       </div>)}
@@ -699,6 +759,74 @@ export default function Dashboard(){
                 </div>
               </div>;
             })}
+          </div>
+
+          {/* DM Atual + Calendário Série B */}
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
+            {/* DM Atual */}
+            <div style={{background:"#fff",borderRadius:12,border:"1px solid #FECACA",overflow:"hidden"}}>
+              <div style={{padding:"12px 16px",background:"#FEF2F2",borderBottom:"1px solid #FECACA",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:"#DC2626"}}>Departamento Médico — Atual</div>
+                  <div style={{fontSize:10,color:"#94a3b8"}}>13/Mar/2026 · {DM_ATUAL.length} atletas afastados</div>
+                </div>
+                <div style={{fontFamily:"'JetBrains Mono'",fontSize:20,fontWeight:800,color:"#DC2626"}}>{DM_ATUAL.length}</div>
+              </div>
+              <div style={{padding:12}}>
+                {DM_ATUAL.map((p,i)=>{
+                  const ec=p.estagio==="Fase 1"?"#DC2626":p.estagio==="Fase 3"?"#EA580C":"#CA8A04";
+                  return <div key={i} style={{padding:"10px 12px",background:i%2===0?"#FEF2F2":"#fff",borderRadius:8,marginBottom:6,border:"1px solid #FECACA44"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8}}>
+                        <span style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:"#DC2626",cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>{p.n}</span>
+                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:"#94a3b8"}}>{p.pos}</span>
+                        <span style={{padding:"1px 6px",borderRadius:4,fontSize:9,fontWeight:700,background:`${ec}15`,color:ec,border:`1px solid ${ec}33`}}>{p.classif}</span>
+                      </div>
+                      <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:"#DC2626"}}>{p.dias}d</span>
+                    </div>
+                    <div style={{fontSize:10,color:"#64748b"}}>{p.regiao}</div>
+                    <div style={{display:"flex",gap:12,marginTop:3,fontSize:9,color:"#94a3b8"}}>
+                      <span>Desde: <strong>{p.desde}</strong></span>
+                      <span style={{color:ec}}>● {p.estagio}</span>
+                      <span>{p.conduta}</span>
+                      <span>Retorno: <strong style={{color:"#2563EB"}}>{p.prognostico}</strong></span>
+                    </div>
+                  </div>;
+                })}
+              </div>
+            </div>
+
+            {/* Calendário Série B */}
+            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",overflow:"hidden"}}>
+              <div style={{padding:"12px 16px",background:"#f8fafc",borderBottom:"1px solid #e2e8f0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Calendário Série B 2026</div>
+                  <div style={{fontSize:10,color:"#94a3b8"}}>{SERIE_B.filter(g=>g.played).length} jogos realizados · {SERIE_B.filter(g=>!g.played).length} restantes</div>
+                </div>
+                <Calendar size={18} color="#94a3b8"/>
+              </div>
+              <div style={{padding:12}}>
+                {SERIE_B.map((g,i)=>{
+                  const rc=g.result==="V"?"#16A34A":g.result==="D"?"#DC2626":g.result==="E"?"#CA8A04":"#64748b";
+                  const isHome=g.local==="casa";
+                  return <div key={i} style={{padding:"10px 12px",background:g.played?"#f8fafc":"#fff",borderRadius:8,marginBottom:6,border:`1px solid ${g.played?"#e2e8f0":"#BFDBFE"}`,opacity:g.played?0.85:1}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8}}>
+                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,fontWeight:700,color:"#94a3b8"}}>R{g.rod}</span>
+                        <span style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:pri}}>{g.home} vs {g.away}</span>
+                        <span style={{padding:"1px 6px",borderRadius:4,fontSize:8,fontWeight:600,background:isHome?"#EFF6FF":"#FFF7ED",color:isHome?"#2563EB":"#EA580C"}}>{isHome?"CASA":"FORA"}</span>
+                      </div>
+                      <div style={{display:"flex",alignItems:"center",gap:8}}>
+                        <span style={{fontSize:11,color:"#64748b"}}>{g.date}</span>
+                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:"#94a3b8"}}>{g.time}</span>
+                        {g.played&&<span style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:800,color:rc}}>{g.score}</span>}
+                        {g.played&&<span style={{padding:"1px 6px",borderRadius:4,fontSize:9,fontWeight:700,background:`${rc}15`,color:rc}}>{g.result}</span>}
+                      </div>
+                    </div>
+                  </div>;
+                })}
+              </div>
+            </div>
           </div>
 
           {/* Player Readiness Map */}
@@ -1115,7 +1243,7 @@ export default function Dashboard(){
             <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Análise Retrospectiva de Lesões</div>
             <div style={{fontSize:12,color:"#94a3b8",marginTop:2}}>Temporada 2025/2026 · {INJ_HISTORY.length} casos documentados · Correlação pré-lesão com marcadores multidisciplinares</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginTop:14}}>
-              {[{l:"Total de Lesões",v:INJ_HISTORY.length,c:acc},{l:"Dias Perdidos",v:INJ_HISTORY.reduce((s,i)=>s+i.days_out,0),c:"#DC2626"},{l:"Avg Dias Fora",v:(INJ_HISTORY.reduce((s,i)=>s+i.days_out,0)/INJ_HISTORY.length).toFixed(1),c:"#EA580C"},{l:"Atletas Afetados",v:new Set(INJ_HISTORY.map(i=>i.n)).size,c:"#CA8A04"}].map((k,i)=>
+              {[{l:"Total de Lesões",v:INJ_HISTORY.length,c:acc},{l:"Dias Perdidos",v:INJ_HISTORY.reduce((s,i)=>s+i.total,0),c:"#DC2626"},{l:"Avg Dias Fora",v:(INJ_HISTORY.reduce((s,i)=>s+i.total,0)/INJ_HISTORY.length).toFixed(1),c:"#EA580C"},{l:"Atletas Afetados",v:new Set(INJ_HISTORY.map(i=>i.n)).size,c:"#CA8A04"}].map((k,i)=>
                 <div key={i} style={{textAlign:"center",padding:"12px",background:"#f8fafc",borderRadius:10}}>
                   <div style={{fontSize:9,color:"#94a3b8",fontWeight:600,textTransform:"uppercase",letterSpacing:.5}}>{k.l}</div>
                   <div style={{fontFamily:"'JetBrains Mono'",fontSize:24,fontWeight:800,color:k.c,marginTop:2}}>{k.v}</div>
@@ -1170,18 +1298,20 @@ export default function Dashboard(){
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:14}}>Casos de Lesão — Análise Individual</div>
             <div style={{display:"flex",flexDirection:"column",gap:14}}>
               {INJ_HISTORY.map(inj=>{
-                const svC=inj.severity.includes("II")?"#DC2626":inj.severity==="Funcional"?"#CA8A04":"#EA580C";
-                return <div key={inj.id} style={{borderRadius:12,border:"1px solid #e2e8f0",overflow:"hidden"}}>
+                const svC=inj.classif.includes("4C")?"#DC2626":inj.classif.includes("2")?"#EA580C":inj.classif==="1A"||inj.classif==="1B"?"#CA8A04":inj.classif.includes("Lig")?"#7c3aed":"#64748b";
+                const isActive=!inj.fim_trans;
+                return <div key={inj.id} style={{borderRadius:12,border:`1px solid ${isActive?"#FECACA":"#e2e8f0"}`,overflow:"hidden"}}>
                   {/* Case Header */}
-                  <div style={{padding:"12px 16px",background:"#f8fafc",borderBottom:"1px solid #e2e8f0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div style={{padding:"12px 16px",background:isActive?"#FEF2F2":"#f8fafc",borderBottom:"1px solid #e2e8f0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                     <div style={{display:"flex",alignItems:"center",gap:12}}>
                       <span style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:14,color:pri,cursor:"pointer"}} onClick={()=>{setSel(inj.n);setTab("player")}}>{inj.n}</span>
                       <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:"#94a3b8"}}>{inj.pos}</span>
-                      <span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:700,background:`${svC}15`,color:svC,border:`1px solid ${svC}33`}}>{inj.severity}</span>
+                      <span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:700,background:`${svC}15`,color:svC,border:`1px solid ${svC}33`}}>{inj.classif}</span>
+                      {isActive&&<span style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:700,background:"#DC262620",color:"#DC2626",border:"1px solid #DC262633"}}>ATIVO — {inj.estagio}</span>}
                     </div>
                     <div style={{display:"flex",alignItems:"center",gap:12}}>
                       <span style={{fontSize:11,color:"#64748b"}}>{new Date(inj.date).toLocaleDateString("pt-BR")}</span>
-                      <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:"#DC2626"}}>{inj.days_out} dias fora</span>
+                      <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:"#DC2626"}}>{inj.total} dias{isActive?" (em curso)":""}</span>
                     </div>
                   </div>
                   {/* Case Body */}
@@ -1189,22 +1319,36 @@ export default function Dashboard(){
                     <div style={{display:"flex",gap:16,marginBottom:12}}>
                       <div style={{flex:1}}>
                         <div style={{fontSize:10,color:"#94a3b8",fontWeight:600,textTransform:"uppercase",letterSpacing:.5,marginBottom:6}}>Diagnóstico</div>
-                        <div style={{fontSize:12,fontWeight:600,color:pri}}>{inj.type} — {inj.local}</div>
-                        <div style={{fontSize:11,color:"#64748b",marginTop:2}}>Contexto: {inj.context}</div>
+                        <div style={{fontSize:12,fontWeight:600,color:pri}}>{inj.regiao} — {inj.lado}</div>
+                        <div style={{fontSize:11,color:"#64748b",marginTop:2}}>Estrutura: <strong>{inj.estrutura}</strong></div>
+                        <div style={{fontSize:11,color:"#64748b",marginTop:1}}>Exame: {inj.exame}</div>
+                        {inj.obs&&<div style={{fontSize:10,color:"#EA580C",marginTop:2,fontStyle:"italic"}}>{inj.obs}</div>}
                       </div>
-                      <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:6,flex:2}}>
-                        {[{l:"ACWR",v:inj.pre.acwr,c:inj.pre.acwr>1.3?"#DC2626":"#16A34A"},{l:"CK/Bas",v:inj.pre.ck_ratio+"x",c:inj.pre.ck_ratio>3?"#DC2626":"#EA580C"},{l:"CMJ Δ",v:inj.pre.cmj_delta+"%",c:inj.pre.cmj_delta<-8?"#DC2626":"#EA580C"},{l:"Sono 7d",v:inj.pre.sono_avg_7d,c:inj.pre.sono_avg_7d<6?"#DC2626":"#CA8A04"},{l:"RecPer",v:inj.pre.rec_pernas+"/10",c:inj.pre.rec_pernas<=5?"#DC2626":"#CA8A04"},{l:"Assim%",v:inj.pre.assimetria+"%",c:inj.pre.assimetria>15?"#DC2626":inj.pre.assimetria>12?"#EA580C":"#16A34A"}].map((m,j)=>
+                      <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6,flex:2}}>
+                        {[
+                          {l:"Classif.",v:inj.classif,c:svC},
+                          {l:"Evento",v:inj.evento,c:"#64748b"},
+                          {l:"Mecanismo",v:inj.mecanismo,c:inj.mecanismo==="Sprint"||inj.mecanismo==="Trauma direto"?"#DC2626":"#EA580C"},
+                          {l:"Dias DM",v:inj.dias_dm,c:inj.dias_dm>30?"#DC2626":inj.dias_dm>14?"#EA580C":"#CA8A04"},
+                          {l:"Dias Trans.",v:inj.dias_trans||"—",c:"#64748b"}
+                        ].map((m,j)=>
                           <div key={j} style={{textAlign:"center",padding:"6px 4px",background:"#f8fafc",borderRadius:6}}>
                             <div style={{fontSize:8,color:"#94a3b8",fontWeight:600}}>{m.l}</div>
-                            <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:m.c}}>{m.v}</div>
+                            <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:m.c}}>{m.v}</div>
                           </div>)}
                       </div>
                     </div>
-                    {/* Red Flags */}
-                    <div style={{marginBottom:10}}>
-                      <div style={{fontSize:10,color:"#DC2626",fontWeight:700,marginBottom:4}}>RED FLAGS PRÉ-LESÃO</div>
-                      <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
-                        {inj.red_flags.map((rf,j)=><span key={j} style={{padding:"3px 8px",borderRadius:5,fontSize:10,background:"#FEF2F2",color:"#DC2626",border:"1px solid #FECACA",fontWeight:500}}>{rf}</span>)}
+                    {/* Timeline */}
+                    <div style={{marginBottom:10,padding:"8px 12px",background:"#f8fafc",borderRadius:8}}>
+                      <div style={{fontSize:10,color:"#94a3b8",fontWeight:700,marginBottom:4}}>TIMELINE</div>
+                      <div style={{display:"flex",gap:16,fontSize:10,color:"#64748b"}}>
+                        <span>Lesão: <strong>{new Date(inj.date).toLocaleDateString("pt-BR")}</strong></span>
+                        {inj.saida_dm&&<span>Saída DM: <strong>{new Date(inj.saida_dm).toLocaleDateString("pt-BR")}</strong></span>}
+                        {inj.ini_trans&&<span>Início Trans.: <strong>{new Date(inj.ini_trans).toLocaleDateString("pt-BR")}</strong></span>}
+                        {inj.fim_trans?<span>Fim Trans.: <strong>{new Date(inj.fim_trans).toLocaleDateString("pt-BR")}</strong></span>:<span style={{color:"#DC2626",fontWeight:600}}>Em andamento</span>}
+                        <span>Estágio: <strong style={{color:svC}}>{inj.estagio}</strong></span>
+                        <span>Conduta: <strong>{inj.conduta}</strong></span>
+                        {inj.prognostico&&<span>Prognóstico: <strong style={{color:"#2563EB"}}>{new Date(inj.prognostico).toLocaleDateString("pt-BR")}</strong></span>}
                       </div>
                     </div>
                     {/* Lesson Learned */}
@@ -1214,7 +1358,7 @@ export default function Dashboard(){
                     </div>
                     {/* Protocol */}
                     <div style={{padding:"10px 14px",background:"#F0FDF4",borderRadius:8,border:"1px solid #BBF7D0"}}>
-                      <div style={{fontSize:10,color:"#16A34A",fontWeight:700,marginBottom:2}}>PROTOCOLO PREVENTIVO IMPLEMENTADO</div>
+                      <div style={{fontSize:10,color:"#16A34A",fontWeight:700,marginBottom:2}}>PROTOCOLO PREVENTIVO</div>
                       <div style={{fontSize:11,color:"#166534",lineHeight:1.5}}>{inj.protocol}</div>
                     </div>
                   </div>
