@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Performance Intelligence — Botafogo-SP',
+  title: 'Saúde e Performance — Botafogo-SP',
   description: 'Dashboard de performance e wellness do elenco',
 };
 export default function RootLayout({ children }) {
