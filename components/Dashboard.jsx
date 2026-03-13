@@ -17,7 +17,7 @@ const score=(p)=>{
 };
 
 const LV={CRITICAL:{c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",l:"Crítico"},HIGH:{c:"#EA580C",bg:"#FFF7ED",bc:"#FED7AA",l:"Alto"},MODERATE:{c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",l:"Moderado"},LOW:{c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",l:"Ótimo"}};
-const pri="#1C3F3A",acc="#CCFF00",sec="#EBE8D8";
+const pri="#1A1A1A",acc="#C41E3A",sec="#F5F5F5";
 const humorL={1:"Raiva",2:"Confuso",3:"Preocupado",4:"Confiante",5:"Tranquilo"};
 
 const Tip=({active,payload,label})=>{
@@ -73,19 +73,19 @@ export default function Dashboard(){
     ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}`}</style>
 
     {/* HEADER */}
-    <header style={{background:"#fff",borderBottom:"1px solid #e2e8f0",padding:"0 28px",position:"sticky",top:0,zIndex:100,boxShadow:"0 1px 3px rgba(0,0,0,.04)"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",height:52}}>
+    <header style={{background:pri,borderBottom:"2px solid "+acc,padding:"0 28px",position:"sticky",top:0,zIndex:100,boxShadow:"0 2px 8px rgba(0,0,0,.15)"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",height:56}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <img src="https://www.ogol.com.br/img/logos/equipas/3154_imgbank_1685113109.png" alt="Botafogo-SP" style={{width:30,height:30,borderRadius:8,objectFit:"contain"}}/>
+          <img src="https://www.ogol.com.br/img/logos/equipas/3154_imgbank_1685113109.png" alt="Botafogo-SP" style={{width:36,height:36,objectFit:"contain"}}/>
           <div>
-            <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:13,color:pri,letterSpacing:-.3}}>Saúde e Performance</div>
-            <div style={{fontSize:10,color:"#94a3b8",fontWeight:500}}>Botafogo-SP FSA · 2026</div>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:14,color:"#fff",letterSpacing:-.3}}>Saúde e Performance</div>
+            <div style={{fontSize:10,color:"rgba(255,255,255,.5)",fontWeight:500}}>Botafogo-SP FSA · 2026</div>
           </div>
         </div>
         <div style={{display:"flex",gap:2}}>
-          {tabs.map(t=>{const Ic=t.ic;return <button key={t.id} onClick={()=>setTab(t.id)} style={{display:"flex",alignItems:"center",gap:6,background:tab===t.id?"#f0fdf4":"transparent",border:`1px solid ${tab===t.id?"#bbf7d0":"transparent"}`,color:tab===t.id?pri:"#94a3b8",padding:"6px 14px",borderRadius:8,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .2s"}}><Ic size={14}/>{t.l}</button>})}
+          {tabs.map(t=>{const Ic=t.ic;return <button key={t.id} onClick={()=>setTab(t.id)} style={{display:"flex",alignItems:"center",gap:6,background:tab===t.id?acc:"transparent",border:`1px solid ${tab===t.id?acc:"transparent"}`,color:tab===t.id?"#fff":"rgba(255,255,255,.5)",padding:"6px 14px",borderRadius:8,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .2s"}}><Ic size={14}/>{t.l}</button>})}
         </div>
-        <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:"#94a3b8",display:"flex",alignItems:"center",gap:6}}>
+        <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:"rgba(255,255,255,.5)",display:"flex",alignItems:"center",gap:6}}>
           <span style={{width:7,height:7,borderRadius:"50%",background:"#16A34A",display:"inline-block"}}/>12/Mar/2026 · 39 atletas
         </div>
       </div>
