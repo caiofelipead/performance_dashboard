@@ -350,7 +350,11 @@ const INJ_HISTORY=[
   {id:14,n:"GUI MARIANO",pos:"ZAG",date:"2026-03-11",saida_dm:null,ini_trans:null,fim_trans:null,
     dias_dm:1,dias_trans:0,total:1,classif:"2A",regiao:"Perna Posterior",lado:"Esquerdo",evento:"Treino",mecanismo:"Sobrecarga",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 1",conduta:"Afastado",
     lesson:"Lesão 2A de sóleo por sobrecarga em treino. Mais recente do elenco (11/Mar). Zagueiro com padrão de perna posterior — investigar volume de corrida em exercícios de transição.",
-    protocol:"Avaliação imediata + plano de reabilitação. Monitorar progressão diária."}
+    protocol:"Avaliação imediata + plano de reabilitação. Monitorar progressão diária."},
+  {id:15,n:"ERICSON",pos:"ZAG",date:"2026-03-13",saida_dm:null,ini_trans:null,fim_trans:null,
+    dias_dm:0,dias_trans:0,total:0,classif:"Cirurgia (leve)",regiao:"Joelho",lado:"Direito",evento:"Treino",mecanismo:"Lesão meniscal",estrutura:"Menisco (artroscopia)",exame:"RNM",estagio:"Pré-op",conduta:"Cirurgia programada",prognostico:"4-6 semanas",
+    lesson:"Artroscopia de menisco do joelho direito — procedimento minimamente invasivo. Afastamento estimado de 4-6 semanas. Zagueiro titular com 75 sessões na temporada.",
+    protocol:"Pré-op: manter condicionamento cardiovascular e força de MMSS. Pós-artroscopia: protocolo acelerado — carga parcial D+1, bicicleta D+7, corrida D+14-21, retorno ao treino coletivo 4-6 semanas."}
 ];
 
 // Status atual do DM — 13/Mar/2026
@@ -359,7 +363,8 @@ const DM_ATUAL=[
   {n:"PATRICK BREY",pos:"EXT",classif:"Lig. II",regiao:"Joelho E — LCM",dias:33,estagio:"Fase 3",conduta:"Afastado",prognostico:"02/Abr",desde:"08/Fev"},
   {n:"GABRIEL INOCENCIO",pos:"LAT",classif:"Contratura",regiao:"Perna Post. E — Sóleo",dias:6,estagio:"Fase 1",conduta:"Afastado",prognostico:"Em avaliação",desde:"06/Mar"},
   {n:"THALLES",pos:"MEI",classif:"2A",regiao:"Perna Post. D — Gastrocnêmio Med.",dias:3,estagio:"Fase 1",conduta:"Afastado",prognostico:"13/Abr",desde:"09/Mar"},
-  {n:"GUI MARIANO",pos:"ZAG",classif:"2A",regiao:"Perna Post. E — Sóleo",dias:1,estagio:"Fase 1",conduta:"Afastado",prognostico:"Em avaliação",desde:"11/Mar"}
+  {n:"GUI MARIANO",pos:"ZAG",classif:"2A",regiao:"Perna Post. E — Sóleo",dias:1,estagio:"Fase 1",conduta:"Afastado",prognostico:"Em avaliação",desde:"11/Mar"},
+  {n:"ERICSON",pos:"ZAG",classif:"Cirurgia",regiao:"Joelho D — Menisco (artroscopia)",dias:0,estagio:"Pré-op",conduta:"Cirurgia programada",prognostico:"4-6 semanas",desde:"13/Mar"}
 ];
 
 // Correlação epidemiológica — padrões reais do elenco (14 lesões documentadas)
@@ -924,6 +929,103 @@ export default function Dashboard(){
               </div>
             </div>
           </div>
+
+          {/* Risco de Lesão + DM + Histórico */}
+          {(()=>{
+            const mlAlert=ML.alerts.find(a=>a.n===sp.n);
+            const dmStatus=DM_ATUAL.find(d=>d.n===sp.n);
+            const playerInj=INJ_HISTORY.filter(h=>h.n===sp.n);
+            const prob=mlAlert?mlAlert.prob:null;
+            const probPct=prob!==null?(prob*100).toFixed(0):null;
+            const probC=prob>=0.5?"#DC2626":prob>=0.3?"#EA580C":prob>=0.15?"#CA8A04":"#16A34A";
+            return <div style={{display:"grid",gridTemplateColumns:dmStatus?"1fr 1fr":"1fr",gap:16,marginBottom:16}}>
+              {/* Probabilidade de Lesão */}
+              <div style={{background:"#fff",borderRadius:12,border:`1px solid ${probPct?probC+"33":"#e2e8f0"}`,padding:18}}>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Probabilidade de Lesão — XGBoost + SHAP</div>
+                {probPct!==null?<div>
+                  <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:12}}>
+                    <div style={{position:"relative",width:90,height:90,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      <svg width={90} height={90} style={{transform:"rotate(-90deg)"}}>
+                        <circle cx={45} cy={45} r={38} fill="none" stroke="#f1f5f9" strokeWidth={6}/>
+                        <circle cx={45} cy={45} r={38} fill="none" stroke={probC} strokeWidth={6} strokeDasharray={2*Math.PI*38} strokeDashoffset={2*Math.PI*38*(1-prob)} strokeLinecap="round"/>
+                      </svg>
+                      <div style={{position:"absolute",fontFamily:"'JetBrains Mono'",fontSize:24,fontWeight:800,color:probC}}>{probPct}%</div>
+                    </div>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:12,fontWeight:700,color:probC,marginBottom:4}}>{mlAlert.zone==="VERMELHO"?"RISCO ALTO":mlAlert.zone==="LARANJA"?"RISCO MODERADO-ALTO":mlAlert.zone==="AMARELO"?"RISCO MODERADO":"RISCO BAIXO"}</div>
+                      <div style={{fontSize:11,color:"#64748b",lineHeight:1.4,marginBottom:6}}>{mlAlert.dose}</div>
+                      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                        {mlAlert.shap_pos.slice(0,3).map((s,i)=>
+                          <span key={i} style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:600,background:"#FEF2F2",color:"#DC2626",border:"1px solid #FECACA"}}>{s.f}: {s.v}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6}}>
+                    {[
+                      {l:"ACWR",v:mlAlert.acwr,c:mlAlert.acwr>1.3?"#DC2626":"#16A34A"},
+                      {l:"CK/Bas",v:mlAlert.ck+"x",c:mlAlert.ck>3?"#DC2626":"#EA580C"},
+                      {l:"CMJ Δ",v:mlAlert.cmj+"%",c:mlAlert.cmj<-8?"#DC2626":"#EA580C"},
+                      {l:"Sono",v:mlAlert.sono,c:mlAlert.sono<6?"#DC2626":"#16A34A"},
+                      {l:"Bio Def",v:mlAlert.bio,c:mlAlert.bio>1.5?"#DC2626":"#CA8A04"}
+                    ].map((m,j)=>
+                      <div key={j} style={{textAlign:"center",padding:"6px 4px",background:"#f8fafc",borderRadius:6}}>
+                        <div style={{fontSize:8,color:"#94a3b8",fontWeight:600}}>{m.l}</div>
+                        <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:m.c}}>{m.v}</div>
+                      </div>)}
+                  </div>
+                </div>:
+                <div style={{textAlign:"center",padding:"20px 0",color:"#94a3b8"}}>
+                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:28,fontWeight:800,color:"#16A34A",marginBottom:4}}>N/A</div>
+                  <div style={{fontSize:11}}>Atleta fora do modelo de alertas — risco baixo estimado</div>
+                </div>}
+                {/* Histórico de Lesões do Atleta */}
+                {playerInj.length>0&&<div style={{marginTop:14,borderTop:"1px solid #f1f5f9",paddingTop:12}}>
+                  <div style={{fontSize:11,fontWeight:700,color:pri,marginBottom:8}}>Histórico de Lesões ({playerInj.length} {playerInj.length===1?"caso":"casos"})</div>
+                  {playerInj.map((inj,i)=>{
+                    const ic=inj.classif.includes("4C")?"#DC2626":inj.classif.includes("2")?"#EA580C":inj.classif==="Cirurgia"?"#7c3aed":"#CA8A04";
+                    return <div key={i} style={{padding:"8px 10px",background:!inj.fim_trans?"#FEF2F2":"#f8fafc",borderRadius:8,marginBottom:6,border:`1px solid ${!inj.fim_trans?ic+"33":"#e2e8f0"}`}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                        <div style={{display:"flex",alignItems:"center",gap:6}}>
+                          <span style={{padding:"1px 6px",borderRadius:4,fontSize:9,fontWeight:700,background:`${ic}15`,color:ic}}>{inj.classif}</span>
+                          <span style={{fontSize:11,fontWeight:600,color:pri}}>{inj.regiao} — {inj.lado}</span>
+                          {!inj.fim_trans&&<span style={{fontSize:8,fontWeight:700,color:"#DC2626",textTransform:"uppercase"}}>ativo</span>}
+                        </div>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <span style={{fontSize:10,color:"#64748b"}}>{new Date(inj.date).toLocaleDateString("pt-BR")}</span>
+                          <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,fontWeight:700,color:ic}}>{inj.total}d</span>
+                        </div>
+                      </div>
+                      <div style={{fontSize:9,color:"#94a3b8",marginTop:3}}>{inj.estrutura} · {inj.mecanismo} · {inj.evento} · {inj.estagio}</div>
+                    </div>;
+                  })}
+                </div>}
+              </div>
+
+              {/* DM Atual — se aplicável */}
+              {dmStatus&&<div style={{background:"#fff",borderRadius:12,border:"1px solid #FECACA",padding:18}}>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:"#DC2626",marginBottom:12}}>Status DM — Afastado</div>
+                <div style={{textAlign:"center",marginBottom:14}}>
+                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:48,fontWeight:900,color:"#DC2626"}}>{dmStatus.dias}</div>
+                  <div style={{fontSize:11,color:"#94a3b8",fontWeight:600}}>dias afastado</div>
+                </div>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {[
+                    {l:"Classificação",v:dmStatus.classif},
+                    {l:"Região",v:dmStatus.regiao},
+                    {l:"Estágio",v:dmStatus.estagio},
+                    {l:"Conduta",v:dmStatus.conduta},
+                    {l:"Desde",v:dmStatus.desde},
+                    {l:"Prognóstico",v:dmStatus.prognostico}
+                  ].map((r,i)=>
+                    <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 10px",background:i%2===0?"#FEF2F2":"#fff",borderRadius:6}}>
+                      <span style={{fontSize:10,color:"#94a3b8",fontWeight:600}}>{r.l}</span>
+                      <span style={{fontSize:11,fontWeight:700,color:r.l==="Prognóstico"?"#2563EB":"#DC2626"}}>{r.v}</span>
+                    </div>)}
+                </div>
+              </div>}
+            </div>;
+          })()}
 
           {/* Composição Corporal */}
           <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
