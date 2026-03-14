@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { BarChart, Bar, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, AreaChart, Cell, ReferenceLine, LineChart, Line } from "recharts";
 import { Activity, TrendingUp, AlertTriangle, CheckCircle2, ChevronRight, Heart, Zap, Shield, Users, Eye, Brain, Target, Calendar } from "lucide-react";
 
-const P=[{n:"ADRIANO",pos:"GOL",id:19,h:5,e:4,rg:7,rp:6,d:2,sq:7,rpa:7,da:1.6,sa:7.3,nw:39,pse:3,sra:331,w:82.7,alt:185,bf:12.4,mm:38.2,imc:24.2,nc:60,ai:1.24,cmj:49.6,ct:[54.2,50.3,48.5,51.4,52,52.2,52.6,49.6],wt:{dt:["02","03","07","09","10","11","12"],s:[10,8,7,7,8,7,7],r:[8,6,6,8,8,7,6],dr:[1,1,1,1,2,1,2]}},{n:"BRENNO",pos:"GOL",id:23,h:4,e:4,rg:8,rp:8,d:3,sq:7,rpa:7.3,da:1.3,sa:7.3,nw:50,pse:4,sra:310,w:90.8,alt:191,bf:13.8,mm:41.5,imc:24.9,nc:75,ai:1.17,cmj:44.6,ct:[45,47.8,49.3,48,47.6,49.3,46.2,44.6],wt:{dt:["04","05","06","07","09","10","11"],s:[7,7,7,6,10,8,7],r:[7,7,8,5,8,7,8],dr:[0,0,0,0,0,2,3]}},{n:"CARLOS EDUARDO",pos:"ZAG",id:25,h:5,e:3,rg:8,rp:8,d:2,sq:8,rpa:7.9,da:1,sa:9.2,nw:57,pse:3,sra:391,w:85.9,alt:187,bf:11.9,mm:39.8,imc:24.6,ck:973,nc:75,ai:1.07,cmj:46.7,ckm:973,ct:[49.1,44,47.1,44.5,48.8,46.5,52.6,46.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,9,8,8,9,10,8],r:[9,5,6,9,8,6,8],dr:[1,1,0,0,0,2,2]}},{n:"DARLAN",pos:"ZAG",id:20,h:4,e:3,rg:9,rp:8,d:0,sq:8,rpa:7.8,da:.7,sa:7.8,nw:17,pse:5,sra:317,w:80.2,alt:178,bf:10.5,mm:37.1,imc:25.3,nc:20,ai:.95,cmj:31.1,ct:[31.1]},{n:"ERICSON",pos:"ZAG",id:26,h:5,e:3,rg:10,rp:9,d:3,sq:9,rpa:6.7,da:1.1,sa:8.8,nw:51,pse:0,sra:431,w:91.6,alt:190,bf:13.2,mm:42.0,imc:25.4,ck:562,nc:75,ai:.64,cmj:43.1,ckm:916,ct:[44.3,47.4,42.4,47.1,50.9,50.9,55.5,43.1],wt:{dt:["26","27","28","02","03","04","06"],s:[9,9,9,7,9,8,9],r:[6,6,5,8,7,9,9],dr:[1,1,1,1,4,3,3]}},{n:"ERIK",pos:"LAT",id:20,h:5,e:4,rg:7,rp:7,d:0,sq:9,rpa:7.2,da:.2,sa:9.3,nw:22,pse:6,sra:308,w:75.5,alt:176,bf:9.8,mm:35.4,imc:24.4,nc:59,ai:1.97,ct:[54.1,52.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,8,8,10,10,9],r:[7,8,7,10,7,7,7],dr:[0,0,0,0,0,0,0]}},{n:"FELIPINHO",pos:"MEI",id:19,h:5,e:3,rg:7,rp:7,d:0,sq:7,rpa:6.8,da:0,sa:7.5,nw:16,pse:7,sra:347,w:78,alt:179,bf:11.2,mm:36.0,imc:24.3,nc:27,ai:.85,cmj:38.9,ct:[44.5,38.9]},{n:"FELIPE VIEIRA",pos:"LE",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.2,da:.3,sa:8.2,nw:27,pse:7,sra:385,w:77,alt:176,bf:7.7,mm:35.8,imc:24.9,ck:174,nc:27,ai:1.0,cmj:39.3,ckm:174,ct:[45.0,39.3],wt:{dt:["03","04","05","06","07","09","10"],s:[7,7,8,9,6,5,7],r:[7,7,7,8,6,5,7],dr:[0,0,0,0,0,0,0]}},{n:"GABRIEL INOCENCIO",pos:"LAT",id:31,h:4,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.8,da:.4,sa:7.2,nw:58,pse:3,sra:407,w:78.5,alt:177,bf:10.8,mm:36.5,imc:25.1,ck:533,nc:75,ai:.97,cmj:48.2,ckm:916,ct:[48.2,52.3,45.3,48.9,53.6,49.3,50.8,48.2],wt:{dt:["04","05","06","09","10","11","12"],s:[8,9,8,8,7,7,8],r:[7,7,7,8,8,8,8],dr:[1,2,7,2,2,2,1]}},{n:"GUI MARIANO",pos:"ZAG",id:26,h:5,e:4,rg:8,rp:8,d:4,sq:8,rpa:7.6,da:.3,sa:8.2,nw:59,pse:7,sra:476,w:89.7,alt:189,bf:12.7,mm:41.0,imc:25.1,nc:75,ai:1.1,cmj:53.1,ct:[52.4,52.2,52,55.1,47.5,53.7,53.5,53.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,9,9,8,8],r:[7,7,5,10,8,6,8],dr:[0,0,0,0,0,0,4]}},{n:"GUILHERME QUEIROZ",pos:"ATA",id:35,h:5,e:3,rg:7,rp:7,d:2,sq:8,rpa:7.3,da:1.5,sa:6.9,nw:56,pse:6,sra:369,w:87.9,alt:188,bf:13.1,mm:40.2,imc:24.9,ck:493,nc:75,ai:1.14,cmj:46,ckm:493,ct:[43.3,43.3,46.2,47.4,44.7,48.3,48,46],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,7,7,5,8],r:[10,7,6,8,6,7,7],dr:[0,0,1,0,1,1,2]}},{n:"GUSTAVO VILAR",pos:"ZAG",id:25,h:5,e:3,rg:6,rp:6,d:0,sq:7,rpa:6.5,da:.2,sa:7.7,nw:55,pse:5,sra:410,w:86.4,alt:183,bf:12.9,mm:39.5,imc:25.8,ck:658,nc:75,ai:1.07,cmj:43.5,ckm:1113,ct:[43.3,42.9,47.9,42.8,43.1,44,44.8,43.5]},{n:"HEBERT",pos:"ZAG",id:20,h:5,e:3,rg:8,rp:7,d:0,sq:7,rpa:6.7,da:.1,sa:7.7,nw:46,pse:5,sra:366,w:88.1,alt:186,bf:12.5,mm:40.8,imc:25.5,nc:59,ai:1.04,cmj:46.9,ct:[50.1,49.8,50,52.5,48.6,51.2,53.3,46.9]},{n:"HENRIQUE TELES",pos:"LAT",id:19,h:5,e:4,rg:8,rp:8,d:2,sq:8,rpa:7,da:1.4,sa:7.7,nw:54,pse:6,sra:415,w:80.1,alt:180,bf:11.3,mm:37.2,imc:24.7,ck:415,nc:69,ai:1.14,cmj:45.5,ckm:415,ct:[53.1,55.5,49.8,54.9,51.6,50.8,55.1,45.5],wt:{dt:["04","05","07","09","10","11","12"],s:[8,9,6,9,8,9,8],r:[6,8,6,10,8,9,8],dr:[2,1,7,5,3,3,2]}},{n:"HYGOR",pos:"ATA",id:33,h:5,e:4,rg:10,rp:8,d:2,sq:7,rpa:8.8,da:1.6,sa:9.2,nw:57,pse:4,sra:387,w:83.3,alt:182,bf:11.6,mm:38.6,imc:25.2,ck:749,nc:75,ai:1.12,cmj:42.1,ckm:1034,ct:[40.8,44.5,39.9,44.2,43.5,42.4,41.9,42.1],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,10,10,10,10,7],r:[10,6,8,10,8,8,8],dr:[0,2,0,0,0,3,2]}},{n:"JEFFERSON NEM",pos:"ATA",id:29,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:7.1,da:.8,sa:7.9,nw:57,pse:7,sra:423,w:72.5,alt:174,bf:10.1,mm:33.8,imc:23.9,ck:985,nc:75,ai:.97,cmj:47.5,ckm:3539,ct:[44,48.2,44.5,50.4,50,44.1,47.2,47.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,7],r:[7,6,7,8,8,7,7],dr:[0,0,0,0,0,0,2]}},{n:"JONATHAN",pos:"LD",id:33,h:5,e:4,rg:5,rp:5,d:4,sq:7,rpa:5.8,da:2.9,sa:5.9,nw:51,pse:4,sra:333,w:73.7,alt:175,bf:10.9,mm:34.3,imc:24.1,ck:981,nc:75,ai:1.14,cmj:42.8,ckm:1372,ct:[46.4,46.8,46.9,37.3,45,44.7,45,42.8],wt:{dt:["04","05","07","09","10","11","12"],s:[5,7,6,6,6,6,7],r:[6,7,4,7,5,6,5],dr:[3,3,3,2,3,3,4]}},{n:"JORDAN",pos:"GOL",id:28,h:5,e:3,rg:7,rp:7,d:0,sq:9,rpa:8,da:.7,sa:8,nw:60,pse:4,sra:418,w:92.2,alt:192,bf:12.0,mm:42.8,imc:25.0,nc:75,ai:1.1,cmj:54.1,ct:[52.2,53.4,53.4,53.2,54.5,56,55.7,54.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,9],r:[8,8,6,8,8,7,7],dr:[1,0,0,0,0,0,0]}},{n:"KELVIN",pos:"EXT",id:28,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:6.9,da:3,sa:7.4,nw:49,pse:3,sra:288,w:74.6,alt:177,bf:10.3,mm:34.8,imc:23.8,ck:207,nc:67,ai:.86,cmj:38.4,ckm:375,ct:[40.4,38.3,40.8,40.2,40.6,39.5,42.3,38.4],wt:{dt:["04","05","06","09","10","11","12"],s:[7,9,8,9,9,8,7],r:[7,7,7,10,10,9,7],dr:[3,3,3,0,0,2,2]}},{n:"LEANDRO MACIEL",pos:"MEI",id:30,h:4,e:3,rg:8,rp:8,d:0,sq:9,rpa:7.7,da:.5,sa:8.6,nw:57,pse:4,sra:399,w:91.3,alt:188,bf:13.5,mm:41.6,imc:25.8,ck:349,nc:75,ai:1.08,cmj:43.8,ckm:510,ct:[41.7,47.4,40.5,46.2,47.8,44.3,50.4,43.8],wt:{dt:["05","06","07","09","10","11","12"],s:[8,7,9,8,8,8,9],r:[8,7,8,8,7,7,8],dr:[0,1,0,0,0,1,0]}},{n:"MARANHAO",pos:"EXT",id:26,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:6.9,da:1,sa:6.8,nw:58,pse:4,sra:339,w:75.1,alt:176,bf:11.0,mm:34.9,imc:24.2,ck:274,nc:75,ai:.95,cmj:42.2,ckm:419,ct:[45.2,45.2,44.4,48.8,44.9,43.8,54.1,42.2],wt:{dt:["05","06","07","09","10","11","12"],s:[7,5,6,7,7,7,7],r:[7,6,5,7,7,7,7],dr:[1,1,1,1,1,1,1]}},{n:"MARQUINHO JR.",pos:"ATA",id:23,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.4,da:0,sa:8.1,nw:58,pse:5,sra:360,w:64.9,alt:170,bf:9.2,mm:30.8,imc:22.5,ck:511,nc:75,ai:1.17,cmj:41.3,ckm:511,ct:[44.4,45.7,42.6,46.7,43.1,42.5,47.6,41.3]},{n:"MATHEUS SALES",pos:"MEI",id:30,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:7.2,da:.6,sa:6.8,nw:58,pse:7,sra:454,w:80.1,alt:180,bf:11.7,mm:37.0,imc:24.7,ck:558,nc:75,ai:1.06,cmj:44.3,ckm:558,ct:[47.4,47.9,46.1,47.3,44.3,49.1,49.8,44.3],wt:{dt:["05","06","07","09","10","11","12"],s:[6,4,8,7,7,5,7],r:[7,4,5,8,8,7,7],dr:[1,2,1,0,1,2,1]}},{n:"MORELLI",pos:"MEI",id:28,h:5,e:3,rg:6,rp:7,d:0,sq:8,rpa:7,da:.5,sa:7.4,nw:56,pse:3,sra:356,w:82.4,alt:183,bf:12.1,mm:38.0,imc:24.6,ck:298,nc:75,ai:1.07,cmj:43.8,ckm:621,ct:[46,50.6,44.9,44.8,43.8,38.1,46.6,43.8]},{n:"PATRICK BREY",pos:"LE",id:28,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.9,da:2,sa:7.3,nw:33,pse:3,sra:385,w:73.5,alt:175,bf:10.0,mm:34.5,imc:24.0,ck:347,nc:63,ai:1.3,ct:[43.2,42.6,42.3,41.9,41,45.8,42.8,45.1],wt:{dt:["05","06","07","09","10","11","12"],s:[4,7,2,9,8,7,8],r:[4,5,3,9,8,7,8],dr:[3,2,4,0,0,3,1]}},{n:"PEDRINHO",pos:"LD",id:19,h:5,e:3,rg:8,rp:8,d:0,sq:10,rpa:7.3,da:.4,sa:9.9,nw:44,pse:6,sra:343,w:67.5,alt:172,bf:9.5,mm:31.9,imc:22.8,nc:52,ai:1.02,cmj:45.5,ct:[41.6,42.6,38.6,42.9,44.9,40.1,44,45.5]},{n:"PEDRO TORTELLO",pos:"VOL",id:21,h:5,e:3,rg:7,rp:7,d:0,sq:10,rpa:8.4,da:.3,sa:9.2,nw:56,pse:4,sra:381,w:75.1,alt:178,bf:10.6,mm:35.0,imc:23.7,nc:75,ai:1.14,cmj:41,ct:[40.6,47.6,41.3,43.7,39.2,41.6,44,41]},{n:"RAFAEL GAVA",pos:"MEI",id:32,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:6.2,da:1,sa:5.8,nw:55,pse:7,sra:364,w:78.3,alt:179,bf:11.4,mm:36.3,imc:24.4,ck:303,nc:75,ai:1.1,ckm:2969,ct:[36.2,38.9,33.8,33.6,39.2,35.3,36.7,38.7],wt:{dt:["05","06","07","09","10","11","12"],s:[4,4,6,4,5,6,8],r:[5,5,6,4,7,7,7],dr:[1,1,1,0,0,0,0]}},{n:"THALLES",pos:"ATA",id:20,h:5,e:4,rg:10,rp:10,d:2,sq:7,rpa:5.7,da:.5,sa:7.4,dpo:1,nw:60,pse:3,sra:409,w:83.9,alt:184,bf:12.2,mm:38.7,imc:24.8,ck:1865,nc:75,ai:1.19,cmj:43.3,ckm:1865,ct:[46.4,44.1,44,45.1,43,47.4,44.9,43.3],wt:{dt:["04","05","06","07","09","11","12"],s:[7,7,10,6,7,8,7],r:[5,5,7,4,7,10,10],dr:[3,0,0,3,3,3,2]}},{n:"THIAGUINHO",pos:"MEI",id:27,h:3,e:4,rg:7,rp:7,d:0,sq:7,rpa:6.5,da:.2,sa:7.4,nw:17,pse:7,sra:390,w:64.5,alt:176,bf:7.7,mm:30.0,imc:20.8,ck:185,nc:17,ai:1.0,cmj:41.5,ckm:185,ct:[41.5],wt:{dt:["03","04","05","06","07","09","10"],s:[7,6,7,8,5,9,6],r:[7,6,7,7,5,8,6],dr:[0,0,0,0,0,0,0]}},{n:"VICTOR SOUZA",pos:"GOL",id:33,h:4,e:3,rg:7,rp:7,d:0,sq:6,rpa:7.2,da:.5,sa:6.1,nw:57,pse:3,sra:473,w:92.8,alt:193,bf:14.1,mm:42.2,imc:24.9,nc:75,ai:1.04,cmj:46.9,ct:[55.4,56.5,60.9,57.9,58.7,53.2,59.5,46.9]},{n:"WALLACE",pos:"ZAG",id:31,h:4,e:3,rg:7,rp:7,d:0,sq:8,rpa:6.7,da:.8,sa:7.8,nw:47,pse:5,sra:305,w:91.6,alt:186,bf:14.0,mm:41.3,imc:26.5,nc:75,ai:.98,cmj:40.8,ct:[43.6,38.3,40.3,39.4,40.8],wt:{dt:["04","05","06","09","10","11","12"],s:[8,8,8,8,8,8,8],r:[7,8,5,8,7,7,7],dr:[2,2,2,0,2,2,0]}},{n:"WHALACY",pos:"EXT",id:19,h:5,e:3,rg:6,rp:6,d:0,sq:9,rpa:6,da:.1,sa:8.8,nw:21,pse:5,sra:277,w:72.3,alt:174,bf:10.2,mm:33.9,imc:23.9,nc:34,ai:1.05,cmj:42.8,ct:[42.3,39.7,41.3,40.5,42.4,42.9,42.8]},{n:"YURI",pos:"VOL",id:19,h:4,e:4,rg:8,rp:8,d:0,sq:8,rpa:7.9,da:0,sa:8.1,nw:49,pse:6,sra:320,w:66.4,alt:169,bf:9.0,mm:31.5,imc:23.2,nc:69,ai:1.16,cmj:41.5,ct:[40.8,44.9,43.8,43.2,42.8,42.9,43.5,41.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,8,8,8],r:[9,8,7,8,7,8,8],dr:[0,0,0,0,0,0,0]}}];
+const P=[{n:"ADRIANO",pos:"GOL",id:19,h:5,e:4,rg:7,rp:6,d:2,sq:7,rpa:7,da:1.6,sa:7.3,nw:39,pse:3,sra:331,w:82.7,alt:185,bf:12.4,mm:38.2,imc:24.2,nc:60,ai:1.24,cmj:49.6,ct:[54.2,50.3,48.5,51.4,52,52.2,52.6,49.6],wt:{dt:["02","03","07","09","10","11","12"],s:[10,8,7,7,8,7,7],r:[8,6,6,8,8,7,6],dr:[1,1,1,1,2,1,2]}},{n:"BRENNO",pos:"GOL",id:23,h:4,e:4,rg:8,rp:8,d:3,sq:7,rpa:7.3,da:1.3,sa:7.3,nw:50,pse:4,sra:310,w:90.8,alt:191,bf:13.8,mm:41.5,imc:24.9,nc:75,ai:1.17,cmj:44.6,ct:[45,47.8,49.3,48,47.6,49.3,46.2,44.6],wt:{dt:["04","05","06","07","09","10","11"],s:[7,7,7,6,10,8,7],r:[7,7,8,5,8,7,8],dr:[0,0,0,0,0,2,3]}},{n:"CARLOS EDUARDO",pos:"ZAG",id:25,h:5,e:3,rg:8,rp:8,d:2,sq:8,rpa:7.9,da:1,sa:9.2,nw:57,pse:3,sra:391,w:85.9,alt:187,bf:11.9,mm:39.8,imc:24.6,ck:973,nc:75,ai:1.07,cmj:46.7,ckm:973,ct:[49.1,44,47.1,44.5,48.8,46.5,52.6,46.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,9,8,8,9,10,8],r:[9,5,6,9,8,6,8],dr:[1,1,0,0,0,2,2]}},{n:"DARLAN",pos:"ZAG",id:20,h:4,e:3,rg:9,rp:8,d:0,sq:8,rpa:7.8,da:.7,sa:7.8,nw:17,pse:5,sra:317,w:80.2,alt:178,bf:10.5,mm:37.1,imc:25.3,nc:20,ai:.95,cmj:31.1,ct:[31.1]},{n:"ERICSON",pos:"ZAG",id:26,h:5,e:3,rg:10,rp:9,d:3,sq:9,rpa:6.7,da:1.1,sa:8.8,nw:51,pse:0,sra:431,w:91.6,alt:190,bf:13.2,mm:42.0,imc:25.4,ck:562,nc:75,ai:.64,cmj:43.1,ckm:916,ct:[44.3,47.4,42.4,47.1,50.9,50.9,55.5,43.1],wt:{dt:["26","27","28","02","03","04","06"],s:[9,9,9,7,9,8,9],r:[6,6,5,8,7,9,9],dr:[1,1,1,1,4,3,3]}},{n:"ERIK",pos:"LAT",id:20,h:5,e:4,rg:7,rp:7,d:0,sq:9,rpa:7.2,da:.2,sa:9.3,nw:22,pse:6,sra:308,w:75.5,alt:176,bf:9.8,mm:35.4,imc:24.4,nc:59,ai:1.97,ct:[54.1,52.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,8,8,10,10,9],r:[7,8,7,10,7,7,7],dr:[0,0,0,0,0,0,0]}},{n:"FELIPINHO",pos:"MEI",id:19,h:5,e:3,rg:7,rp:7,d:0,sq:7,rpa:6.8,da:0,sa:7.5,nw:16,pse:7,sra:347,w:78,alt:179,bf:11.2,mm:36.0,imc:24.3,nc:27,ai:.85,cmj:38.9,ct:[44.5,38.9]},{n:"FELIPE VIEIRA",pos:"LE",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.2,da:.3,sa:8.2,nw:27,pse:7,sra:385,w:77,alt:176,bf:7.7,mm:35.8,imc:24.9,ck:174,nc:27,ai:1.0,cmj:39.3,ckm:174,ct:[45.0,39.3],wt:{dt:["03","04","05","06","07","09","10"],s:[7,7,8,9,6,5,7],r:[7,7,7,8,6,5,7],dr:[0,0,0,0,0,0,0]}},{n:"GABRIEL INOCENCIO",pos:"LAT",id:31,h:4,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.8,da:.4,sa:7.2,nw:58,pse:3,sra:407,w:78.5,alt:177,bf:10.8,mm:36.5,imc:25.1,ck:533,nc:75,ai:.97,cmj:48.2,ckm:916,ct:[48.2,52.3,45.3,48.9,53.6,49.3,50.8,48.2],wt:{dt:["04","05","06","09","10","11","12"],s:[8,9,8,8,7,7,8],r:[7,7,7,8,8,8,8],dr:[1,2,7,2,2,2,1]}},{n:"GUI MARIANO",pos:"ZAG",id:26,h:5,e:4,rg:8,rp:8,d:4,sq:8,rpa:7.6,da:.3,sa:8.2,nw:59,pse:7,sra:476,w:89.7,alt:189,bf:12.7,mm:41.0,imc:25.1,nc:75,ai:1.1,cmj:53.1,ct:[52.4,52.2,52,55.1,47.5,53.7,53.5,53.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,9,9,8,8],r:[7,7,5,10,8,6,8],dr:[0,0,0,0,0,0,4]}},{n:"GUILHERME QUEIROZ",pos:"ATA",id:35,h:5,e:3,rg:7,rp:7,d:2,sq:8,rpa:7.3,da:1.5,sa:6.9,nw:56,pse:6,sra:369,w:87.9,alt:188,bf:13.1,mm:40.2,imc:24.9,ck:493,nc:75,ai:1.14,cmj:46,ckm:493,ct:[43.3,43.3,46.2,47.4,44.7,48.3,48,46],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,7,7,5,8],r:[10,7,6,8,6,7,7],dr:[0,0,1,0,1,1,2]}},{n:"GUSTAVO VILAR",pos:"ZAG",id:25,h:5,e:3,rg:6,rp:6,d:0,sq:7,rpa:6.5,da:.2,sa:7.7,nw:55,pse:5,sra:410,w:86.4,alt:183,bf:12.9,mm:39.5,imc:25.8,ck:658,nc:75,ai:1.07,cmj:43.5,ckm:1113,ct:[43.3,42.9,47.9,42.8,43.1,44,44.8,43.5]},{n:"HEBERT",pos:"ZAG",id:20,h:5,e:3,rg:8,rp:7,d:0,sq:7,rpa:6.7,da:.1,sa:7.7,nw:46,pse:5,sra:366,w:88.1,alt:186,bf:12.5,mm:40.8,imc:25.5,nc:59,ai:1.04,cmj:46.9,ct:[50.1,49.8,50,52.5,48.6,51.2,53.3,46.9]},{n:"HENRIQUE TELES",pos:"LAT",id:19,h:5,e:4,rg:8,rp:8,d:2,sq:8,rpa:7,da:1.4,sa:7.7,nw:54,pse:6,sra:415,w:80.1,alt:180,bf:11.3,mm:37.2,imc:24.7,ck:415,nc:69,ai:1.14,cmj:45.5,ckm:415,ct:[53.1,55.5,49.8,54.9,51.6,50.8,55.1,45.5],wt:{dt:["04","05","07","09","10","11","12"],s:[8,9,6,9,8,9,8],r:[6,8,6,10,8,9,8],dr:[2,1,7,5,3,3,2]}},{n:"HYGOR",pos:"ATA",id:33,h:5,e:4,rg:10,rp:8,d:2,sq:7,rpa:8.8,da:1.6,sa:9.2,nw:57,pse:4,sra:387,w:83.3,alt:182,bf:11.6,mm:38.6,imc:25.2,ck:749,nc:75,ai:1.12,cmj:42.1,ckm:1034,ct:[40.8,44.5,39.9,44.2,43.5,42.4,41.9,42.1],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,10,10,10,10,7],r:[10,6,8,10,8,8,8],dr:[0,2,0,0,0,3,2]}},{n:"JEFFERSON NEM",pos:"ATA",id:29,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:7.1,da:.8,sa:7.9,nw:57,pse:7,sra:423,w:72.5,alt:174,bf:10.1,mm:33.8,imc:23.9,ck:985,nc:75,ai:.97,cmj:47.5,ckm:3539,ct:[44,48.2,44.5,50.4,50,44.1,47.2,47.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,7],r:[7,6,7,8,8,7,7],dr:[0,0,0,0,0,0,2]}},{n:"JONATHAN",pos:"LD",id:33,h:5,e:4,rg:5,rp:5,d:4,sq:7,rpa:5.8,da:2.9,sa:5.9,nw:51,pse:4,sra:333,w:73.7,alt:175,bf:10.9,mm:34.3,imc:24.1,ck:981,nc:75,ai:1.14,cmj:42.8,ckm:1372,ct:[46.4,46.8,46.9,37.3,45,44.7,45,42.8],wt:{dt:["04","05","07","09","10","11","12"],s:[5,7,6,6,6,6,7],r:[6,7,4,7,5,6,5],dr:[3,3,3,2,3,3,4]}},{n:"JORDAN",pos:"GOL",id:28,h:5,e:3,rg:7,rp:7,d:0,sq:9,rpa:8,da:.7,sa:8,nw:60,pse:4,sra:418,w:92.2,alt:192,bf:12.0,mm:42.8,imc:25.0,nc:75,ai:1.1,cmj:54.1,ct:[52.2,53.4,53.4,53.2,54.5,56,55.7,54.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,9],r:[8,8,6,8,8,7,7],dr:[1,0,0,0,0,0,0]}},{n:"KELVIN",pos:"EXT",id:28,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:6.9,da:3,sa:7.4,nw:49,pse:3,sra:288,w:74.6,alt:177,bf:10.3,mm:34.8,imc:23.8,ck:207,nc:67,ai:.86,cmj:38.4,ckm:375,ct:[40.4,38.3,40.8,40.2,40.6,39.5,42.3,38.4],wt:{dt:["04","05","06","09","10","11","12"],s:[7,9,8,9,9,8,7],r:[7,7,7,10,10,9,7],dr:[3,3,3,0,0,2,2]}},{n:"LEANDRO MACIEL",pos:"MEI",id:30,h:4,e:3,rg:8,rp:8,d:0,sq:9,rpa:7.7,da:.5,sa:8.6,nw:57,pse:4,sra:399,w:91.3,alt:188,bf:13.5,mm:41.6,imc:25.8,ck:349,nc:75,ai:1.08,cmj:43.8,ckm:510,ct:[41.7,47.4,40.5,46.2,47.8,44.3,50.4,43.8],wt:{dt:["05","06","07","09","10","11","12"],s:[8,7,9,8,8,8,9],r:[8,7,8,8,7,7,8],dr:[0,1,0,0,0,1,0]}},{n:"MARANHAO",pos:"EXT",id:26,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:6.9,da:1,sa:6.8,nw:58,pse:4,sra:339,w:75.1,alt:176,bf:11.0,mm:34.9,imc:24.2,ck:274,nc:75,ai:.95,cmj:42.2,ckm:419,ct:[45.2,45.2,44.4,48.8,44.9,43.8,54.1,42.2],wt:{dt:["05","06","07","09","10","11","12"],s:[7,5,6,7,7,7,7],r:[7,6,5,7,7,7,7],dr:[1,1,1,1,1,1,1]}},{n:"MARQUINHO JR.",pos:"ATA",id:23,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.4,da:0,sa:8.1,nw:58,pse:5,sra:360,w:64.9,alt:170,bf:9.2,mm:30.8,imc:22.5,ck:511,nc:75,ai:1.17,cmj:41.3,ckm:511,ct:[44.4,45.7,42.6,46.7,43.1,42.5,47.6,41.3]},{n:"MATHEUS SALES",pos:"MEI",id:30,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:7.2,da:.6,sa:6.8,nw:58,pse:7,sra:454,w:80.1,alt:180,bf:11.7,mm:37.0,imc:24.7,ck:558,nc:75,ai:1.06,cmj:44.3,ckm:558,ct:[47.4,47.9,46.1,47.3,44.3,49.1,49.8,44.3],wt:{dt:["05","06","07","09","10","11","12"],s:[6,4,8,7,7,5,7],r:[7,4,5,8,8,7,7],dr:[1,2,1,0,1,2,1]}},{n:"MORELLI",pos:"MEI",id:28,h:5,e:3,rg:6,rp:7,d:0,sq:8,rpa:7,da:.5,sa:7.4,nw:56,pse:3,sra:356,w:82.4,alt:183,bf:12.1,mm:38.0,imc:24.6,ck:298,nc:75,ai:1.07,cmj:43.8,ckm:621,ct:[46,50.6,44.9,44.8,43.8,38.1,46.6,43.8]},{n:"PATRICK BREY",pos:"LE",id:28,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.9,da:2,sa:7.3,nw:33,pse:3,sra:385,w:73.5,alt:175,bf:10.0,mm:34.5,imc:24.0,ck:347,nc:63,ai:1.3,ct:[43.2,42.6,42.3,41.9,41,45.8,42.8,45.1],wt:{dt:["05","06","07","09","10","11","12"],s:[4,7,2,9,8,7,8],r:[4,5,3,9,8,7,8],dr:[3,2,4,0,0,3,1]}},{n:"PEDRINHO",pos:"LD",id:19,h:5,e:3,rg:8,rp:8,d:0,sq:10,rpa:7.3,da:.4,sa:9.9,nw:44,pse:6,sra:343,w:67.5,alt:172,bf:9.5,mm:31.9,imc:22.8,nc:52,ai:1.02,cmj:45.5,ct:[41.6,42.6,38.6,42.9,44.9,40.1,44,45.5]},{n:"PEDRO TORTELLO",pos:"VOL",id:21,h:5,e:3,rg:7,rp:7,d:0,sq:10,rpa:8.4,da:.3,sa:9.2,nw:56,pse:4,sra:381,w:75.1,alt:178,bf:10.6,mm:35.0,imc:23.7,nc:75,ai:1.14,cmj:41,ct:[40.6,47.6,41.3,43.7,39.2,41.6,44,41]},{n:"RAFAEL GAVA",pos:"MEI",id:32,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:6.2,da:1,sa:5.8,nw:55,pse:7,sra:364,w:78.3,alt:179,bf:11.4,mm:36.3,imc:24.4,ck:303,nc:75,ai:1.1,ckm:2969,ct:[36.2,38.9,33.8,33.6,39.2,35.3,36.7,38.7],wt:{dt:["05","06","07","09","10","11","12"],s:[4,4,6,4,5,6,8],r:[5,5,6,4,7,7,7],dr:[1,1,1,0,0,0,0]}},{n:"THALLES",pos:"ATA",id:20,h:5,e:4,rg:10,rp:10,d:2,sq:7,rpa:5.7,da:.5,sa:7.4,dpo:1,nw:60,pse:3,sra:409,w:83.9,alt:184,bf:12.2,mm:38.7,imc:24.8,ck:1865,nc:75,ai:1.19,cmj:43.3,ckm:1865,ct:[46.4,44.1,44,45.1,43,47.4,44.9,43.3],wt:{dt:["04","05","06","07","09","11","12"],s:[7,7,10,6,7,8,7],r:[5,5,7,4,7,10,10],dr:[3,0,0,3,3,3,2]}},{n:"THIAGUINHO",pos:"MEI",id:27,h:3,e:4,rg:7,rp:7,d:0,sq:7,rpa:6.5,da:.2,sa:7.4,nw:17,pse:7,sra:390,w:64.5,alt:176,bf:7.7,mm:30.0,imc:20.8,ck:185,nc:17,ai:1.0,cmj:41.5,ckm:185,ct:[41.5],wt:{dt:["03","04","05","06","07","09","10"],s:[7,6,7,8,5,9,6],r:[7,6,7,7,5,8,6],dr:[0,0,0,0,0,0,0]}},{n:"VICTOR SOUZA",pos:"GOL",id:33,h:4,e:3,rg:7,rp:7,d:0,sq:6,rpa:7.2,da:.5,sa:6.1,nw:57,pse:3,sra:473,w:92.8,alt:193,bf:14.1,mm:42.2,imc:24.9,nc:75,ai:1.04,cmj:46.9,ct:[55.4,56.5,60.9,57.9,58.7,53.2,59.5,46.9]},{n:"WALLACE",pos:"ZAG",id:31,h:4,e:3,rg:7,rp:7,d:0,sq:8,rpa:6.7,da:.8,sa:7.8,nw:47,pse:5,sra:305,w:91.6,alt:186,bf:14.0,mm:41.3,imc:26.5,nc:75,ai:.98,cmj:40.8,ct:[43.6,38.3,40.3,39.4,40.8],wt:{dt:["04","05","06","09","10","11","12"],s:[8,8,8,8,8,8,8],r:[7,8,5,8,7,7,7],dr:[2,2,2,0,2,2,0]}},{n:"WHALACY",pos:"EXT",id:19,h:5,e:3,rg:6,rp:6,d:0,sq:9,rpa:6,da:.1,sa:8.8,nw:21,pse:5,sra:277,w:72.3,alt:174,bf:10.2,mm:33.9,imc:23.9,nc:34,ai:1.05,cmj:42.8,ct:[42.3,39.7,41.3,40.5,42.4,42.9,42.8]},{n:"YURI",pos:"VOL",id:19,h:4,e:4,rg:8,rp:8,d:0,sq:8,rpa:7.9,da:0,sa:8.1,nw:49,pse:6,sra:320,w:66.4,alt:169,bf:9.0,mm:31.5,imc:23.2,nc:69,ai:1.16,cmj:41.5,ct:[40.8,44.9,43.8,43.2,42.8,42.9,43.5,41.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,8,8,8],r:[9,8,7,8,7,8,8],dr:[0,0,0,0,0,0,0]}},{n:"WESLEY",pos:"EXT",id:25,h:5,e:4,rg:8,rp:7,d:1,sq:8,rpa:7.4,da:.6,sa:7.8,nw:52,pse:5,sra:378,w:76.8,alt:178,bf:10.4,mm:35.8,imc:24.2,ck:245,nc:68,ai:1.08,cmj:43.2,ckm:382,ct:[44.8,45.1,43.5,44.2,42.8,43.9,44.5,43.2],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,7,8,8],r:[8,7,7,8,8,7,7],dr:[0,0,1,0,1,1,0]}},{n:"LUIZAO",pos:"ATA",id:23,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:7.5,da:.4,sa:8.0,nw:55,pse:4,sra:395,w:88.5,alt:188,bf:12.8,mm:40.6,imc:25.0,ck:420,nc:72,ai:1.05,cmj:45.2,ckm:580,ct:[46.8,44.5,47.2,45.8,46.1,44.9,45.6,45.2],wt:{dt:["05","06","07","09","10","11","12"],s:[9,8,8,8,9,8,8],r:[8,7,7,9,8,7,8],dr:[0,1,0,0,0,1,1]}},{n:"ZE HUGO",pos:"EXT",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.6,da:.3,sa:8.2,nw:48,pse:5,sra:342,w:72.1,alt:175,bf:9.6,mm:33.6,imc:23.5,nc:62,ai:1.12,cmj:42.5,ckm:310,ct:[43.8,44.2,41.9,43.5,42.8,43.1,42.6,42.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,8,8,7,8],r:[8,8,7,9,7,8,7],dr:[0,0,0,0,0,0,0]}}];
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CAMADA 1 — INGESTÃO MULTIMODAL (Kolodziej et al., Rommers et al., Huang et al.)
@@ -357,6 +357,214 @@ const INTERVENTIONS=[
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// PROJEÇÃO DE RISCO 48-72h — Tendência projetada por regressão linear dos últimos 7 dias
+// ═══════════════════════════════════════════════════════════════════════════════
+const PROJECTIONS={
+  "ERIK":{
+    proj_48h:{fatigue_debt:3120,cmj:47.4,ck:345,nme:0.0128,risk_prob:0.78},
+    proj_72h:{fatigue_debt:3380,cmj:46.6,ck:378,nme:0.0115,risk_prob:0.82},
+    tendencia:"piora",nivel_projetado:"CRÍTICO",
+    resumo:"ACWR extremo + fadiga exponencial. Sem intervenção, risco projetado > 80% em 72h.",
+    recomendacao:"Manter exclusão. Crioterapia + sono > 8h. Reavaliar ACWR em 48h."
+  },
+  "JONATHAN":{
+    proj_48h:{fatigue_debt:3280,cmj:42.2,ck:540,nme:0.0102,risk_prob:0.66},
+    proj_72h:{fatigue_debt:3420,cmj:41.6,ck:575,nme:0.0096,risk_prob:0.71},
+    tendencia:"piora",nivel_projetado:"CRÍTICO",
+    resumo:"CK crônico em ascensão + COP instável. Perfil de sobrecarga residual agravando.",
+    recomendacao:"Exclusão mantida. Protocolo regenerativo + readequação NM."
+  },
+  "THALLES":{
+    proj_48h:{fatigue_debt:3620,cmj:43.0,ck:1210,nme:0.0088,risk_prob:0.59},
+    proj_72h:{fatigue_debt:3780,cmj:42.7,ck:1280,nme:0.0082,risk_prob:0.64},
+    tendencia:"piora",nivel_projetado:"CRÍTICO",
+    resumo:"CK 6.2x basal sem sinais de queda. Gastrocnêmio em remodelação — risco de recidiva.",
+    recomendacao:"Exclusão até CK < 3x. Hidratação agressiva + crioterapia sistêmica."
+  },
+  "JEFFERSON NEM":{
+    proj_48h:{fatigue_debt:2780,cmj:47.2,ck:610,nme:0.0114,risk_prob:0.50},
+    proj_72h:{fatigue_debt:2870,cmj:46.9,ck:645,nme:0.0110,risk_prob:0.53},
+    tendencia:"estavel",nivel_projetado:"MODERADO-ALTO",
+    resumo:"CK crônico elevado mas estável. Risco não escala se carga controlada.",
+    recomendacao:"Manter MED 50%. Monitorar CK 48h. Se CK < 500: reclassificar."
+  },
+  "PATRICK BREY":{
+    proj_48h:{fatigue_debt:2250,cmj:42.2,ck:298,nme:0.0120,risk_prob:0.47},
+    proj_72h:{fatigue_debt:2340,cmj:41.8,ck:315,nme:0.0116,risk_prob:0.50},
+    tendencia:"piora_leve",nivel_projetado:"MODERADO-ALTO",
+    resumo:"Retorno de LCM + ACWR ascendente. Risco de pico agudo se carga não controlada.",
+    recomendacao:"Manter 50% volume. Zero HSR por +14d. RTP progressivo."
+  },
+  "KELVIN":{
+    proj_48h:{fatigue_debt:1970,cmj:37.8,ck:198,nme:0.0132,risk_prob:0.41},
+    proj_72h:{fatigue_debt:2040,cmj:37.2,ck:208,nme:0.0126,risk_prob:0.44},
+    tendencia:"piora_leve",nivel_projetado:"MODERADO",
+    resumo:"CMJ em queda progressiva — fadiga NM acumulativa. Monotonia 2.2 agravando.",
+    recomendacao:"Variar estímulos. Reduzir impacto cíclico. Isometric holds patelar."
+  },
+  "RAFAEL GAVA":{
+    proj_48h:{fatigue_debt:2420,cmj:38.2,ck:318,nme:0.0092,risk_prob:0.39},
+    proj_72h:{fatigue_debt:2510,cmj:37.7,ck:335,nme:0.0088,risk_prob:0.42},
+    tendencia:"piora_leve",nivel_projetado:"MODERADO",
+    resumo:"NME baixo + sono deteriorando. 2 lesões prévias em panturrilha D — recidiva latente.",
+    recomendacao:"Priorizar sono (> 7h). Excêntrico gastrocnêmio. MED 50%."
+  },
+  "HENRIQUE TELES":{
+    proj_48h:{fatigue_debt:2100,cmj:44.2,ck:282,nme:0.0108,risk_prob:0.31},
+    proj_72h:{fatigue_debt:2180,cmj:43.0,ck:298,nme:0.0104,risk_prob:0.34},
+    tendencia:"piora_leve",nivel_projetado:"ATENÇÃO",
+    resumo:"Assimetria SLCMJ 16.1% (pior do elenco) + CMJ -12.5%. Risco biomecânico persistente.",
+    recomendacao:"Zero sprint máximo. Trabalho bilateral obrigatório até ASI < 12%."
+  },
+  "GUILHERME QUEIROZ":{
+    proj_48h:{fatigue_debt:1850,cmj:46.2,ck:338,nme:0.0164,risk_prob:0.28},
+    proj_72h:{fatigue_debt:1920,cmj:46.4,ck:355,nme:0.0160,risk_prob:0.29},
+    tendencia:"estavel",nivel_projetado:"ATENÇÃO",
+    resumo:"Estável. CMJ em leve alta. CK limítrofe mas controlado.",
+    recomendacao:"Manter HSR -30%. Avaliação nutricional semanal."
+  },
+  "ADRIANO":{
+    proj_48h:{fatigue_debt:1610,cmj:49.2,ck:192,nme:0.0150,risk_prob:0.25},
+    proj_72h:{fatigue_debt:1680,cmj:48.8,ck:200,nme:0.0146,risk_prob:0.26},
+    tendencia:"estavel",nivel_projetado:"ATENÇÃO",
+    resumo:"ACWR ascendente mas sem fatores agravantes. Perfil protetivo.",
+    recomendacao:"Monitorar ACWR 48h. Se < 1.20: liberação total."
+  },
+  "BRENNO":{
+    proj_48h:{fatigue_debt:1380,cmj:44.3,ck:208,nme:0.0158,risk_prob:0.20},
+    proj_72h:{fatigue_debt:1440,cmj:44.0,ck:218,nme:0.0154,risk_prob:0.22},
+    tendencia:"estavel",nivel_projetado:"NORMAL",
+    resumo:"Perfil protetivo. Dor 3/10 monitorar mas sem urgência.",
+    recomendacao:"Programa preventivo padrão. Monitorar tendência de dor."
+  },
+  "HYGOR":{
+    proj_48h:{fatigue_debt:1760,cmj:41.8,ck:398,nme:0.0124,risk_prob:0.20},
+    proj_72h:{fatigue_debt:1840,cmj:41.5,ck:418,nme:0.0120,risk_prob:0.22},
+    tendencia:"estavel",nivel_projetado:"NORMAL",
+    resumo:"CK 2.8x controlado. Sem urgência mas monitorar.",
+    recomendacao:"HSR -30%. Se CK > 3x: reclassificar para LARANJA."
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SESSÃO DE TREINO — Dados de monitoramento pós-sessão (13/Mar/2026 · MD-8)
+// Responde: (1) carga recebida (2) resposta fisiológica (3) impacto no risco
+// ═══════════════════════════════════════════════════════════════════════════════
+const SESSION_DATA={
+  meta:{date:"13/03/2026",tipo:"Treino Técnico-Tático",duracao:75,local:"Campo Auxiliar",md:"MD-8",condicao:"Sol · 28°C · UR 62%",rpe_alvo:"5-6"},
+  atletas:{
+    "ERIK":{
+      gps:{dist_total:5420,dist_baseline:6800,hsr:180,hsr_baseline:420,sprints:2,sprints_baseline:8,acel:12,acel_baseline:28,decel:10,decel_baseline:24,pico_vel:24.1,pico_vel_baseline:30.2},
+      carga_interna:{srpe_sessao:6,duracao:75,srpe_total:450,hr_avg:142,hr_max:168,hr_baseline_avg:155,tempo_zona_alta:8,tempo_zona_alta_baseline:18},
+      nm_response:{cmj_pre:48.2,cmj_pos:46.8,cmj_delta_pct:-2.9,asi_pos:15.2,nme_pos:0.0135},
+      fisio:{sono_noite:6.5,dor_pos:3,rec_percebida:6,ck_estimado:340},
+      risco:{prob_pre:0.72,prob_pos:0.70,delta:-0.02,impacto:"neutro"},
+      classificacao:"amarelo",classificacao_label:"Carga controlada — excluído de alta intensidade",
+      obs:"Participou apenas de exercícios técnicos leves. Sem sprints ou mudanças de direção."
+    },
+    "JONATHAN":{
+      gps:{dist_total:4980,dist_baseline:6200,hsr:95,hsr_baseline:340,sprints:1,sprints_baseline:6,acel:8,acel_baseline:22,decel:9,decel_baseline:20,pico_vel:22.8,pico_vel_baseline:28.5},
+      carga_interna:{srpe_sessao:5,duracao:75,srpe_total:375,hr_avg:138,hr_max:162,hr_baseline_avg:148,tempo_zona_alta:5,tempo_zona_alta_baseline:15},
+      nm_response:{cmj_pre:42.8,cmj_pos:41.4,cmj_delta_pct:-3.3,asi_pos:13.8,nme_pos:0.0102},
+      fisio:{sono_noite:5.8,dor_pos:4,rec_percebida:5,ck_estimado:530},
+      risco:{prob_pre:0.61,prob_pos:0.60,delta:-0.01,impacto:"neutro"},
+      classificacao:"amarelo",classificacao_label:"Carga controlada — protocolo regenerativo",
+      obs:"Exercícios de mobilidade + técnico leve. COP monitorado pós-sessão."
+    },
+    "THALLES":{
+      gps:{dist_total:0,dist_baseline:6500,hsr:0,hsr_baseline:380,sprints:0,sprints_baseline:7,acel:0,acel_baseline:25,decel:0,decel_baseline:22,pico_vel:0,pico_vel_baseline:29.8},
+      carga_interna:{srpe_sessao:2,duracao:30,srpe_total:60,hr_avg:110,hr_max:125,hr_baseline_avg:152,tempo_zona_alta:0,tempo_zona_alta_baseline:16},
+      nm_response:{cmj_pre:43.3,cmj_pos:43.1,cmj_delta_pct:-0.5,asi_pos:5.6,nme_pos:0.0094},
+      fisio:{sono_noite:7.2,dor_pos:2,rec_percebida:8,ck_estimado:1180},
+      risco:{prob_pre:0.54,prob_pos:0.53,delta:-0.01,impacto:"neutro"},
+      classificacao:"verde",classificacao_label:"Apenas fisioterapia — sem carga de campo",
+      obs:"Excluído do treino de campo. Sessão de fisioterapia + crioterapia."
+    },
+    "JEFFERSON NEM":{
+      gps:{dist_total:5180,dist_baseline:6400,hsr:220,hsr_baseline:410,sprints:3,sprints_baseline:7,acel:15,acel_baseline:26,decel:13,decel_baseline:23,pico_vel:25.3,pico_vel_baseline:29.1},
+      carga_interna:{srpe_sessao:6,duracao:75,srpe_total:450,hr_avg:148,hr_max:172,hr_baseline_avg:156,tempo_zona_alta:10,tempo_zona_alta_baseline:17},
+      nm_response:{cmj_pre:47.5,cmj_pos:45.8,cmj_delta_pct:-3.6,asi_pos:6.2,nme_pos:0.0112},
+      fisio:{sono_noite:7.0,dor_pos:2,rec_percebida:7,ck_estimado:600},
+      risco:{prob_pre:0.47,prob_pos:0.48,delta:0.01,impacto:"leve_aumento"},
+      classificacao:"amarelo",classificacao_label:"Volume reduzido 50% — sem HSR máximo",
+      obs:"Participou com carga controlada. Sem sprints > 90%. CK monitorar 48h."
+    },
+    "PATRICK BREY":{
+      gps:{dist_total:0,dist_baseline:6100,hsr:0,hsr_baseline:350,sprints:0,sprints_baseline:6,acel:0,acel_baseline:24,decel:0,decel_baseline:21,pico_vel:0,pico_vel_baseline:28.2},
+      carga_interna:{srpe_sessao:3,duracao:45,srpe_total:135,hr_avg:118,hr_max:138,hr_baseline_avg:150,tempo_zona_alta:0,tempo_zona_alta_baseline:14},
+      nm_response:{cmj_pre:42.6,cmj_pos:42.2,cmj_delta_pct:-0.9,asi_pos:12.4,nme_pos:0.0122},
+      fisio:{sono_noite:6.8,dor_pos:2,rec_percebida:7,ck_estimado:290},
+      risco:{prob_pre:0.43,prob_pos:0.42,delta:-0.01,impacto:"neutro"},
+      classificacao:"verde",classificacao_label:"Reabilitação LCM — sem campo",
+      obs:"Fase 3 — apenas fisioterapia + fortalecimento. Sem carga de campo."
+    },
+    "KELVIN":{
+      gps:{dist_total:5650,dist_baseline:6000,hsr:280,hsr_baseline:360,sprints:4,sprints_baseline:6,acel:18,acel_baseline:24,decel:16,decel_baseline:22,pico_vel:26.4,pico_vel_baseline:28.8},
+      carga_interna:{srpe_sessao:6,duracao:75,srpe_total:450,hr_avg:152,hr_max:176,hr_baseline_avg:158,tempo_zona_alta:12,tempo_zona_alta_baseline:16},
+      nm_response:{cmj_pre:38.4,cmj_pos:36.8,cmj_delta_pct:-4.2,asi_pos:9.1,nme_pos:0.0130},
+      fisio:{sono_noite:7.5,dor_pos:3,rec_percebida:6,ck_estimado:205},
+      risco:{prob_pre:0.38,prob_pos:0.40,delta:0.02,impacto:"leve_aumento"},
+      classificacao:"amarelo",classificacao_label:"CMJ queda pós-sessão — monitorar fadiga NM",
+      obs:"CMJ caiu 4.2% pós-sessão. Monotonia acumulada pode estar amplificando fadiga."
+    },
+    "RAFAEL GAVA":{
+      gps:{dist_total:5320,dist_baseline:5900,hsr:240,hsr_baseline:330,sprints:3,sprints_baseline:5,acel:14,acel_baseline:22,decel:12,decel_baseline:20,pico_vel:25.8,pico_vel_baseline:27.5},
+      carga_interna:{srpe_sessao:7,duracao:75,srpe_total:525,hr_avg:155,hr_max:180,hr_baseline_avg:160,tempo_zona_alta:14,tempo_zona_alta_baseline:18},
+      nm_response:{cmj_pre:38.7,cmj_pos:36.2,cmj_delta_pct:-6.5,asi_pos:8.8,nme_pos:0.0090},
+      fisio:{sono_noite:5.5,dor_pos:3,rec_percebida:5,ck_estimado:320},
+      risco:{prob_pre:0.35,prob_pos:0.39,delta:0.04,impacto:"aumento"},
+      classificacao:"vermelho",classificacao_label:"CMJ -6.5% + sono ruim — sessão aumentou risco",
+      obs:"Sessão gerou fadiga NM significativa. CMJ queda de 6.5%. Sono < 6h agravou resposta. sRPE 7 acima do alvo (5-6)."
+    },
+    "HENRIQUE TELES":{
+      gps:{dist_total:5880,dist_baseline:6300,hsr:310,hsr_baseline:390,sprints:5,sprints_baseline:7,acel:20,acel_baseline:26,decel:18,decel_baseline:24,pico_vel:27.2,pico_vel_baseline:29.4},
+      carga_interna:{srpe_sessao:6,duracao:75,srpe_total:450,hr_avg:150,hr_max:174,hr_baseline_avg:154,tempo_zona_alta:11,tempo_zona_alta_baseline:16},
+      nm_response:{cmj_pre:45.5,cmj_pos:43.8,cmj_delta_pct:-3.7,asi_pos:16.8,nme_pos:0.0106},
+      fisio:{sono_noite:7.8,dor_pos:1,rec_percebida:8,ck_estimado:275},
+      risco:{prob_pre:0.28,prob_pos:0.29,delta:0.01,impacto:"neutro"},
+      classificacao:"amarelo",classificacao_label:"Assimetria pós-sessão piorou — monitorar bilateral",
+      obs:"ASI pós-sessão 16.8% (piorou de 16.1%). Sono bom ajudou a moderar risco."
+    },
+    "GUILHERME QUEIROZ":{
+      gps:{dist_total:6100,dist_baseline:6400,hsr:350,hsr_baseline:400,sprints:5,sprints_baseline:7,acel:22,acel_baseline:26,decel:20,decel_baseline:24,pico_vel:28.1,pico_vel_baseline:29.6},
+      carga_interna:{srpe_sessao:5,duracao:75,srpe_total:375,hr_avg:146,hr_max:170,hr_baseline_avg:152,tempo_zona_alta:9,tempo_zona_alta_baseline:15},
+      nm_response:{cmj_pre:46.0,cmj_pos:45.2,cmj_delta_pct:-1.7,asi_pos:5.8,nme_pos:0.0162},
+      fisio:{sono_noite:7.0,dor_pos:1,rec_percebida:7,ck_estimado:330},
+      risco:{prob_pre:0.26,prob_pos:0.25,delta:-0.01,impacto:"neutro"},
+      classificacao:"verde",classificacao_label:"Sessão bem tolerada — resposta adequada",
+      obs:"Boa tolerância. CMJ queda mínima. NME mantido. Risco estável."
+    },
+    "ADRIANO":{
+      gps:{dist_total:4200,dist_baseline:4800,hsr:120,hsr_baseline:200,sprints:1,sprints_baseline:3,acel:8,acel_baseline:15,decel:7,decel_baseline:14,pico_vel:22.5,pico_vel_baseline:24.8},
+      carga_interna:{srpe_sessao:5,duracao:75,srpe_total:375,hr_avg:140,hr_max:165,hr_baseline_avg:148,tempo_zona_alta:7,tempo_zona_alta_baseline:12},
+      nm_response:{cmj_pre:49.6,cmj_pos:48.4,cmj_delta_pct:-2.4,asi_pos:5.4,nme_pos:0.0150},
+      fisio:{sono_noite:7.5,dor_pos:1,rec_percebida:8,ck_estimado:190},
+      risco:{prob_pre:0.23,prob_pos:0.22,delta:-0.01,impacto:"neutro"},
+      classificacao:"verde",classificacao_label:"Sessão bem tolerada — goleiro com carga reduzida",
+      obs:"Treino específico de goleiro. Carga adequada. Resposta fisiológica normal."
+    },
+    "BRENNO":{
+      gps:{dist_total:4350,dist_baseline:4900,hsr:130,hsr_baseline:210,sprints:1,sprints_baseline:3,acel:9,acel_baseline:16,decel:8,decel_baseline:15,pico_vel:23.1,pico_vel_baseline:25.2},
+      carga_interna:{srpe_sessao:5,duracao:75,srpe_total:375,hr_avg:142,hr_max:168,hr_baseline_avg:150,tempo_zona_alta:8,tempo_zona_alta_baseline:13},
+      nm_response:{cmj_pre:44.6,cmj_pos:43.8,cmj_delta_pct:-1.8,asi_pos:6.0,nme_pos:0.0158},
+      fisio:{sono_noite:7.2,dor_pos:3,rec_percebida:7,ck_estimado:205},
+      risco:{prob_pre:0.19,prob_pos:0.19,delta:0.00,impacto:"neutro"},
+      classificacao:"verde",classificacao_label:"Sessão bem tolerada — monitorar dor",
+      obs:"Dor 3/10 mantida pós-sessão. Monitorar tendência. Demais marcadores OK."
+    },
+    "HYGOR":{
+      gps:{dist_total:5750,dist_baseline:6600,hsr:300,hsr_baseline:420,sprints:4,sprints_baseline:8,acel:19,acel_baseline:28,decel:17,decel_baseline:25,pico_vel:27.5,pico_vel_baseline:30.5},
+      carga_interna:{srpe_sessao:6,duracao:75,srpe_total:450,hr_avg:150,hr_max:175,hr_baseline_avg:158,tempo_zona_alta:11,tempo_zona_alta_baseline:17},
+      nm_response:{cmj_pre:42.1,cmj_pos:41.0,cmj_delta_pct:-2.6,asi_pos:7.2,nme_pos:0.0124},
+      fisio:{sono_noite:7.0,dor_pos:2,rec_percebida:7,ck_estimado:395},
+      risco:{prob_pre:0.18,prob_pos:0.18,delta:0.00,impacto:"neutro"},
+      classificacao:"verde",classificacao_label:"Sessão bem tolerada — carga HSR reduzida",
+      obs:"HSR reduzido 30% conforme protocolo. Resposta fisiológica adequada."
+    }
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // LESÕES REAIS — Fonte: Planilha Botafogo FSA - Dados Performance-2.xlsx (aba lesoes)
 // Responsável: TIAGO ROCHA · Temporada 2025/2026 (elenco atual)
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -620,7 +828,7 @@ export default function Dashboard(){
 
   const players=useMemo(()=>P.map(p=>{const s=score(p);return {...p,riskScore:s.score,risk:s.level,reasons:s.reasons};}).sort((a,b)=>b.riskScore-a.riskScore),[]);
   const sp=sel?players.find(p=>p.n===sel):null;
-  const tabs=[{id:"squad",l:"Squad Overview",ic:Users},{id:"alerts",l:"Alertas",ic:AlertTriangle},{id:"mapa",l:"Mapa Semanal",ic:Calendar},{id:"player",l:"Individual",ic:Eye},{id:"model",l:"Modelo Preditivo",ic:Brain},{id:"retro",l:"Retrospectiva",ic:Target}];
+  const tabs=[{id:"squad",l:"Squad Overview",ic:Users},{id:"alerts",l:"Alertas",ic:AlertTriangle},{id:"mapa",l:"Mapa Semanal",ic:Calendar},{id:"player",l:"Individual",ic:Eye},{id:"sessao",l:"Sessão de Treino",ic:Activity},{id:"model",l:"Modelo Preditivo",ic:Brain},{id:"retro",l:"Retrospectiva",ic:Target}];
 
   const radarData=sp?[{s:"Sono",v:sp.sq||0},{s:"Rec Geral",v:sp.rg||0},{s:"Rec Pernas",v:sp.rp||0},{s:"Dor (inv)",v:10-(sp.d||0)},{s:"Humor",v:(sp.h||3)*2},{s:"Energia",v:(sp.e||3)*2.5}]:[];
   const wtData=sp?.wt?sp.wt.dt.map((d,i)=>({d:"Mar/"+d,sono:sp.wt.s[i],rec:sp.wt.r[i],dor:sp.wt.dr[i]})):[];
@@ -1314,10 +1522,324 @@ export default function Dashboard(){
               </div>
             </div>;
           })()}
+
+          {/* ═══ CAMADA 5: PROJEÇÃO DE RISCO 48-72h ═══ */}
+          {(()=>{
+            const proj=PROJECTIONS[sp.n];
+            if(!proj) return null;
+            const mlAlert=ML.alerts.find(a=>a.n===sp.n);
+            if(!mlAlert) return null;
+            const tendC=proj.tendencia==="piora"?"#DC2626":proj.tendencia==="piora_leve"?"#EA580C":proj.tendencia==="estavel"?"#CA8A04":"#16A34A";
+            const tendL=proj.tendencia==="piora"?"PIORA":proj.tendencia==="piora_leve"?"PIORA LEVE":proj.tendencia==="estavel"?"ESTÁVEL":"MELHORA";
+            const nivelC=proj.nivel_projetado==="CRÍTICO"?"#DC2626":proj.nivel_projetado.includes("MODERADO")?"#EA580C":proj.nivel_projetado==="ATENÇÃO"?"#CA8A04":"#16A34A";
+            const projData=[
+              {d:"Atual",fatigue_debt:mlAlert.trends.fatigue_debt[6],cmj:mlAlert.trends.cmj[6],ck:mlAlert.trends.ck[6]},
+              {d:"+48h",fatigue_debt:proj.proj_48h.fatigue_debt,cmj:proj.proj_48h.cmj,ck:proj.proj_48h.ck},
+              {d:"+72h",fatigue_debt:proj.proj_72h.fatigue_debt,cmj:proj.proj_72h.cmj,ck:proj.proj_72h.ck}
+            ];
+            return <div style={{background:"#fff",borderRadius:12,border:`1px solid ${tendC}33`,padding:18,marginBottom:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+                <div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Projeção de Risco — 48-72 Horas</div>
+                  <div style={{fontSize:11,color:"#94a3b8"}}>Estimativa baseada em tendência linear dos últimos 7 dias</div>
+                </div>
+                <div style={{display:"flex",gap:8}}>
+                  <span style={{padding:"4px 12px",borderRadius:6,fontSize:11,fontWeight:800,background:`${tendC}15`,color:tendC,border:`1px solid ${tendC}33`}}>TENDÊNCIA: {tendL}</span>
+                  <span style={{padding:"4px 12px",borderRadius:6,fontSize:11,fontWeight:800,background:`${nivelC}15`,color:nivelC,border:`1px solid ${nivelC}33`}}>{proj.nivel_projetado}</span>
+                </div>
+              </div>
+              <div style={{padding:"10px 14px",background:`${tendC}08`,borderRadius:8,border:`1px solid ${tendC}22`,marginBottom:14}}>
+                <div style={{fontSize:12,fontWeight:600,color:tendC,marginBottom:2}}>{proj.resumo}</div>
+                <div style={{fontSize:11,color:"#64748b"}}><strong>Recomendação:</strong> {proj.recomendacao}</div>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:14}}>
+                {[
+                  {l:"Atual",d:projData[0],probV:(mlAlert.prob*100).toFixed(0)},
+                  {l:"Projeção 48h",d:projData[1],probV:(proj.proj_48h.risk_prob*100).toFixed(0)},
+                  {l:"Projeção 72h",d:projData[2],probV:(proj.proj_72h.risk_prob*100).toFixed(0)}
+                ].map((col,ci)=>{
+                  const pC=Number(col.probV)>=50?"#DC2626":Number(col.probV)>=30?"#EA580C":Number(col.probV)>=15?"#CA8A04":"#16A34A";
+                  return <div key={ci} style={{padding:12,background:ci===0?"#f8fafc":`${tendC}06`,borderRadius:10,border:`1px solid ${ci===0?"#e2e8f0":tendC+"22"}`}}>
+                    <div style={{fontSize:10,fontWeight:700,color:ci===0?"#64748b":tendC,textTransform:"uppercase",marginBottom:8,textAlign:"center"}}>{col.l}</div>
+                    <div style={{textAlign:"center",marginBottom:10}}>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:28,fontWeight:900,color:pC}}>{col.probV}%</div>
+                      <div style={{fontSize:9,color:"#94a3b8"}}>Prob. Lesão</div>
+                    </div>
+                    <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                      {[
+                        {l:"Fatigue Debt",v:col.d.fatigue_debt,c:col.d.fatigue_debt>3000?"#DC2626":col.d.fatigue_debt>2500?"#EA580C":"#16A34A"},
+                        {l:"CMJ (cm)",v:col.d.cmj?.toFixed(1),c:"#7c3aed"},
+                        {l:"CK (U/L)",v:col.d.ck,c:col.d.ck>400?"#DC2626":col.d.ck>250?"#EA580C":"#16A34A"}
+                      ].map((m,mi)=>
+                        <div key={mi} style={{display:"flex",justifyContent:"space-between",padding:"3px 6px",background:"#fff",borderRadius:4}}>
+                          <span style={{fontSize:9,color:"#94a3b8"}}>{m.l}</span>
+                          <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,fontWeight:700,color:m.c}}>{m.v}</span>
+                        </div>)}
+                    </div>
+                  </div>;
+                })}
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+                {[
+                  {label:"Fatigue Debt",key:"fatigue_debt",c:"#EA580C"},
+                  {label:"CMJ (cm)",key:"cmj",c:"#7c3aed"},
+                  {label:"CK (U/L)",key:"ck",c:"#DC2626"}
+                ].map((ch,ci)=>
+                  <div key={ci} style={{background:"#f8fafc",borderRadius:8,padding:12}}>
+                    <div style={{fontSize:10,fontWeight:600,color:pri,marginBottom:6}}>{ch.label}</div>
+                    <ResponsiveContainer width="100%" height={80}>
+                      <LineChart data={projData}><XAxis dataKey="d" tick={{fontSize:8,fill:"#94a3b8"}}/><YAxis hide domain={["dataMin-5","dataMax+5"]}/><Tooltip content={<Tip/>}/>
+                        <Line type="monotone" dataKey={ch.key} name={ch.label} stroke={ch.c} strokeWidth={2} dot={{r:3,fill:ch.c,stroke:"#fff",strokeWidth:2}} strokeDasharray={ci>-1?"":"5 5"}/>
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>)}
+              </div>
+            </div>;
+          })()}
         </div>}
 
         {tab==="player"&&!sp&&<div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:40,textAlign:"center",color:"#94a3b8"}}>
           <Users size={32} style={{marginBottom:12,opacity:.4}}/><div style={{fontSize:14,fontWeight:600}}>Selecione um atleta na barra lateral</div>
+        </div>}
+
+        {/* ═══════════════════════════════════════════════════════════════════ */}
+        {/* SESSÃO DE TREINO — Monitoramento pós-sessão                        */}
+        {/* ═══════════════════════════════════════════════════════════════════ */}
+        {tab==="sessao"&&<div>
+          {/* Session Header */}
+          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Monitoramento da Sessão de Treino</div>
+                <div style={{fontSize:12,color:"#94a3b8",marginTop:2}}>{SESSION_DATA.meta.date} · {SESSION_DATA.meta.tipo} · {SESSION_DATA.meta.local} · {SESSION_DATA.meta.md}</div>
+              </div>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                {[{l:"Duração",v:SESSION_DATA.meta.duracao+"min"},{l:"PSE Alvo",v:SESSION_DATA.meta.rpe_alvo},{l:"Condição",v:SESSION_DATA.meta.condicao}].map((b,i)=>
+                  <span key={i} style={{padding:"4px 12px",borderRadius:6,fontSize:10,fontWeight:600,background:"#f8fafc",color:"#64748b",border:"1px solid #e2e8f0"}}>{b.l}: <strong style={{color:pri}}>{b.v}</strong></span>
+                )}
+              </div>
+            </div>
+            <div style={{marginTop:14,padding:"10px 14px",background:"#EFF6FF",borderRadius:8,border:"1px solid #BFDBFE"}}>
+              <div style={{fontSize:11,color:"#2563EB",lineHeight:1.5}}>Esta aba responde <strong>3 perguntas essenciais</strong> após cada treino: (1) qual carga o atleta recebeu, (2) como ele respondeu fisiologicamente, (3) se a sessão aumentou ou reduziu o risco de lesão.</div>
+            </div>
+          </div>
+
+          {/* Classification Overview */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:16}}>
+            {[
+              {l:"Sessão Reduziu Risco",c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",count:Object.values(SESSION_DATA.atletas).filter(a=>a.classificacao==="verde").length},
+              {l:"Carga Controlada",c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",count:Object.values(SESSION_DATA.atletas).filter(a=>a.classificacao==="amarelo").length},
+              {l:"Sessão Aumentou Risco",c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",count:Object.values(SESSION_DATA.atletas).filter(a=>a.classificacao==="vermelho").length}
+            ].map((cat,i)=>
+              <div key={i} style={{background:cat.bg,borderRadius:12,border:`1px solid ${cat.bc}`,padding:18,textAlign:"center"}}>
+                <div style={{fontFamily:"'JetBrains Mono'",fontSize:36,fontWeight:900,color:cat.c}}>{cat.count}</div>
+                <div style={{fontSize:11,fontWeight:700,color:cat.c,marginTop:2}}>{cat.l}</div>
+              </div>
+            )}
+          </div>
+
+          {/* Individual Session Cards */}
+          {ML.alerts.map(alert=>{
+            const sess=SESSION_DATA.atletas[alert.n];
+            if(!sess) return null;
+            const classC=sess.classificacao==="vermelho"?"#DC2626":sess.classificacao==="amarelo"?"#CA8A04":"#16A34A";
+            const classBg=sess.classificacao==="vermelho"?"#FEF2F2":sess.classificacao==="amarelo"?"#FEFCE8":"#F0FDF4";
+            const classBc=sess.classificacao==="vermelho"?"#FECACA":sess.classificacao==="amarelo"?"#FEF08A":"#BBF7D0";
+            const g=sess.gps;
+            const ci=sess.carga_interna;
+            const nm=sess.nm_response;
+            const fi=sess.fisio;
+            const ri=sess.risco;
+            const deltaC=ri.delta>0.02?"#DC2626":ri.delta>0?"#EA580C":ri.delta<-0.01?"#16A34A":"#64748b";
+            const deltaSign=ri.delta>0?"+":"";
+            return <div key={alert.n} style={{background:"#fff",borderRadius:12,border:`1px solid ${classBc}`,marginBottom:16,overflow:"hidden"}}>
+              {/* Card Header */}
+              <div style={{padding:"12px 18px",background:classBg,borderBottom:`1px solid ${classBc}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{display:"flex",alignItems:"center",gap:12}}>
+                  <PlayerPhoto name={alert.n} sz={36}/>
+                  <div>
+                    <span style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:14,color:pri,cursor:"pointer"}} onClick={()=>{setSel(alert.n);setTab("player")}}>{alert.n}</span>
+                    <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:"#94a3b8",marginLeft:8}}>{alert.pos}</span>
+                  </div>
+                  <span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,background:classBg,color:classC,border:`1px solid ${classBc}`}}>{sess.classificacao.toUpperCase()}</span>
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:12}}>
+                  <span style={{fontSize:11,fontWeight:600,color:classC}}>{sess.classificacao_label}</span>
+                  <div style={{textAlign:"center",padding:"4px 12px",background:"#fff",borderRadius:6,border:`1px solid ${deltaC}33`}}>
+                    <div style={{fontSize:8,color:"#94a3b8"}}>Δ Risco</div>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:800,color:deltaC}}>{deltaSign}{(ri.delta*100).toFixed(1)}%</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{padding:18}}>
+                {/* Section 1: External Load (GPS) */}
+                <div style={{marginBottom:14}}>
+                  <div style={{fontSize:11,fontWeight:700,color:pri,marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
+                    <Zap size={12} color="#EA580C"/> Carga Externa (GPS)
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:6}}>
+                    {[
+                      {l:"Dist. Total",v:g.dist_total?g.dist_total+"m":"—",bl:g.dist_baseline+"m",pct:g.dist_total?((g.dist_total/g.dist_baseline)*100).toFixed(0):0},
+                      {l:"HSR (>19 km/h)",v:g.hsr+"m",bl:g.hsr_baseline+"m",pct:g.hsr_baseline?((g.hsr/g.hsr_baseline)*100).toFixed(0):0},
+                      {l:"Sprints",v:g.sprints,bl:g.sprints_baseline,pct:g.sprints_baseline?((g.sprints/g.sprints_baseline)*100).toFixed(0):0},
+                      {l:"Acelerações",v:g.acel,bl:g.acel_baseline,pct:g.acel_baseline?((g.acel/g.acel_baseline)*100).toFixed(0):0},
+                      {l:"Desacelerações",v:g.decel,bl:g.decel_baseline,pct:g.decel_baseline?((g.decel/g.decel_baseline)*100).toFixed(0):0},
+                      {l:"Vel. Pico",v:g.pico_vel?g.pico_vel+" km/h":"—",bl:g.pico_vel_baseline+" km/h",pct:g.pico_vel?((g.pico_vel/g.pico_vel_baseline)*100).toFixed(0):0}
+                    ].map((m,j)=>{
+                      const pctN=Number(m.pct);
+                      const pctC=pctN>110?"#DC2626":pctN>85?"#16A34A":pctN>50?"#CA8A04":"#64748b";
+                      return <div key={j} style={{textAlign:"center",padding:"6px 4px",background:"#f8fafc",borderRadius:6}}>
+                        <div style={{fontSize:8,color:"#94a3b8",fontWeight:600}}>{m.l}</div>
+                        <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:pri}}>{m.v}</div>
+                        <div style={{fontSize:8,color:"#94a3b8"}}>base: {m.bl}</div>
+                        <div style={{fontFamily:"'JetBrains Mono'",fontSize:9,fontWeight:700,color:pctC}}>{pctN}%</div>
+                      </div>;
+                    })}
+                  </div>
+                </div>
+
+                {/* Section 2: Internal Load */}
+                <div style={{marginBottom:14}}>
+                  <div style={{fontSize:11,fontWeight:700,color:pri,marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
+                    <Heart size={12} color="#DC2626"/> Carga Interna
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6}}>
+                    {[
+                      {l:"sRPE Sessão",v:ci.srpe_sessao,c:ci.srpe_sessao>7?"#DC2626":ci.srpe_sessao>5?"#CA8A04":"#16A34A"},
+                      {l:"sRPE Total",v:ci.srpe_total+" UA",c:ci.srpe_total>500?"#DC2626":ci.srpe_total>400?"#CA8A04":"#16A34A"},
+                      {l:"FC Média",v:ci.hr_avg+" bpm",c:ci.hr_avg>ci.hr_baseline_avg?"#EA580C":"#16A34A"},
+                      {l:"FC Máxima",v:ci.hr_max+" bpm",c:"#64748b"},
+                      {l:"Tempo Z. Alta",v:ci.tempo_zona_alta+"min",c:ci.tempo_zona_alta>ci.tempo_zona_alta_baseline?"#DC2626":"#16A34A"}
+                    ].map((m,j)=>
+                      <div key={j} style={{textAlign:"center",padding:"6px 4px",background:"#f8fafc",borderRadius:6}}>
+                        <div style={{fontSize:8,color:"#94a3b8",fontWeight:600}}>{m.l}</div>
+                        <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:m.c}}>{m.v}</div>
+                      </div>)}
+                  </div>
+                </div>
+
+                {/* Section 3: Neuromuscular Response */}
+                <div style={{marginBottom:14}}>
+                  <div style={{fontSize:11,fontWeight:700,color:pri,marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
+                    <Activity size={12} color="#7c3aed"/> Resposta Neuromuscular
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6}}>
+                    {[
+                      {l:"CMJ Pré",v:nm.cmj_pre+" cm",c:"#64748b"},
+                      {l:"CMJ Pós",v:nm.cmj_pos+" cm",c:nm.cmj_delta_pct<-5?"#DC2626":nm.cmj_delta_pct<-3?"#EA580C":"#16A34A"},
+                      {l:"CMJ Δ",v:(nm.cmj_delta_pct>0?"+":"")+nm.cmj_delta_pct+"%",c:nm.cmj_delta_pct<-5?"#DC2626":nm.cmj_delta_pct<-3?"#EA580C":"#16A34A"},
+                      {l:"ASI Pós",v:nm.asi_pos+"%",c:nm.asi_pos>12?"#DC2626":nm.asi_pos>8?"#CA8A04":"#16A34A"},
+                      {l:"NME Pós",v:nm.nme_pos?.toFixed(4),c:nm.nme_pos<0.012?"#DC2626":nm.nme_pos<0.015?"#EA580C":"#16A34A"}
+                    ].map((m,j)=>
+                      <div key={j} style={{textAlign:"center",padding:"6px 4px",background:"#f8fafc",borderRadius:6}}>
+                        <div style={{fontSize:8,color:"#94a3b8",fontWeight:600}}>{m.l}</div>
+                        <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:m.c}}>{m.v}</div>
+                      </div>)}
+                  </div>
+                </div>
+
+                {/* Section 4: Physiological State */}
+                <div style={{marginBottom:14}}>
+                  <div style={{fontSize:11,fontWeight:700,color:pri,marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
+                    <Shield size={12} color="#2563eb"/> Estado Fisiológico
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6}}>
+                    {[
+                      {l:"Sono (noite anterior)",v:fi.sono_noite+"h",c:fi.sono_noite<6?"#DC2626":fi.sono_noite<7?"#CA8A04":"#16A34A"},
+                      {l:"Dor Pós-Sessão",v:fi.dor_pos+"/10",c:fi.dor_pos>=4?"#DC2626":fi.dor_pos>=2?"#CA8A04":"#16A34A"},
+                      {l:"Recuperação Percebida",v:fi.rec_percebida+"/10",c:fi.rec_percebida<=5?"#DC2626":fi.rec_percebida<=7?"#CA8A04":"#16A34A"},
+                      {l:"CK Estimado",v:fi.ck_estimado+" U/L",c:fi.ck_estimado>500?"#DC2626":fi.ck_estimado>300?"#EA580C":"#16A34A"}
+                    ].map((m,j)=>
+                      <div key={j} style={{textAlign:"center",padding:"6px 4px",background:"#f8fafc",borderRadius:6}}>
+                        <div style={{fontSize:8,color:"#94a3b8",fontWeight:600}}>{m.l}</div>
+                        <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:m.c}}>{m.v}</div>
+                      </div>)}
+                  </div>
+                </div>
+
+                {/* Section 5: Risk Impact */}
+                <div style={{marginBottom:10}}>
+                  <div style={{fontSize:11,fontWeight:700,color:pri,marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
+                    <TrendingUp size={12} color={deltaC}/> Impacto no Risco de Lesão
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 2fr",gap:8}}>
+                    <div style={{textAlign:"center",padding:"8px",background:"#f8fafc",borderRadius:8}}>
+                      <div style={{fontSize:8,color:"#94a3b8",fontWeight:600}}>PROB. PRÉ</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:16,fontWeight:800,color:ri.prob_pre>=0.5?"#DC2626":ri.prob_pre>=0.3?"#EA580C":"#CA8A04"}}>{(ri.prob_pre*100).toFixed(0)}%</div>
+                    </div>
+                    <div style={{textAlign:"center",padding:"8px",background:"#f8fafc",borderRadius:8}}>
+                      <div style={{fontSize:8,color:"#94a3b8",fontWeight:600}}>PROB. PÓS</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:16,fontWeight:800,color:ri.prob_pos>=0.5?"#DC2626":ri.prob_pos>=0.3?"#EA580C":"#CA8A04"}}>{(ri.prob_pos*100).toFixed(0)}%</div>
+                    </div>
+                    <div style={{textAlign:"center",padding:"8px",background:`${deltaC}08`,borderRadius:8,border:`1px solid ${deltaC}22`}}>
+                      <div style={{fontSize:8,color:"#94a3b8",fontWeight:600}}>DELTA</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:16,fontWeight:800,color:deltaC}}>{deltaSign}{(ri.delta*100).toFixed(1)}%</div>
+                    </div>
+                    <div style={{padding:"8px 12px",background:"#f8fafc",borderRadius:8,display:"flex",alignItems:"center"}}>
+                      <div style={{fontSize:10,color:"#64748b",lineHeight:1.4}}>{sess.obs}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>;
+          })}
+
+          {/* Session Charts Summary */}
+          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:14}}>Resumo da Sessão — Carga vs Resposta</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16}}>
+              {/* Chart 1: GPS Load vs Baseline */}
+              <div>
+                <div style={{fontSize:10,fontWeight:600,color:"#64748b",marginBottom:6}}>Carga GPS (% do Baseline)</div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={ML.alerts.filter(a=>SESSION_DATA.atletas[a.n]).map(a=>{const s=SESSION_DATA.atletas[a.n];return {n:a.n.split(" ")[0],dist:s.gps.dist_baseline?Math.round((s.gps.dist_total/s.gps.dist_baseline)*100):0,hsr:s.gps.hsr_baseline?Math.round((s.gps.hsr/s.gps.hsr_baseline)*100):0};})} margin={{left:-10}}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
+                    <XAxis dataKey="n" tick={{fontSize:8,fill:"#94a3b8"}} interval={0} angle={-30} textAnchor="end" height={40}/>
+                    <YAxis tick={{fontSize:8,fill:"#94a3b8"}} domain={[0,120]}/>
+                    <Tooltip content={<Tip/>}/>
+                    <ReferenceLine y={100} stroke="#94a3b8" strokeDasharray="3 3"/>
+                    <Bar dataKey="dist" name="Dist %" fill="#2563eb" radius={[2,2,0,0]} barSize={10}/>
+                    <Bar dataKey="hsr" name="HSR %" fill="#EA580C" radius={[2,2,0,0]} barSize={10}/>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              {/* Chart 2: CMJ Delta Post-Session */}
+              <div>
+                <div style={{fontSize:10,fontWeight:600,color:"#64748b",marginBottom:6}}>CMJ Δ Pós-Sessão (%)</div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={ML.alerts.filter(a=>SESSION_DATA.atletas[a.n]).map(a=>{const s=SESSION_DATA.atletas[a.n];return {n:a.n.split(" ")[0],delta:s.nm_response.cmj_delta_pct};})} margin={{left:-10}}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
+                    <XAxis dataKey="n" tick={{fontSize:8,fill:"#94a3b8"}} interval={0} angle={-30} textAnchor="end" height={40}/>
+                    <YAxis tick={{fontSize:8,fill:"#94a3b8"}} domain={[-8,1]}/>
+                    <Tooltip content={<Tip/>}/>
+                    <ReferenceLine y={-5} stroke="#DC2626" strokeDasharray="3 3" label={{value:"-5%",fontSize:8,fill:"#DC2626"}}/>
+                    <Bar dataKey="delta" name="CMJ Δ %" radius={[2,2,0,0]}>
+                      {ML.alerts.filter(a=>SESSION_DATA.atletas[a.n]).map((a,i)=>{const d=SESSION_DATA.atletas[a.n].nm_response.cmj_delta_pct;return <Cell key={i} fill={d<-5?"#DC2626":d<-3?"#EA580C":"#16A34A"}/>;
+                      })}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              {/* Chart 3: Risk Delta */}
+              <div>
+                <div style={{fontSize:10,fontWeight:600,color:"#64748b",marginBottom:6}}>Δ Risco de Lesão (%)</div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={ML.alerts.filter(a=>SESSION_DATA.atletas[a.n]).map(a=>{const s=SESSION_DATA.atletas[a.n];return {n:a.n.split(" ")[0],delta:Number((s.risco.delta*100).toFixed(1))};})} margin={{left:-10}}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
+                    <XAxis dataKey="n" tick={{fontSize:8,fill:"#94a3b8"}} interval={0} angle={-30} textAnchor="end" height={40}/>
+                    <YAxis tick={{fontSize:8,fill:"#94a3b8"}} domain={[-3,5]}/>
+                    <Tooltip content={<Tip/>}/>
+                    <ReferenceLine y={0} stroke="#94a3b8"/>
+                    <Bar dataKey="delta" name="Δ Risco %" radius={[2,2,0,0]}>
+                      {ML.alerts.filter(a=>SESSION_DATA.atletas[a.n]).map((a,i)=>{const d=SESSION_DATA.atletas[a.n].risco.delta;return <Cell key={i} fill={d>0.02?"#DC2626":d>0?"#EA580C":d<-0.01?"#16A34A":"#64748b"}/>;
+                      })}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
         </div>}
 
         {tab==="model"&&<div>
