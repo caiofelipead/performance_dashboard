@@ -152,8 +152,8 @@
     {
       "name": "Estresse Biológico Composto",
       "rule": "CK/Basal > 2.5 + Sono < 6 + Dor > 3",
-      "n_episodes": 0,
-      "injury_rate": 0,
+      "n_episodes": 2,
+      "injury_rate": 100.0,
       "action": "Sessão regenerativa. Crioterapia. Remonitorar CK 48h."
     },
     {
@@ -1334,5 +1334,5 @@
       "dynamic_knee_valgus": 3.9,
       "postural_sway": 19.7
     }
-  ]
+  }
 }

@@ -3,15 +3,6 @@
 MOTOR PREDITIVO DE LESÕES NÃO-TRAUMÁTICAS — NÍVEL ELITE
 Botafogo-SP FSA — Núcleo de Saúde e Performance
 ================================================================================
-Paradigma: Sistemas Complexos (Bittencourt et al., 2016)
-Arquitetura ML: KNNImputer → StandardScaler → SMOTE+TomekLinks → LASSO →
-                XGBoost → Calibração → Threshold Tuning → SHAP
-
-Pipeline validado conforme padrões UEFA/MLS de medicina esportiva.
-Referências: Rossi et al. 2022, Williams et al. 2017, Hulin et al. 2014
-
-Autor: Núcleo de Ciência de Dados — Saúde e Performance
-================================================================================
 """
 
 import numpy as np
@@ -146,6 +137,9 @@ ATHLETES = [
 
 N_DAYS = 150  # Expanded window for better temporal modeling
 START_DATE = datetime(2025, 10, 15)
+N_DAYS = 120
+START_DATE = datetime(2025, 11, 15)
+TRAINING_TYPES = ["strength", "tactical", "technical", "conditioning", "recovery"]
 
 
 # ==============================================================================
@@ -204,14 +198,14 @@ def generate_longitudinal_data():
                 decels = np.random.poisson(10)
                 player_load = np.random.normal(400, 60)
                 duration = np.random.choice([90, 75, 60], p=[0.3, 0.5, 0.2])
+                minutes_played = duration
 
             # --- Internal Load (PSE) ---
             if is_rest:
                 pse = 0
             else:
                 pse_base = 7.5 if is_match else np.random.uniform(3, 7)
-                pse = np.clip(pse_base + fatigue_state * 0.5 +
-                              np.random.normal(0, 0.5), 1, 10)
+                pse = np.clip(pse_base + fatigue_state * 0.5 + np.random.normal(0, 0.5), 1, 10)
             srpe = round(pse * duration, 1)
             training_load = srpe
             match_load = srpe if is_match else 0
@@ -223,15 +217,11 @@ def generate_longitudinal_data():
             )
 
             # --- Wellness ---
-            sleep_quality = np.clip(
-                np.random.normal(7.5, 1.2) - fatigue_state * 0.8, 1, 10)
-            sleep_hours = np.clip(
-                np.random.normal(7.8, 0.8) - fatigue_state * 0.3, 4, 12)
+            sleep_quality = np.clip(np.random.normal(7.5, 1.2) - fatigue_state * 0.8, 1, 10)
+            sleep_hours = np.clip(np.random.normal(7.8, 0.8) - fatigue_state * 0.3, 4, 12)
             pain = np.clip(fatigue_state * 2 + np.random.exponential(0.5), 0, 10)
-            recovery_general = np.clip(
-                np.random.normal(7.5, 1) - fatigue_state, 1, 10)
-            recovery_legs = np.clip(
-                np.random.normal(7.2, 1.2) - fatigue_state * 1.2, 1, 10)
+            recovery_general = np.clip(np.random.normal(7.5, 1) - fatigue_state, 1, 10)
+            recovery_legs = np.clip(np.random.normal(7.2, 1.2) - fatigue_state * 1.2, 1, 10)
             mood = np.clip(int(np.random.normal(4, 0.8) - fatigue_state * 0.3), 1, 5)
             energy = np.clip(int(np.random.normal(3, 0.5) - fatigue_state * 0.2), 1, 4)
 
@@ -297,11 +287,18 @@ def generate_longitudinal_data():
             if ck_today / ath["ck_basal"] > 2 and pain > 3:
                 injury_prob += 0.04
 
-            injury = 1 if (np.random.random() < injury_prob and
-                          injury_cooldown <= 0) else 0
+            injury = 1 if (np.random.random() < injury_prob and injury_cooldown <= 0) else 0
+
+            # days_since_last_injury is recorded BEFORE this day's injury
+            # (to avoid leakage: we only know yesterday's status)
+            days_since_inj_today = days_since_last_injury
 
             if injury:
-                injury_cooldown = np.random.randint(7, 21)
+                injury_cooldown = np.random.randint(3, 10)
+                days_since_last_injury = 0
+            else:
+                days_since_last_injury += 1
+
             if injury_cooldown > 0:
                 injury_cooldown -= 1
 
@@ -310,7 +307,8 @@ def generate_longitudinal_data():
             recovery_input = (sleep_quality / 10 + recovery_general / 10) / 2
             fatigue_state = np.clip(
                 fatigue_state * 0.85 + load_input * 0.4 - recovery_input * 0.2 +
-                np.random.normal(0, 0.05), 0, 4)
+                np.random.normal(0, 0.05), 0, 4
+            )
 
             records.append({
                 "player_id": player_id,
@@ -322,6 +320,10 @@ def generate_longitudinal_data():
                 "bf_pct": round(bf_today, 1),
                 "height_cm": ath["height"],
                 "muscle_mass_kg": ath["mm"],
+                "training_load": round(training_load, 1),
+                "match_load": round(match_load, 1),
+                "training_type": training_type,
+                "minutes_played": minutes_played,
                 # GPS
                 "hsr_m": round(hsr, 1),
                 "sprints": sprints,
@@ -360,8 +362,13 @@ def generate_longitudinal_data():
                 # Biochemistry
                 "ck_today": round(ck_today, 1),
                 "ck_basal": ath["ck_basal"],
+                # Biomechanical
+                "dynamic_knee_valgus": round(dynamic_knee_valgus, 1),
+                "postural_sway": round(postural_sway, 1),
+                "force_asymmetry": round(force_asymmetry, 1),
                 # Target
                 "injury": injury,
+                "days_since_last_injury": days_since_inj_today,
                 "is_match": int(is_match),
                 "is_rest": int(is_rest),
                 "day_of_week": day_of_week,
@@ -428,7 +435,6 @@ def compute_exposure_table(df):
 # ==============================================================================
 
 def ewma(series, span):
-    """Exponentially Weighted Moving Average."""
     return series.ewm(span=span, adjust=False).mean()
 
 
