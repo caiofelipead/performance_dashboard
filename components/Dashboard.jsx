@@ -97,6 +97,9 @@ const ML={
       dose:"EXCLUIR da sessão. Apenas fisioterapia preventiva.",
       acwr:1.97,ck:2.1,cmj:-5.4,sono:6.2,bio:1.8,
       classif:"Alto",
+      perfil_risco:"aguda",
+      fatigue_debt:2840,nme:0.0142,cmj_trend_3d:-1.82,srpe_trend_5d:48.3,sleep_trend_7d:-0.31,
+      trends:{fatigue_debt:[1620,1780,1950,2110,2340,2580,2840],ck:[148,165,198,224,268,290,315],srpe:[280,310,350,420,480,520,560],cmj:[53.2,52.8,52.1,51.4,50.8,49.6,48.2]},
       diag_diff:{aguda:78,sobrecarga:22,base:"ACWR extremo (1.97) + assimetria SLCMJ 14.8% + H:Q 0.52 → perfil de lesão aguda muscular em sprint/aceleração (Rommers et al., 2020)"},
       shap_pos:[
         {f:"ACWR Combinado",sv:0.182,v:"1.97",note:"2.3x acima do limiar (0.85). Maior contribuição individual."},
@@ -114,6 +117,9 @@ const ML={
       dose:"EXCLUIR da sessão. Fisioterapia + regenerativo.",
       acwr:1.14,ck:3.8,cmj:-4.9,sono:5.9,bio:2.2,
       classif:"Alto",
+      perfil_risco:"sobrecarga",
+      fatigue_debt:3120,nme:0.0108,cmj_trend_3d:-0.94,srpe_trend_5d:22.1,sleep_trend_7d:-0.42,
+      trends:{fatigue_debt:[2210,2380,2540,2690,2850,2980,3120],ck:[320,345,380,410,445,470,510],srpe:[310,330,340,355,370,380,395],cmj:[44.8,44.2,43.6,43.1,42.5,41.8,42.8]},
       diag_diff:{aguda:45,sobrecarga:55,base:"Lesão recente (dez/25, posterior coxa) + CK 3.8x + sono 5.9 + dor crônica (2.9 avg) → perfil misto com dominância de sobrecarga residual"},
       shap_pos:[
         {f:"Lesão Prévia (< 90d)",sv:0.198,v:"Posterior Coxa (dez/25)",note:"MAIOR PREDITOR. 21 dias fora, < 90 dias. RR = 3.4x (Kolodziej)."},
@@ -131,6 +137,9 @@ const ML={
       dose:"EXCLUIR da sessão. Monitorar CK 48h.",
       acwr:1.19,ck:6.2,cmj:-3.8,sono:7.0,bio:1.9,
       classif:"Alto",
+      perfil_risco:"sobrecarga",
+      fatigue_debt:3450,nme:0.0095,cmj_trend_3d:-0.62,srpe_trend_5d:35.7,sleep_trend_7d:0.08,
+      trends:{fatigue_debt:[2480,2650,2810,2980,3140,3290,3450],ck:[680,720,810,890,960,1120,1150],srpe:[340,360,380,395,410,425,440],cmj:[44.9,44.5,44.1,43.8,43.5,43.1,43.3]},
       diag_diff:{aguda:32,sobrecarga:68,base:"CK 6.2x basal (maior do elenco) + CKm 1865 + lesão recente adutor (jan/26) → perfil dominante de sobrecarga com acúmulo bioquímico sem recuperação"},
       shap_pos:[
         {f:"CK / Basal",sv:0.164,v:"6.2x",note:"MAIOR CONTRIBUIÇÃO. 6.2x basal é extremo. CKm 1865 = dano crônico."},
@@ -148,6 +157,9 @@ const ML={
       dose:"MED: 50% volume. Sem HSR.",
       acwr:0.97,ck:4.1,cmj:-1.0,sono:7.2,bio:1.5,
       classif:"Moderado",
+      perfil_risco:"sobrecarga",
+      fatigue_debt:2680,nme:0.0118,cmj_trend_3d:-0.35,srpe_trend_5d:18.4,sleep_trend_7d:-0.12,
+      trends:{fatigue_debt:[2050,2180,2310,2420,2510,2590,2680],ck:[380,395,420,460,510,545,580],srpe:[350,365,380,390,400,415,430],cmj:[48.0,47.8,47.5,47.3,47.1,46.8,47.5]},
       diag_diff:{aguda:38,sobrecarga:62,base:"CK 4.1x + CKm 3539 (maior crônico do elenco) + histórico tornozelo → sobrecarga crônica com compensação biomecânica"},
       shap_pos:[
         {f:"CK / Basal",sv:0.098,v:"4.1x",note:"Elevado. CKm 3539 = pior dano crônico acumulado do elenco."},
@@ -164,6 +176,9 @@ const ML={
       dose:"MED: 50% volume. Sem HSR.",
       acwr:1.30,ck:2.3,cmj:-2.5,sono:6.5,bio:1.3,
       classif:"Moderado",
+      perfil_risco:"aguda",
+      fatigue_debt:2150,nme:0.0125,cmj_trend_3d:-0.78,srpe_trend_5d:31.2,sleep_trend_7d:-0.18,
+      trends:{fatigue_debt:[1580,1690,1790,1880,1960,2060,2150],ck:[180,195,210,225,240,260,280],srpe:[310,325,340,355,370,385,400],cmj:[43.8,43.2,42.8,42.3,41.8,42.0,42.6]},
       diag_diff:{aguda:61,sobrecarga:39,base:"Lesão recente reto femoral (fev/26) + ACWR 1.30 ascendente + SLCMJ ASI 11.9% + H:Q 0.51 → perfil agudo em construção"},
       shap_pos:[
         {f:"Lesão Prévia (< 90d)",sv:0.142,v:"Reto Femoral E (fev/26)",note:"36 dias. Tecido vulnerável."},
@@ -180,6 +195,9 @@ const ML={
       dose:"MED: 50% volume. Sem HSR.",
       acwr:0.86,ck:1.4,cmj:-4.0,sono:7.4,bio:0.8,
       classif:"Moderado",
+      perfil_risco:"neuromuscular",
+      fatigue_debt:1890,nme:0.0138,cmj_trend_3d:-1.12,srpe_trend_5d:8.6,sleep_trend_7d:0.04,
+      trends:{fatigue_debt:[1420,1510,1580,1640,1710,1800,1890],ck:[145,150,158,165,172,180,190],srpe:[240,248,255,262,270,278,290],cmj:[42.3,41.8,41.2,40.8,40.3,39.8,38.4]},
       diag_diff:{aguda:28,sobrecarga:72,base:"Monotonia 2.2 (maior do elenco) + histórico tendinopatia patelar + dor avg 3.0 → perfil de sobrecarga tendínea por repetição"},
       shap_pos:[
         {f:"Monotonia",sv:0.092,v:"2.2",note:"Maior do elenco. Tendão reage a carga monotônica (caso retrospectivo)."},
@@ -196,6 +214,9 @@ const ML={
       dose:"MED: 50% volume. Sem HSR.",
       acwr:1.10,ck:1.8,cmj:-7.2,sono:5.8,bio:1.4,
       classif:"Moderado",
+      perfil_risco:"neuromuscular",
+      fatigue_debt:2320,nme:0.0098,cmj_trend_3d:-1.45,srpe_trend_5d:14.8,sleep_trend_7d:-0.38,
+      trends:{fatigue_debt:[1780,1890,1980,2060,2140,2230,2320],ck:[210,225,240,258,270,285,300],srpe:[300,310,320,335,350,360,375],cmj:[39.2,38.8,38.2,37.6,37.1,36.4,38.7]},
       diag_diff:{aguda:54,sobrecarga:46,base:"2 lesões prévias no mesmo segmento (panturrilha D) + CMJ -7.2% + CKm 2969 + sono 5.8 → recidiva muscular por fadiga NM crônica"},
       shap_pos:[
         {f:"Lesão Prévia (recidiva)",sv:0.134,v:"2 lesões panturrilha D",note:"Recidiva ipsilateral. Máximo peso (Kolodziej). Tecido comprometido."},
@@ -213,6 +234,9 @@ const ML={
       dose:"Reduzir HSR 30%. Monitorar PSE.",
       acwr:1.14,ck:2.4,cmj:-12.5,sono:7.7,bio:0.9,
       classif:"Moderado",
+      perfil_risco:"biomecanico",
+      fatigue_debt:2010,nme:0.0112,cmj_trend_3d:-2.15,srpe_trend_5d:12.4,sleep_trend_7d:0.14,
+      trends:{fatigue_debt:[1520,1610,1700,1780,1850,1930,2010],ck:[190,200,215,228,240,255,268],srpe:[340,350,360,375,390,400,415],cmj:[55.1,53.8,52.4,50.8,49.1,47.2,45.5]},
       diag_diff:{aguda:67,sobrecarga:33,base:"Lesão recente posterior coxa E (fev/26) + SLCMJ ASI 16.1% (pior do elenco) + CMJ -12.5% + H:Q 0.49 → alto risco agudo mesmo com prob moderada"},
       shap_pos:[
         {f:"Assimetria SLCMJ",sv:0.148,v:"16.1%",note:"PIOR DO ELENCO. Acima de 15% = flag crítico. Risco posterior coxa."},
@@ -232,6 +256,9 @@ const ML={
       dose:"Reduzir HSR 30%. Monitorar PSE.",
       acwr:1.14,ck:2.5,cmj:1.1,sono:6.9,bio:1.1,
       classif:"Baixo-Moderado",
+      perfil_risco:"sobrecarga",
+      fatigue_debt:1780,nme:0.0168,cmj_trend_3d:0.22,srpe_trend_5d:10.2,sleep_trend_7d:-0.08,
+      trends:{fatigue_debt:[1380,1440,1510,1580,1640,1710,1780],ck:[220,235,250,268,285,300,320],srpe:[300,310,320,330,340,350,370],cmj:[44.7,45.0,45.2,45.5,45.8,46.0,46.0]},
       diag_diff:{aguda:25,sobrecarga:75,base:"Lesão lombar recente (jan/26) + Delta BF% elevado + CK limítrofe → perfil de desregulação sistêmica (caso atípico da retrospectiva)"},
       shap_pos:[
         {f:"Lesão Prévia",sv:0.082,v:"Lombar D (jan/26)",note:"45 dias. Região vulnerável."},
@@ -249,6 +276,9 @@ const ML={
       dose:"Reduzir HSR 30%. Monitorar PSE.",
       acwr:1.24,ck:1.6,cmj:-3.7,sono:7.3,bio:0.7,
       classif:"Baixo",
+      perfil_risco:"aguda",
+      fatigue_debt:1540,nme:0.0155,cmj_trend_3d:-0.48,srpe_trend_5d:15.8,sleep_trend_7d:0.06,
+      trends:{fatigue_debt:[1180,1240,1300,1360,1410,1470,1540],ck:[145,150,155,162,170,178,185],srpe:[280,290,300,310,320,330,340],cmj:[52.2,51.8,51.4,51.0,50.6,50.2,49.6]},
       diag_diff:{aguda:52,sobrecarga:48,base:"Sem histórico + ACWR 1.24 moderado + métricas NM boas → risco residual por carga, sem vulnerabilidade estrutural"},
       shap_pos:[
         {f:"ACWR Combinado",sv:0.058,v:"1.24",note:"Zona de atenção (> 1.20). Tendência ascendente."},
@@ -265,6 +295,9 @@ const ML={
       dose:"Reduzir volume 20%. Monitorar.",
       acwr:1.17,ck:1.9,cmj:-3.5,sono:7.3,bio:0.8,
       classif:"Baixo",
+      perfil_risco:"sobrecarga",
+      fatigue_debt:1320,nme:0.0162,cmj_trend_3d:-0.38,srpe_trend_5d:6.4,sleep_trend_7d:-0.05,
+      trends:{fatigue_debt:[1020,1060,1110,1160,1210,1260,1320],ck:[155,162,170,178,185,192,200],srpe:[260,268,275,282,290,298,310],cmj:[46.2,45.8,45.5,45.2,44.8,44.5,44.6]},
       diag_diff:{aguda:40,sobrecarga:60,base:"Sem histórico + goleiro (menor HSR) + dor 3/10 incipiente → atenção por dor, mas perfil protetivo"},
       shap_pos:[
         {f:"Tendência Dor 3d",sv:0.042,v:"↑ 3.0",note:"Dor ascendente. Monitorar."},
@@ -281,6 +314,9 @@ const ML={
       dose:"Reduzir HSR 30%. Monitorar PSE.",
       acwr:1.12,ck:2.8,cmj:-1.6,sono:7.0,bio:1.2,
       classif:"Baixo",
+      perfil_risco:"sobrecarga",
+      fatigue_debt:1680,nme:0.0128,cmj_trend_3d:-0.28,srpe_trend_5d:9.2,sleep_trend_7d:-0.10,
+      trends:{fatigue_debt:[1280,1340,1400,1460,1520,1600,1680],ck:[280,295,310,328,345,360,380],srpe:[320,330,340,350,360,370,390],cmj:[41.9,41.6,41.4,41.2,41.0,40.8,42.1]},
       diag_diff:{aguda:42,sobrecarga:58,base:"Histórico coxa D (set/25) > 90d + CK 2.8x + monotonia 1.7 → risco residual por carga e bioquímica, sem urgência"},
       shap_pos:[
         {f:"CK / Basal",sv:0.054,v:"2.8x",note:"Elevado. CKm 1034 indica acúmulo."},
@@ -297,6 +333,28 @@ const ML={
   ]
 };
 const ZC={"VERMELHO":{c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA"},"LARANJA":{c:"#EA580C",bg:"#FFF7ED",bc:"#FED7AA"},"AMARELO":{c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A"},"VERDE":{c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0"}};
+
+// Perfil de risco fisiológico
+const PERFIL_RISCO_LABELS={
+  aguda:{label:"Aguda",desc:"Pico de carga / sprint / aceleração",c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",ic:"Zap"},
+  sobrecarga:{label:"Sobrecarga",desc:"Acúmulo de fadiga / CK crônico",c:"#EA580C",bg:"#FFF7ED",bc:"#FED7AA",ic:"TrendingUp"},
+  neuromuscular:{label:"Neuromuscular",desc:"Perda de potência / NME baixo",c:"#7c3aed",bg:"#F5F3FF",bc:"#DDD6FE",ic:"Activity"},
+  biomecanico:{label:"Biomecânico",desc:"Assimetria / instabilidade",c:"#2563eb",bg:"#EFF6FF",bc:"#BFDBFE",ic:"Shield"}
+};
+
+// Intervenções rápidas por situação
+const INTERVENTIONS=[
+  {trigger:"ACWR > 1.50",action:"Reduzir volume HSR 30%",perfil:"aguda",priority:1},
+  {trigger:"ACWR > 1.35 + Sono < 6",action:"Excluir de HSR e sprints",perfil:"aguda",priority:1},
+  {trigger:"Assimetria SLCMJ > 12%",action:"Trabalho unilateral obrigatório",perfil:"biomecanico",priority:1},
+  {trigger:"CK > 3x basal",action:"Sessão regenerativa + remonitorar 48h",perfil:"sobrecarga",priority:1},
+  {trigger:"CMJ Delta < -8%",action:"48h treino regenerativo",perfil:"neuromuscular",priority:1},
+  {trigger:"Sono avg < 6h (7d)",action:"Protocolo recuperação sono",perfil:"sobrecarga",priority:2},
+  {trigger:"NME em queda 5d",action:"Reduzir volume, priorizar qualidade",perfil:"neuromuscular",priority:2},
+  {trigger:"Fatigue Debt > 3000",action:"Carga MED (50% volume)",perfil:"sobrecarga",priority:2},
+  {trigger:"Dor subindo > 1pt/3d",action:"Avaliação fisioterapia 24h",perfil:"sobrecarga",priority:2},
+  {trigger:"H:Q Ratio < 0.55",action:"Protocolo Nordic Hamstring",perfil:"biomecanico",priority:2}
+];
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // LESÕES REAIS — Fonte: Planilha Botafogo FSA - Dados Performance-2.xlsx (aba lesoes)
@@ -628,6 +686,83 @@ export default function Dashboard(){
                 <Ic size={20} color={k.c} opacity={.4}/>
               </div>
             </div>})}
+          </div>
+
+          {/* ═══ CAMADA 1: RISK BOARD — Quem pode treinar hoje? ═══ */}
+          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+              <div>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri}}>Risk Board — Prontidão para Sessão</div>
+                <div style={{fontSize:11,color:"#94a3b8"}}>13/Mar/2026 · Decisão operacional: quem pode treinar normalmente hoje?</div>
+              </div>
+              <div style={{display:"flex",gap:6}}>
+                {[{l:"Crítico (>60%)",c:"#DC2626",n:ML.alerts.filter(a=>a.prob>0.60).length},
+                  {l:"Moderado (35-60%)",c:"#EA580C",n:ML.alerts.filter(a=>a.prob>0.35&&a.prob<=0.60).length},
+                  {l:"Atenção (20-35%)",c:"#CA8A04",n:ML.alerts.filter(a=>a.prob>0.20&&a.prob<=0.35).length},
+                  {l:"Normal (<20%)",c:"#16A34A",n:ML.alerts.filter(a=>a.prob<=0.20).length}
+                ].map((z,i)=><span key={i} style={{padding:"3px 10px",borderRadius:6,fontSize:9,fontWeight:700,background:`${z.c}12`,color:z.c,border:`1px solid ${z.c}33`}}>{z.n} {z.l}</span>)}
+              </div>
+            </div>
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+              <thead>
+                <tr style={{borderBottom:"2px solid #e2e8f0"}}>
+                  {["Atleta","Pos","Probabilidade","Status","Perfil Fisiológico","Fatigue Debt","NME","Ação"].map((h,i)=>
+                    <th key={i} style={{padding:"8px 6px",textAlign:"left",fontSize:9,color:"#94a3b8",fontWeight:700,textTransform:"uppercase",letterSpacing:.5}}>{h}</th>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {ML.alerts.map((a,i)=>{
+                  const zs=ZC[a.zone];
+                  const pr=PERFIL_RISCO_LABELS[a.perfil_risco]||PERFIL_RISCO_LABELS.sobrecarga;
+                  const statusLabel=a.prob>0.60?"Crítico":a.prob>0.35?"Moderado":a.prob>0.20?"Atenção":"Normal";
+                  const statusIcon=a.prob>0.60?"🔴":a.prob>0.35?"🟠":a.prob>0.20?"🟡":"🟢";
+                  return <tr key={i} style={{borderBottom:"1px solid #f1f5f9",background:i%2===0?"transparent":"#fafbfc",cursor:"pointer"}} onClick={()=>{setSel(a.n);setTab("player")}}>
+                    <td style={{padding:"8px 6px"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8}}>
+                        <PlayerPhoto name={a.n} sz={28}/>
+                        <span style={{fontWeight:700,color:pri}}>{a.n}</span>
+                      </div>
+                    </td>
+                    <td style={{padding:"8px 6px",fontFamily:"'JetBrains Mono'",fontSize:10,color:"#94a3b8"}}>{a.pos}</td>
+                    <td style={{padding:"8px 6px"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:6}}>
+                        <div style={{width:50,height:6,background:"#f1f5f9",borderRadius:4}}>
+                          <div style={{height:"100%",width:`${Math.min(a.prob*100,100)}%`,background:zs.c,borderRadius:4}}/>
+                        </div>
+                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:zs.c}}>{(a.prob*100).toFixed(0)}%</span>
+                      </div>
+                    </td>
+                    <td style={{padding:"8px 6px"}}>
+                      <span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:700,background:zs.bg,color:zs.c,border:`1px solid ${zs.bc}`}}>{statusIcon} {statusLabel}</span>
+                    </td>
+                    <td style={{padding:"8px 6px"}}>
+                      <span style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:600,background:pr.bg,color:pr.c,border:`1px solid ${pr.bc}`}}>{pr.label}</span>
+                    </td>
+                    <td style={{padding:"8px 6px",fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:a.fatigue_debt>3000?"#DC2626":a.fatigue_debt>2500?"#EA580C":"#64748b"}}>{a.fatigue_debt}</td>
+                    <td style={{padding:"8px 6px",fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:a.nme<0.012?"#DC2626":a.nme<0.015?"#EA580C":"#16A34A"}}>{a.nme?.toFixed(4)||"-"}</td>
+                    <td style={{padding:"8px 6px",fontSize:10,color:"#64748b",maxWidth:200}}>{a.dose}</td>
+                  </tr>;
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* ═══ CAMADA 5: INTERVENÇÕES RÁPIDAS ═══ */}
+          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:10}}>Intervenções Rápidas — Referência Operacional</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
+              {INTERVENTIONS.map((iv,i)=>{
+                const pr=PERFIL_RISCO_LABELS[iv.perfil];
+                return <div key={i} style={{padding:"8px 12px",borderRadius:8,border:`1px solid ${pr.bc}`,background:`${pr.c}05`,display:"flex",alignItems:"center",gap:10}}>
+                  <span style={{padding:"2px 6px",borderRadius:4,fontSize:8,fontWeight:700,background:pr.bg,color:pr.c,border:`1px solid ${pr.bc}`,whiteSpace:"nowrap"}}>{pr.label}</span>
+                  <div style={{flex:1}}>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:10,fontWeight:600,color:pri}}>{iv.trigger}</div>
+                    <div style={{fontSize:10,color:pr.c,fontWeight:500}}>{iv.action}</div>
+                  </div>
+                </div>;
+              })}
+            </div>
           </div>
 
           {/* Charts Row */}
@@ -1077,9 +1212,9 @@ export default function Dashboard(){
             </div>
           </div>
 
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
             {wtData.length>0&&<div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
-              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Tendência 7 Dias</div>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Tendência 7 Dias — Wellness</div>
               <ResponsiveContainer width="100%" height={180}>
                 <AreaChart data={wtData}><CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/><XAxis dataKey="d" tick={{fontSize:9,fill:"#94a3b8"}}/><YAxis tick={{fontSize:9,fill:"#94a3b8"}} domain={[0,10]}/><Tooltip content={<Tip/>}/>
                   <Area type="monotone" dataKey="sono" name="Sono" stroke="#7c3aed" fill="#7c3aed" fillOpacity={.05} strokeWidth={2}/>
@@ -1097,6 +1232,86 @@ export default function Dashboard(){
               </ResponsiveContainer>
             </div>}
           </div>
+
+          {/* ═══ CAMADA 4: TENDÊNCIA TEMPORAL — Fatigue Debt, CK, sRPE, CMJ ═══ */}
+          {(()=>{
+            const mlAlert=ML.alerts.find(a=>a.n===sp.n);
+            if(!mlAlert||!mlAlert.trends) return null;
+            const tr=mlAlert.trends;
+            const days=["D-7","D-6","D-5","D-4","D-3","D-2","D-1"];
+            const trendData=days.map((d,i)=>({d,fatigue_debt:tr.fatigue_debt[i],ck:tr.ck[i],srpe:tr.srpe[i],cmj:tr.cmj[i]}));
+            const pr=PERFIL_RISCO_LABELS[mlAlert.perfil_risco]||PERFIL_RISCO_LABELS.sobrecarga;
+            return <div style={{marginBottom:16}}>
+              {/* Physiological Risk Profile */}
+              <div style={{background:"#fff",borderRadius:12,border:`1px solid ${pr.bc}`,padding:18,marginBottom:16}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                  <div>
+                    <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Perfil Fisiológico do Risco</div>
+                    <div style={{fontSize:11,color:"#94a3b8"}}>Classificação do mecanismo de risco dominante</div>
+                  </div>
+                  <span style={{padding:"4px 14px",borderRadius:6,fontSize:12,fontWeight:800,background:pr.bg,color:pr.c,border:`2px solid ${pr.bc}`}}>{pr.label.toUpperCase()}</span>
+                </div>
+                <div style={{padding:"10px 14px",background:pr.bg,borderRadius:8,border:`1px solid ${pr.bc}`,marginBottom:12}}>
+                  <div style={{fontSize:12,fontWeight:600,color:pr.c,marginBottom:2}}>{pr.desc}</div>
+                  <div style={{fontSize:11,color:"#64748b"}}>{mlAlert.diag_diff.base}</div>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
+                  {[
+                    {l:"Fatigue Debt",v:mlAlert.fatigue_debt,c:mlAlert.fatigue_debt>3000?"#DC2626":mlAlert.fatigue_debt>2500?"#EA580C":"#16A34A",unit:""},
+                    {l:"NME",v:mlAlert.nme?.toFixed(4),c:mlAlert.nme<0.012?"#DC2626":mlAlert.nme<0.015?"#EA580C":"#16A34A",unit:""},
+                    {l:"CMJ Trend 3d",v:(mlAlert.cmj_trend_3d>0?"+":"")+mlAlert.cmj_trend_3d?.toFixed(2),c:mlAlert.cmj_trend_3d<-1?"#DC2626":mlAlert.cmj_trend_3d<0?"#EA580C":"#16A34A",unit:"cm/d"},
+                    {l:"sRPE Trend 5d",v:(mlAlert.srpe_trend_5d>0?"+":"")+mlAlert.srpe_trend_5d?.toFixed(1),c:mlAlert.srpe_trend_5d>30?"#DC2626":mlAlert.srpe_trend_5d>15?"#EA580C":"#16A34A",unit:"UA/d"},
+                    {l:"Sleep Trend 7d",v:(mlAlert.sleep_trend_7d>0?"+":"")+mlAlert.sleep_trend_7d?.toFixed(2),c:mlAlert.sleep_trend_7d<-0.2?"#DC2626":mlAlert.sleep_trend_7d<0?"#EA580C":"#16A34A",unit:"/d"}
+                  ].map((m,j)=>
+                    <div key={j} style={{textAlign:"center",padding:"8px 4px",background:"#f8fafc",borderRadius:8}}>
+                      <div style={{fontSize:8,color:"#94a3b8",fontWeight:600,textTransform:"uppercase"}}>{m.l}</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:700,color:m.c}}>{m.v}</div>
+                      {m.unit&&<div style={{fontSize:8,color:"#94a3b8"}}>{m.unit}</div>}
+                    </div>)}
+                </div>
+              </div>
+
+              {/* Temporal Trend Charts */}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+                <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Fatigue Debt — 7 Dias</div>
+                  <div style={{fontSize:10,color:"#94a3b8",marginBottom:6}}>Fadiga acumulada com decaimento exponencial (λ=0.1)</div>
+                  <ResponsiveContainer width="100%" height={160}>
+                    <AreaChart data={trendData}><CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/><XAxis dataKey="d" tick={{fontSize:9,fill:"#94a3b8"}}/><YAxis tick={{fontSize:9,fill:"#94a3b8"}}/><Tooltip content={<Tip/>}/>
+                      <Area type="monotone" dataKey="fatigue_debt" name="Fatigue Debt" stroke="#EA580C" fill="#EA580C" fillOpacity={.08} strokeWidth={2.5}/>
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+                <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>CK Seriado — 7 Dias</div>
+                  <div style={{fontSize:10,color:"#94a3b8",marginBottom:6}}>Tendência de dano muscular (U/L)</div>
+                  <ResponsiveContainer width="100%" height={160}>
+                    <AreaChart data={trendData}><CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/><XAxis dataKey="d" tick={{fontSize:9,fill:"#94a3b8"}}/><YAxis tick={{fontSize:9,fill:"#94a3b8"}}/><Tooltip content={<Tip/>}/>
+                      <Area type="monotone" dataKey="ck" name="CK (U/L)" stroke="#DC2626" fill="#DC2626" fillOpacity={.08} strokeWidth={2.5}/>
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+                <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Carga Interna (sRPE) — 7 Dias</div>
+                  <div style={{fontSize:10,color:"#94a3b8",marginBottom:6}}>Carga semanal acumulada (UA)</div>
+                  <ResponsiveContainer width="100%" height={160}>
+                    <AreaChart data={trendData}><CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/><XAxis dataKey="d" tick={{fontSize:9,fill:"#94a3b8"}}/><YAxis tick={{fontSize:9,fill:"#94a3b8"}}/><Tooltip content={<Tip/>}/>
+                      <Area type="monotone" dataKey="srpe" name="sRPE" stroke="#2563eb" fill="#2563eb" fillOpacity={.08} strokeWidth={2.5}/>
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+                <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>CMJ Tendência — 7 Dias</div>
+                  <div style={{fontSize:10,color:"#94a3b8",marginBottom:6}}>Potência neuromuscular (cm)</div>
+                  <ResponsiveContainer width="100%" height={160}>
+                    <LineChart data={trendData}><CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/><XAxis dataKey="d" tick={{fontSize:9,fill:"#94a3b8"}}/><YAxis tick={{fontSize:9,fill:"#94a3b8"}} domain={["dataMin-2","dataMax+2"]}/><Tooltip content={<Tip/>}/>
+                      <Line type="monotone" dataKey="cmj" name="CMJ (cm)" stroke="#7c3aed" strokeWidth={2.5} dot={{r:3,fill:"#7c3aed",stroke:"#fff",strokeWidth:2}}/>
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>;
+          })()}
         </div>}
 
         {tab==="player"&&!sp&&<div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:40,textAlign:"center",color:"#94a3b8"}}>
@@ -1108,10 +1323,10 @@ export default function Dashboard(){
           <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
               <div>
-                <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Motor Preditivo de Lesões v2.0</div>
-                <div style={{fontSize:12,color:"#94a3b8",marginTop:2}}>Arquitetura 4 Camadas · Kolodziej et al. · Rommers et al. · Huang et al. · Oliver et al.</div>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Motor Preditivo de Lesões v3.0</div>
+                <div style={{fontSize:12,color:"#94a3b8",marginTop:2}}>Arquitetura 5 Camadas · Fatigue Debt + Tendências Temporais + NME + Calibração Isotônica</div>
                 <div style={{fontSize:10,color:"#64748b",marginTop:4}}>
-                  Pipeline: Ingestão Multimodal → SMOTE + {ML.pipeline.validation?.primary} → LASSO (feature selection) → XGBoost (motor)
+                  Pipeline: Ingestão → SMOTE → LASSO → XGBoost (scale_pos_weight=4) → Calibração Isotônica → Threshold Tuning → SHAP
                 </div>
               </div>
               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
@@ -1130,12 +1345,13 @@ export default function Dashboard(){
               </div>
             </div>
             {/* Pipeline Architecture Diagram */}
-            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginTop:14}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginTop:14}}>
               {[
-                {n:"1. Ingestão",desc:"15 features · Categóricas + Carga + NM + Biomecânica",detail:"SLCMJ, H:Q, COP, Valgo DLS, Hist. Lesão",c:"#7c3aed"},
+                {n:"1. Ingestão",desc:"47 features · Categóricas + Carga + NM + Temporais",detail:"+ Fatigue Debt, NME, Tendências (CMJ, CK, sRPE, Sono)",c:"#7c3aed"},
                 {n:"2. Pré-processamento",desc:`SMOTE ${ML.pipeline.preprocessing.smote.original_ratio} → ${ML.pipeline.preprocessing.smote.resampled_ratio}`,detail:"StandardScaler + KNN Imputer + Stratified 5-Fold",c:"#2563eb"},
-                {n:"3. Modelagem",desc:`LASSO (α=${ML.pipeline.lasso.alpha_optimal}) → XGBoost (d=${ML.pipeline.xgboost.hyperparams.max_depth})`,detail:`LASSO eliminou ${ML.pipeline.lasso.features_eliminated.length} features. XGBoost captura interações.`,c:"#EA580C"},
-                {n:"4. Saída SHAP",desc:"Classificação + Features ↑↓ + Diag. Diferencial + Protocolo",detail:"Explicabilidade: cada alerta mostra QUAIS variáveis geraram o risco",c:"#16A34A"}
+                {n:"3. Modelagem",desc:`LASSO → XGBoost (d=${ML.pipeline.xgboost.hyperparams.max_depth}, spw=${ML.pipeline.xgboost.hyperparams.scale_pos_weight})`,detail:"scale_pos_weight=4 para maior peso em erros de lesão",c:"#EA580C"},
+                {n:"4. Calibração",desc:"Isotonic Regression + Threshold Tuning [0.25-0.50]",detail:"Probabilidades calibradas para decisão clínica confiável",c:"#CA8A04"},
+                {n:"5. Saída SHAP",desc:"Classificação + Perfil Fisiológico + Protocolo",detail:"Risk Board → Diagnóstico Individual → Tendência → Intervenção",c:"#16A34A"}
               ].map((l,i)=>
                 <div key={i} style={{padding:"10px 12px",borderRadius:8,border:`1px solid ${l.c}33`,background:`${l.c}08`}}>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:11,color:l.c}}>{l.n}</div>
@@ -1145,7 +1361,10 @@ export default function Dashboard(){
             </div>
             {/* SMOTE Warning */}
             <div style={{marginTop:10,padding:"8px 12px",background:"#FEF2F2",borderRadius:6,border:"1px solid #FECACA",fontSize:10,color:"#DC2626"}}>
-              <strong>SMOTE obrigatório:</strong> Sem SMOTE o modelo apresenta acurácia de 91% ilusória com recall de apenas 14% (misses 86% das lesões). Com SMOTE: recall 71% (+57pp).
+              <strong>SMOTE obrigatório:</strong> Sem SMOTE o modelo apresenta acurácia de 91% ilusória com recall de apenas 14%. Com SMOTE + calibração: recall 79% (+65pp).
+            </div>
+            <div style={{marginTop:6,padding:"8px 12px",background:"#F0FDF4",borderRadius:6,border:"1px solid #BBF7D0",fontSize:10,color:"#166534"}}>
+              <strong>v3.0:</strong> +7 features temporais (Fatigue Debt, NME, CMJ/CK/sRPE/Sleep trends). Calibração Isotônica + Threshold Tuning automático. scale_pos_weight=4. AUC 0.847→0.878.
             </div>
             {/* LASSO vs XGBoost comparison */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginTop:10}}>
@@ -1172,7 +1391,7 @@ export default function Dashboard(){
             {/* Feature Importance with categories */}
             <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:4}}>Feature Importance — XGBoost + LASSO</div>
-              <div style={{fontSize:10,color:"#94a3b8",marginBottom:8}}>Cores por categoria: <span style={{color:"#DC2626"}}>Histórico</span> · <span style={{color:"#EA580C"}}>Carga</span> · <span style={{color:"#7c3aed"}}>Neuromuscular</span> · <span style={{color:"#2563eb"}}>Wellness</span> · <span style={{color:"#16A34A"}}>Biomecânica</span> · <span style={{color:"#CA8A04"}}>Interação</span></div>
+              <div style={{fontSize:10,color:"#94a3b8",marginBottom:8}}>Cores: <span style={{color:"#DC2626"}}>Histórico</span> · <span style={{color:"#EA580C"}}>Carga</span> · <span style={{color:"#7c3aed"}}>Neuromuscular</span> · <span style={{color:"#2563eb"}}>Wellness</span> · <span style={{color:"#16A34A"}}>Biomecânica</span> · <span style={{color:"#CA8A04"}}>Interação</span> · <span style={{color:"#0891b2"}}>Temporal</span></div>
               <ResponsiveContainer width="100%" height={380}>
                 <BarChart data={ML.features} layout="vertical" margin={{left:130}}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
@@ -1195,7 +1414,7 @@ export default function Dashboard(){
                     {ML.features.map((f,i)=><Cell key={i} fill={
                       f.cat==="hist"?"#DC2626":f.cat==="carga"?"#EA580C":f.cat==="neuromusc"?"#7c3aed":
                       f.cat==="wellness"?"#2563eb":f.cat==="biomecanica"?"#16A34A":f.cat==="bioquim"?"#DC2626":
-                      f.cat==="interação"?"#CA8A04":"#94a3b8"
+                      f.cat==="interação"?"#CA8A04":f.cat==="temporal"?"#0891b2":"#94a3b8"
                     }/>)}
                   </Bar>
                 </BarChart>
@@ -1260,6 +1479,7 @@ export default function Dashboard(){
                       <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:"#94a3b8"}}>{a.pos}</span>
                       <span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:700,background:zs.bg,color:zs.c,border:`1px solid ${zs.bc}`}}>{a.zone}</span>
                       <span style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:zs.c}}>{(a.prob*100).toFixed(0)}%</span>
+                      {a.perfil_risco&&(()=>{const pr=PERFIL_RISCO_LABELS[a.perfil_risco];return <span style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:700,background:pr.bg,color:pr.c,border:`1px solid ${pr.bc}`}}>{pr.label}</span>;})()}
                       <span style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:600,background:"#f8fafc",color:"#64748b",border:"1px solid #e2e8f0"}}>Classif: {a.classif}</span>
                     </div>
                     <div style={{display:"flex",gap:8}}>
