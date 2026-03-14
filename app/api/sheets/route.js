@@ -447,23 +447,35 @@ export async function GET(request) {
         fetchSheetCSV(SHEETS_CONFIG.tabs.questionarios)
       ]);
 
-      const result = { ok: true, timestamp: new Date().toISOString() };
+      const result = { ok: true, timestamp: new Date().toISOString(), _debug: {} };
 
       if (gpsCSV.status === "fulfilled") {
-        const { rows } = parseCSV(gpsCSV.value);
+        const { rows, headers } = parseCSV(gpsCSV.value);
         result.gps = processGPS(rows);
+        result._debug.gps = { rows: rows.length, headers: headers?.slice(0, 10), athletes: Object.keys(result.gps).length };
+      } else {
+        result._debug.gps = { error: gpsCSV.reason?.message || "failed" };
       }
       if (diarioCSV.status === "fulfilled") {
-        const { rows } = parseCSV(diarioCSV.value);
+        const { rows, headers } = parseCSV(diarioCSV.value);
         result.diario = processDiario(rows);
+        result._debug.diario = { rows: rows.length, headers: headers?.slice(0, 10), athletes: Object.keys(result.diario).length };
+      } else {
+        result._debug.diario = { error: diarioCSV.reason?.message || "failed" };
       }
       if (saltosCSV.status === "fulfilled") {
-        const { rows } = parseCSV(saltosCSV.value);
+        const { rows, headers } = parseCSV(saltosCSV.value);
         result.saltos = processSaltos(rows);
+        result._debug.saltos = { rows: rows.length, athletes: Object.keys(result.saltos).length };
+      } else {
+        result._debug.saltos = { error: saltosCSV.reason?.message || "failed" };
       }
       if (questCSV.status === "fulfilled") {
-        const { rows } = parseCSV(questCSV.value);
+        const { rows, headers } = parseCSV(questCSV.value);
         result.questionarios = processQuestionarios(rows);
+        result._debug.questionarios = { rows: rows.length, athletes: Object.keys(result.questionarios).length };
+      } else {
+        result._debug.questionarios = { error: questCSV.reason?.message || "failed" };
       }
 
       return Response.json(result, {

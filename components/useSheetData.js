@@ -36,6 +36,15 @@ export function useSheetData({ interval = DEFAULT_INTERVAL, enabled = true } = {
       // Processar GPS → formato SESSION_DATA.atletas
       const sessionAtletas = buildSessionData(result);
 
+      console.log("[useSheetData] Dados recebidos:", {
+        gps: Object.keys(result.gps || {}).length + " atletas",
+        diario: Object.keys(result.diario || {}).length + " atletas",
+        saltos: Object.keys(result.saltos || {}).length + " atletas",
+        questionarios: Object.keys(result.questionarios || {}).length + " atletas",
+        sessionAtletas: Object.keys(sessionAtletas).length + " atletas mergeados",
+        _debug: result._debug
+      });
+
       setSheetData({
         raw: result,
         gps: result.gps || {},
