@@ -41,6 +41,7 @@ export function useSheetData({ interval = DEFAULT_INTERVAL, enabled = true } = {
         diario: Object.keys(result.diario || {}).length + " atletas",
         saltos: Object.keys(result.saltos || {}).length + " atletas",
         questionarios: Object.keys(result.questionarios || {}).length + " atletas",
+        fisioterapia: Object.keys(result.fisioterapia || {}).length + " atletas",
         sessionAtletas: Object.keys(sessionAtletas).length + " atletas mergeados",
         _debug: result._debug
       });
@@ -51,6 +52,7 @@ export function useSheetData({ interval = DEFAULT_INTERVAL, enabled = true } = {
         diario: result.diario || {},
         saltos: result.saltos || {},
         questionarios: result.questionarios || {},
+        fisioterapia: result.fisioterapia || {},
         sessionAtletas,
         timestamp: result.timestamp
       });

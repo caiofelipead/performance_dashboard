@@ -75,7 +75,7 @@ ATHLETES = [
      "cmj_baseline": 33.0, "iso_baseline_l": 260, "iso_baseline_r": 265, "ck_basal": 170},
     {"name": "ERICSON", "pos": "ZAG", "weight": 91.6, "height": 184, "bf": 13.2, "mm": 42.0,
      "cmj_baseline": 47.0, "iso_baseline_l": 320, "iso_baseline_r": 310, "ck_basal": 200},
-    {"name": "ERIK", "pos": "LAT", "weight": 75.5, "height": 176, "bf": 9.8, "mm": 35.4,
+    {"name": "ERIK", "pos": "VOL", "weight": 75.5, "height": 176, "bf": 9.8, "mm": 35.4,
      "cmj_baseline": 53.0, "iso_baseline_l": 240, "iso_baseline_r": 245, "ck_basal": 150},
     {"name": "FELIPINHO", "pos": "MEI", "weight": 78.0, "height": 179, "bf": 11.2, "mm": 36.0,
      "cmj_baseline": 42.0, "iso_baseline_l": 250, "iso_baseline_r": 255, "ck_basal": 165},
