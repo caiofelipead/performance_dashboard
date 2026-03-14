@@ -922,8 +922,8 @@ export default function Dashboard(){
             <div style={{fontSize:10,color:"rgba(255,255,255,.5)",fontWeight:500}}>Botafogo-SP FSA · 2026</div>
           </div>
         </div>
-        <div style={{display:"flex",gap:2}}>
-          {tabs.map(t=>{const Ic=t.ic;return <button key={t.id} onClick={()=>setTab(t.id)} style={{display:"flex",alignItems:"center",gap:6,background:tab===t.id?acc:"transparent",border:`1px solid ${tab===t.id?acc:"transparent"}`,color:tab===t.id?"#fff":"rgba(255,255,255,.5)",padding:"6px 14px",borderRadius:8,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .2s"}}><Ic size={14}/>{t.l}</button>})}
+        <div style={{display:"flex",gap:1,overflowX:"auto",maxWidth:"calc(100vw - 380px)",scrollbarWidth:"none",msOverflowStyle:"none"}}>
+          {tabs.map(t=>{const Ic=t.ic;return <button key={t.id} onClick={()=>setTab(t.id)} style={{display:"flex",alignItems:"center",gap:4,background:tab===t.id?acc:"transparent",border:`1px solid ${tab===t.id?acc:"transparent"}`,color:tab===t.id?"#fff":"rgba(255,255,255,.5)",padding:"5px 8px",borderRadius:6,fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .2s",whiteSpace:"nowrap",flexShrink:0}}><Ic size={12}/>{t.l}</button>})}
         </div>
         <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:"rgba(255,255,255,.5)",display:"flex",alignItems:"center",gap:10}}>
           {/* Live Data Indicator */}
@@ -945,7 +945,8 @@ export default function Dashboard(){
     <div style={{display:"flex",padding:16,gap:16,maxWidth:1440,margin:"0 auto"}}>
       {/* SIDEBAR */}
       <aside style={{width:240,flexShrink:0}}>
-        <div style={{fontSize:10,fontWeight:700,color:"#94a3b8",letterSpacing:1.5,textTransform:"uppercase",marginBottom:8,paddingLeft:4}}>Elenco — Risco</div>
+        <div style={{fontSize:10,fontWeight:700,color:"#94a3b8",letterSpacing:1.5,textTransform:"uppercase",marginBottom:2,paddingLeft:4}}>Elenco — Risco</div>
+        <div style={{fontSize:8,color:"#cbd5e1",marginBottom:8,paddingLeft:4}}>Score: wellness + carga do dia</div>
         <div style={{display:"flex",flexDirection:"column",gap:4,maxHeight:"calc(100vh - 100px)",overflowY:"auto",paddingRight:4}}>
           {players.map(p=><div key={p.n} onClick={()=>{setSel(p.n);setTab("player")}} style={{background:sel===p.n?"#fff":"transparent",border:`1px solid ${sel===p.n?"#e2e8f0":"transparent"}`,borderRadius:10,padding:"8px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,transition:"all .15s",boxShadow:sel===p.n?"0 2px 8px rgba(0,0,0,.04)":"none"}}>
             <PlayerPhoto name={p.n} sz={34}/>
@@ -1777,9 +1778,10 @@ export default function Dashboard(){
         {tab==="player"&&sp&&<div>
           <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
             <div style={{display:"flex",gap:20,alignItems:"center"}}>
-              <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
                 <PlayerPhoto name={sp.n} sz={80}/>
                 <ScoreRing v={sp.riskScore} sz={48} th={4}/>
+                <div style={{fontSize:8,color:"#94a3b8",textAlign:"center"}}>Wellness Score</div>
               </div>
               <div style={{flex:1}}>
                 <div style={{fontFamily:"'Inter Tight'",fontSize:20,fontWeight:900,color:pri}}>{sp.n} <Badge level={sp.risk}/> <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:"#94a3b8",fontWeight:400,marginLeft:6}}>{sp.pos} · {sp.id} anos · {sp.nc} sessões</span></div>
