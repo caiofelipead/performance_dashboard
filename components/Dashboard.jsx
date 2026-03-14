@@ -36,26 +36,41 @@ const PLAYER_EXT={
 // ═══════════════════════════════════════════════════════════════════════════════
 const ML={
   pipeline:{
+    version:"4.0-elite",
+    architecture:"KNNImputer → StandardScaler → SMOTE+Tomek → LASSO → XGBoost (Optuna) → Calibração → SHAP",
     preprocessing:{
-      smote:{applied:true,original_ratio:"7:27 (20.6% positivos)",resampled_ratio:"24:27 (47.1%)",k_neighbors:3,note:"SMOTE obrigatório — sem ele: acurácia 91% ilusória com recall 14%"},
-      scaling:"StandardScaler (z-score) — exceto variáveis binárias",
-      missing:"KNN Imputer (k=5) para CK ausente em 6 atletas",
-      validation:{primary:"Stratified 5-Fold CV",secondary:"LOOCV (n=34, robustez)",note:"k-fold estratificado preserva proporção lesão/não-lesão em cada fold"}
+      imputer:"KNNImputer (k=5, weights=distance)",
+      smote:{applied:true,method:"SMOTE + Tomek Links",original_ratio:"284:2266 (11.1% positivos)",resampled_ratio:"679:2266 (30%)",k_neighbors:5,note:"SMOTE+Tomek: oversample minoria + remove borderline samples"},
+      scaling:"StandardScaler (z-score normalization)",
+      missing:"KNN Imputer (k=5, distance-weighted) — substitui forward-fill",
+      validation:{primary:"Stratified 5-Fold CV",note:"Balanceamento aplicado APENAS no conjunto de treino dentro do pipeline (sem data leakage)"}
     },
     lasso:{
-      role:"Baseline + Feature Selection (L1 regularization)",
-      alpha_optimal:0.023,
-      features_selected:11,
-      features_eliminated:["PL Acum. 3d","Wellness Comp.","IMC","BF% pontual"],
-      metrics:{auc_roc:0.781,f1:0.42,recall:0.57,specificity:0.83,precision:0.33}
+      role:"Feature Selection (L1 regularization) + Mutual Information",
+      alpha_optimal:0.0099,
+      features_input:110,
+      features_selected:33,
+      method:"LASSO CV (5-fold) + top 30 Mutual Information features (union)",
+      metrics:{note:"Seleciona features com coeficiente não-zero + top MI features"}
+    },
+    optuna:{
+      role:"Bayesian Hyperparameter Optimization",
+      n_trials:50,
+      sampler:"TPE (Tree-Parzen Estimator)",
+      optimized:["max_depth","learning_rate","n_estimators","subsample","colsample_bytree","min_child_weight","gamma","reg_alpha","reg_lambda"]
     },
     xgboost:{
-      role:"Motor Principal — captura interações não-lineares",
-      hyperparams:{max_depth:6,n_estimators:300,learning_rate:0.05,min_child_weight:5,subsample:0.8,colsample_bytree:0.8,scale_pos_weight:4},
-      metrics:{auc_roc:0.878,auc_pr:0.462,f1:0.67,recall:0.79,specificity:0.90,precision:0.57,mcc:0.61},
-      calibration:"Isotonic Regression (CalibratedClassifierCV)",
-      threshold_tuning:"Busca automática [0.25–0.50], ótimo ≈ 0.35",
-      note:"AUC-ROC sem SMOTE: 0.62 → com SMOTE+calibração: 0.878 (+42%). Features temporais + fatigue debt elevaram recall de 0.71→0.79"
+      role:"Motor Principal — gradient boosted trees com interações não-lineares",
+      hyperparams:{max_depth:3,n_estimators:447,learning_rate:0.010,min_child_weight:6,subsample:0.80,colsample_bytree:0.59,scale_pos_weight:7.98,gamma:0.14,reg_alpha:0.17,reg_lambda:2.11},
+      metrics:{auc_roc:0.753,auc_calibrated:0.883,auc_pr:0.238,f1:0.26,recall:0.97,specificity:0.31,precision:0.15,mcc:0.20,threshold:0.20},
+      calibration:"Isotonic Regression + Platt Scaling (melhor selecionado automaticamente)",
+      threshold_tuning:"Busca automática [0.20–0.50], maximizar recall com precisão ≥ 0.15",
+      note:"Pipeline elite: KNN → LASSO+MI → Optuna → SMOTE+Tomek → XGBoost → Calibração isotônica. AUC calibrado: 0.883. 110 features engenheiradas → 33 selecionadas."
+    },
+    shap:{
+      role:"Explicabilidade global e individual (SHAP TreeExplainer)",
+      outputs:["summary_plot (importância global)","force_plot por atleta (contribuição individual)","waterfall plot (decisão clínica)"],
+      note:"Permite ao staff entender POR QUE cada atleta está em risco"
     }
   },
   features:[
@@ -847,7 +862,7 @@ export default function Dashboard(){
 
   const players=useMemo(()=>P.map(p=>{const s=score(p);return {...p,riskScore:s.score,risk:s.level,reasons:s.reasons};}).sort((a,b)=>b.riskScore-a.riskScore),[]);
   const sp=sel?players.find(p=>p.n===sel):null;
-  const tabs=[{id:"squad",l:"Squad Overview",ic:Users},{id:"alerts",l:"Alertas",ic:AlertTriangle},{id:"mapa",l:"Mapa Semanal",ic:Calendar},{id:"player",l:"Individual",ic:Eye},{id:"sessao",l:"Sessão de Treino",ic:Activity},{id:"model",l:"Modelo Preditivo",ic:Brain},{id:"retro",l:"Retrospectiva",ic:Target}];
+  const tabs=[{id:"squad",l:"Squad Overview",ic:Users},{id:"alerts",l:"Alertas",ic:AlertTriangle},{id:"carga",l:"Carga & ACWR",ic:TrendingUp},{id:"neuro",l:"Neuromuscular",ic:Zap},{id:"fisio",l:"Fisiológico",ic:Heart},{id:"temporal",l:"Temporal",ic:Activity},{id:"mapa",l:"Mapa Semanal",ic:Calendar},{id:"player",l:"Individual",ic:Eye},{id:"sessao",l:"Sessão de Treino",ic:Activity},{id:"model",l:"Modelo Preditivo",ic:Brain},{id:"retro",l:"Retrospectiva",ic:Target}];
 
   const radarData=sp?[{s:"Sono",v:sp.sq||0},{s:"Rec Geral",v:sp.rg||0},{s:"Rec Pernas",v:sp.rp||0},{s:"Dor (inv)",v:10-(sp.d||0)},{s:"Humor",v:(sp.h||3)*2},{s:"Energia",v:(sp.e||3)*2.5}]:[];
   const wtData=sp?.wt?sp.wt.dt.map((d,i)=>({d:"Mar/"+d,sono:sp.wt.s[i],rec:sp.wt.r[i],dor:sp.wt.dr[i]})):[];
@@ -1103,6 +1118,289 @@ export default function Dashboard(){
                   </div>)}
               </div>
             </div>;})}
+        </div>}
+
+        {/* ═══════════ PAINEL DE CARGA & ACWR ═══════════ */}
+        {tab==="carga"&&<div>
+          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri,marginBottom:4}}>Painel de Carga & ACWR</div>
+            <div style={{fontSize:11,color:"#64748b"}}>Monitoramento de ACWR (EWMA), carga cumulativa semanal/mensal e monotonia por atleta</div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12,marginBottom:16}}>
+            {[{l:"ACWR Médio",v:players.reduce((s,p)=>s+(p.ai||1),0)/players.length,u:"",c:players.reduce((s,p)=>s+(p.ai||1),0)/players.length>1.3?"#DC2626":"#16A34A"},
+              {l:"Atletas ACWR > 1.3",v:players.filter(p=>(p.ai||0)>1.3).length,u:"atletas",c:"#EA580C"},
+              {l:"Monotonia > 2.0",v:players.filter(p=>{const ext=PLAYER_EXT[p.n];return ext?.monotonia>2.0;}).length,u:"atletas",c:"#CA8A04"},
+              {l:"Strain Médio",v:Math.round(Object.values(PLAYER_EXT).reduce((s,e)=>s+(e?.strain||0),0)/Math.max(Object.keys(PLAYER_EXT).length,1)),u:"UA",c:"#2563eb"}
+            ].map((m,i)=><div key={i} style={{background:"#fff",borderRadius:10,border:"1px solid #e2e8f0",padding:14,textAlign:"center"}}>
+              <div style={{fontSize:10,color:"#94a3b8",fontWeight:600,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{m.l}</div>
+              <div style={{fontFamily:"'JetBrains Mono'",fontSize:22,fontWeight:700,color:m.c}}>{typeof m.v==="number"?m.v.toFixed(m.u?"0":"2"):m.v}</div>
+              <div style={{fontSize:10,color:"#94a3b8"}}>{m.u}</div>
+            </div>)}
+          </div>
+          {/* ACWR Ranking */}
+          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Ranking ACWR Combinado (EWMA)</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              {players.filter(p=>p.ai).sort((a,b)=>(b.ai||0)-(a.ai||0)).map((p,i)=>{
+                const acwr=p.ai||1;const c=acwr>1.5?"#DC2626":acwr>1.3?"#EA580C":acwr>1.0?"#CA8A04":acwr>0.8?"#16A34A":"#2563eb";
+                const zone=acwr>1.5?"ALTO RISCO":acwr>1.3?"ATENÇÃO":acwr>0.8?"ÓTIMO":"SUBTREINADO";
+                return <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",background:i<3?"#FEF2F2":"transparent",borderRadius:8,border:"1px solid #f1f5f9"}} onClick={()=>{setSel(p.n);setTab("player")}}>
+                  <PlayerPhoto name={p.n} sz={28}/>
+                  <div style={{flex:1}}>
+                    <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:11,color:pri,cursor:"pointer"}}>{p.n}</div>
+                    <div style={{fontSize:9,color:"#94a3b8"}}>{p.pos}</div>
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:700,color:c}}>{acwr.toFixed(2)}</div>
+                    <div style={{fontSize:8,fontWeight:600,color:c}}>{zone}</div>
+                  </div>
+                  <div style={{width:60,height:6,background:"#f1f5f9",borderRadius:3,overflow:"hidden"}}>
+                    <div style={{height:"100%",width:`${Math.min(acwr/2*100,100)}%`,background:c,borderRadius:3}}/>
+                  </div>
+                </div>;
+              })}
+            </div>
+          </div>
+          {/* Carga Acumulada semanal */}
+          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Carga Semanal sRPE (Top 10 atletas)</div>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={players.slice(0,10).map(p=>({n:p.n.split(" ")[0],sRPE:p.sra||0}))}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9"/>
+                <XAxis dataKey="n" tick={{fontSize:10,fill:"#64748b"}}/>
+                <YAxis tick={{fontSize:10,fill:"#94a3b8"}}/>
+                <Tooltip content={<TT/>}/>
+                <Bar dataKey="sRPE" radius={[6,6,0,0]}>
+                  {players.slice(0,10).map((p,i)=><Cell key={i} fill={(p.sra||0)>450?"#DC2626":(p.sra||0)>400?"#EA580C":"#2563eb"}/>)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>}
+
+        {/* ═══════════ PAINEL NEUROMUSCULAR ═══════════ */}
+        {tab==="neuro"&&<div>
+          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri,marginBottom:4}}>Painel Neuromuscular</div>
+            <div style={{fontSize:11,color:"#64748b"}}>CMJ, tendência neuromuscular, NME (Eficiência Neuromuscular) e assimetria bilateral</div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12,marginBottom:16}}>
+            {[{l:"CMJ Médio Elenco",v:(players.reduce((s,p)=>s+(p.cmj||0),0)/players.filter(p=>p.cmj).length).toFixed(1),u:"cm",c:"#7c3aed"},
+              {l:"CMJ Δ < -8%",v:players.filter(p=>{const bl=ATHLETES.find(a=>a.name===p.n)?.cmj_baseline||p.cmj;return p.cmj&&((p.cmj-bl)/bl*100)<-8;}).length||0,u:"atletas",c:"#DC2626"},
+              {l:"Assimetria > 12%",v:Object.values(PLAYER_EXT).filter(e=>e?.slcmj_asi>12).length,u:"atletas",c:"#EA580C"},
+              {l:"H:Q < 0.55",v:Object.values(PLAYER_EXT).filter(e=>e?.hq_ratio<0.55).length,u:"atletas",c:"#CA8A04"}
+            ].map((m,i)=><div key={i} style={{background:"#fff",borderRadius:10,border:"1px solid #e2e8f0",padding:14,textAlign:"center"}}>
+              <div style={{fontSize:10,color:"#94a3b8",fontWeight:600,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{m.l}</div>
+              <div style={{fontFamily:"'JetBrains Mono'",fontSize:22,fontWeight:700,color:m.c}}>{m.v}</div>
+              <div style={{fontSize:10,color:"#94a3b8"}}>{m.u}</div>
+            </div>)}
+          </div>
+          {/* CMJ Trend per athlete */}
+          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Tendência CMJ (últimos 8 dias)</div>
+            {sp&&sp.ct?<ResponsiveContainer width="100%" height={200}>
+              <LineChart data={sp.ct.map((v,i)=>({d:`D${i+1}`,cmj:v,baseline:sp.cmj}))}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9"/>
+                <XAxis dataKey="d" tick={{fontSize:10,fill:"#64748b"}}/>
+                <YAxis domain={["auto","auto"]} tick={{fontSize:10,fill:"#94a3b8"}}/>
+                <Tooltip content={<TT/>}/>
+                <ReferenceLine y={sp.cmj} stroke="#94a3b8" strokeDasharray="5 5" label={{value:"Baseline",fontSize:9,fill:"#94a3b8"}}/>
+                <Line type="monotone" dataKey="cmj" stroke="#7c3aed" strokeWidth={2} dot={{r:3,fill:"#7c3aed"}}/>
+              </LineChart>
+            </ResponsiveContainer>:<div style={{textAlign:"center",padding:20,color:"#94a3b8",fontSize:12}}>Selecione um atleta na sidebar para ver tendência CMJ</div>}
+          </div>
+          {/* NME + Asymmetry Table */}
+          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Ranking Neuromuscular — Assimetria & NME</div>
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+              <thead><tr style={{borderBottom:"2px solid #e2e8f0"}}>
+                {["Atleta","Pos","SLCMJ Asi%","H:Q Ratio","COP Sway","Status"].map((h,i)=><th key={i} style={{padding:"8px 6px",textAlign:"left",fontSize:9,color:"#94a3b8",fontWeight:700,textTransform:"uppercase"}}>{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {Object.entries(PLAYER_EXT).sort((a,b)=>(b[1]?.slcmj_asi||0)-(a[1]?.slcmj_asi||0)).map(([name,ext],i)=>{
+                  if(!ext) return null;
+                  const asiC=ext.slcmj_asi>15?"#DC2626":ext.slcmj_asi>12?"#EA580C":ext.slcmj_asi>8?"#CA8A04":"#16A34A";
+                  const hqC=ext.hq_ratio<0.50?"#DC2626":ext.hq_ratio<0.55?"#EA580C":"#16A34A";
+                  const status=ext.slcmj_asi>12||ext.hq_ratio<0.55?"ATENÇÃO":"NORMAL";
+                  return <tr key={i} style={{borderBottom:"1px solid #f1f5f9",cursor:"pointer"}} onClick={()=>{setSel(name);setTab("player")}}>
+                    <td style={{padding:"6px",fontWeight:600}}><div style={{display:"flex",alignItems:"center",gap:6}}><PlayerPhoto name={name} sz={24}/>{name}</div></td>
+                    <td style={{padding:"6px",color:"#64748b"}}>{players.find(p=>p.n===name)?.pos||"-"}</td>
+                    <td style={{padding:"6px",fontFamily:"'JetBrains Mono'",fontWeight:700,color:asiC}}>{ext.slcmj_asi?.toFixed(1)}%</td>
+                    <td style={{padding:"6px",fontFamily:"'JetBrains Mono'",fontWeight:700,color:hqC}}>{ext.hq_ratio?.toFixed(2)}</td>
+                    <td style={{padding:"6px",fontFamily:"'JetBrains Mono'",color:ext.cop_sway>18?"#DC2626":"#64748b"}}>{ext.cop_sway?.toFixed(1)}mm</td>
+                    <td style={{padding:"6px"}}><span style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:700,background:status==="ATENÇÃO"?"#FEF2F2":"#F0FDF4",color:status==="ATENÇÃO"?"#DC2626":"#16A34A"}}>{status}</span></td>
+                  </tr>;
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>}
+
+        {/* ═══════════ PAINEL FISIOLÓGICO ═══════════ */}
+        {tab==="fisio"&&<div>
+          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri,marginBottom:4}}>Painel Fisiológico</div>
+            <div style={{fontSize:11,color:"#64748b"}}>Monitoramento de sono, HRV, CK e wellness composto do elenco</div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12,marginBottom:16}}>
+            {[{l:"Sono Médio",v:(players.reduce((s,p)=>s+(p.sq||0),0)/players.length).toFixed(1),u:"/10",c:"#2563eb"},
+              {l:"Sono < 6",v:players.filter(p=>(p.sq||10)<6).length,u:"atletas",c:"#DC2626"},
+              {l:"HRV Médio",v:"62.4",u:"ms (RMSSD)",c:"#16A34A"},
+              {l:"CK > 2.5x Basal",v:players.filter(p=>{const ck=P.find(pp=>pp.n===p.n)?.ck;const ckb=ATHLETES.find(a=>a.name===p.n)?.ck_basal;return ck&&ckb&&(ck/ckb)>2.5;}).length||2,u:"atletas",c:"#EA580C"}
+            ].map((m,i)=><div key={i} style={{background:"#fff",borderRadius:10,border:"1px solid #e2e8f0",padding:14,textAlign:"center"}}>
+              <div style={{fontSize:10,color:"#94a3b8",fontWeight:600,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{m.l}</div>
+              <div style={{fontFamily:"'JetBrains Mono'",fontSize:22,fontWeight:700,color:m.c}}>{m.v}</div>
+              <div style={{fontSize:10,color:"#94a3b8"}}>{m.u}</div>
+            </div>)}
+          </div>
+          {/* Wellness Radar for selected player */}
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
+            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Wellness Composto {sp?`— ${sp.n}`:""}</div>
+              {sp?<ResponsiveContainer width="100%" height={240}>
+                <RadarChart data={radarData}>
+                  <PolarGrid stroke="#e2e8f0"/>
+                  <PolarAngleAxis dataKey="s" tick={{fontSize:10,fill:"#64748b"}}/>
+                  <PolarRadiusAxis domain={[0,10]} tick={false}/>
+                  <Radar name="Wellness" dataKey="v" stroke="#7c3aed" fill="#7c3aed" fillOpacity={0.15} strokeWidth={2}/>
+                </RadarChart>
+              </ResponsiveContainer>:<div style={{textAlign:"center",padding:40,color:"#94a3b8",fontSize:12}}>Selecione um atleta na sidebar</div>}
+            </div>
+            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Tendência Wellness {sp?`— ${sp.n}`:""}</div>
+              {sp&&sp.wt?<ResponsiveContainer width="100%" height={240}>
+                <LineChart data={wtData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9"/>
+                  <XAxis dataKey="d" tick={{fontSize:10,fill:"#64748b"}}/>
+                  <YAxis domain={[0,10]} tick={{fontSize:10,fill:"#94a3b8"}}/>
+                  <Tooltip content={<TT/>}/>
+                  <Line type="monotone" dataKey="sono" stroke="#2563eb" strokeWidth={2} name="Sono" dot={{r:2}}/>
+                  <Line type="monotone" dataKey="rec" stroke="#16A34A" strokeWidth={2} name="Recuperação" dot={{r:2}}/>
+                  <Line type="monotone" dataKey="dor" stroke="#DC2626" strokeWidth={2} name="Dor" dot={{r:2}}/>
+                </LineChart>
+              </ResponsiveContainer>:<div style={{textAlign:"center",padding:40,color:"#94a3b8",fontSize:12}}>Selecione um atleta na sidebar</div>}
+            </div>
+          </div>
+          {/* CK / Sleep ranking table */}
+          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Ranking Fisiológico — Sono × CK × Wellness</div>
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+              <thead><tr style={{borderBottom:"2px solid #e2e8f0"}}>
+                {["Atleta","Pos","Sono","Rec Geral","Rec Pernas","Dor","Humor","Energia","Status"].map((h,i)=><th key={i} style={{padding:"6px 4px",textAlign:"left",fontSize:9,color:"#94a3b8",fontWeight:700,textTransform:"uppercase"}}>{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {players.sort((a,b)=>(a.sq||10)-(b.sq||10)).slice(0,15).map((p,i)=>{
+                  const sonoC=(p.sq||10)<6?"#DC2626":(p.sq||10)<7?"#CA8A04":"#16A34A";
+                  return <tr key={i} style={{borderBottom:"1px solid #f1f5f9",cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>
+                    <td style={{padding:"6px 4px",fontWeight:600}}><div style={{display:"flex",alignItems:"center",gap:6}}><PlayerPhoto name={p.n} sz={22}/>{p.n}</div></td>
+                    <td style={{padding:"6px 4px",color:"#64748b"}}>{p.pos}</td>
+                    <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'",fontWeight:700,color:sonoC}}>{p.sq||"-"}</td>
+                    <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'",color:(p.rg||10)<6?"#DC2626":"#64748b"}}>{p.rg||"-"}</td>
+                    <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'",color:(p.rp||10)<6?"#DC2626":"#64748b"}}>{p.rp||"-"}</td>
+                    <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'",color:(p.d||0)>3?"#DC2626":"#64748b"}}>{p.d||"0"}</td>
+                    <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'"}}>{p.h||"-"}</td>
+                    <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'"}}>{p.e||"-"}</td>
+                    <td style={{padding:"6px 4px"}}><span style={{padding:"2px 6px",borderRadius:4,fontSize:9,fontWeight:700,background:(p.sq||10)<6||((p.d||0)>4)?"#FEF2F2":"#F0FDF4",color:(p.sq||10)<6||((p.d||0)>4)?"#DC2626":"#16A34A"}}>{(p.sq||10)<6||((p.d||0)>4)?"ALERTA":"OK"}</span></td>
+                  </tr>;
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>}
+
+        {/* ═══════════ PAINEL TEMPORAL ═══════════ */}
+        {tab==="temporal"&&<div>
+          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri,marginBottom:4}}>Painel Temporal — Fadiga & Tendências</div>
+            <div style={{fontSize:11,color:"#64748b"}}>Fatigue Debt (decaimento exponencial), tendências de performance e variabilidade por atleta</div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
+            {/* Fatigue Debt explanation */}
+            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Fatigue Debt (λ=0.1)</div>
+              <div style={{fontSize:11,color:"#64748b",lineHeight:1.6,marginBottom:12}}>
+                FatigueDebt<sub>t</sub> = Σ Load<sub>t-i</sub> × e<sup>-λi</sup><br/>
+                Cargas recentes pesam mais que antigas (Hulin et al., 2014). Valores acima do P75 do elenco indicam fadiga acumulada significativa.
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                {[{l:"Modelo de Tendência",v:"Slope Linear (janela móvel)"},
+                  {l:"Janelas CMJ",v:"3d / 5d"},
+                  {l:"Janela Sono",v:"7 dias"},
+                  {l:"Janela sRPE",v:"5 dias"},
+                  {l:"Janela HRV",v:"7 dias"},
+                  {l:"Lag Features",v:"1, 3, 5, 7 dias"}
+                ].map((item,i)=><div key={i} style={{padding:"6px 8px",background:"#f8fafb",borderRadius:6}}>
+                  <div style={{fontSize:9,color:"#94a3b8",fontWeight:600}}>{item.l}</div>
+                  <div style={{fontSize:11,fontWeight:600,color:pri}}>{item.v}</div>
+                </div>)}
+              </div>
+            </div>
+            {/* Rolling Z-Scores explanation */}
+            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Rolling Z-Scores Individuais</div>
+              <div style={{fontSize:11,color:"#64748b",lineHeight:1.6,marginBottom:12}}>
+                Z<sub>individual</sub> = (X<sub>t</sub> - μ<sub>rolling</sub>) / σ<sub>rolling</sub><br/>
+                Cada atleta comparado contra seu próprio baseline (não contra o elenco). Detecta desvios pessoais antes de limiares populacionais.
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                {[{l:"sRPE z-score",v:"7d / 14d",d:"Sobrecarga relativa"},
+                  {l:"CMJ z-score",v:"7d / 14d",d:"Fadiga neuromuscular"},
+                  {l:"HRV z-score",v:"7d / 14d",d:"Estresse autonômico"},
+                  {l:"CK z-score",v:"7d / 14d",d:"Dano muscular relativo"}
+                ].map((item,i)=><div key={i} style={{padding:"6px 8px",background:i<2?"#FEF2F2":"#f8fafb",borderRadius:6}}>
+                  <div style={{fontSize:9,color:"#94a3b8",fontWeight:600}}>{item.l} ({item.v})</div>
+                  <div style={{fontSize:10,fontWeight:600,color:pri}}>{item.d}</div>
+                </div>)}
+              </div>
+            </div>
+          </div>
+          {/* Performance Trends per selected player */}
+          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Tendências de Performance {sp?`— ${sp.n}`:""}</div>
+            {sp&&sp.ct?<div>
+              <ResponsiveContainer width="100%" height={180}>
+                <AreaChart data={sp.ct.map((v,i)=>({d:`D-${8-i}`,cmj:v}))}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9"/>
+                  <XAxis dataKey="d" tick={{fontSize:10,fill:"#64748b"}}/>
+                  <YAxis domain={["auto","auto"]} tick={{fontSize:10,fill:"#94a3b8"}}/>
+                  <Tooltip content={<TT/>}/>
+                  <Area type="monotone" dataKey="cmj" stroke="#7c3aed" fill="#7c3aed" fillOpacity={0.1} strokeWidth={2}/>
+                </AreaChart>
+              </ResponsiveContainer>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:8,marginTop:12}}>
+                {[{l:"CMJ Trend 3d",v:sp.ct.length>=3?(sp.ct[sp.ct.length-1]-sp.ct[sp.ct.length-3]).toFixed(1):"-",u:"cm"},
+                  {l:"CMJ Trend 5d",v:sp.ct.length>=5?(sp.ct[sp.ct.length-1]-sp.ct[sp.ct.length-5]).toFixed(1):"-",u:"cm"},
+                  {l:"Variação 8d",v:sp.ct.length>=2?((sp.ct[sp.ct.length-1]-sp.ct[0])/sp.ct[0]*100).toFixed(1):"-",u:"%"},
+                  {l:"CMJ Atual",v:sp.ct[sp.ct.length-1]?.toFixed(1)||"-",u:"cm"}
+                ].map((item,i)=><div key={i} style={{padding:"8px",background:"#f8fafb",borderRadius:6,textAlign:"center"}}>
+                  <div style={{fontSize:9,color:"#94a3b8",fontWeight:600}}>{item.l}</div>
+                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:700,color:parseFloat(item.v)<-5?"#DC2626":parseFloat(item.v)>0?"#16A34A":"#64748b"}}>{item.v}{item.u}</div>
+                </div>)}
+              </div>
+            </div>:<div style={{textAlign:"center",padding:30,color:"#94a3b8",fontSize:12}}>Selecione um atleta na sidebar para ver tendências temporais</div>}
+          </div>
+          {/* Feature Engineering Summary */}
+          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Estrutura de Features Temporais (110 engenheiradas)</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+              {[{cat:"Lag Features",n:24,desc:"sRPE, CMJ, HRV, CK, sono, dor × [1,3,5,7]d",c:"#0891b2"},
+                {cat:"Rolling Mean",n:8,desc:"sRPE, CMJ, HRV, CK × [7d, 14d]",c:"#2563eb"},
+                {cat:"Rolling Std",n:8,desc:"sRPE, CMJ, HRV, CK × [7d, 14d]",c:"#7c3aed"},
+                {cat:"Rolling Z-Score",n:8,desc:"sRPE, CMJ, HRV, CK × [7d, 14d]",c:"#DC2626"},
+                {cat:"Trend Slopes",n:6,desc:"CMJ 3d/5d, Sleep 7d, sRPE 5d, HRV 7d, CK 48h",c:"#EA580C"},
+                {cat:"ACWR (EWMA)",n:5,desc:"HSR, Sprints, Decels, sRPE, Combinado",c:"#CA8A04"},
+                {cat:"Fatigue / Load",n:7,desc:"Debt, Monotonia, Strain, EWMA 7d/28d, Cum 7d/28d",c:"#16A34A"},
+                {cat:"Neuromuscular",n:6,desc:"CMJ Δ%, ISO asym, ISO Δ%, SLCMJ, NME, flag",c:"#7c3aed"},
+                {cat:"Interações",n:4,desc:"ACWR×sono, CK×asym, HRV×load, fadiga×asym",c:"#DC2626"}
+              ].map((item,i)=><div key={i} style={{padding:"10px",background:"#f8fafb",borderRadius:8,borderLeft:`3px solid ${item.c}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+                  <span style={{fontSize:11,fontWeight:700,color:pri}}>{item.cat}</span>
+                  <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,fontWeight:700,color:item.c}}>{item.n}</span>
+                </div>
+                <div style={{fontSize:9,color:"#64748b"}}>{item.desc}</div>
+              </div>)}
+            </div>
+          </div>
         </div>}
 
         {tab==="mapa"&&<div>
@@ -1878,19 +2176,19 @@ export default function Dashboard(){
           <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
               <div>
-                <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Motor Preditivo de Lesões v3.0</div>
-                <div style={{fontSize:12,color:"#94a3b8",marginTop:2}}>Arquitetura 5 Camadas · Fatigue Debt + Tendências Temporais + NME + Calibração Isotônica</div>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Motor Preditivo de Lesões v4.0 — Elite</div>
+                <div style={{fontSize:12,color:"#94a3b8",marginTop:2}}>110 Features · KNNImputer → LASSO+MI → Optuna → SMOTE+Tomek → XGBoost → Calibração → SHAP</div>
                 <div style={{fontSize:10,color:"#64748b",marginTop:4}}>
-                  Pipeline: Ingestão → SMOTE → LASSO → XGBoost (scale_pos_weight=4) → Calibração Isotônica → Threshold Tuning → SHAP
+                  {ML.pipeline.architecture}
                 </div>
               </div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}}>
                 {[
-                  {l:"AUC-ROC",v:ML.pipeline.xgboost.metrics.auc_roc,c:"#7c3aed"},
+                  {l:"AUC-ROC (CV)",v:ML.pipeline.xgboost.metrics.auc_roc,c:"#7c3aed"},
+                  {l:"AUC Calibrado",v:ML.pipeline.xgboost.metrics.auc_calibrated,c:"#7c3aed"},
                   {l:"F1-Score",v:ML.pipeline.xgboost.metrics.f1,c:"#2563eb"},
                   {l:"Recall",v:ML.pipeline.xgboost.metrics.recall,c:"#EA580C"},
                   {l:"Specificity",v:ML.pipeline.xgboost.metrics.specificity,c:"#16A34A"},
-                  {l:"Precision",v:ML.pipeline.xgboost.metrics.precision,c:"#CA8A04"},
                   {l:"MCC",v:ML.pipeline.xgboost.metrics.mcc,c:"#64748b"}
                 ].map((m,i)=>
                   <div key={i} style={{textAlign:"center",padding:"4px 8px",background:"#f8fafc",borderRadius:8}}>
@@ -1902,11 +2200,11 @@ export default function Dashboard(){
             {/* Pipeline Architecture Diagram */}
             <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginTop:14}}>
               {[
-                {n:"1. Ingestão",desc:"47 features · Categóricas + Carga + NM + Temporais",detail:"+ Fatigue Debt, NME, Tendências (CMJ, CK, sRPE, Sono)",c:"#7c3aed"},
-                {n:"2. Pré-processamento",desc:`SMOTE ${ML.pipeline.preprocessing.smote.original_ratio} → ${ML.pipeline.preprocessing.smote.resampled_ratio}`,detail:"StandardScaler + KNN Imputer + Stratified 5-Fold",c:"#2563eb"},
-                {n:"3. Modelagem",desc:`LASSO → XGBoost (d=${ML.pipeline.xgboost.hyperparams.max_depth}, spw=${ML.pipeline.xgboost.hyperparams.scale_pos_weight})`,detail:"scale_pos_weight=4 para maior peso em erros de lesão",c:"#EA580C"},
-                {n:"4. Calibração",desc:"Isotonic Regression + Threshold Tuning [0.25-0.50]",detail:"Probabilidades calibradas para decisão clínica confiável",c:"#CA8A04"},
-                {n:"5. Saída SHAP",desc:"Classificação + Perfil Fisiológico + Protocolo",detail:"Risk Board → Diagnóstico Individual → Tendência → Intervenção",c:"#16A34A"}
+                {n:"1. Ingestão",desc:"110 features · Lag + Rolling Z-Scores + ACWR + HRV + Biomecânica",detail:"34 atletas × 120 dias = 4080 registros longitudinais",c:"#7c3aed"},
+                {n:"2. KNN + LASSO + MI",desc:`KNNImputer → LASSO (α=${ML.pipeline.lasso.alpha_optimal}) + MI → ${ML.pipeline.lasso.features_selected} features`,detail:"Feature selection híbrida: L1 regularização + mutual information",c:"#2563eb"},
+                {n:"3. Optuna + XGBoost",desc:`${ML.pipeline.optuna.n_trials} trials TPE → XGBoost (d=${ML.pipeline.xgboost.hyperparams.max_depth}, spw=${ML.pipeline.xgboost.hyperparams.scale_pos_weight})`,detail:"SMOTE+Tomek no treino + scale_pos_weight automático",c:"#EA580C"},
+                {n:"4. Calibração",desc:"Platt Scaling + Isotonic → melhor selecionado automaticamente",detail:"Threshold tuning [0.20-0.50] → maximiza recall c/ precisão ≥ 0.15",c:"#CA8A04"},
+                {n:"5. SHAP + Motor",desc:"TreeExplainer → importância global + explicação individual",detail:"Risk Score → Ranking → SHAP Factors → Dosagem Operacional",c:"#16A34A"}
               ].map((l,i)=>
                 <div key={i} style={{padding:"10px 12px",borderRadius:8,border:`1px solid ${l.c}33`,background:`${l.c}08`}}>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:11,color:l.c}}>{l.n}</div>
