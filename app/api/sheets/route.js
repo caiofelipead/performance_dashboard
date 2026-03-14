@@ -133,21 +133,42 @@ function resolveName(sheetName) {
 // Parser CSV robusto (suporta aspas, vírgulas internas, quebras de linha)
 // ═══════════════════════════════════════════════════════════════════════════════
 function parseCSV(text) {
-  const lines = text.split("\n").filter(l => l.trim());
+  // Split em linhas respeitando campos entre aspas (newlines dentro de aspas não quebram)
+  const lines = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '"') {
+      if (inQuotes && text[i + 1] === '"') { current += '""'; i++; }
+      else inQuotes = !inQuotes;
+      current += ch;
+    } else if ((ch === '\n' || ch === '\r') && !inQuotes) {
+      if (current.trim()) lines.push(current);
+      current = "";
+      if (ch === '\r' && text[i + 1] === '\n') i++; // skip \r\n
+    } else {
+      current += ch;
+    }
+  }
+  if (current.trim()) lines.push(current);
+
   if (lines.length < 2) return { headers: [], rows: [] };
 
   const parseRow = (row) => {
     const fields = [];
     let field = "";
-    let inQuotes = false;
+    let q = false;
     for (let i = 0; i < row.length; i++) {
       const ch = row[i];
       if (ch === '"') {
-        if (inQuotes && row[i + 1] === '"') { field += '"'; i++; }
-        else inQuotes = !inQuotes;
-      } else if (ch === ',' && !inQuotes) {
+        if (q && row[i + 1] === '"') { field += '"'; i++; }
+        else q = !q;
+      } else if (ch === ',' && !q) {
         fields.push(field.trim());
         field = "";
+      } else if ((ch === '\n' || ch === '\r') && q) {
+        field += ' '; // newlines inside quotes become spaces
       } else {
         field += ch;
       }
