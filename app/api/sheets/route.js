@@ -186,6 +186,11 @@ function processGPS(rows) {
         acoes_30: 0,
         rhie: 0,
         dist_per_min: 0,
+        hr_avg: 0,
+        hr_max: 0,
+        hr_exertion: 0,
+        time_z4: 0,
+        time_z5: 0,
         splits: 0,
         time_total_sec: 0
       };
@@ -205,6 +210,14 @@ function processGPS(rows) {
     s.decel_b2 += toNum(row.desaceleracoes_b2_3__3_) || toNum(row.desaceleracoes_b2_3_3) || 0;
     s.acoes_30 += toNum(row.acoes_30km_h) || 0;
     s.rhie += toNum(row.rhie) || 0;
+    // FC — colunas comuns do Catapult/STATSports/Polar
+    const hrAvg = toNum(row.average_heart_rate_bpm) || toNum(row.average_heart_rate__bpm_) || toNum(row.hr_avg) || toNum(row.fc_media) || toNum(row.fc_med) || 0;
+    const hrMax = toNum(row.max_heart_rate_bpm) || toNum(row.max_heart_rate__bpm_) || toNum(row.hr_max) || toNum(row.fc_maxima) || toNum(row.fc_max) || 0;
+    if (hrAvg > s.hr_avg) s.hr_avg = hrAvg;
+    if (hrMax > s.hr_max) s.hr_max = hrMax;
+    s.hr_exertion += toNum(row.heart_rate_exertion) || toNum(row.hr_exertion) || 0;
+    s.time_z4 += toNum(row.time_in_hr_zone_4) || toNum(row.time_in_hr_zone_4__min_) || toNum(row.tempo_zona_4) || toNum(row.tempo_z4) || 0;
+    s.time_z5 += toNum(row.time_in_hr_zone_5) || toNum(row.time_in_hr_zone_5__min_) || toNum(row.tempo_zona_5) || toNum(row.tempo_z5) || 0;
     s.splits++;
   }
 
@@ -231,7 +244,10 @@ function processGPS(rows) {
         sprints_25: Math.round(s.sprints_25),
         acoes_30: Math.round(s.acoes_30),
         rhie: Math.round(s.rhie),
-        dist_per_min: 0
+        dist_per_min: 0,
+        hr_avg: Math.round(s.hr_avg),
+        hr_max: Math.round(s.hr_max),
+        tempo_zona_alta: Math.round((s.time_z4 + s.time_z5) * 10) / 10
       }
     });
   }
@@ -261,6 +277,8 @@ function processGPS(rows) {
     last.gps.acel_baseline = avg(baseline, "acel");
     last.gps.decel_baseline = avg(baseline, "decel");
     last.gps.pico_vel_baseline = avgF(baseline, "pico_vel");
+    last.gps.hr_baseline_avg = avg(baseline, "hr_avg");
+    last.gps.tempo_zona_alta_baseline = avgF(baseline, "tempo_zona_alta");
   }
 
   return result;

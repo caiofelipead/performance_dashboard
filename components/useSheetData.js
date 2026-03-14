@@ -159,11 +159,11 @@ function buildSessionData(result) {
         srpe_sessao: pse,
         duracao: duracao,
         srpe_total: spe,
-        hr_avg: 0,
-        hr_max: 0,
-        hr_baseline_avg: 0,
-        tempo_zona_alta: 0,
-        tempo_zona_alta_baseline: 0
+        hr_avg: g.hr_avg || 0,
+        hr_max: g.hr_max || 0,
+        hr_baseline_avg: g.hr_baseline_avg || 0,
+        tempo_zona_alta: g.tempo_zona_alta || 0,
+        tempo_zona_alta_baseline: g.tempo_zona_alta_baseline || 0
       },
       nm_response: {
         cmj_pre: cmjPre,

@@ -51,7 +51,8 @@ const ML={
       features_input:110,
       features_selected:33,
       method:"LASSO CV (5-fold) + top 30 Mutual Information features (union)",
-      metrics:{note:"Seleciona features com coeficiente não-zero + top MI features"}
+      metrics:{auc_roc:0.68,f1:0.19,recall:0.72,specificity:0.58,note:"Baseline linear — LASSO seleciona features com coeficiente não-zero + top MI features"},
+      features_eliminated:["COP_medio","valgo_dls","rsi_ratio","tempo_zona4","hr_recovery_60s","sprint_dist_pct","dist_z5","dist_z6","player_load_2d"]
     },
     optuna:{
       role:"Bayesian Hyperparameter Optimization",
