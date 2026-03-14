@@ -896,12 +896,7 @@ export default function Dashboard(){
         merged._fromSheet=true;
       }
       const s=score(merged);
-      // Usar probabilidade do ML.alerts se disponível (unifica os scores)
-      const mlAlert = ML.alerts.find(a=>a.n===merged.n);
-      const finalScore = mlAlert ? Math.round(mlAlert.prob * 100) : s.score;
-      const finalLevel = finalScore>=60?"CRITICAL":finalScore>=35?"HIGH":finalScore>=20?"MODERATE":"LOW";
-      const finalReasons = mlAlert ? [mlAlert.zone, ...(mlAlert.shap_pos||[]).slice(0,2).map(x=>x.f)] : s.reasons;
-      return {...merged,riskScore:finalScore,risk:finalLevel,reasons:finalReasons,_mlProb:mlAlert?.prob||null};
+      return {...merged,riskScore:s.score,risk:s.level,reasons:s.reasons};
     }).sort((a,b)=>b.riskScore-a.riskScore);
   },[sheetData]);
   const sp=sel?players.find(p=>p.n===sel):null;
