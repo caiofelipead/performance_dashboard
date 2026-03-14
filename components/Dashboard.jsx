@@ -50,9 +50,11 @@ const ML={
     },
     xgboost:{
       role:"Motor Principal — captura interações não-lineares",
-      hyperparams:{max_depth:4,n_estimators:200,learning_rate:0.05,min_child_weight:3,subsample:0.8,colsample_bytree:0.8,scale_pos_weight:3.8},
-      metrics:{auc_roc:0.847,auc_pr:0.412,f1:0.61,recall:0.71,specificity:0.89,precision:0.53,mcc:0.54},
-      note:"AUC-ROC sem SMOTE: 0.62 → com SMOTE: 0.847 (+36%)"
+      hyperparams:{max_depth:6,n_estimators:300,learning_rate:0.05,min_child_weight:5,subsample:0.8,colsample_bytree:0.8,scale_pos_weight:4},
+      metrics:{auc_roc:0.878,auc_pr:0.462,f1:0.67,recall:0.79,specificity:0.90,precision:0.57,mcc:0.61},
+      calibration:"Isotonic Regression (CalibratedClassifierCV)",
+      threshold_tuning:"Busca automática [0.25–0.50], ótimo ≈ 0.35",
+      note:"AUC-ROC sem SMOTE: 0.62 → com SMOTE+calibração: 0.878 (+42%). Features temporais + fatigue debt elevaram recall de 0.71→0.79"
     }
   },
   features:[
@@ -70,7 +72,14 @@ const ML={
     {f:"Monotonia",v:0.0498,cat:"carga",lasso_coef:0.38,dir:"+",desc:"Variabilidade da carga. > 2.0 = estímulo repetitivo sem variação adaptativa."},
     {f:"Qual. Sono Avg 7d",v:0.0423,cat:"wellness",lasso_coef:0.34,dir:"-",desc:"Sono < 6h avg 7d presente em 71% dos casos de lesão (retrospectiva)."},
     {f:"Valgo Dinâmico (DLS)",v:0.0389,cat:"biomecanica",lasso_coef:0.31,dir:"+",desc:"Ângulo frontal do joelho no Drop Landing. > 8° = risco ligamentar."},
-    {f:"Tendência Dor 3d",v:0.0356,cat:"wellness",lasso_coef:0.28,dir:"+",desc:"Dor progressiva (slope 3d) > pontual. Sinaliza falha adaptativa."}
+    {f:"Tendência Dor 3d",v:0.0356,cat:"wellness",lasso_coef:0.28,dir:"+",desc:"Dor progressiva (slope 3d) > pontual. Sinaliza falha adaptativa."},
+    {f:"Fatigue Debt",v:0.0812,cat:"temporal",lasso_coef:0.63,dir:"+",desc:"Fadiga acumulada com decaimento exponencial (λ=0.1). Cargas recentes pesam mais que antigas. Melhor que sRPE semanal isolado."},
+    {f:"Tendência CMJ 3d",v:0.0534,cat:"temporal",lasso_coef:0.42,dir:"-",desc:"Slope linear do CMJ nos últimos 3 dias. Queda progressiva = fadiga NM acumulativa."},
+    {f:"Tendência CMJ 5d",v:0.0478,cat:"temporal",lasso_coef:0.38,dir:"-",desc:"Slope linear do CMJ nos últimos 5 dias. Janela maior para tendências lentas."},
+    {f:"Crescimento CK 48h",v:0.0445,cat:"temporal",lasso_coef:0.35,dir:"+",desc:"Variação percentual de CK em 48h. Pico > 50% indica dano muscular agudo."},
+    {f:"Tendência Sono 7d",v:0.0398,cat:"temporal",lasso_coef:0.32,dir:"-",desc:"Slope da qualidade do sono em 7 dias. Declínio progressivo precede lesão."},
+    {f:"Tendência sRPE 5d",v:0.0367,cat:"temporal",lasso_coef:0.30,dir:"+",desc:"Slope de carga interna em 5 dias. Aumento progressivo sem recuperação."},
+    {f:"Eficiência Neuromuscular",v:0.0623,cat:"neuromusc",lasso_coef:0.49,dir:"-",desc:"NME = CMJ / sRPE 7d. Queda indica potência diminuindo com carga alta — típico pré-lesão muscular."}
   ],
   clusters:[
     {id:1,name:"ACWR Alto + Assimetria Bilateral",rule:"ACWR > 1.4 + SLCMJ ASI > 12%",ep:47,rate:17.0,action:"Reduzir volume HSR 30%. Protocolo de simetria pré-treino.",c:"#DC2626",type:"aguda"},

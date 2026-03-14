@@ -385,6 +385,52 @@ def engineer_features(df):
         g["biological_deficit"] = g["ck_ratio"] * (10 - g["sleep_quality"]) / 10
 
         # =====================================================================
+        # TAREFA 6: FATIGUE DEBT (fadiga acumulada com decaimento exponencial)
+        # FatigueDebt_t = Σ Load_{t-i} * e^{-λi}, λ = 0.1
+        # Referência: Hulin et al. (2014) — cargas recentes pesam mais
+        # =====================================================================
+        decay_lambda = 0.1
+        fatigue_debt_vals = []
+        srpe_values = g["srpe"].values
+        for t in range(len(srpe_values)):
+            lookback = min(t + 1, 28)  # janela máxima de 28 dias
+            debt = sum(
+                srpe_values[t - i] * np.exp(-decay_lambda * i)
+                for i in range(lookback)
+            )
+            fatigue_debt_vals.append(debt)
+        g["fatigue_debt"] = fatigue_debt_vals
+
+        # =====================================================================
+        # TAREFA 7: FEATURES DE TENDÊNCIA TEMPORAL (slopes)
+        # Modelos funcionam melhor com tendência que valor absoluto
+        # =====================================================================
+        g["cmj_trend_3d"] = g["cmj_cm"].rolling(window=3, min_periods=2).apply(
+            lambda x: np.polyfit(range(len(x)), x, 1)[0], raw=True
+        ).fillna(0)
+        g["cmj_trend_5d"] = g["cmj_cm"].rolling(window=5, min_periods=3).apply(
+            lambda x: np.polyfit(range(len(x)), x, 1)[0], raw=True
+        ).fillna(0)
+        g["ck_growth_48h"] = g["ck_today"].pct_change(periods=2).fillna(0)
+        g["sleep_trend_7d"] = g["sleep_quality"].rolling(window=7, min_periods=3).apply(
+            lambda x: np.polyfit(range(len(x)), x, 1)[0], raw=True
+        ).fillna(0)
+        g["srpe_trend_5d"] = g["srpe"].rolling(window=5, min_periods=3).apply(
+            lambda x: np.polyfit(range(len(x)), x, 1)[0], raw=True
+        ).fillna(0)
+
+        # =====================================================================
+        # TAREFA 8: ÍNDICE DE EFICIÊNCIA NEUROMUSCULAR (NME)
+        # NME = CMJ Power / Training Load
+        # Queda do NME = potência diminui com carga alta → pré-lesão
+        # =====================================================================
+        srpe_7d_safe = g["srpe_7d_sum"].replace(0, np.nan)
+        g["neuromuscular_efficiency"] = g["cmj_cm"] / srpe_7d_safe
+        g["neuromuscular_efficiency"] = g["neuromuscular_efficiency"].fillna(
+            g["neuromuscular_efficiency"].median()
+        )
+
+        # =====================================================================
         # FEATURES ADICIONAIS (interações não-lineares)
         # =====================================================================
         # Player Load acumulado 3 dias
@@ -465,6 +511,13 @@ FEATURE_COLS = [
     "acwr_x_sleep_deficit", "ck_x_asymmetry",
     # Temporal
     "days_since_injury", "is_match",
+    # Fatigue Debt
+    "fatigue_debt",
+    # Tendências Temporais
+    "cmj_trend_3d", "cmj_trend_5d", "ck_growth_48h",
+    "sleep_trend_7d", "srpe_trend_5d",
+    # Eficiência Neuromuscular
+    "neuromuscular_efficiency",
     # Posição
     "pos_encoded",
 ]
@@ -494,6 +547,7 @@ def train_model(df):
     print(f"  Ratio: 1:{int((y==0).sum()/(y==1).sum()) if (y==1).sum()>0 else 'N/A'}")
 
     # --- PIPELINE: SMOTE + XGBoost ---
+    # scale_pos_weight ≈ negativos/positivos ≈ 4 (aumenta peso de erros em lesões)
     model = ImbPipeline([
         ("scaler", StandardScaler()),
         ("smote", SMOTE(
@@ -509,7 +563,7 @@ def train_model(df):
             colsample_bytree=0.8,
             min_child_weight=5,
             gamma=0.1,
-            scale_pos_weight=3,
+            scale_pos_weight=4,
             reg_alpha=0.1,
             reg_lambda=1.0,
             eval_metric="aucpr",
@@ -531,10 +585,28 @@ def train_model(df):
         model, X, y, cv=cv, method="predict_proba"
     )[:, 1]
 
-    y_pred = (y_pred_proba > 0.3).astype(int)  # threshold otimizado
+    # --- Threshold Tuning ---
+    # Para prevenção de lesão, threshold ótimo entre 0.30-0.40
+    # Busca o threshold que maximiza F1 na faixa clínica relevante
+    from sklearn.metrics import f1_score, recall_score, precision_score
+    best_threshold = 0.30
+    best_f1 = 0
+    print(f"\n--- Threshold Tuning ---")
+    for t in [0.25, 0.30, 0.35, 0.40, 0.45, 0.50]:
+        y_t = (y_pred_proba > t).astype(int)
+        f1_t = f1_score(y, y_t, zero_division=0)
+        rec_t = recall_score(y, y_t, zero_division=0)
+        prec_t = precision_score(y, y_t, zero_division=0)
+        print(f"  Threshold {t:.2f}: F1={f1_t:.3f} Recall={rec_t:.3f} Precision={prec_t:.3f}")
+        if f1_t > best_f1:
+            best_f1 = f1_t
+            best_threshold = t
+
+    print(f"  → Threshold ótimo: {best_threshold:.2f} (F1={best_f1:.3f})")
+    y_pred = (y_pred_proba > best_threshold).astype(int)
 
     # Métricas
-    print(f"\n--- Classification Report (threshold=0.30) ---")
+    print(f"\n--- Classification Report (threshold={best_threshold:.2f}) ---")
     print(classification_report(y, y_pred, target_names=["Apto", "Lesão"]))
 
     auc_roc = roc_auc_score(y, y_pred_proba)
@@ -544,6 +616,17 @@ def train_model(df):
 
     # --- Treinar modelo final em todos os dados ---
     model.fit(X, y)
+
+    # --- Calibração de Probabilidade ---
+    # Calibra probabilidades via isotonic regression para melhor confiabilidade
+    print(f"\n--- Calibração de Probabilidade (Isotonic) ---")
+    calibrated_model = CalibratedClassifierCV(
+        model, method="isotonic", cv=cv
+    )
+    calibrated_model.fit(X, y)
+    y_calibrated = calibrated_model.predict_proba(X)[:, 1]
+    auc_cal = roc_auc_score(y, y_calibrated)
+    print(f"  AUC-ROC (calibrado): {auc_cal:.3f}")
 
     # --- Feature Importance (do XGBoost interno) ---
     xgb_model = model.named_steps["xgb"]
@@ -558,7 +641,8 @@ def train_model(df):
         bar = "█" * int(imp * 100)
         print(f"  {feat:<30} {imp:.4f} {bar}")
 
-    return model, importances, X, y, y_pred_proba
+    # Usar modelo calibrado para predições finais
+    return calibrated_model, importances, X, y, y_pred_proba
 
 
 # ==============================================================================
@@ -786,6 +870,11 @@ def export_to_dashboard(alerts, importances, clusters):
                 "sleep_quality": round(float(row["sleep_quality"]), 1),
                 "biological_deficit": round(float(row["biological_deficit"]), 2),
                 "wellness_composite": round(float(row["wellness_composite"]), 1),
+                "fatigue_debt": round(float(row["fatigue_debt"]), 1),
+                "neuromuscular_efficiency": round(float(row["neuromuscular_efficiency"]), 4),
+                "cmj_trend_3d": round(float(row["cmj_trend_3d"]), 3),
+                "srpe_trend_5d": round(float(row["srpe_trend_5d"]), 1),
+                "sleep_trend_7d": round(float(row["sleep_trend_7d"]), 3),
             }
             for _, row in alerts.iterrows()
         ]
