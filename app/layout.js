@@ -2,8 +2,8 @@ export const metadata = {
   title: 'Saúde e Performance — Botafogo-SP',
   description: 'Dashboard de performance e wellness do elenco',
   icons: {
-    icon: '/icon.svg',
-    apple: '/icon.svg',
+    icon: '/icon.png',
+    apple: '/icon.png',
   },
 };
 export default function RootLayout({ children }) {
