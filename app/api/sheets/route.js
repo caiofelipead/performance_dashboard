@@ -7,11 +7,11 @@
 
 const SHEETS_CONFIG = {
   // URL publicada (pubhtml → CSV) — chave pública
-  published_key: "2PACX-1vQl_1aASU_8PNd3Q6wwodKB9S7yHu1GICvomrpZ0vFHZN3DDztAQfP9C5aAqpkhlcRa-auGdVIoC_kq",
-  // IDs das planilhas editáveis (fallback)
+  published_key: "2PACX-1vQSxRZObs5anHZcJH7LsETalW7vY1U5A066mLFpWVZMWgHNWL28PWSnhjJHWtznCQ2R8AV5YYdlt6AP",
+  // IDs das planilhas editáveis (principal + fallback)
   spreadsheet_ids: [
-    "1PRwHxkPWQmlwiXC6i2kbkaQSOmqW6-BKFq51pWaPwxY",
-    "1f4j4Qj0o3BYZPZ5YOTKoG0mk3H7UUCiK8gw2Ywv2LPU"
+    "1f4j4Qj0o3BYZPZ5YOTKoG0mk3H7UUCiK8gw2Ywv2LPU",
+    "1PRwHxkPWQmlwiXC6i2kbkaQSOmqW6-BKFq51pWaPwxY"
   ],
   // GIDs das abas (publicadas no Google Sheets)
   // IMPORTANTE: ajustar esses GIDs conforme a planilha publicada real
