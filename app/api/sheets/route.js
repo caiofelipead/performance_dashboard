@@ -13,19 +13,16 @@ const SHEETS_CONFIG = {
     "1f4j4Qj0o3BYZPZ5YOTKoG0mk3H7UUCiK8gw2Ywv2LPU",
     "1PRwHxkPWQmlwiXC6i2kbkaQSOmqW6-BKFq51pWaPwxY"
   ],
-  // GIDs das abas (publicadas no Google Sheets)
-  // IMPORTANTE: ajustar esses GIDs conforme a planilha publicada real
-  // Os GIDs abaixo correspondem à ordem padrão das abas (0, 1, 2...)
-  // Para descobrir o GID correto: acessar cada aba no Google Sheets e ver o &gid= na URL
+  // GIDs das abas (publicadas no Google Sheets) — verificados manualmente
   tabs: {
-    diario: 0,
-    vbt: 1,
-    gps: 2,
-    saltos: 3,
-    bioquimico: 4,
-    antropometria: 5,
-    questionarios: 6,
-    atletas: 7
+    diario: 555914149,
+    vbt: 2056067101,
+    gps: 0,
+    saltos: 1915291461,
+    bioquimico: 193203862,
+    antropometria: 461631273,
+    questionarios: 1014986912,
+    atletas: 1315104851
   }
 };
 
