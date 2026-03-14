@@ -22,7 +22,8 @@ const SHEETS_CONFIG = {
     bioquimico: 193203862,
     antropometria: 461631273,
     questionarios: 1014986912,
-    atletas: 1315104851
+    atletas: 1315104851,
+    fisioterapia: 1541953765
   }
 };
 
@@ -73,7 +74,45 @@ const NAME_MAP = {
   "Luizao G": "LUIZAO",
   "Ze Hugo": "ZE HUGO",
   "Ruan R": "RUAN",
-  "Caua F": "CAUA"
+  "Caua F": "CAUA",
+  // Nomes truncados da aba Fisioterapia
+  "CARLOS EDUA": "CARLOS EDUARDO",
+  "CARLOS EDUARDO": "CARLOS EDUARDO",
+  "GUILHERME QU": "GUILHERME QUEIROZ",
+  "GUILHERME QUEIROZ": "GUILHERME QUEIROZ",
+  "LEANDRO MAC": "LEANDRO MACIEL",
+  "LEANDRO MACIEL": "LEANDRO MACIEL",
+  "JEFERSON": "JEFFERSON NEM",
+  "HENRIQUE TEL": "HENRIQUE TELES",
+  "HENRIQUE TELES": "HENRIQUE TELES",
+  "MATHEUS SALE": "MATHEUS SALES",
+  "MATHEUS SALES": "MATHEUS SALES",
+  "MARQUINHO JR": "MARQUINHO JR.",
+  "MARQUINHO JR.": "MARQUINHO JR.",
+  "VICTOR SOUZA": "VICTOR SOUZA",
+  "RAFAEL GAVA": "RAFAEL GAVA",
+  "LÉO GAMALHO": "LEO GAMALHO",
+  "LEO GAMALHO": "LEO GAMALHO",
+  "JOÃO COSTA": "J COSTA",
+  "JOAO COSTA": "J COSTA",
+  "WALLACE": "WALLACE",
+  "JORDAN": "JORDAN",
+  "ERICSON": "ERICSON",
+  "MARANHAO": "MARANHAO",
+  "ERIK": "ERIK",
+  "THALLES": "THALLES",
+  "JONATHAN": "JONATHAN",
+  "ADRIANO": "ADRIANO",
+  "BRENNO": "BRENNO",
+  "HYGOR": "HYGOR",
+  "KELVIN": "KELVIN",
+  "PEDRINHO": "PEDRINHO",
+  "FELIPINHO": "FELIPINHO",
+  "MORELLI": "MORELLI",
+  "WESLEY": "WESLEY",
+  "YURI": "YURI",
+  "LUIZAO": "LUIZAO",
+  "DARLAN": "DARLAN"
 };
 
 function resolveName(sheetName) {
@@ -378,6 +417,33 @@ function processQuestionarios(rows) {
   return result;
 }
 
+// Fisioterapia: Referência, Texto, Data, Período, Nome, Horário Chegada, Horário Saída, Procedimento, Responsável
+function processFisioterapia(rows) {
+  const result = {};
+  for (const row of rows) {
+    const athlete = row.nome || row.nome_ || "";
+    if (!athlete) continue;
+    const name = resolveName(athlete);
+    if (!name) continue;
+
+    if (!result[name]) result[name] = [];
+
+    const chegada = row.horario_de_chegada || row.horario_chegada || "";
+    const saida = row.horario_de_saida || row.horario_saida || "";
+
+    result[name].push({
+      date: row.data || "",
+      periodo: row.periodo || "",
+      chegada: String(chegada).slice(0, 5),
+      saida: String(saida).slice(0, 5),
+      procedimento: row.procedimento || "",
+      responsavel: row.responsavel || "",
+      referencia: row.referencia || ""
+    });
+  }
+  return result;
+}
+
 function toNum(v) {
   if (v === null || v === undefined || v === "") return 0;
   if (typeof v === "number") return v;
@@ -440,11 +506,12 @@ export async function GET(request) {
 
     if (tab === "all") {
       // Buscar todas as abas em paralelo
-      const [gpsCSV, diarioCSV, saltosCSV, questCSV] = await Promise.allSettled([
+      const [gpsCSV, diarioCSV, saltosCSV, questCSV, fisioCSV] = await Promise.allSettled([
         fetchSheetCSV(SHEETS_CONFIG.tabs.gps),
         fetchSheetCSV(SHEETS_CONFIG.tabs.diario),
         fetchSheetCSV(SHEETS_CONFIG.tabs.saltos),
-        fetchSheetCSV(SHEETS_CONFIG.tabs.questionarios)
+        fetchSheetCSV(SHEETS_CONFIG.tabs.questionarios),
+        fetchSheetCSV(SHEETS_CONFIG.tabs.fisioterapia)
       ]);
 
       const result = { ok: true, timestamp: new Date().toISOString(), _debug: {} };
@@ -477,6 +544,13 @@ export async function GET(request) {
       } else {
         result._debug.questionarios = { error: questCSV.reason?.message || "failed" };
       }
+      if (fisioCSV.status === "fulfilled") {
+        const { rows, headers } = parseCSV(fisioCSV.value);
+        result.fisioterapia = processFisioterapia(rows);
+        result._debug.fisioterapia = { rows: rows.length, athletes: Object.keys(result.fisioterapia).length };
+      } else {
+        result._debug.fisioterapia = { error: fisioCSV.reason?.message || "failed" };
+      }
 
       return Response.json(result, {
         headers: {
@@ -508,6 +582,7 @@ export async function GET(request) {
       case "diario": processed = processDiario(rows); break;
       case "saltos": processed = processSaltos(rows); break;
       case "questionarios": processed = processQuestionarios(rows); break;
+      case "fisioterapia": processed = processFisioterapia(rows); break;
       default: processed = rows;
     }
 
