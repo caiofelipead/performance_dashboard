@@ -870,7 +870,35 @@ export default function Dashboard(){
     return merged;
   }, [sheetData]);
 
-  const players=useMemo(()=>P.map(p=>{const s=score(p);return {...p,riskScore:s.score,risk:s.level,reasons:s.reasons};}).sort((a,b)=>b.riskScore-a.riskScore),[]);
+  // Merge P com dados live do Google Sheets e recalcular scores
+  const players=useMemo(()=>{
+    const liveAtletas = sheetData?.sessionAtletas || {};
+    return P.map(p=>{
+      const live = liveAtletas[p.n];
+      const merged = {...p};
+      if(live){
+        // Sobrescrever campos com dados live quando disponíveis
+        if(live.fisio?.dor_pos>0) merged.d=live.fisio.dor_pos;
+        if(live.fisio?.sono_noite>0) merged.sq=live.fisio.sono_noite;
+        if(live.fisio?.rec_percebida>0) merged.rg=live.fisio.rec_percebida;
+        if(live.fisio?.ck_estimado>0) merged.ck=live.fisio.ck_estimado;
+        if(live.carga_interna?.srpe_sessao>0) merged.pse=live.carga_interna.srpe_sessao;
+        if(live.carga_interna?.srpe_total>0) merged.sra=live.carga_interna.srpe_total;
+        if(live.carga_interna?.duracao>0) merged.duracao=live.carga_interna.duracao;
+        if(live.nm_response?.cmj_pre>0) merged.cmj=live.nm_response.cmj_pre;
+        if(live.nm_response?.asi_pos>0) merged.asi=live.nm_response.asi_pos;
+        if(live.gps?.dist_total>0) merged.dist=live.gps.dist_total;
+        if(live.gps?.hsr>0) merged.hsr=live.gps.hsr;
+        // ACWR a partir do GPS
+        if(live.gps?.hsr_baseline>0 && live.gps?.hsr>0) merged.ai=Math.round((live.gps.hsr/live.gps.hsr_baseline)*100)/100;
+        // Classificação
+        if(live.classificacao) merged._liveClassif=live.classificacao;
+        merged._fromSheet=true;
+      }
+      const s=score(merged);
+      return {...merged,riskScore:s.score,risk:s.level,reasons:s.reasons};
+    }).sort((a,b)=>b.riskScore-a.riskScore);
+  },[sheetData]);
   const sp=sel?players.find(p=>p.n===sel):null;
   const tabs=[{id:"squad",l:"Squad Overview",ic:Users},{id:"alerts",l:"Alertas",ic:AlertTriangle},{id:"carga",l:"Carga & ACWR",ic:TrendingUp},{id:"neuro",l:"Neuromuscular",ic:Zap},{id:"fisio",l:"Fisiológico",ic:Heart},{id:"temporal",l:"Temporal",ic:Activity},{id:"mapa",l:"Mapa Semanal",ic:Calendar},{id:"player",l:"Individual",ic:Eye},{id:"sessao",l:"Sessão de Treino",ic:Activity},{id:"model",l:"Modelo Preditivo",ic:Brain},{id:"retro",l:"Retrospectiva",ic:Target}];
 
@@ -957,7 +985,7 @@ export default function Dashboard(){
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14,flexWrap:"wrap",gap:8}}>
               <div>
                 <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri}}>Risk Board — Prontidão para Sessão</div>
-                <div style={{fontSize:11,color:"#94a3b8"}}>13/Mar/2026 · Decisão operacional: quem pode treinar normalmente hoje?</div>
+                <div style={{fontSize:11,color:"#94a3b8"}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · Decisão operacional: quem pode treinar normalmente hoje?</div>
               </div>
               <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                 {[{l:"Crítico (>60%)",c:"#DC2626",n:ML.alerts.filter(a=>a.prob>0.60).length},
@@ -1092,7 +1120,7 @@ export default function Dashboard(){
 
         {tab==="alerts"&&<div>
           <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri,marginBottom:4}}>Alertas Ativos</div>
-          <div style={{fontSize:12,color:"#94a3b8",marginBottom:16}}>12/Mar/2026 · Score de criticidade composto (ACWR + Wellness + CK + Dor)</div>
+          <div style={{fontSize:12,color:"#94a3b8",marginBottom:16}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · Score de criticidade composto (ACWR + Wellness + CK + Dor)</div>
           {players.filter(p=>p.riskScore>=8).map((p,i)=>{
             const lv=LV[p.risk];
             const rx=p.risk==="CRITICAL"?
@@ -1476,7 +1504,7 @@ export default function Dashboard(){
               <div style={{padding:"12px 16px",background:"#FEF2F2",borderBottom:"1px solid #FECACA",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:"#DC2626"}}>Departamento Médico — Atual</div>
-                  <div style={{fontSize:10,color:"#94a3b8"}}>13/Mar/2026 · {DM_ATUAL.length} atletas afastados</div>
+                  <div style={{fontSize:10,color:"#94a3b8"}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · {DM_ATUAL.length} atletas afastados</div>
                 </div>
                 <div style={{fontFamily:"'JetBrains Mono'",fontSize:20,fontWeight:800,color:"#DC2626"}}>{DM_ATUAL.length}</div>
               </div>
@@ -2318,7 +2346,7 @@ export default function Dashboard(){
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
               <div>
                 <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Saída Clínica SHAP — Prontidão Próxima Sessão</div>
-                <div style={{fontSize:11,color:"#94a3b8"}}>13/Mar/2026 · Explicabilidade por atleta: quais variáveis geraram cada alerta</div>
+                <div style={{fontSize:11,color:"#94a3b8"}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · Explicabilidade por atleta: quais variáveis geraram cada alerta</div>
               </div>
               <div style={{display:"flex",gap:8}}>
                 {[{l:"Vermelho",c:"#DC2626",n:ML.alerts.filter(a=>a.zone==="VERMELHO").length},
