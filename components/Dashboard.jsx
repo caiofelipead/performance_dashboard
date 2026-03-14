@@ -1,6 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { BarChart, Bar, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, AreaChart, Cell, ReferenceLine, LineChart, Line } from "recharts";
-import { Activity, TrendingUp, AlertTriangle, CheckCircle2, ChevronRight, Heart, Zap, Shield, Users, Eye, Brain, Target, Calendar } from "lucide-react";
+import { Activity, TrendingUp, AlertTriangle, CheckCircle2, ChevronRight, Heart, Zap, Shield, Users, Eye, Brain, Target, Calendar, RefreshCw, Wifi, WifiOff } from "lucide-react";
+import { useSheetData } from "./useSheetData";
 
 const P=[{n:"ADRIANO",pos:"GOL",id:19,h:5,e:4,rg:7,rp:6,d:2,sq:7,rpa:7,da:1.6,sa:7.3,nw:39,pse:3,sra:331,w:82.7,alt:185,bf:12.4,mm:38.2,imc:24.2,nc:60,ai:1.24,cmj:49.6,ct:[54.2,50.3,48.5,51.4,52,52.2,52.6,49.6],wt:{dt:["02","03","07","09","10","11","12"],s:[10,8,7,7,8,7,7],r:[8,6,6,8,8,7,6],dr:[1,1,1,1,2,1,2]}},{n:"BRENNO",pos:"GOL",id:23,h:4,e:4,rg:8,rp:8,d:3,sq:7,rpa:7.3,da:1.3,sa:7.3,nw:50,pse:4,sra:310,w:90.8,alt:191,bf:13.8,mm:41.5,imc:24.9,nc:75,ai:1.17,cmj:44.6,ct:[45,47.8,49.3,48,47.6,49.3,46.2,44.6],wt:{dt:["04","05","06","07","09","10","11"],s:[7,7,7,6,10,8,7],r:[7,7,8,5,8,7,8],dr:[0,0,0,0,0,2,3]}},{n:"CARLOS EDUARDO",pos:"ZAG",id:25,h:5,e:3,rg:8,rp:8,d:2,sq:8,rpa:7.9,da:1,sa:9.2,nw:57,pse:3,sra:391,w:85.9,alt:187,bf:11.9,mm:39.8,imc:24.6,ck:973,nc:75,ai:1.07,cmj:46.7,ckm:973,ct:[49.1,44,47.1,44.5,48.8,46.5,52.6,46.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,9,8,8,9,10,8],r:[9,5,6,9,8,6,8],dr:[1,1,0,0,0,2,2]}},{n:"DARLAN",pos:"ZAG",id:20,h:4,e:3,rg:9,rp:8,d:0,sq:8,rpa:7.8,da:.7,sa:7.8,nw:17,pse:5,sra:317,w:80.2,alt:178,bf:10.5,mm:37.1,imc:25.3,nc:20,ai:.95,cmj:31.1,ct:[31.1]},{n:"ERICSON",pos:"ZAG",id:26,h:5,e:3,rg:10,rp:9,d:3,sq:9,rpa:6.7,da:1.1,sa:8.8,nw:51,pse:0,sra:431,w:91.6,alt:190,bf:13.2,mm:42.0,imc:25.4,ck:562,nc:75,ai:.64,cmj:43.1,ckm:916,ct:[44.3,47.4,42.4,47.1,50.9,50.9,55.5,43.1],wt:{dt:["26","27","28","02","03","04","06"],s:[9,9,9,7,9,8,9],r:[6,6,5,8,7,9,9],dr:[1,1,1,1,4,3,3]}},{n:"ERIK",pos:"LAT",id:20,h:5,e:4,rg:7,rp:7,d:0,sq:9,rpa:7.2,da:.2,sa:9.3,nw:22,pse:6,sra:308,w:75.5,alt:176,bf:9.8,mm:35.4,imc:24.4,nc:59,ai:1.97,ct:[54.1,52.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,8,8,10,10,9],r:[7,8,7,10,7,7,7],dr:[0,0,0,0,0,0,0]}},{n:"FELIPINHO",pos:"MEI",id:19,h:5,e:3,rg:7,rp:7,d:0,sq:7,rpa:6.8,da:0,sa:7.5,nw:16,pse:7,sra:347,w:78,alt:179,bf:11.2,mm:36.0,imc:24.3,nc:27,ai:.85,cmj:38.9,ct:[44.5,38.9]},{n:"FELIPE VIEIRA",pos:"LE",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.2,da:.3,sa:8.2,nw:27,pse:7,sra:385,w:77,alt:176,bf:7.7,mm:35.8,imc:24.9,ck:174,nc:27,ai:1.0,cmj:39.3,ckm:174,ct:[45.0,39.3],wt:{dt:["03","04","05","06","07","09","10"],s:[7,7,8,9,6,5,7],r:[7,7,7,8,6,5,7],dr:[0,0,0,0,0,0,0]}},{n:"GABRIEL INOCENCIO",pos:"LAT",id:31,h:4,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.8,da:.4,sa:7.2,nw:58,pse:3,sra:407,w:78.5,alt:177,bf:10.8,mm:36.5,imc:25.1,ck:533,nc:75,ai:.97,cmj:48.2,ckm:916,ct:[48.2,52.3,45.3,48.9,53.6,49.3,50.8,48.2],wt:{dt:["04","05","06","09","10","11","12"],s:[8,9,8,8,7,7,8],r:[7,7,7,8,8,8,8],dr:[1,2,7,2,2,2,1]}},{n:"GUI MARIANO",pos:"ZAG",id:26,h:5,e:4,rg:8,rp:8,d:4,sq:8,rpa:7.6,da:.3,sa:8.2,nw:59,pse:7,sra:476,w:89.7,alt:189,bf:12.7,mm:41.0,imc:25.1,nc:75,ai:1.1,cmj:53.1,ct:[52.4,52.2,52,55.1,47.5,53.7,53.5,53.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,9,9,8,8],r:[7,7,5,10,8,6,8],dr:[0,0,0,0,0,0,4]}},{n:"GUILHERME QUEIROZ",pos:"ATA",id:35,h:5,e:3,rg:7,rp:7,d:2,sq:8,rpa:7.3,da:1.5,sa:6.9,nw:56,pse:6,sra:369,w:87.9,alt:188,bf:13.1,mm:40.2,imc:24.9,ck:493,nc:75,ai:1.14,cmj:46,ckm:493,ct:[43.3,43.3,46.2,47.4,44.7,48.3,48,46],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,7,7,5,8],r:[10,7,6,8,6,7,7],dr:[0,0,1,0,1,1,2]}},{n:"GUSTAVO VILAR",pos:"ZAG",id:25,h:5,e:3,rg:6,rp:6,d:0,sq:7,rpa:6.5,da:.2,sa:7.7,nw:55,pse:5,sra:410,w:86.4,alt:183,bf:12.9,mm:39.5,imc:25.8,ck:658,nc:75,ai:1.07,cmj:43.5,ckm:1113,ct:[43.3,42.9,47.9,42.8,43.1,44,44.8,43.5]},{n:"HEBERT",pos:"ZAG",id:20,h:5,e:3,rg:8,rp:7,d:0,sq:7,rpa:6.7,da:.1,sa:7.7,nw:46,pse:5,sra:366,w:88.1,alt:186,bf:12.5,mm:40.8,imc:25.5,nc:59,ai:1.04,cmj:46.9,ct:[50.1,49.8,50,52.5,48.6,51.2,53.3,46.9]},{n:"HENRIQUE TELES",pos:"LAT",id:19,h:5,e:4,rg:8,rp:8,d:2,sq:8,rpa:7,da:1.4,sa:7.7,nw:54,pse:6,sra:415,w:80.1,alt:180,bf:11.3,mm:37.2,imc:24.7,ck:415,nc:69,ai:1.14,cmj:45.5,ckm:415,ct:[53.1,55.5,49.8,54.9,51.6,50.8,55.1,45.5],wt:{dt:["04","05","07","09","10","11","12"],s:[8,9,6,9,8,9,8],r:[6,8,6,10,8,9,8],dr:[2,1,7,5,3,3,2]}},{n:"HYGOR",pos:"ATA",id:33,h:5,e:4,rg:10,rp:8,d:2,sq:7,rpa:8.8,da:1.6,sa:9.2,nw:57,pse:4,sra:387,w:83.3,alt:182,bf:11.6,mm:38.6,imc:25.2,ck:749,nc:75,ai:1.12,cmj:42.1,ckm:1034,ct:[40.8,44.5,39.9,44.2,43.5,42.4,41.9,42.1],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,10,10,10,10,7],r:[10,6,8,10,8,8,8],dr:[0,2,0,0,0,3,2]}},{n:"JEFFERSON NEM",pos:"ATA",id:29,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:7.1,da:.8,sa:7.9,nw:57,pse:7,sra:423,w:72.5,alt:174,bf:10.1,mm:33.8,imc:23.9,ck:985,nc:75,ai:.97,cmj:47.5,ckm:3539,ct:[44,48.2,44.5,50.4,50,44.1,47.2,47.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,7],r:[7,6,7,8,8,7,7],dr:[0,0,0,0,0,0,2]}},{n:"JONATHAN",pos:"LD",id:33,h:5,e:4,rg:5,rp:5,d:4,sq:7,rpa:5.8,da:2.9,sa:5.9,nw:51,pse:4,sra:333,w:73.7,alt:175,bf:10.9,mm:34.3,imc:24.1,ck:981,nc:75,ai:1.14,cmj:42.8,ckm:1372,ct:[46.4,46.8,46.9,37.3,45,44.7,45,42.8],wt:{dt:["04","05","07","09","10","11","12"],s:[5,7,6,6,6,6,7],r:[6,7,4,7,5,6,5],dr:[3,3,3,2,3,3,4]}},{n:"JORDAN",pos:"GOL",id:28,h:5,e:3,rg:7,rp:7,d:0,sq:9,rpa:8,da:.7,sa:8,nw:60,pse:4,sra:418,w:92.2,alt:192,bf:12.0,mm:42.8,imc:25.0,nc:75,ai:1.1,cmj:54.1,ct:[52.2,53.4,53.4,53.2,54.5,56,55.7,54.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,9],r:[8,8,6,8,8,7,7],dr:[1,0,0,0,0,0,0]}},{n:"KELVIN",pos:"EXT",id:28,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:6.9,da:3,sa:7.4,nw:49,pse:3,sra:288,w:74.6,alt:177,bf:10.3,mm:34.8,imc:23.8,ck:207,nc:67,ai:.86,cmj:38.4,ckm:375,ct:[40.4,38.3,40.8,40.2,40.6,39.5,42.3,38.4],wt:{dt:["04","05","06","09","10","11","12"],s:[7,9,8,9,9,8,7],r:[7,7,7,10,10,9,7],dr:[3,3,3,0,0,2,2]}},{n:"LEANDRO MACIEL",pos:"MEI",id:30,h:4,e:3,rg:8,rp:8,d:0,sq:9,rpa:7.7,da:.5,sa:8.6,nw:57,pse:4,sra:399,w:91.3,alt:188,bf:13.5,mm:41.6,imc:25.8,ck:349,nc:75,ai:1.08,cmj:43.8,ckm:510,ct:[41.7,47.4,40.5,46.2,47.8,44.3,50.4,43.8],wt:{dt:["05","06","07","09","10","11","12"],s:[8,7,9,8,8,8,9],r:[8,7,8,8,7,7,8],dr:[0,1,0,0,0,1,0]}},{n:"MARANHAO",pos:"EXT",id:26,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:6.9,da:1,sa:6.8,nw:58,pse:4,sra:339,w:75.1,alt:176,bf:11.0,mm:34.9,imc:24.2,ck:274,nc:75,ai:.95,cmj:42.2,ckm:419,ct:[45.2,45.2,44.4,48.8,44.9,43.8,54.1,42.2],wt:{dt:["05","06","07","09","10","11","12"],s:[7,5,6,7,7,7,7],r:[7,6,5,7,7,7,7],dr:[1,1,1,1,1,1,1]}},{n:"MARQUINHO JR.",pos:"ATA",id:23,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.4,da:0,sa:8.1,nw:58,pse:5,sra:360,w:64.9,alt:170,bf:9.2,mm:30.8,imc:22.5,ck:511,nc:75,ai:1.17,cmj:41.3,ckm:511,ct:[44.4,45.7,42.6,46.7,43.1,42.5,47.6,41.3]},{n:"MATHEUS SALES",pos:"MEI",id:30,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:7.2,da:.6,sa:6.8,nw:58,pse:7,sra:454,w:80.1,alt:180,bf:11.7,mm:37.0,imc:24.7,ck:558,nc:75,ai:1.06,cmj:44.3,ckm:558,ct:[47.4,47.9,46.1,47.3,44.3,49.1,49.8,44.3],wt:{dt:["05","06","07","09","10","11","12"],s:[6,4,8,7,7,5,7],r:[7,4,5,8,8,7,7],dr:[1,2,1,0,1,2,1]}},{n:"MORELLI",pos:"MEI",id:28,h:5,e:3,rg:6,rp:7,d:0,sq:8,rpa:7,da:.5,sa:7.4,nw:56,pse:3,sra:356,w:82.4,alt:183,bf:12.1,mm:38.0,imc:24.6,ck:298,nc:75,ai:1.07,cmj:43.8,ckm:621,ct:[46,50.6,44.9,44.8,43.8,38.1,46.6,43.8]},{n:"PATRICK BREY",pos:"LE",id:28,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.9,da:2,sa:7.3,nw:33,pse:3,sra:385,w:73.5,alt:175,bf:10.0,mm:34.5,imc:24.0,ck:347,nc:63,ai:1.3,ct:[43.2,42.6,42.3,41.9,41,45.8,42.8,45.1],wt:{dt:["05","06","07","09","10","11","12"],s:[4,7,2,9,8,7,8],r:[4,5,3,9,8,7,8],dr:[3,2,4,0,0,3,1]}},{n:"PEDRINHO",pos:"LD",id:19,h:5,e:3,rg:8,rp:8,d:0,sq:10,rpa:7.3,da:.4,sa:9.9,nw:44,pse:6,sra:343,w:67.5,alt:172,bf:9.5,mm:31.9,imc:22.8,nc:52,ai:1.02,cmj:45.5,ct:[41.6,42.6,38.6,42.9,44.9,40.1,44,45.5]},{n:"PEDRO TORTELLO",pos:"VOL",id:21,h:5,e:3,rg:7,rp:7,d:0,sq:10,rpa:8.4,da:.3,sa:9.2,nw:56,pse:4,sra:381,w:75.1,alt:178,bf:10.6,mm:35.0,imc:23.7,nc:75,ai:1.14,cmj:41,ct:[40.6,47.6,41.3,43.7,39.2,41.6,44,41]},{n:"RAFAEL GAVA",pos:"MEI",id:32,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:6.2,da:1,sa:5.8,nw:55,pse:7,sra:364,w:78.3,alt:179,bf:11.4,mm:36.3,imc:24.4,ck:303,nc:75,ai:1.1,ckm:2969,ct:[36.2,38.9,33.8,33.6,39.2,35.3,36.7,38.7],wt:{dt:["05","06","07","09","10","11","12"],s:[4,4,6,4,5,6,8],r:[5,5,6,4,7,7,7],dr:[1,1,1,0,0,0,0]}},{n:"THALLES",pos:"ATA",id:20,h:5,e:4,rg:10,rp:10,d:2,sq:7,rpa:5.7,da:.5,sa:7.4,dpo:1,nw:60,pse:3,sra:409,w:83.9,alt:184,bf:12.2,mm:38.7,imc:24.8,ck:1865,nc:75,ai:1.19,cmj:43.3,ckm:1865,ct:[46.4,44.1,44,45.1,43,47.4,44.9,43.3],wt:{dt:["04","05","06","07","09","11","12"],s:[7,7,10,6,7,8,7],r:[5,5,7,4,7,10,10],dr:[3,0,0,3,3,3,2]}},{n:"THIAGUINHO",pos:"MEI",id:27,h:3,e:4,rg:7,rp:7,d:0,sq:7,rpa:6.5,da:.2,sa:7.4,nw:17,pse:7,sra:390,w:64.5,alt:176,bf:7.7,mm:30.0,imc:20.8,ck:185,nc:17,ai:1.0,cmj:41.5,ckm:185,ct:[41.5],wt:{dt:["03","04","05","06","07","09","10"],s:[7,6,7,8,5,9,6],r:[7,6,7,7,5,8,6],dr:[0,0,0,0,0,0,0]}},{n:"VICTOR SOUZA",pos:"GOL",id:33,h:4,e:3,rg:7,rp:7,d:0,sq:6,rpa:7.2,da:.5,sa:6.1,nw:57,pse:3,sra:473,w:92.8,alt:193,bf:14.1,mm:42.2,imc:24.9,nc:75,ai:1.04,cmj:46.9,ct:[55.4,56.5,60.9,57.9,58.7,53.2,59.5,46.9]},{n:"WALLACE",pos:"ZAG",id:31,h:4,e:3,rg:7,rp:7,d:0,sq:8,rpa:6.7,da:.8,sa:7.8,nw:47,pse:5,sra:305,w:91.6,alt:186,bf:14.0,mm:41.3,imc:26.5,nc:75,ai:.98,cmj:40.8,ct:[43.6,38.3,40.3,39.4,40.8],wt:{dt:["04","05","06","09","10","11","12"],s:[8,8,8,8,8,8,8],r:[7,8,5,8,7,7,7],dr:[2,2,2,0,2,2,0]}},{n:"WHALACY",pos:"EXT",id:19,h:5,e:3,rg:6,rp:6,d:0,sq:9,rpa:6,da:.1,sa:8.8,nw:21,pse:5,sra:277,w:72.3,alt:174,bf:10.2,mm:33.9,imc:23.9,nc:34,ai:1.05,cmj:42.8,ct:[42.3,39.7,41.3,40.5,42.4,42.9,42.8]},{n:"YURI",pos:"VOL",id:19,h:4,e:4,rg:8,rp:8,d:0,sq:8,rpa:7.9,da:0,sa:8.1,nw:49,pse:6,sra:320,w:66.4,alt:169,bf:9.0,mm:31.5,imc:23.2,nc:69,ai:1.16,cmj:41.5,ct:[40.8,44.9,43.8,43.2,42.8,42.9,43.5,41.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,8,8,8],r:[9,8,7,8,7,8,8],dr:[0,0,0,0,0,0,0]}},{n:"WESLEY",pos:"EXT",id:25,h:5,e:4,rg:8,rp:7,d:1,sq:8,rpa:7.4,da:.6,sa:7.8,nw:52,pse:5,sra:378,w:76.8,alt:178,bf:10.4,mm:35.8,imc:24.2,ck:245,nc:68,ai:1.08,cmj:43.2,ckm:382,ct:[44.8,45.1,43.5,44.2,42.8,43.9,44.5,43.2],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,7,8,8],r:[8,7,7,8,8,7,7],dr:[0,0,1,0,1,1,0]}},{n:"LUIZAO",pos:"ATA",id:23,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:7.5,da:.4,sa:8.0,nw:55,pse:4,sra:395,w:88.5,alt:188,bf:12.8,mm:40.6,imc:25.0,ck:420,nc:72,ai:1.05,cmj:45.2,ckm:580,ct:[46.8,44.5,47.2,45.8,46.1,44.9,45.6,45.2],wt:{dt:["05","06","07","09","10","11","12"],s:[9,8,8,8,9,8,8],r:[8,7,7,9,8,7,8],dr:[0,1,0,0,0,1,1]}},{n:"ZE HUGO",pos:"EXT",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.6,da:.3,sa:8.2,nw:48,pse:5,sra:342,w:72.1,alt:175,bf:9.6,mm:33.6,imc:23.5,nc:62,ai:1.12,cmj:42.5,ckm:310,ct:[43.8,44.2,41.9,43.5,42.8,43.1,42.6,42.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,8,8,7,8],r:[8,8,7,9,7,8,7],dr:[0,0,0,0,0,0,0]}}];
 
@@ -826,6 +827,24 @@ export default function Dashboard(){
   const [sel,setSel]=useState(null);
   const [tab,setTab]=useState("squad");
 
+  // ═══ Google Sheets — dados em tempo real ═══
+  const { sheetData, loading: sheetLoading, error: sheetError, lastUpdate, refresh: refreshSheet, isLive } = useSheetData({ interval: 120_000, enabled: true });
+
+  // Merge: SESSION_DATA com dados live da planilha (live tem prioridade)
+  const LIVE_SESSION = useMemo(() => {
+    if (!sheetData?.sessionAtletas || Object.keys(sheetData.sessionAtletas).length === 0) return SESSION_DATA;
+    const merged = { ...SESSION_DATA, meta: { ...SESSION_DATA.meta }, atletas: { ...SESSION_DATA.atletas } };
+    // Sobrescrever/adicionar atletas com dados live
+    for (const [name, data] of Object.entries(sheetData.sessionAtletas)) {
+      merged.atletas[name] = { ...SESSION_DATA.atletas[name], ...data };
+    }
+    if (sheetData.timestamp) {
+      const d = new Date(sheetData.timestamp);
+      merged.meta = { ...merged.meta, _liveDate: d.toLocaleDateString("pt-BR"), _liveTime: d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) };
+    }
+    return merged;
+  }, [sheetData]);
+
   const players=useMemo(()=>P.map(p=>{const s=score(p);return {...p,riskScore:s.score,risk:s.level,reasons:s.reasons};}).sort((a,b)=>b.riskScore-a.riskScore),[]);
   const sp=sel?players.find(p=>p.n===sel):null;
   const tabs=[{id:"squad",l:"Squad Overview",ic:Users},{id:"alerts",l:"Alertas",ic:AlertTriangle},{id:"mapa",l:"Mapa Semanal",ic:Calendar},{id:"player",l:"Individual",ic:Eye},{id:"sessao",l:"Sessão de Treino",ic:Activity},{id:"model",l:"Modelo Preditivo",ic:Brain},{id:"retro",l:"Retrospectiva",ic:Target}];
@@ -837,7 +856,8 @@ export default function Dashboard(){
   return <div style={{minHeight:"100vh",background:"#f8fafb",fontFamily:"'Inter',system-ui,sans-serif",fontSize:13,color:"#1e293b"}}>
     <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap');
     *{box-sizing:border-box;margin:0;padding:0;scrollbar-width:thin;scrollbar-color:#e2e8f0 transparent}
-    ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}`}</style>
+    ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
+    @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
 
     {/* HEADER */}
     <header style={{background:pri,borderBottom:"2px solid "+acc,padding:"0 28px",position:"sticky",top:0,zIndex:100,boxShadow:"0 2px 8px rgba(0,0,0,.15)"}}>
@@ -852,7 +872,18 @@ export default function Dashboard(){
         <div style={{display:"flex",gap:2}}>
           {tabs.map(t=>{const Ic=t.ic;return <button key={t.id} onClick={()=>setTab(t.id)} style={{display:"flex",alignItems:"center",gap:6,background:tab===t.id?acc:"transparent",border:`1px solid ${tab===t.id?acc:"transparent"}`,color:tab===t.id?"#fff":"rgba(255,255,255,.5)",padding:"6px 14px",borderRadius:8,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .2s"}}><Ic size={14}/>{t.l}</button>})}
         </div>
-        <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:"rgba(255,255,255,.5)",display:"flex",alignItems:"center",gap:6}}>
+        <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:"rgba(255,255,255,.5)",display:"flex",alignItems:"center",gap:10}}>
+          {/* Live Data Indicator */}
+          <div style={{display:"flex",alignItems:"center",gap:4,padding:"3px 8px",borderRadius:6,background:isLive?"rgba(22,163,74,.15)":sheetError?"rgba(220,38,38,.15)":"rgba(255,255,255,.05)",border:`1px solid ${isLive?"rgba(22,163,74,.3)":sheetError?"rgba(220,38,38,.3)":"rgba(255,255,255,.1)"}`}}>
+            {isLive?<Wifi size={10} color="#16A34A"/>:sheetError?<WifiOff size={10} color="#DC2626"/>:null}
+            <span style={{fontSize:9,color:isLive?"#16A34A":sheetError?"#DC2626":"rgba(255,255,255,.5)"}}>
+              {sheetLoading?"Atualizando...":isLive?"LIVE":sheetError?"Offline":"—"}
+            </span>
+            {isLive&&lastUpdate&&<span style={{fontSize:8,color:"rgba(255,255,255,.3)"}}>{lastUpdate.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</span>}
+            <button onClick={refreshSheet} style={{background:"none",border:"none",cursor:"pointer",padding:0,display:"flex",alignItems:"center"}} title="Atualizar dados">
+              <RefreshCw size={9} color="rgba(255,255,255,.4)" style={{animation:sheetLoading?"spin 1s linear infinite":"none"}}/>
+            </button>
+          </div>
           <span style={{width:7,height:7,borderRadius:"50%",background:"#16A34A",display:"inline-block"}}/>12/Mar/2026 · 39 atletas
         </div>
       </div>
@@ -1611,10 +1642,10 @@ export default function Dashboard(){
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <div>
                 <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Monitoramento da Sessão de Treino</div>
-                <div style={{fontSize:12,color:"#94a3b8",marginTop:2}}>{SESSION_DATA.meta.date} · {SESSION_DATA.meta.tipo} · {SESSION_DATA.meta.local} · {SESSION_DATA.meta.md}</div>
+                <div style={{fontSize:12,color:"#94a3b8",marginTop:2}}>{LIVE_SESSION.meta._liveDate||LIVE_SESSION.meta.date} · {LIVE_SESSION.meta.tipo} · {LIVE_SESSION.meta.local} · {LIVE_SESSION.meta.md}{isLive&&<span style={{marginLeft:8,fontSize:10,color:"#16A34A",fontWeight:600}}>LIVE {LIVE_SESSION.meta._liveTime||""}</span>}</div>
               </div>
               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {[{l:"Duração",v:SESSION_DATA.meta.duracao+"min"},{l:"PSE Alvo",v:SESSION_DATA.meta.rpe_alvo},{l:"Condição",v:SESSION_DATA.meta.condicao}].map((b,i)=>
+                {[{l:"Duração",v:LIVE_SESSION.meta.duracao+"min"},{l:"PSE Alvo",v:LIVE_SESSION.meta.rpe_alvo},{l:"Condição",v:LIVE_SESSION.meta.condicao}].map((b,i)=>
                   <span key={i} style={{padding:"4px 12px",borderRadius:6,fontSize:10,fontWeight:600,background:"#f8fafc",color:"#64748b",border:"1px solid #e2e8f0"}}>{b.l}: <strong style={{color:pri}}>{b.v}</strong></span>
                 )}
               </div>
@@ -1627,9 +1658,9 @@ export default function Dashboard(){
           {/* Classification Overview */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:16}}>
             {[
-              {l:"Sessão Reduziu Risco",c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",count:Object.values(SESSION_DATA.atletas).filter(a=>a.classificacao==="verde").length},
-              {l:"Carga Controlada",c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",count:Object.values(SESSION_DATA.atletas).filter(a=>a.classificacao==="amarelo").length},
-              {l:"Sessão Aumentou Risco",c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",count:Object.values(SESSION_DATA.atletas).filter(a=>a.classificacao==="vermelho").length}
+              {l:"Sessão Reduziu Risco",c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",count:Object.values(LIVE_SESSION.atletas).filter(a=>a.classificacao==="verde").length},
+              {l:"Carga Controlada",c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",count:Object.values(LIVE_SESSION.atletas).filter(a=>a.classificacao==="amarelo").length},
+              {l:"Sessão Aumentou Risco",c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",count:Object.values(LIVE_SESSION.atletas).filter(a=>a.classificacao==="vermelho").length}
             ].map((cat,i)=>
               <div key={i} style={{background:cat.bg,borderRadius:12,border:`1px solid ${cat.bc}`,padding:18,textAlign:"center"}}>
                 <div style={{fontFamily:"'JetBrains Mono'",fontSize:36,fontWeight:900,color:cat.c}}>{cat.count}</div>
@@ -1640,7 +1671,7 @@ export default function Dashboard(){
 
           {/* Individual Session Cards */}
           {ML.alerts.map(alert=>{
-            const sess=SESSION_DATA.atletas[alert.n];
+            const sess=LIVE_SESSION.atletas[alert.n];
             if(!sess) return null;
             const classC=sess.classificacao==="vermelho"?"#DC2626":sess.classificacao==="amarelo"?"#CA8A04":"#16A34A";
             const classBg=sess.classificacao==="vermelho"?"#FEF2F2":sess.classificacao==="amarelo"?"#FEFCE8":"#F0FDF4";
@@ -1793,7 +1824,7 @@ export default function Dashboard(){
               <div>
                 <div style={{fontSize:10,fontWeight:600,color:"#64748b",marginBottom:6}}>Carga GPS (% do Baseline)</div>
                 <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={ML.alerts.filter(a=>SESSION_DATA.atletas[a.n]).map(a=>{const s=SESSION_DATA.atletas[a.n];return {n:a.n.split(" ")[0],dist:s.gps.dist_baseline?Math.round((s.gps.dist_total/s.gps.dist_baseline)*100):0,hsr:s.gps.hsr_baseline?Math.round((s.gps.hsr/s.gps.hsr_baseline)*100):0};})} margin={{left:-10}}>
+                  <BarChart data={ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map(a=>{const s=LIVE_SESSION.atletas[a.n];return {n:a.n.split(" ")[0],dist:s.gps.dist_baseline?Math.round((s.gps.dist_total/s.gps.dist_baseline)*100):0,hsr:s.gps.hsr_baseline?Math.round((s.gps.hsr/s.gps.hsr_baseline)*100):0};})} margin={{left:-10}}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
                     <XAxis dataKey="n" tick={{fontSize:8,fill:"#94a3b8"}} interval={0} angle={-30} textAnchor="end" height={40}/>
                     <YAxis tick={{fontSize:8,fill:"#94a3b8"}} domain={[0,120]}/>
@@ -1808,14 +1839,14 @@ export default function Dashboard(){
               <div>
                 <div style={{fontSize:10,fontWeight:600,color:"#64748b",marginBottom:6}}>CMJ Δ Pós-Sessão (%)</div>
                 <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={ML.alerts.filter(a=>SESSION_DATA.atletas[a.n]).map(a=>{const s=SESSION_DATA.atletas[a.n];return {n:a.n.split(" ")[0],delta:s.nm_response.cmj_delta_pct};})} margin={{left:-10}}>
+                  <BarChart data={ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map(a=>{const s=LIVE_SESSION.atletas[a.n];return {n:a.n.split(" ")[0],delta:s.nm_response.cmj_delta_pct};})} margin={{left:-10}}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
                     <XAxis dataKey="n" tick={{fontSize:8,fill:"#94a3b8"}} interval={0} angle={-30} textAnchor="end" height={40}/>
                     <YAxis tick={{fontSize:8,fill:"#94a3b8"}} domain={[-8,1]}/>
                     <Tooltip content={<Tip/>}/>
                     <ReferenceLine y={-5} stroke="#DC2626" strokeDasharray="3 3" label={{value:"-5%",fontSize:8,fill:"#DC2626"}}/>
                     <Bar dataKey="delta" name="CMJ Δ %" radius={[2,2,0,0]}>
-                      {ML.alerts.filter(a=>SESSION_DATA.atletas[a.n]).map((a,i)=>{const d=SESSION_DATA.atletas[a.n].nm_response.cmj_delta_pct;return <Cell key={i} fill={d<-5?"#DC2626":d<-3?"#EA580C":"#16A34A"}/>;
+                      {ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map((a,i)=>{const d=LIVE_SESSION.atletas[a.n].nm_response.cmj_delta_pct;return <Cell key={i} fill={d<-5?"#DC2626":d<-3?"#EA580C":"#16A34A"}/>;
                       })}
                     </Bar>
                   </BarChart>
@@ -1825,14 +1856,14 @@ export default function Dashboard(){
               <div>
                 <div style={{fontSize:10,fontWeight:600,color:"#64748b",marginBottom:6}}>Δ Risco de Lesão (%)</div>
                 <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={ML.alerts.filter(a=>SESSION_DATA.atletas[a.n]).map(a=>{const s=SESSION_DATA.atletas[a.n];return {n:a.n.split(" ")[0],delta:Number((s.risco.delta*100).toFixed(1))};})} margin={{left:-10}}>
+                  <BarChart data={ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map(a=>{const s=LIVE_SESSION.atletas[a.n];return {n:a.n.split(" ")[0],delta:Number((s.risco.delta*100).toFixed(1))};})} margin={{left:-10}}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
                     <XAxis dataKey="n" tick={{fontSize:8,fill:"#94a3b8"}} interval={0} angle={-30} textAnchor="end" height={40}/>
                     <YAxis tick={{fontSize:8,fill:"#94a3b8"}} domain={[-3,5]}/>
                     <Tooltip content={<Tip/>}/>
                     <ReferenceLine y={0} stroke="#94a3b8"/>
                     <Bar dataKey="delta" name="Δ Risco %" radius={[2,2,0,0]}>
-                      {ML.alerts.filter(a=>SESSION_DATA.atletas[a.n]).map((a,i)=>{const d=SESSION_DATA.atletas[a.n].risco.delta;return <Cell key={i} fill={d>0.02?"#DC2626":d>0?"#EA580C":d<-0.01?"#16A34A":"#64748b"}/>;
+                      {ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map((a,i)=>{const d=LIVE_SESSION.atletas[a.n].risco.delta;return <Cell key={i} fill={d>0.02?"#DC2626":d>0?"#EA580C":d<-0.01?"#16A34A":"#64748b"}/>;
                       })}
                     </Bar>
                   </BarChart>
