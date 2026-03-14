@@ -420,25 +420,39 @@ function processQuestionarios(rows) {
 // Fisioterapia: Referência, Texto, Data, Período, Nome, Horário Chegada, Horário Saída, Procedimento, Responsável
 function processFisioterapia(rows) {
   const result = {};
+  // Helper: busca valor por múltiplas chaves possíveis ou substring
+  const findVal = (row, ...keys) => {
+    for (const k of keys) {
+      if (row[k] !== undefined && row[k] !== "") return row[k];
+    }
+    // Fallback: busca por substring nas keys do row
+    const rowKeys = Object.keys(row);
+    for (const k of keys) {
+      const match = rowKeys.find(rk => rk.includes(k));
+      if (match && row[match] !== undefined && row[match] !== "") return row[match];
+    }
+    return "";
+  };
+
   for (const row of rows) {
-    const athlete = row.nome || row.nome_ || "";
+    const athlete = findVal(row, "nome", "nome_", "atleta", "atletas");
     if (!athlete) continue;
     const name = resolveName(athlete);
     if (!name) continue;
 
     if (!result[name]) result[name] = [];
 
-    const chegada = row.horario_de_chegada || row.horario_chegada || "";
-    const saida = row.horario_de_saida || row.horario_saida || "";
+    const chegada = findVal(row, "horario_de_chegada", "horario_chegada", "chegada", "hora_chegada");
+    const saida = findVal(row, "horario_de_saida", "horario_saida", "saida", "hora_saida");
 
     result[name].push({
-      date: row.data || "",
-      periodo: row.periodo || "",
+      date: findVal(row, "data", "data_"),
+      periodo: findVal(row, "periodo", "periodo_"),
       chegada: String(chegada).slice(0, 5),
       saida: String(saida).slice(0, 5),
-      procedimento: row.procedimento || "",
-      responsavel: row.responsavel || "",
-      referencia: row.referencia || ""
+      procedimento: findVal(row, "procedimento", "procedimentos", "proc"),
+      responsavel: findVal(row, "responsavel", "responsavel_", "fisioterapeuta", "fisio"),
+      referencia: findVal(row, "referencia", "referencia_", "ref")
     });
   }
   return result;
@@ -547,7 +561,7 @@ export async function GET(request) {
       if (fisioCSV.status === "fulfilled") {
         const { rows, headers } = parseCSV(fisioCSV.value);
         result.fisioterapia = processFisioterapia(rows);
-        result._debug.fisioterapia = { rows: rows.length, athletes: Object.keys(result.fisioterapia).length };
+        result._debug.fisioterapia = { rows: rows.length, headers: headers, athletes: Object.keys(result.fisioterapia).length };
       } else {
         result._debug.fisioterapia = { error: fisioCSV.reason?.message || "failed" };
       }
