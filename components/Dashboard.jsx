@@ -1613,7 +1613,7 @@ export default function Dashboard(){
 
                 {/* Timeline de atendimentos (últimos 5 dias) */}
                 <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Histórico de Atendimentos</div>
-                {sortedDates.slice(0,7).map((date,di)=>{
+                {sortedDates.slice(-7).map((date,di)=>{
                   const entries = byDate[date];
                   return <div key={di} style={{marginBottom:12}}>
                     <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:"#7c3aed",marginBottom:6,padding:"4px 10px",background:"#F5F3FF",borderRadius:6,display:"inline-block"}}>{date} · {entries.length} atendimento{entries.length>1?"s":""}</div>
