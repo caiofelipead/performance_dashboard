@@ -18,14 +18,14 @@ const THEMES={
     tooltipBg:"#fff",
   },
   dark:{
-    bg:"#0f1117",bgCard:"#1a1d27",bgMuted:"#1e2130",bgMuted2:"#252838",
-    text:"#e2e8f0",textMuted:"#94a3b8",textFaint:"#64748b",textFaintest:"#475569",
-    border:"#2d3148",borderLight:"#252838",
-    scrollThumb:"#475569",scrollTrack:"transparent",
-    shadow:"rgba(0,0,0,.2)",shadowMd:"rgba(0,0,0,.3)",shadowLg:"rgba(0,0,0,.4)",
-    headerBg:"#12141c",headerShadow:"rgba(0,0,0,.4)",
-    ringBg:"#252838",
-    tooltipBg:"#1a1d27",
+    bg:"#0c0e14",bgCard:"#181b25",bgMuted:"#1e2230",bgMuted2:"#282d3c",
+    text:"#f1f5f9",textMuted:"#b8c4d0",textFaint:"#8896a8",textFaintest:"#5e6b7d",
+    border:"#353b50",borderLight:"#2a2f40",
+    scrollThumb:"#4a5268",scrollTrack:"transparent",
+    shadow:"rgba(0,0,0,.35)",shadowMd:"rgba(0,0,0,.45)",shadowLg:"rgba(0,0,0,.55)",
+    headerBg:"#10121a",headerShadow:"rgba(0,0,0,.5)",
+    ringBg:"#282d3c",
+    tooltipBg:"#1e2230",
   }
 };
 
@@ -884,7 +884,7 @@ export default function Dashboard(){
   const [tab,setTab]=useState("squad");
   const [dark,setDark]=useState(()=>{if(typeof window!=="undefined"){const s=localStorage.getItem("theme");if(s)return s==="dark";return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches||false;}return false;});
   const t=THEMES[dark?"dark":"light"];
-  const pri=dark?t.border:"#1A1A1A";
+  const pri=dark?"#f1f5f9":"#1A1A1A";
   useEffect(()=>{localStorage.setItem("theme",dark?"dark":"light");},[dark]);
 
   // ═══ Google Sheets — dados em tempo real ═══
@@ -1005,42 +1005,67 @@ export default function Dashboard(){
       <main style={{flex:1,minWidth:0,overflow:"hidden"}}>
         {tab==="squad"&&<div>
           {/* KPIs */}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,marginBottom:16}}>
-            {[{l:"Críticos",v:players.filter(p=>p.risk==="CRITICAL").length,c:"#DC2626",ic:AlertTriangle},
-              {l:"Alto Risco",v:players.filter(p=>p.risk==="HIGH").length,c:"#EA580C",ic:Zap},
-              {l:"ACWR > 1.45",v:players.filter(p=>p.ai>1.45).length,c:"#CA8A04",ic:TrendingUp},
-              {l:"CK > 800",v:players.filter(p=>p.ck&&p.ck>800).length,c:"#DC2626",ic:Activity},
-              {l:"Ótimos",v:players.filter(p=>p.risk==="LOW").length,c:"#16A34A",ic:CheckCircle2}
-            ].map((k,i)=>{const Ic=k.ic;return <div key={i} style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:"14px 16px",boxShadow:`0 1px 3px ${t.shadow}`}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div><div style={{fontSize:10,color:t.textFaint,fontWeight:600,letterSpacing:.5}}>{k.l}</div>
-                <div style={{fontFamily:"'JetBrains Mono'",fontSize:28,fontWeight:800,color:k.c,marginTop:2}}>{k.v}</div></div>
-                <Ic size={20} color={k.c} opacity={.4}/>
-              </div>
-            </div>})}
-          </div>
+          {(()=>{
+            const kpis=[
+              {l:"Críticos",desc:"Risco score ≥ 40",v:players.filter(p=>p.risk==="CRITICAL").length,total:players.length,c:"#DC2626",bg:"#FEF2F2",bgDark:"#2a1215",bc:"#FECACA",ic:AlertTriangle},
+              {l:"Alto Risco",desc:"Risco score 20–39",v:players.filter(p=>p.risk==="HIGH").length,total:players.length,c:"#EA580C",bg:"#FFF7ED",bgDark:"#2a1c0f",bc:"#FED7AA",ic:Zap},
+              {l:"ACWR > 1.45",desc:"Carga aguda elevada",v:players.filter(p=>p.ai>1.45).length,total:players.filter(p=>p.ai).length,c:"#CA8A04",bg:"#FEFCE8",bgDark:"#292510",bc:"#FEF08A",ic:TrendingUp},
+              {l:"CK > 800",desc:"Dano muscular alto",v:players.filter(p=>p.ck&&p.ck>800).length,total:players.filter(p=>p.ck).length,c:"#DC2626",bg:"#FEF2F2",bgDark:"#2a1215",bc:"#FECACA",ic:Activity},
+              {l:"Ótimos",desc:"Risco score < 8",v:players.filter(p=>p.risk==="LOW").length,total:players.length,c:"#16A34A",bg:"#F0FDF4",bgDark:"#0f2418",bc:"#BBF7D0",ic:CheckCircle2}
+            ];
+            return <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,marginBottom:16}}>
+              {kpis.map((k,i)=>{const Ic=k.ic;const pct=k.total?Math.round((k.v/k.total)*100):0;return <div key={i} style={{background:t.bgCard,borderRadius:14,border:`1px solid ${t.border}`,padding:0,boxShadow:`0 1px 4px ${t.shadow}`,overflow:"hidden",transition:"box-shadow .2s"}}>
+                <div style={{borderTop:`3px solid ${k.c}`,padding:"14px 16px 12px"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                    <div style={{fontSize:11,color:t.textFaint,fontWeight:600,letterSpacing:.3}}>{k.l}</div>
+                    <div style={{width:32,height:32,borderRadius:10,background:dark?k.bgDark:k.bg,display:"flex",alignItems:"center",justifyContent:"center",border:`1px solid ${k.c}20`}}>
+                      <Ic size={16} color={k.c}/>
+                    </div>
+                  </div>
+                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:32,fontWeight:800,color:k.c,lineHeight:1}}>{k.v}</div>
+                  <div style={{display:"flex",alignItems:"center",gap:6,marginTop:8}}>
+                    <div style={{flex:1,height:4,background:t.bgMuted2,borderRadius:4,overflow:"hidden"}}>
+                      <div style={{height:"100%",width:`${pct}%`,background:k.c,borderRadius:4,opacity:.7,transition:"width .6s"}}/>
+                    </div>
+                    <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:t.textFaint,fontWeight:600,whiteSpace:"nowrap"}}>{k.v}/{k.total}</span>
+                  </div>
+                  <div style={{fontSize:9,color:t.textFaintest,marginTop:4,fontWeight:500}}>{k.desc}</div>
+                </div>
+              </div>})}
+            </div>;
+          })()}
 
           {/* ═══ CAMADA 1: RISK BOARD — Quem pode treinar hoje? ═══ */}
-          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14,flexWrap:"wrap",gap:8}}>
-              <div>
-                <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri}}>Risk Board — Prontidão para Sessão</div>
-                <div style={{fontSize:11,color:t.textFaint}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · Decisão operacional: quem pode treinar normalmente hoje?</div>
-              </div>
-              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                {[{l:"Crítico (>60%)",c:"#DC2626",n:ML.alerts.filter(a=>a.prob>0.60).length},
-                  {l:"Moderado (35-60%)",c:"#EA580C",n:ML.alerts.filter(a=>a.prob>0.35&&a.prob<=0.60).length},
-                  {l:"Atenção (20-35%)",c:"#CA8A04",n:ML.alerts.filter(a=>a.prob>0.20&&a.prob<=0.35).length},
-                  {l:"Normal (<20%)",c:"#16A34A",n:ML.alerts.filter(a=>a.prob<=0.20).length}
-                ].map((z,i)=><span key={i} style={{padding:"3px 10px",borderRadius:6,fontSize:9,fontWeight:700,background:`${z.c}12`,color:z.c,border:`1px solid ${z.c}33`}}>{z.n} {z.l}</span>)}
+          <div style={{background:t.bgCard,borderRadius:14,border:`1px solid ${t.border}`,overflow:"hidden",marginBottom:16,boxShadow:`0 1px 4px ${t.shadow}`}}>
+            <div style={{padding:"16px 20px",borderBottom:`1px solid ${t.border}`,background:dark?"#1e2230":t.bgMuted}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
+                <div style={{display:"flex",alignItems:"center",gap:10}}>
+                  <div style={{width:36,height:36,borderRadius:10,background:`${acc}14`,display:"flex",alignItems:"center",justifyContent:"center",border:`1px solid ${acc}30`}}>
+                    <Shield size={18} color={acc}/>
+                  </div>
+                  <div>
+                    <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:t.text,letterSpacing:-.3}}>Risk Board — Prontidão para Sessão</div>
+                    <div style={{fontSize:10,color:t.textFaint,marginTop:1}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"})} · Decisão operacional: quem pode treinar normalmente hoje?</div>
+                  </div>
+                </div>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                  {[{l:"Crítico",r:">60%",c:"#DC2626",n:ML.alerts.filter(a=>a.prob>0.60).length},
+                    {l:"Moderado",r:"35–60%",c:"#EA580C",n:ML.alerts.filter(a=>a.prob>0.35&&a.prob<=0.60).length},
+                    {l:"Atenção",r:"20–35%",c:"#CA8A04",n:ML.alerts.filter(a=>a.prob>0.20&&a.prob<=0.35).length},
+                    {l:"Normal",r:"<20%",c:"#16A34A",n:ML.alerts.filter(a=>a.prob<=0.20).length}
+                  ].map((z,i)=><div key={i} style={{padding:"5px 10px",borderRadius:8,background:`${z.c}${dark?"20":"10"}`,border:`1px solid ${z.c}${dark?"40":"25"}`,textAlign:"center",minWidth:56}}>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:16,fontWeight:800,color:z.c,lineHeight:1}}>{z.n}</div>
+                    <div style={{fontSize:8,color:z.c,fontWeight:600,marginTop:2,opacity:.8}}>{z.l} <span style={{opacity:.6}}>({z.r})</span></div>
+                  </div>)}
+                </div>
               </div>
             </div>
-            <div style={{overflowX:"auto"}}>
+            <div style={{padding:"0 20px 18px",overflowX:"auto"}}>
             <table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:800}}>
               <thead>
                 <tr style={{borderBottom:`2px solid ${t.border}`}}>
                   {["Atleta","Pos","Probabilidade","Status","Perfil","F. Debt","NME","Ação"].map((h,i)=>
-                    <th key={i} style={{padding:"8px 6px",textAlign:"left",fontSize:9,color:t.textFaint,fontWeight:700,textTransform:"uppercase",letterSpacing:.5,whiteSpace:"nowrap"}}>{h}</th>
+                    <th key={i} style={{padding:"12px 6px 8px",textAlign:"left",fontSize:9,color:t.textFaint,fontWeight:700,textTransform:"uppercase",letterSpacing:.5,whiteSpace:"nowrap"}}>{h}</th>
                   )}
                 </tr>
               </thead>
@@ -1050,31 +1075,31 @@ export default function Dashboard(){
                   const pr=PERFIL_RISCO_LABELS[a.perfil_risco]||PERFIL_RISCO_LABELS.sobrecarga;
                   const statusLabel=a.prob>0.60?"Crítico":a.prob>0.35?"Moderado":a.prob>0.20?"Atenção":"Normal";
                   const statusIcon=a.prob>0.60?"🔴":a.prob>0.35?"🟠":a.prob>0.20?"🟡":"🟢";
-                  return <tr key={i} style={{borderBottom:"1px solid #f1f5f9",background:i%2===0?"transparent":t.bgMuted,cursor:"pointer"}} onClick={()=>{setSel(a.n);setTab("player")}}>
-                    <td style={{padding:"8px 6px"}}>
+                  return <tr key={i} style={{borderBottom:`1px solid ${t.borderLight}`,background:i%2===0?"transparent":t.bgMuted,cursor:"pointer",transition:"background .15s"}} onClick={()=>{setSel(a.n);setTab("player")}} onMouseEnter={e=>e.currentTarget.style.background=dark?"#282d3c":"#f1f5f9"} onMouseLeave={e=>e.currentTarget.style.background=i%2===0?"transparent":t.bgMuted}>
+                    <td style={{padding:"10px 8px"}}>
                       <div style={{display:"flex",alignItems:"center",gap:8}}>
-                        <PlayerPhoto theme={t} name={a.n} sz={28}/>
-                        <span style={{fontWeight:700,color:pri}}>{a.n}</span>
+                        <PlayerPhoto theme={t} name={a.n} sz={30}/>
+                        <span style={{fontWeight:700,color:t.text}}>{a.n}</span>
                       </div>
                     </td>
-                    <td style={{padding:"8px 6px",fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textFaint}}>{a.pos}</td>
-                    <td style={{padding:"8px 6px"}}>
+                    <td style={{padding:"10px 8px",fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textFaint}}>{a.pos}</td>
+                    <td style={{padding:"10px 8px"}}>
                       <div style={{display:"flex",alignItems:"center",gap:6}}>
-                        <div style={{width:50,height:6,background:t.bgMuted2,borderRadius:4}}>
-                          <div style={{height:"100%",width:`${Math.min(a.prob*100,100)}%`,background:zs.c,borderRadius:4}}/>
+                        <div style={{width:56,height:6,background:t.bgMuted2,borderRadius:4,overflow:"hidden"}}>
+                          <div style={{height:"100%",width:`${Math.min(a.prob*100,100)}%`,background:zs.c,borderRadius:4,transition:"width .4s"}}/>
                         </div>
                         <span style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:zs.c}}>{(a.prob*100).toFixed(0)}%</span>
                       </div>
                     </td>
-                    <td style={{padding:"8px 6px"}}>
-                      <span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:700,background:zs.bg,color:zs.c,border:`1px solid ${zs.bc}`}}>{statusIcon} {statusLabel}</span>
+                    <td style={{padding:"10px 8px"}}>
+                      <span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,background:zs.bg,color:zs.c,border:`1px solid ${zs.bc}`}}>{statusIcon} {statusLabel}</span>
                     </td>
-                    <td style={{padding:"8px 6px"}}>
-                      <span style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:600,background:pr.bg,color:pr.c,border:`1px solid ${pr.bc}`}}>{pr.label}</span>
+                    <td style={{padding:"10px 8px"}}>
+                      <span style={{padding:"3px 10px",borderRadius:6,fontSize:9,fontWeight:600,background:pr.bg,color:pr.c,border:`1px solid ${pr.bc}`}}>{pr.label}</span>
                     </td>
-                    <td style={{padding:"8px 6px",fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:a.fatigue_debt>3000?"#DC2626":a.fatigue_debt>2500?"#EA580C":t.textMuted}}>{a.fatigue_debt}</td>
-                    <td style={{padding:"8px 6px",fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:a.nme<0.012?"#DC2626":a.nme<0.015?"#EA580C":"#16A34A"}}>{a.nme?.toFixed(4)||"-"}</td>
-                    <td style={{padding:"8px 6px",fontSize:10,color:t.textMuted,maxWidth:200}}>{a.dose}</td>
+                    <td style={{padding:"10px 8px",fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:a.fatigue_debt>3000?"#DC2626":a.fatigue_debt>2500?"#EA580C":t.textMuted}}>{a.fatigue_debt}</td>
+                    <td style={{padding:"10px 8px",fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:a.nme<0.012?"#DC2626":a.nme<0.015?"#EA580C":"#16A34A"}}>{a.nme?.toFixed(4)||"-"}</td>
+                    <td style={{padding:"10px 8px",fontSize:10,color:t.textMuted,maxWidth:220}}>{a.dose}</td>
                   </tr>;
                 })}
               </tbody>
