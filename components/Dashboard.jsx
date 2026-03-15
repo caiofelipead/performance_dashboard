@@ -1522,14 +1522,18 @@ export default function Dashboard(){
               for(const [name, entries] of Object.entries(fisioData)){
                 for(const e of entries) allEntries.push({...e, name});
               }
-              // Agrupar por data (mais recentes primeiro)
+              // Agrupar por data (ordem cronológica)
               const byDate = {};
               for(const e of allEntries){
                 const d = e.date || "Sem data";
                 if(!byDate[d]) byDate[d]=[];
                 byDate[d].push(e);
               }
-              const sortedDates = Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
+              const sortedDates = Object.keys(byDate).sort((a,b)=>{
+                const [da,ma,ya] = a.split("/"); const [db,mb,yb] = b.split("/");
+                const dateA = new Date(ya,ma-1,da); const dateB = new Date(yb,mb-1,db);
+                return dateA - dateB;
+              });
 
               // Estatísticas gerais
               const atletasAtendidos = new Set(allEntries.map(e=>e.name));
