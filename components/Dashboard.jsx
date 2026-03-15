@@ -1,16 +1,43 @@
 import { useState, useMemo, useEffect } from "react";
 import { BarChart, Bar, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, AreaChart, Cell, ReferenceLine, LineChart, Line } from "recharts";
-import { Activity, TrendingUp, AlertTriangle, CheckCircle2, ChevronRight, Heart, Zap, Shield, Users, Eye, Brain, Target, Calendar, RefreshCw, Wifi, WifiOff } from "lucide-react";
+import { Activity, TrendingUp, AlertTriangle, CheckCircle2, ChevronRight, Heart, Zap, Shield, Users, Eye, Brain, Target, Calendar, RefreshCw, Wifi, WifiOff, Moon, Sun } from "lucide-react";
 import { useSheetData } from "./useSheetData";
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TEMA — Light / Dark Mode
+// ═══════════════════════════════════════════════════════════════════════════════
+const THEMES={
+  light:{
+    bg:"#f8fafb",bgCard:"#fff",bgMuted:"#f8fafc",bgMuted2:"#f1f5f9",
+    text:"#1e293b",textMuted:"#64748b",textFaint:"#94a3b8",textFaintest:"#cbd5e1",
+    border:"#e2e8f0",borderLight:"#f1f5f9",
+    scrollThumb:"#cbd5e1",scrollTrack:"transparent",
+    shadow:"rgba(0,0,0,.04)",shadowMd:"rgba(0,0,0,.06)",shadowLg:"rgba(0,0,0,.1)",
+    headerBg:"#1A1A1A",headerShadow:"rgba(0,0,0,.15)",
+    ringBg:"#f1f5f9",
+    tooltipBg:"#fff",
+  },
+  dark:{
+    bg:"#0f1117",bgCard:"#1a1d27",bgMuted:"#1e2130",bgMuted2:"#252838",
+    text:"#e2e8f0",textMuted:"#94a3b8",textFaint:"#64748b",textFaintest:"#475569",
+    border:"#2d3148",borderLight:"#252838",
+    scrollThumb:"#475569",scrollTrack:"transparent",
+    shadow:"rgba(0,0,0,.2)",shadowMd:"rgba(0,0,0,.3)",shadowLg:"rgba(0,0,0,.4)",
+    headerBg:"#12141c",headerShadow:"rgba(0,0,0,.4)",
+    ringBg:"#252838",
+    tooltipBg:"#1a1d27",
+  }
+};
 
 const P=[{n:"ADRIANO",pos:"GOL",id:19,h:5,e:4,rg:7,rp:6,d:2,sq:7,rpa:7,da:1.6,sa:7.3,nw:39,pse:3,sra:331,w:82.7,alt:183,bf:12.4,mm:38.2,imc:24.2,nc:60,ai:1.24,cmj:49.6,ct:[54.2,50.3,48.5,51.4,52,52.2,52.6,49.6],wt:{dt:["02","03","07","09","10","11","12"],s:[10,8,7,7,8,7,7],r:[8,6,6,8,8,7,6],dr:[1,1,1,1,2,1,2]}},{n:"BRENNO",pos:"GOL",id:23,h:4,e:4,rg:8,rp:8,d:3,sq:7,rpa:7.3,da:1.3,sa:7.3,nw:50,pse:4,sra:310,w:90.8,alt:191,bf:13.8,mm:41.5,imc:24.9,nc:75,ai:1.17,cmj:44.6,ct:[45,47.8,49.3,48,47.6,49.3,46.2,44.6],wt:{dt:["04","05","06","07","09","10","11"],s:[7,7,7,6,10,8,7],r:[7,7,8,5,8,7,8],dr:[0,0,0,0,0,2,3]}},{n:"CARLOS EDUARDO",pos:"ZAG",id:25,h:5,e:3,rg:8,rp:8,d:2,sq:8,rpa:7.9,da:1,sa:9.2,nw:57,pse:3,sra:391,w:85.9,alt:186,bf:11.9,mm:39.8,imc:24.6,ck:973,nc:75,ai:1.07,cmj:46.7,ckm:973,ct:[49.1,44,47.1,44.5,48.8,46.5,52.6,46.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,9,8,8,9,10,8],r:[9,5,6,9,8,6,8],dr:[1,1,0,0,0,2,2]}},{n:"DARLAN",pos:"ZAG",id:20,h:4,e:3,rg:9,rp:8,d:0,sq:8,rpa:7.8,da:.7,sa:7.8,nw:17,pse:5,sra:317,w:80.2,alt:186,bf:10.5,mm:37.1,imc:25.3,nc:20,ai:.95,cmj:31.1,ct:[31.1]},{n:"ERICSON",pos:"ZAG",id:26,h:5,e:3,rg:10,rp:9,d:3,sq:9,rpa:6.7,da:1.1,sa:8.8,nw:51,pse:0,sra:431,w:91.6,alt:184,bf:13.2,mm:42.0,imc:25.4,ck:562,nc:75,ai:.64,cmj:43.1,ckm:916,ct:[44.3,47.4,42.4,47.1,50.9,50.9,55.5,43.1],wt:{dt:["26","27","28","02","03","04","06"],s:[9,9,9,7,9,8,9],r:[6,6,5,8,7,9,9],dr:[1,1,1,1,4,3,3]}},{n:"ERIK",pos:"VOL",id:20,h:5,e:4,rg:7,rp:7,d:0,sq:9,rpa:7.2,da:.2,sa:9.3,nw:22,pse:6,sra:308,w:75.5,alt:176,bf:9.8,mm:35.4,imc:24.4,nc:59,ai:1.97,ct:[54.1,52.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,8,8,10,10,9],r:[7,8,7,10,7,7,7],dr:[0,0,0,0,0,0,0]}},{n:"FELIPINHO",pos:"MEI",id:19,h:5,e:3,rg:7,rp:7,d:0,sq:7,rpa:6.8,da:0,sa:7.5,nw:16,pse:7,sra:347,w:78,alt:179,bf:11.2,mm:36.0,imc:24.3,nc:27,ai:.85,cmj:38.9,ct:[44.5,38.9]},{n:"FELIPE VIEIRA",pos:"LE",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.2,da:.3,sa:8.2,nw:27,pse:7,sra:385,w:77,alt:176,bf:7.7,mm:35.8,imc:24.9,ck:174,nc:27,ai:1.0,cmj:39.3,ckm:174,ct:[45.0,39.3],wt:{dt:["03","04","05","06","07","09","10"],s:[7,7,8,9,6,5,7],r:[7,7,7,8,6,5,7],dr:[0,0,0,0,0,0,0]}},{n:"GABRIEL INOCENCIO",pos:"LAT",id:31,h:4,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.8,da:.4,sa:7.2,nw:58,pse:3,sra:407,w:78.5,alt:177,bf:10.8,mm:36.5,imc:25.1,ck:533,nc:75,ai:.97,cmj:48.2,ckm:916,ct:[48.2,52.3,45.3,48.9,53.6,49.3,50.8,48.2],wt:{dt:["04","05","06","09","10","11","12"],s:[8,9,8,8,7,7,8],r:[7,7,7,8,8,8,8],dr:[1,2,7,2,2,2,1]}},{n:"GUI MARIANO",pos:"ZAG",id:26,h:5,e:4,rg:8,rp:8,d:4,sq:8,rpa:7.6,da:.3,sa:8.2,nw:59,pse:7,sra:476,w:89.7,alt:191,bf:12.7,mm:41.0,imc:25.1,nc:75,ai:1.1,cmj:53.1,ct:[52.4,52.2,52,55.1,47.5,53.7,53.5,53.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,9,9,8,8],r:[7,7,5,10,8,6,8],dr:[0,0,0,0,0,0,4]}},{n:"GUILHERME QUEIROZ",pos:"ATA",id:35,h:5,e:3,rg:7,rp:7,d:2,sq:8,rpa:7.3,da:1.5,sa:6.9,nw:56,pse:6,sra:369,w:87.9,alt:180,bf:13.1,mm:40.2,imc:24.9,ck:493,nc:75,ai:1.14,cmj:46,ckm:493,ct:[43.3,43.3,46.2,47.4,44.7,48.3,48,46],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,7,7,5,8],r:[10,7,6,8,6,7,7],dr:[0,0,1,0,1,1,2]}},{n:"GUSTAVO VILAR",pos:"ZAG",id:25,h:5,e:3,rg:6,rp:6,d:0,sq:7,rpa:6.5,da:.2,sa:7.7,nw:55,pse:5,sra:410,w:86.4,alt:189,bf:12.9,mm:39.5,imc:25.8,ck:658,nc:75,ai:1.07,cmj:43.5,ckm:1113,ct:[43.3,42.9,47.9,42.8,43.1,44,44.8,43.5]},{n:"HEBERT",pos:"ZAG",id:20,h:5,e:3,rg:8,rp:7,d:0,sq:7,rpa:6.7,da:.1,sa:7.7,nw:46,pse:5,sra:366,w:88.1,alt:187,bf:12.5,mm:40.8,imc:25.5,nc:59,ai:1.04,cmj:46.9,ct:[50.1,49.8,50,52.5,48.6,51.2,53.3,46.9]},{n:"HENRIQUE TELES",pos:"LAT",id:19,h:5,e:4,rg:8,rp:8,d:2,sq:8,rpa:7,da:1.4,sa:7.7,nw:54,pse:6,sra:415,w:80.1,alt:179,bf:11.3,mm:37.2,imc:24.7,ck:415,nc:69,ai:1.14,cmj:45.5,ckm:415,ct:[53.1,55.5,49.8,54.9,51.6,50.8,55.1,45.5],wt:{dt:["04","05","07","09","10","11","12"],s:[8,9,6,9,8,9,8],r:[6,8,6,10,8,9,8],dr:[2,1,7,5,3,3,2]}},{n:"HYGOR",pos:"ATA",id:33,h:5,e:4,rg:10,rp:8,d:2,sq:7,rpa:8.8,da:1.6,sa:9.2,nw:57,pse:4,sra:387,w:83.3,alt:183,bf:11.6,mm:38.6,imc:25.2,ck:749,nc:75,ai:1.12,cmj:42.1,ckm:1034,ct:[40.8,44.5,39.9,44.2,43.5,42.4,41.9,42.1],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,10,10,10,10,7],r:[10,6,8,10,8,8,8],dr:[0,2,0,0,0,3,2]}},{n:"JEFFERSON NEM",pos:"ATA",id:29,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:7.1,da:.8,sa:7.9,nw:57,pse:7,sra:423,w:72.5,alt:166,bf:10.1,mm:33.8,imc:23.9,ck:985,nc:75,ai:.97,cmj:47.5,ckm:3539,ct:[44,48.2,44.5,50.4,50,44.1,47.2,47.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,7],r:[7,6,7,8,8,7,7],dr:[0,0,0,0,0,0,2]}},{n:"JONATHAN",pos:"LD",id:33,h:5,e:4,rg:5,rp:5,d:4,sq:7,rpa:5.8,da:2.9,sa:5.9,nw:51,pse:4,sra:333,w:73.7,alt:177,bf:10.9,mm:34.3,imc:24.1,ck:981,nc:75,ai:1.14,cmj:42.8,ckm:1372,ct:[46.4,46.8,46.9,37.3,45,44.7,45,42.8],wt:{dt:["04","05","07","09","10","11","12"],s:[5,7,6,6,6,6,7],r:[6,7,4,7,5,6,5],dr:[3,3,3,2,3,3,4]}},{n:"JORDAN",pos:"GOL",id:28,h:5,e:3,rg:7,rp:7,d:0,sq:9,rpa:8,da:.7,sa:8,nw:60,pse:4,sra:418,w:92.2,alt:189,bf:12.0,mm:42.8,imc:25.0,nc:75,ai:1.1,cmj:54.1,ct:[52.2,53.4,53.4,53.2,54.5,56,55.7,54.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,9],r:[8,8,6,8,8,7,7],dr:[1,0,0,0,0,0,0]}},{n:"KELVIN",pos:"EXT",id:28,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:6.9,da:3,sa:7.4,nw:49,pse:3,sra:288,w:74.6,alt:170,bf:10.3,mm:34.8,imc:23.8,ck:207,nc:67,ai:.86,cmj:38.4,ckm:375,ct:[40.4,38.3,40.8,40.2,40.6,39.5,42.3,38.4],wt:{dt:["04","05","06","09","10","11","12"],s:[7,9,8,9,9,8,7],r:[7,7,7,10,10,9,7],dr:[3,3,3,0,0,2,2]}},{n:"LEANDRO MACIEL",pos:"MEI",id:30,h:4,e:3,rg:8,rp:8,d:0,sq:9,rpa:7.7,da:.5,sa:8.6,nw:57,pse:4,sra:399,w:91.3,alt:175,bf:13.5,mm:41.6,imc:25.8,ck:349,nc:75,ai:1.08,cmj:43.8,ckm:510,ct:[41.7,47.4,40.5,46.2,47.8,44.3,50.4,43.8],wt:{dt:["05","06","07","09","10","11","12"],s:[8,7,9,8,8,8,9],r:[8,7,8,8,7,7,8],dr:[0,1,0,0,0,1,0]}},{n:"MARANHAO",pos:"EXT",id:26,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:6.9,da:1,sa:6.8,nw:58,pse:4,sra:339,w:75.1,alt:171,bf:11.0,mm:34.9,imc:24.2,ck:274,nc:75,ai:.95,cmj:42.2,ckm:419,ct:[45.2,45.2,44.4,48.8,44.9,43.8,54.1,42.2],wt:{dt:["05","06","07","09","10","11","12"],s:[7,5,6,7,7,7,7],r:[7,6,5,7,7,7,7],dr:[1,1,1,1,1,1,1]}},{n:"MARQUINHO JR.",pos:"ATA",id:23,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.4,da:0,sa:8.1,nw:58,pse:5,sra:360,w:64.9,alt:182,bf:9.2,mm:30.8,imc:22.5,ck:511,nc:75,ai:1.17,cmj:41.3,ckm:511,ct:[44.4,45.7,42.6,46.7,43.1,42.5,47.6,41.3]},{n:"MATHEUS SALES",pos:"MEI",id:30,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:7.2,da:.6,sa:6.8,nw:58,pse:7,sra:454,w:80.1,alt:176,bf:11.7,mm:37.0,imc:24.7,ck:558,nc:75,ai:1.06,cmj:44.3,ckm:558,ct:[47.4,47.9,46.1,47.3,44.3,49.1,49.8,44.3],wt:{dt:["05","06","07","09","10","11","12"],s:[6,4,8,7,7,5,7],r:[7,4,5,8,8,7,7],dr:[1,2,1,0,1,2,1]}},{n:"MORELLI",pos:"MEI",id:28,h:5,e:3,rg:6,rp:7,d:0,sq:8,rpa:7,da:.5,sa:7.4,nw:56,pse:3,sra:356,w:82.4,alt:181,bf:12.1,mm:38.0,imc:24.6,ck:298,nc:75,ai:1.07,cmj:43.8,ckm:621,ct:[46,50.6,44.9,44.8,43.8,38.1,46.6,43.8]},{n:"PATRICK BREY",pos:"LE",id:28,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.9,da:2,sa:7.3,nw:33,pse:3,sra:385,w:73.5,alt:176,bf:10.0,mm:34.5,imc:24.0,ck:347,nc:63,ai:1.3,ct:[43.2,42.6,42.3,41.9,41,45.8,42.8,45.1],wt:{dt:["05","06","07","09","10","11","12"],s:[4,7,2,9,8,7,8],r:[4,5,3,9,8,7,8],dr:[3,2,4,0,0,3,1]}},{n:"PEDRINHO",pos:"LD",id:19,h:5,e:3,rg:8,rp:8,d:0,sq:10,rpa:7.3,da:.4,sa:9.9,nw:44,pse:6,sra:343,w:67.5,alt:175,bf:9.5,mm:31.9,imc:22.8,nc:52,ai:1.02,cmj:45.5,ct:[41.6,42.6,38.6,42.9,44.9,40.1,44,45.5]},{n:"PEDRO TORTELLO",pos:"VOL",id:21,h:5,e:3,rg:7,rp:7,d:0,sq:10,rpa:8.4,da:.3,sa:9.2,nw:56,pse:4,sra:381,w:75.1,alt:176,bf:10.6,mm:35.0,imc:23.7,nc:75,ai:1.14,cmj:41,ct:[40.6,47.6,41.3,43.7,39.2,41.6,44,41]},{n:"RAFAEL GAVA",pos:"MEI",id:32,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:6.2,da:1,sa:5.8,nw:55,pse:7,sra:364,w:78.3,alt:178,bf:11.4,mm:36.3,imc:24.4,ck:303,nc:75,ai:1.1,ckm:2969,ct:[36.2,38.9,33.8,33.6,39.2,35.3,36.7,38.7],wt:{dt:["05","06","07","09","10","11","12"],s:[4,4,6,4,5,6,8],r:[5,5,6,4,7,7,7],dr:[1,1,1,0,0,0,0]}},{n:"THALLES",pos:"ATA",id:20,h:5,e:4,rg:10,rp:10,d:2,sq:7,rpa:5.7,da:.5,sa:7.4,dpo:1,nw:60,pse:3,sra:409,w:83.9,alt:178,bf:12.2,mm:38.7,imc:24.8,ck:1865,nc:75,ai:1.19,cmj:43.3,ckm:1865,ct:[46.4,44.1,44,45.1,43,47.4,44.9,43.3],wt:{dt:["04","05","06","07","09","11","12"],s:[7,7,10,6,7,8,7],r:[5,5,7,4,7,10,10],dr:[3,0,0,3,3,3,2]}},{n:"THIAGUINHO",pos:"MEI",id:27,h:3,e:4,rg:7,rp:7,d:0,sq:7,rpa:6.5,da:.2,sa:7.4,nw:17,pse:7,sra:390,w:64.5,alt:176,bf:7.7,mm:30.0,imc:20.8,ck:185,nc:17,ai:1.0,cmj:41.5,ckm:185,ct:[41.5],wt:{dt:["03","04","05","06","07","09","10"],s:[7,6,7,8,5,9,6],r:[7,6,7,7,5,8,6],dr:[0,0,0,0,0,0,0]}},{n:"VICTOR SOUZA",pos:"GOL",id:33,h:4,e:3,rg:7,rp:7,d:0,sq:6,rpa:7.2,da:.5,sa:6.1,nw:57,pse:3,sra:473,w:92.8,alt:187,bf:14.1,mm:42.2,imc:24.9,nc:75,ai:1.04,cmj:46.9,ct:[55.4,56.5,60.9,57.9,58.7,53.2,59.5,46.9]},{n:"WALLACE",pos:"ZAG",id:31,h:4,e:3,rg:7,rp:7,d:0,sq:8,rpa:6.7,da:.8,sa:7.8,nw:47,pse:5,sra:305,w:91.6,alt:192,bf:14.0,mm:41.3,imc:26.5,nc:75,ai:.98,cmj:40.8,ct:[43.6,38.3,40.3,39.4,40.8],wt:{dt:["04","05","06","09","10","11","12"],s:[8,8,8,8,8,8,8],r:[7,8,5,8,7,7,7],dr:[2,2,2,0,2,2,0]}},{n:"YURI",pos:"VOL",id:19,h:4,e:4,rg:8,rp:8,d:0,sq:8,rpa:7.9,da:0,sa:8.1,nw:49,pse:6,sra:320,w:66.4,alt:172,bf:9.0,mm:31.5,imc:23.2,nc:69,ai:1.16,cmj:41.5,ct:[40.8,44.9,43.8,43.2,42.8,42.9,43.5,41.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,8,8,8],r:[9,8,7,8,7,8,8],dr:[0,0,0,0,0,0,0]}},{n:"WESLEY",pos:"EXT",id:25,h:5,e:4,rg:8,rp:7,d:1,sq:8,rpa:7.4,da:.6,sa:7.8,nw:52,pse:5,sra:378,w:76.8,alt:185,bf:10.4,mm:35.8,imc:24.2,ck:245,nc:68,ai:1.08,cmj:43.2,ckm:382,ct:[44.8,45.1,43.5,44.2,42.8,43.9,44.5,43.2],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,7,8,8],r:[8,7,7,8,8,7,7],dr:[0,0,1,0,1,1,0]}},{n:"LUIZAO",pos:"ATA",id:23,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:7.5,da:.4,sa:8.0,nw:55,pse:4,sra:395,w:88.5,alt:183,bf:12.8,mm:40.6,imc:25.0,ck:420,nc:72,ai:1.05,cmj:45.2,ckm:580,ct:[46.8,44.5,47.2,45.8,46.1,44.9,45.6,45.2],wt:{dt:["05","06","07","09","10","11","12"],s:[9,8,8,8,9,8,8],r:[8,7,7,9,8,7,8],dr:[0,1,0,0,0,1,1]}},{n:"ZE HUGO",pos:"EXT",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.6,da:.3,sa:8.2,nw:48,pse:5,sra:342,w:72.1,alt:178,bf:9.6,mm:33.6,imc:23.5,nc:62,ai:1.12,cmj:42.5,ckm:310,ct:[43.8,44.2,41.9,43.5,42.8,43.1,42.6,42.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,8,8,7,8],r:[8,8,7,9,7,8,7],dr:[0,0,0,0,0,0,0]}}];
 
 // Tooltip customizado para Recharts
-const TT=({active,payload,label})=>{
+const TT=({active,payload,label,theme})=>{
+  const t=theme||THEMES.light;
   if(!active||!payload?.length)return null;
-  return <div style={{background:"#fff",border:"1px solid #e2e8f0",borderRadius:8,padding:"8px 12px",boxShadow:"0 2px 8px rgba(0,0,0,0.1)"}}>
-    <div style={{fontWeight:700,fontSize:11,color:"#1e293b",marginBottom:4}}>{label}</div>
-    {payload.map((p,i)=><div key={i} style={{fontSize:10,color:p.color||"#64748b"}}>{p.name}: <strong>{typeof p.value==="number"?p.value.toFixed(1):p.value}</strong></div>)}
+  return <div style={{background:t.tooltipBg,border:`1px solid ${t.border}`,borderRadius:8,padding:"8px 12px",boxShadow:`0 2px 8px ${t.shadowLg}`}}>
+    <div style={{fontWeight:700,fontSize:11,color:t.text,marginBottom:4}}>{label}</div>
+    {payload.map((p,i)=><div key={i} style={{fontSize:10,color:p.color||t.textMuted}}>{p.name}: <strong>{typeof p.value==="number"?p.value.toFixed(1):p.value}</strong></div>)}
   </div>;
 };
 
@@ -802,47 +829,51 @@ const score=(p)=>{
 };
 
 const LV={CRITICAL:{c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",l:"Crítico"},HIGH:{c:"#EA580C",bg:"#FFF7ED",bc:"#FED7AA",l:"Alto"},MODERATE:{c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",l:"Moderado"},LOW:{c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",l:"Ótimo"}};
-const pri="#1A1A1A",acc="#C41E3A",sec="#F5F5F5";
+const acc="#C41E3A";
 const humorL={1:"Raiva",2:"Confuso",3:"Preocupado",4:"Confiante",5:"Tranquilo"};
 
-const Tip=({active,payload,label})=>{
+const Tip=({active,payload,label,theme})=>{
+  const t=theme||THEMES.light;
   if(!active||!payload?.length)return null;
-  return <div style={{background:"#fff",border:"1px solid #e2e8f0",borderRadius:8,padding:"8px 12px",fontSize:11,boxShadow:"0 4px 12px rgba(0,0,0,.06)"}}>
-    <div style={{color:"#94a3b8",marginBottom:3,fontWeight:600}}>{label}</div>
-    {payload.map((p,i)=><div key={i} style={{color:p.color||pri,fontWeight:600}}>{p.name}: {typeof p.value==="number"?p.value.toFixed(1):p.value}</div>)}
+  return <div style={{background:t.tooltipBg,border:`1px solid ${t.border}`,borderRadius:8,padding:"8px 12px",fontSize:11,boxShadow:`0 4px 12px ${t.shadowMd}`}}>
+    <div style={{color:t.textFaint,marginBottom:3,fontWeight:600}}>{label}</div>
+    {payload.map((p,i)=><div key={i} style={{color:p.color||t.text,fontWeight:600}}>{p.name}: {typeof p.value==="number"?p.value.toFixed(1):p.value}</div>)}
   </div>;
 };
 
-const ScoreRing=({v,sz=48,th=4})=>{
+const ScoreRing=({v,sz=48,th=4,theme})=>{
+  const t=theme||THEMES.light;
   const c=v>=40?"#DC2626":v>=20?"#EA580C":v>=8?"#CA8A04":"#16A34A";
   const pct=Math.min(v/100,1),r=(sz-th)/2,ci=2*Math.PI*r;
   return <div style={{position:"relative",width:sz,height:sz,display:"flex",alignItems:"center",justifyContent:"center"}}>
     <svg width={sz} height={sz} style={{transform:"rotate(-90deg)"}}>
-      <circle cx={sz/2} cy={sz/2} r={r} fill="none" stroke="#f1f5f9" strokeWidth={th}/>
+      <circle cx={sz/2} cy={sz/2} r={r} fill="none" stroke={t.ringBg} strokeWidth={th}/>
       <circle cx={sz/2} cy={sz/2} r={r} fill="none" stroke={c} strokeWidth={th} strokeDasharray={ci} strokeDashoffset={ci*(1-pct)} strokeLinecap="round"/>
     </svg>
     <div style={{position:"absolute",fontFamily:"'JetBrains Mono'",fontSize:sz/3.5,fontWeight:700,color:c}}>{v}</div>
   </div>;
 };
 
-const PlayerPhoto=({name,sz=40})=>{
+const PlayerPhoto=({name,sz=40,theme})=>{
+  const t=theme||THEMES.light;
   const src=`/players/${encodeURIComponent(name)}.png`;
-  return <div style={{width:sz,height:sz,borderRadius:"50%",background:"#f1f5f9",border:"2px solid #e2e8f0",overflow:"hidden",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
+  return <div style={{width:sz,height:sz,borderRadius:"50%",background:t.bgMuted2,border:`2px solid ${t.border}`,overflow:"hidden",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
     <img src={src} alt={name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";e.target.parentNode.querySelector("span").style.display="flex";}} />
-    <span style={{display:"none",alignItems:"center",justifyContent:"center",width:"100%",height:"100%",fontFamily:"'Inter Tight'",fontWeight:700,fontSize:sz/3,color:"#94a3b8"}}>{name.slice(0,2)}</span>
+    <span style={{display:"none",alignItems:"center",justifyContent:"center",width:"100%",height:"100%",fontFamily:"'Inter Tight'",fontWeight:700,fontSize:sz/3,color:t.textFaint}}>{name.slice(0,2)}</span>
   </div>;
 };
 
 const Badge=({level})=>{const l=LV[level];return <span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,background:l.bg,color:l.c,border:`1px solid ${l.bc}`}}>{l.l}</span>;};
 
-const WBar=({label,v,max=10,inv})=>{
+const WBar=({label,v,max=10,inv,theme})=>{
+  const t=theme||THEMES.light;
   const c=inv?(v>5?"#DC2626":v>3?"#CA8A04":"#16A34A"):(v>7?"#16A34A":v>5?"#CA8A04":"#DC2626");
   return <div style={{marginBottom:8}}>
     <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
-      <span style={{fontSize:11,color:"#64748b",fontWeight:500}}>{label}</span>
+      <span style={{fontSize:11,color:t.textMuted,fontWeight:500}}>{label}</span>
       <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:c}}>{v?.toFixed?.(1)??v}</span>
     </div>
-    <div style={{height:4,background:"#f1f5f9",borderRadius:4}}>
+    <div style={{height:4,background:t.bgMuted2,borderRadius:4}}>
       <div style={{height:"100%",width:`${Math.min((v/max)*100,100)}%`,background:c,borderRadius:4,transition:"width .6s"}}/>
     </div>
   </div>;
@@ -851,6 +882,10 @@ const WBar=({label,v,max=10,inv})=>{
 export default function Dashboard(){
   const [sel,setSel]=useState(null);
   const [tab,setTab]=useState("squad");
+  const [dark,setDark]=useState(()=>{if(typeof window!=="undefined"){const s=localStorage.getItem("theme");if(s)return s==="dark";return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches||false;}return false;});
+  const t=THEMES[dark?"dark":"light"];
+  const pri=dark?t.border:"#1A1A1A";
+  useEffect(()=>{localStorage.setItem("theme",dark?"dark":"light");},[dark]);
 
   // ═══ Google Sheets — dados em tempo real ═══
   const { sheetData, loading: sheetLoading, error: sheetError, lastUpdate, refresh: refreshSheet, isLive } = useSheetData({ interval: 120_000, enabled: true });
@@ -906,24 +941,24 @@ export default function Dashboard(){
   const wtData=sp?.wt?sp.wt.dt.map((d,i)=>({d:"Mar/"+d,sono:sp.wt.s[i],rec:sp.wt.r[i],dor:sp.wt.dr[i]})):[];
   const cmjData=sp?.ct?sp.ct.map((v,i)=>({i:i+1,v})):[];
 
-  return <div style={{minHeight:"100vh",background:"#f8fafb",fontFamily:"'Inter',system-ui,sans-serif",fontSize:13,color:"#1e293b"}}>
+  return <div style={{minHeight:"100vh",background:t.bg,fontFamily:"'Inter',system-ui,sans-serif",fontSize:13,color:t.text,transition:"background .3s,color .3s"}}>
     <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap');
-    *{box-sizing:border-box;margin:0;padding:0;scrollbar-width:thin;scrollbar-color:#e2e8f0 transparent}
-    ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
+    *{box-sizing:border-box;margin:0;padding:0;scrollbar-width:thin;scrollbar-color:${t.scrollThumb} ${t.scrollTrack}}
+    ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:${t.scrollThumb};border-radius:4px}
     @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
 
     {/* HEADER */}
-    <header style={{background:pri,borderBottom:"2px solid "+acc,padding:"0 28px",position:"sticky",top:0,zIndex:100,boxShadow:"0 2px 8px rgba(0,0,0,.15)"}}>
+    <header style={{background:t.headerBg,borderBottom:"2px solid "+acc,padding:"0 28px",position:"sticky",top:0,zIndex:100,boxShadow:`0 2px 8px ${t.headerShadow}`}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",height:56}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <img src="https://www.ogol.com.br/img/logos/equipas/3154_imgbank_1685113109.png" alt="Botafogo-SP" style={{width:36,height:36,objectFit:"contain"}}/>
           <div>
-            <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:14,color:"#fff",letterSpacing:-.3}}>Saúde e Performance</div>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:14,color:t.bgCard,letterSpacing:-.3}}>Saúde e Performance</div>
             <div style={{fontSize:10,color:"rgba(255,255,255,.5)",fontWeight:500}}>Botafogo-SP FSA · 2026</div>
           </div>
         </div>
         <div style={{display:"flex",gap:1,overflowX:"auto",maxWidth:"calc(100vw - 380px)",scrollbarWidth:"none",msOverflowStyle:"none"}}>
-          {tabs.map(t=>{const Ic=t.ic;return <button key={t.id} onClick={()=>setTab(t.id)} style={{display:"flex",alignItems:"center",gap:4,background:tab===t.id?acc:"transparent",border:`1px solid ${tab===t.id?acc:"transparent"}`,color:tab===t.id?"#fff":"rgba(255,255,255,.5)",padding:"5px 8px",borderRadius:6,fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .2s",whiteSpace:"nowrap",flexShrink:0}}><Ic size={12}/>{t.l}</button>})}
+          {tabs.map(t=>{const Ic=t.ic;return <button key={t.id} onClick={()=>setTab(t.id)} style={{display:"flex",alignItems:"center",gap:4,background:tab===t.id?acc:"transparent",border:`1px solid ${tab===t.id?acc:"transparent"}`,color:tab===t.id?t.bgCard:"rgba(255,255,255,.5)",padding:"5px 8px",borderRadius:6,fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .2s",whiteSpace:"nowrap",flexShrink:0}}><Ic size={12}/>{t.l}</button>})}
         </div>
         <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:"rgba(255,255,255,.5)",display:"flex",alignItems:"center",gap:10}}>
           {/* Live Data Indicator */}
@@ -937,6 +972,10 @@ export default function Dashboard(){
               <RefreshCw size={9} color="rgba(255,255,255,.4)" style={{animation:sheetLoading?"spin 1s linear infinite":"none"}}/>
             </button>
           </div>
+          <button onClick={()=>setDark(d=>!d)} style={{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.12)",borderRadius:8,padding:"5px 8px",cursor:"pointer",display:"flex",alignItems:"center",gap:4,transition:"all .2s"}} title={dark?"Modo Claro":"Modo Escuro"}>
+            {dark?<Sun size={13} color="#fbbf24"/>:<Moon size={13} color="rgba(255,255,255,.6)"/>}
+            <span style={{fontSize:9,color:"rgba(255,255,255,.5)",fontWeight:600}}>{dark?"Claro":"Escuro"}</span>
+          </button>
           <span style={{width:7,height:7,borderRadius:"50%",background:"#16A34A",display:"inline-block"}}/>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · {players.length} atletas
         </div>
       </div>
@@ -945,17 +984,17 @@ export default function Dashboard(){
     <div style={{display:"flex",padding:16,gap:16,maxWidth:1440,margin:"0 auto"}}>
       {/* SIDEBAR */}
       <aside style={{width:240,flexShrink:0}}>
-        <div style={{fontSize:10,fontWeight:700,color:"#94a3b8",letterSpacing:1.5,textTransform:"uppercase",marginBottom:2,paddingLeft:4}}>Elenco — Risco</div>
-        <div style={{fontSize:8,color:"#cbd5e1",marginBottom:8,paddingLeft:4}}>Score: wellness + carga do dia</div>
+        <div style={{fontSize:10,fontWeight:700,color:t.textFaint,letterSpacing:1.5,textTransform:"uppercase",marginBottom:2,paddingLeft:4}}>Elenco — Risco</div>
+        <div style={{fontSize:8,color:t.textFaintest,marginBottom:8,paddingLeft:4}}>Score: wellness + carga do dia</div>
         <div style={{display:"flex",flexDirection:"column",gap:4,maxHeight:"calc(100vh - 100px)",overflowY:"auto",paddingRight:4}}>
-          {players.map(p=><div key={p.n} onClick={()=>{setSel(p.n);setTab("player")}} style={{background:sel===p.n?"#fff":"transparent",border:`1px solid ${sel===p.n?"#e2e8f0":"transparent"}`,borderRadius:10,padding:"8px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,transition:"all .15s",boxShadow:sel===p.n?"0 2px 8px rgba(0,0,0,.04)":"none"}}>
-            <PlayerPhoto name={p.n} sz={34}/>
-            <ScoreRing v={p.riskScore} sz={32} th={3}/>
+          {players.map(p=><div key={p.n} onClick={()=>{setSel(p.n);setTab("player")}} style={{background:sel===p.n?t.bgCard:"transparent",border:`1px solid ${sel===p.n?t.border:"transparent"}`,borderRadius:10,padding:"8px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,transition:"all .15s",boxShadow:sel===p.n?`0 2px 8px ${t.shadow}`:"none"}}>
+            <PlayerPhoto theme={t} name={p.n} sz={34}/>
+            <ScoreRing theme={t} v={p.riskScore} sz={32} th={3}/>
             <div style={{flex:1,minWidth:0}}>
-              <div style={{fontSize:11,fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",color:"#1e293b"}}>{p.n}</div>
+              <div style={{fontSize:11,fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",color:t.text}}>{p.n}</div>
               <div style={{display:"flex",gap:4,marginTop:2,alignItems:"center"}}>
                 <Badge level={p.risk}/>
-                <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:"#94a3b8"}}>{p.pos}</span>
+                <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:t.textFaint}}>{p.pos}</span>
               </div>
             </div>
           </div>)}
@@ -972,9 +1011,9 @@ export default function Dashboard(){
               {l:"ACWR > 1.45",v:players.filter(p=>p.ai>1.45).length,c:"#CA8A04",ic:TrendingUp},
               {l:"CK > 800",v:players.filter(p=>p.ck&&p.ck>800).length,c:"#DC2626",ic:Activity},
               {l:"Ótimos",v:players.filter(p=>p.risk==="LOW").length,c:"#16A34A",ic:CheckCircle2}
-            ].map((k,i)=>{const Ic=k.ic;return <div key={i} style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:"14px 16px",boxShadow:"0 1px 3px rgba(0,0,0,.04)"}}>
+            ].map((k,i)=>{const Ic=k.ic;return <div key={i} style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:"14px 16px",boxShadow:`0 1px 3px ${t.shadow}`}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div><div style={{fontSize:10,color:"#94a3b8",fontWeight:600,letterSpacing:.5}}>{k.l}</div>
+                <div><div style={{fontSize:10,color:t.textFaint,fontWeight:600,letterSpacing:.5}}>{k.l}</div>
                 <div style={{fontFamily:"'JetBrains Mono'",fontSize:28,fontWeight:800,color:k.c,marginTop:2}}>{k.v}</div></div>
                 <Ic size={20} color={k.c} opacity={.4}/>
               </div>
@@ -982,11 +1021,11 @@ export default function Dashboard(){
           </div>
 
           {/* ═══ CAMADA 1: RISK BOARD — Quem pode treinar hoje? ═══ */}
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14,flexWrap:"wrap",gap:8}}>
               <div>
                 <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri}}>Risk Board — Prontidão para Sessão</div>
-                <div style={{fontSize:11,color:"#94a3b8"}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · Decisão operacional: quem pode treinar normalmente hoje?</div>
+                <div style={{fontSize:11,color:t.textFaint}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · Decisão operacional: quem pode treinar normalmente hoje?</div>
               </div>
               <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                 {[{l:"Crítico (>60%)",c:"#DC2626",n:ML.alerts.filter(a=>a.prob>0.60).length},
@@ -999,9 +1038,9 @@ export default function Dashboard(){
             <div style={{overflowX:"auto"}}>
             <table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:800}}>
               <thead>
-                <tr style={{borderBottom:"2px solid #e2e8f0"}}>
+                <tr style={{borderBottom:`2px solid ${t.border}`}}>
                   {["Atleta","Pos","Probabilidade","Status","Perfil","F. Debt","NME","Ação"].map((h,i)=>
-                    <th key={i} style={{padding:"8px 6px",textAlign:"left",fontSize:9,color:"#94a3b8",fontWeight:700,textTransform:"uppercase",letterSpacing:.5,whiteSpace:"nowrap"}}>{h}</th>
+                    <th key={i} style={{padding:"8px 6px",textAlign:"left",fontSize:9,color:t.textFaint,fontWeight:700,textTransform:"uppercase",letterSpacing:.5,whiteSpace:"nowrap"}}>{h}</th>
                   )}
                 </tr>
               </thead>
@@ -1011,17 +1050,17 @@ export default function Dashboard(){
                   const pr=PERFIL_RISCO_LABELS[a.perfil_risco]||PERFIL_RISCO_LABELS.sobrecarga;
                   const statusLabel=a.prob>0.60?"Crítico":a.prob>0.35?"Moderado":a.prob>0.20?"Atenção":"Normal";
                   const statusIcon=a.prob>0.60?"🔴":a.prob>0.35?"🟠":a.prob>0.20?"🟡":"🟢";
-                  return <tr key={i} style={{borderBottom:"1px solid #f1f5f9",background:i%2===0?"transparent":"#fafbfc",cursor:"pointer"}} onClick={()=>{setSel(a.n);setTab("player")}}>
+                  return <tr key={i} style={{borderBottom:"1px solid #f1f5f9",background:i%2===0?"transparent":t.bgMuted,cursor:"pointer"}} onClick={()=>{setSel(a.n);setTab("player")}}>
                     <td style={{padding:"8px 6px"}}>
                       <div style={{display:"flex",alignItems:"center",gap:8}}>
-                        <PlayerPhoto name={a.n} sz={28}/>
+                        <PlayerPhoto theme={t} name={a.n} sz={28}/>
                         <span style={{fontWeight:700,color:pri}}>{a.n}</span>
                       </div>
                     </td>
-                    <td style={{padding:"8px 6px",fontFamily:"'JetBrains Mono'",fontSize:10,color:"#94a3b8"}}>{a.pos}</td>
+                    <td style={{padding:"8px 6px",fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textFaint}}>{a.pos}</td>
                     <td style={{padding:"8px 6px"}}>
                       <div style={{display:"flex",alignItems:"center",gap:6}}>
-                        <div style={{width:50,height:6,background:"#f1f5f9",borderRadius:4}}>
+                        <div style={{width:50,height:6,background:t.bgMuted2,borderRadius:4}}>
                           <div style={{height:"100%",width:`${Math.min(a.prob*100,100)}%`,background:zs.c,borderRadius:4}}/>
                         </div>
                         <span style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:zs.c}}>{(a.prob*100).toFixed(0)}%</span>
@@ -1033,9 +1072,9 @@ export default function Dashboard(){
                     <td style={{padding:"8px 6px"}}>
                       <span style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:600,background:pr.bg,color:pr.c,border:`1px solid ${pr.bc}`}}>{pr.label}</span>
                     </td>
-                    <td style={{padding:"8px 6px",fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:a.fatigue_debt>3000?"#DC2626":a.fatigue_debt>2500?"#EA580C":"#64748b"}}>{a.fatigue_debt}</td>
+                    <td style={{padding:"8px 6px",fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:a.fatigue_debt>3000?"#DC2626":a.fatigue_debt>2500?"#EA580C":t.textMuted}}>{a.fatigue_debt}</td>
                     <td style={{padding:"8px 6px",fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:a.nme<0.012?"#DC2626":a.nme<0.015?"#EA580C":"#16A34A"}}>{a.nme?.toFixed(4)||"-"}</td>
-                    <td style={{padding:"8px 6px",fontSize:10,color:"#64748b",maxWidth:200}}>{a.dose}</td>
+                    <td style={{padding:"8px 6px",fontSize:10,color:t.textMuted,maxWidth:200}}>{a.dose}</td>
                   </tr>;
                 })}
               </tbody>
@@ -1044,7 +1083,7 @@ export default function Dashboard(){
           </div>
 
           {/* ═══ CAMADA 5: INTERVENÇÕES RÁPIDAS ═══ */}
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:10}}>Intervenções Rápidas — Referência Operacional</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
               {INTERVENTIONS.map((iv,i)=>{
@@ -1062,14 +1101,14 @@ export default function Dashboard(){
 
           {/* Charts Row */}
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
-            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>ACWR Interno (sRPE) — Elenco</div>
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={players.filter(p=>p.ai).slice(0,25)} margin={{bottom:45}}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
-                  <XAxis dataKey="n" tick={{fontSize:7,fill:"#94a3b8"}} angle={-50} textAnchor="end" interval={0}/>
-                  <YAxis tick={{fontSize:9,fill:"#94a3b8"}} domain={[0,2.2]}/>
-                  <Tooltip content={<Tip/>}/>
+                  <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
+                  <XAxis dataKey="n" tick={{fontSize:7,fill:t.textFaint}} angle={-50} textAnchor="end" interval={0}/>
+                  <YAxis tick={{fontSize:9,fill:t.textFaint}} domain={[0,2.2]}/>
+                  <Tooltip content={<Tip theme={t}/>}/>
                   <ReferenceLine y={1.45} stroke="#DC2626" strokeDasharray="4 4" label={{value:"1.45",fill:"#DC2626",fontSize:9}}/>
                   <ReferenceLine y={.8} stroke="#EA580C" strokeDasharray="4 4" label={{value:"0.80",fill:"#EA580C",fontSize:9}}/>
                   <Bar dataKey="ai" name="ACWR" radius={[3,3,0,0]}>
@@ -1078,14 +1117,14 @@ export default function Dashboard(){
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>CK Seriado</div>
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={players.filter(p=>p.ck).sort((a,b)=>b.ck-a.ck)} margin={{bottom:45}}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
-                  <XAxis dataKey="n" tick={{fontSize:7,fill:"#94a3b8"}} angle={-50} textAnchor="end" interval={0}/>
-                  <YAxis tick={{fontSize:9,fill:"#94a3b8"}}/>
-                  <Tooltip content={<Tip/>}/>
+                  <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
+                  <XAxis dataKey="n" tick={{fontSize:7,fill:t.textFaint}} angle={-50} textAnchor="end" interval={0}/>
+                  <YAxis tick={{fontSize:9,fill:t.textFaint}}/>
+                  <Tooltip content={<Tip theme={t}/>}/>
                   <ReferenceLine y={800} stroke="#DC2626" strokeDasharray="4 4"/>
                   <Bar dataKey="ck" name="CK (U/L)" radius={[3,3,0,0]}>
                     {players.filter(p=>p.ck).sort((a,b)=>b.ck-a.ck).map((p,i)=><Cell key={i} fill={p.ck>800?"#DC2626":p.ck>500?"#EA580C":"#16A34A"}/>)}
@@ -1097,21 +1136,21 @@ export default function Dashboard(){
 
           {/* Wellness + CMJ */}
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Wellness Squad — Média</div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-                <div><WBar label="Sono (qualidade)" v={+(players.reduce((s,p)=>s+(p.sq||0),0)/players.length).toFixed(1)} max={10}/><WBar label="Rec. Geral" v={+(players.reduce((s,p)=>s+(p.rg||0),0)/players.length).toFixed(1)} max={10}/><WBar label="Rec. Pernas" v={+(players.reduce((s,p)=>s+(p.rp||0),0)/players.length).toFixed(1)} max={10}/></div>
-                <div><WBar label="Dor" v={+(players.reduce((s,p)=>s+(p.d||0),0)/players.length).toFixed(1)} max={10} inv/><WBar label="Humor (1-5)" v={+(players.reduce((s,p)=>s+(p.h||0),0)/players.length).toFixed(1)} max={5}/><WBar label="Energia (1-4)" v={+(players.reduce((s,p)=>s+(p.e||0),0)/players.length).toFixed(1)} max={4}/></div>
+                <div><WBar theme={t} label="Sono (qualidade)" v={+(players.reduce((s,p)=>s+(p.sq||0),0)/players.length).toFixed(1)} max={10}/><WBar theme={t} label="Rec. Geral" v={+(players.reduce((s,p)=>s+(p.rg||0),0)/players.length).toFixed(1)} max={10}/><WBar theme={t} label="Rec. Pernas" v={+(players.reduce((s,p)=>s+(p.rp||0),0)/players.length).toFixed(1)} max={10}/></div>
+                <div><WBar theme={t} label="Dor" v={+(players.reduce((s,p)=>s+(p.d||0),0)/players.length).toFixed(1)} max={10} inv/><WBar theme={t} label="Humor (1-5)" v={+(players.reduce((s,p)=>s+(p.h||0),0)/players.length).toFixed(1)} max={5}/><WBar theme={t} label="Energia (1-4)" v={+(players.reduce((s,p)=>s+(p.e||0),0)/players.length).toFixed(1)} max={4}/></div>
               </div>
             </div>
-            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>CMJ — Último Teste</div>
               <ResponsiveContainer width="100%" height={160}>
                 <BarChart data={players.filter(p=>p.cmj).sort((a,b)=>b.cmj-a.cmj).slice(0,15)} margin={{bottom:35}}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
-                  <XAxis dataKey="n" tick={{fontSize:7,fill:"#94a3b8"}} angle={-45} textAnchor="end" interval={0}/>
-                  <YAxis tick={{fontSize:9,fill:"#94a3b8"}} domain={[30,58]}/>
-                  <Tooltip content={<Tip/>}/>
+                  <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
+                  <XAxis dataKey="n" tick={{fontSize:7,fill:t.textFaint}} angle={-45} textAnchor="end" interval={0}/>
+                  <YAxis tick={{fontSize:9,fill:t.textFaint}} domain={[30,58]}/>
+                  <Tooltip content={<Tip theme={t}/>}/>
                   <Bar dataKey="cmj" name="CMJ (cm)" fill={pri} opacity={.75} radius={[3,3,0,0]}/>
                 </BarChart>
               </ResponsiveContainer>
@@ -1121,7 +1160,7 @@ export default function Dashboard(){
 
         {tab==="alerts"&&<div>
           <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri,marginBottom:4}}>Alertas Ativos</div>
-          <div style={{fontSize:12,color:"#94a3b8",marginBottom:16}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · Score de criticidade composto (ACWR + Wellness + CK + Dor)</div>
+          <div style={{fontSize:12,color:t.textFaint,marginBottom:16}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · Score de criticidade composto (ACWR + Wellness + CK + Dor)</div>
           {players.filter(p=>p.riskScore>=8).map((p,i)=>{
             const lv=LV[p.risk];
             const rx=p.risk==="CRITICAL"?
@@ -1129,21 +1168,21 @@ export default function Dashboard(){
               p.risk==="HIGH"?
               (p.ai>1.3?"Atenção à progressão de carga. Evitar picos de sprint.":p.ck>600?"CK elevado — evitar treino excêntrico pesado.":"Manter monitoramento. Cruzar GPS pós-treino."):
               "Manter rotina de monitoramento.";
-            return <div key={i} style={{background:"#fff",borderRadius:12,border:`1px solid ${lv.bc}`,padding:16,marginBottom:10,boxShadow:"0 1px 3px rgba(0,0,0,.04)"}}>
+            return <div key={i} style={{background:t.bgCard,borderRadius:12,border:`1px solid ${lv.bc}`,padding:16,marginBottom:10,boxShadow:`0 1px 3px ${t.shadow}`}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
                 <div style={{display:"flex",alignItems:"center",gap:12}}>
-                  <PlayerPhoto name={p.n} sz={44}/>
-                  <ScoreRing v={p.riskScore} sz={48} th={4}/>
+                  <PlayerPhoto theme={t} name={p.n} sz={44}/>
+                  <ScoreRing theme={t} v={p.riskScore} sz={48} th={4}/>
                   <div>
-                    <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:15,color:"#1e293b"}}>{p.n} <Badge level={p.risk}/> <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:"#94a3b8",fontWeight:400,marginLeft:4}}>{p.pos} · {p.id} anos · {p.w}kg</span></div>
+                    <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:15,color:t.text}}>{p.n} <Badge level={p.risk}/> <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textFaint,fontWeight:400,marginLeft:4}}>{p.pos} · {p.id} anos · {p.w}kg</span></div>
                     <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:6}}>
                       {p.reasons.map((r,j)=><span key={j} style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:lv.bg,color:lv.c,border:`1px solid ${lv.bc}`}}>{r}</span>)}
                     </div>
                   </div>
                 </div>
                 <div style={{textAlign:"right"}}>
-                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:"#94a3b8"}}>ACWR int</div>
-                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:18,fontWeight:700,color:p.ai>1.45?"#DC2626":p.ai<.8?"#EA580C":"#1e293b"}}>{p.ai?.toFixed(2)||"-"}</div>
+                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textFaint}}>ACWR int</div>
+                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:18,fontWeight:700,color:p.ai>1.45?"#DC2626":p.ai<.8?"#EA580C":t.text}}>{p.ai?.toFixed(2)||"-"}</div>
                 </div>
               </div>
               <div style={{marginTop:10,padding:"8px 12px",background:lv.bg,borderRadius:8,border:`1px solid ${lv.bc}`,fontSize:12,color:lv.c}}>
@@ -1151,9 +1190,9 @@ export default function Dashboard(){
               </div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:8,marginTop:10}}>
                 {[{l:"PSE",v:p.pse},{l:"sRPE avg",v:p.sra},{l:"Sono",v:p.sq},{l:"RecP",v:p.rp},{l:"Dor",v:p.d},{l:"CMJ",v:p.cmj||"-"}].map((m,j)=>
-                  <div key={j} style={{textAlign:"center",padding:"6px 0",background:"#f8fafc",borderRadius:6}}>
-                    <div style={{fontSize:9,color:"#94a3b8"}}>{m.l}</div>
-                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:13,fontWeight:700,color:"#1e293b"}}>{m.v}</div>
+                  <div key={j} style={{textAlign:"center",padding:"6px 0",background:t.bgMuted,borderRadius:6}}>
+                    <div style={{fontSize:9,color:t.textFaint}}>{m.l}</div>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:13,fontWeight:700,color:t.text}}>{m.v}</div>
                   </div>)}
               </div>
             </div>;})}
@@ -1161,39 +1200,39 @@ export default function Dashboard(){
 
         {/* ═══════════ PAINEL DE CARGA & ACWR ═══════════ */}
         {tab==="carga"&&<div>
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri,marginBottom:4}}>Painel de Carga & ACWR</div>
-            <div style={{fontSize:11,color:"#64748b"}}>Monitoramento de ACWR (EWMA), carga cumulativa semanal/mensal e monotonia por atleta</div>
+            <div style={{fontSize:11,color:t.textMuted}}>Monitoramento de ACWR (EWMA), carga cumulativa semanal/mensal e monotonia por atleta</div>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12,marginBottom:16}}>
             {[{l:"ACWR Médio",v:players.reduce((s,p)=>s+(p.ai||1),0)/players.length,u:"",c:players.reduce((s,p)=>s+(p.ai||1),0)/players.length>1.3?"#DC2626":"#16A34A"},
               {l:"Atletas ACWR > 1.3",v:players.filter(p=>(p.ai||0)>1.3).length,u:"atletas",c:"#EA580C"},
               {l:"Monotonia > 2.0",v:players.filter(p=>{const ext=PLAYER_EXT[p.n];return ext?.monotonia>2.0;}).length,u:"atletas",c:"#CA8A04"},
               {l:"Strain Médio",v:Math.round(Object.values(PLAYER_EXT).reduce((s,e)=>s+(e?.strain||0),0)/Math.max(Object.keys(PLAYER_EXT).length,1)),u:"UA",c:"#2563eb"}
-            ].map((m,i)=><div key={i} style={{background:"#fff",borderRadius:10,border:"1px solid #e2e8f0",padding:14,textAlign:"center"}}>
-              <div style={{fontSize:10,color:"#94a3b8",fontWeight:600,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{m.l}</div>
+            ].map((m,i)=><div key={i} style={{background:t.bgCard,borderRadius:10,border:`1px solid ${t.border}`,padding:14,textAlign:"center"}}>
+              <div style={{fontSize:10,color:t.textFaint,fontWeight:600,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{m.l}</div>
               <div style={{fontFamily:"'JetBrains Mono'",fontSize:22,fontWeight:700,color:m.c}}>{typeof m.v==="number"?m.v.toFixed(m.u?"0":"2"):m.v}</div>
-              <div style={{fontSize:10,color:"#94a3b8"}}>{m.u}</div>
+              <div style={{fontSize:10,color:t.textFaint}}>{m.u}</div>
             </div>)}
           </div>
           {/* ACWR Ranking */}
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Ranking ACWR Combinado (EWMA)</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
               {players.filter(p=>p.ai).sort((a,b)=>(b.ai||0)-(a.ai||0)).map((p,i)=>{
                 const acwr=p.ai||1;const c=acwr>1.5?"#DC2626":acwr>1.3?"#EA580C":acwr>1.0?"#CA8A04":acwr>0.8?"#16A34A":"#2563eb";
                 const zone=acwr>1.5?"ALTO RISCO":acwr>1.3?"ATENÇÃO":acwr>0.8?"ÓTIMO":"SUBTREINADO";
-                return <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",background:i<3?"#FEF2F2":"transparent",borderRadius:8,border:"1px solid #f1f5f9"}} onClick={()=>{setSel(p.n);setTab("player")}}>
-                  <PlayerPhoto name={p.n} sz={28}/>
+                return <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",background:i<3?"#FEF2F2":"transparent",borderRadius:8,border:`1px solid ${t.borderLight}`}} onClick={()=>{setSel(p.n);setTab("player")}}>
+                  <PlayerPhoto theme={t} name={p.n} sz={28}/>
                   <div style={{flex:1}}>
                     <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:11,color:pri,cursor:"pointer"}}>{p.n}</div>
-                    <div style={{fontSize:9,color:"#94a3b8"}}>{p.pos}</div>
+                    <div style={{fontSize:9,color:t.textFaint}}>{p.pos}</div>
                   </div>
                   <div style={{textAlign:"right"}}>
                     <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:700,color:c}}>{acwr.toFixed(2)}</div>
                     <div style={{fontSize:8,fontWeight:600,color:c}}>{zone}</div>
                   </div>
-                  <div style={{width:60,height:6,background:"#f1f5f9",borderRadius:3,overflow:"hidden"}}>
+                  <div style={{width:60,height:6,background:t.bgMuted2,borderRadius:3,overflow:"hidden"}}>
                     <div style={{height:"100%",width:`${Math.min(acwr/2*100,100)}%`,background:c,borderRadius:3}}/>
                   </div>
                 </div>;
@@ -1201,14 +1240,14 @@ export default function Dashboard(){
             </div>
           </div>
           {/* Carga Acumulada semanal */}
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Carga Semanal sRPE (Top 10 atletas)</div>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={players.slice(0,10).map(p=>({n:p.n.split(" ")[0],sRPE:p.sra||0}))}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9"/>
-                <XAxis dataKey="n" tick={{fontSize:10,fill:"#64748b"}}/>
-                <YAxis tick={{fontSize:10,fill:"#94a3b8"}}/>
-                <Tooltip content={<TT/>}/>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={t.borderLight}/>
+                <XAxis dataKey="n" tick={{fontSize:10,fill:t.textMuted}}/>
+                <YAxis tick={{fontSize:10,fill:t.textFaint}}/>
+                <Tooltip content={<TT theme={t}/>}/>
                 <Bar dataKey="sRPE" radius={[6,6,0,0]}>
                   {players.slice(0,10).map((p,i)=><Cell key={i} fill={(p.sra||0)>450?"#DC2626":(p.sra||0)>400?"#EA580C":"#2563eb"}/>)}
                 </Bar>
@@ -1219,41 +1258,41 @@ export default function Dashboard(){
 
         {/* ═══════════ PAINEL NEUROMUSCULAR ═══════════ */}
         {tab==="neuro"&&<div>
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri,marginBottom:4}}>Painel Neuromuscular</div>
-            <div style={{fontSize:11,color:"#64748b"}}>CMJ, tendência neuromuscular, NME (Eficiência Neuromuscular) e assimetria bilateral</div>
+            <div style={{fontSize:11,color:t.textMuted}}>CMJ, tendência neuromuscular, NME (Eficiência Neuromuscular) e assimetria bilateral</div>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12,marginBottom:16}}>
             {[{l:"CMJ Médio Elenco",v:(players.reduce((s,p)=>s+(p.cmj||0),0)/players.filter(p=>p.cmj).length).toFixed(1),u:"cm",c:"#7c3aed"},
               {l:"CMJ Δ < -8%",v:players.filter(p=>{const bl=p.cmj||35;return p.cmj&&p.cmj<bl*0.92;}).length||0,u:"atletas",c:"#DC2626"},
               {l:"Assimetria > 12%",v:Object.values(PLAYER_EXT).filter(e=>e?.slcmj_asi>12).length,u:"atletas",c:"#EA580C"},
               {l:"H:Q < 0.55",v:Object.values(PLAYER_EXT).filter(e=>e?.hq_ratio<0.55).length,u:"atletas",c:"#CA8A04"}
-            ].map((m,i)=><div key={i} style={{background:"#fff",borderRadius:10,border:"1px solid #e2e8f0",padding:14,textAlign:"center"}}>
-              <div style={{fontSize:10,color:"#94a3b8",fontWeight:600,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{m.l}</div>
+            ].map((m,i)=><div key={i} style={{background:t.bgCard,borderRadius:10,border:`1px solid ${t.border}`,padding:14,textAlign:"center"}}>
+              <div style={{fontSize:10,color:t.textFaint,fontWeight:600,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{m.l}</div>
               <div style={{fontFamily:"'JetBrains Mono'",fontSize:22,fontWeight:700,color:m.c}}>{m.v}</div>
-              <div style={{fontSize:10,color:"#94a3b8"}}>{m.u}</div>
+              <div style={{fontSize:10,color:t.textFaint}}>{m.u}</div>
             </div>)}
           </div>
           {/* CMJ Trend per athlete */}
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Tendência CMJ (últimos 8 dias)</div>
             {sp&&sp.ct?<ResponsiveContainer width="100%" height={200}>
               <LineChart data={sp.ct.map((v,i)=>({d:`D${i+1}`,cmj:v,baseline:sp.cmj}))}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9"/>
-                <XAxis dataKey="d" tick={{fontSize:10,fill:"#64748b"}}/>
-                <YAxis domain={["auto","auto"]} tick={{fontSize:10,fill:"#94a3b8"}}/>
-                <Tooltip content={<TT/>}/>
-                <ReferenceLine y={sp.cmj} stroke="#94a3b8" strokeDasharray="5 5" label={{value:"Baseline",fontSize:9,fill:"#94a3b8"}}/>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={t.borderLight}/>
+                <XAxis dataKey="d" tick={{fontSize:10,fill:t.textMuted}}/>
+                <YAxis domain={["auto","auto"]} tick={{fontSize:10,fill:t.textFaint}}/>
+                <Tooltip content={<TT theme={t}/>}/>
+                <ReferenceLine y={sp.cmj} stroke={t.textFaint} strokeDasharray="5 5" label={{value:"Baseline",fontSize:9,fill:t.textFaint}}/>
                 <Line type="monotone" dataKey="cmj" stroke="#7c3aed" strokeWidth={2} dot={{r:3,fill:"#7c3aed"}}/>
               </LineChart>
-            </ResponsiveContainer>:<div style={{textAlign:"center",padding:20,color:"#94a3b8",fontSize:12}}>Selecione um atleta na sidebar para ver tendência CMJ</div>}
+            </ResponsiveContainer>:<div style={{textAlign:"center",padding:20,color:t.textFaint,fontSize:12}}>Selecione um atleta na sidebar para ver tendência CMJ</div>}
           </div>
           {/* NME + Asymmetry Table */}
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Ranking Neuromuscular — Assimetria & NME</div>
             <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
-              <thead><tr style={{borderBottom:"2px solid #e2e8f0"}}>
-                {["Atleta","Pos","SLCMJ Asi%","H:Q Ratio","COP Sway","Status"].map((h,i)=><th key={i} style={{padding:"8px 6px",textAlign:"left",fontSize:9,color:"#94a3b8",fontWeight:700,textTransform:"uppercase"}}>{h}</th>)}
+              <thead><tr style={{borderBottom:`2px solid ${t.border}`}}>
+                {["Atleta","Pos","SLCMJ Asi%","H:Q Ratio","COP Sway","Status"].map((h,i)=><th key={i} style={{padding:"8px 6px",textAlign:"left",fontSize:9,color:t.textFaint,fontWeight:700,textTransform:"uppercase"}}>{h}</th>)}
               </tr></thead>
               <tbody>
                 {Object.entries(PLAYER_EXT).sort((a,b)=>(b[1]?.slcmj_asi||0)-(a[1]?.slcmj_asi||0)).map(([name,ext],i)=>{
@@ -1262,11 +1301,11 @@ export default function Dashboard(){
                   const hqC=ext.hq_ratio<0.50?"#DC2626":ext.hq_ratio<0.55?"#EA580C":"#16A34A";
                   const status=ext.slcmj_asi>12||ext.hq_ratio<0.55?"ATENÇÃO":"NORMAL";
                   return <tr key={i} style={{borderBottom:"1px solid #f1f5f9",cursor:"pointer"}} onClick={()=>{setSel(name);setTab("player")}}>
-                    <td style={{padding:"6px",fontWeight:600}}><div style={{display:"flex",alignItems:"center",gap:6}}><PlayerPhoto name={name} sz={24}/>{name}</div></td>
-                    <td style={{padding:"6px",color:"#64748b"}}>{players.find(p=>p.n===name)?.pos||"-"}</td>
+                    <td style={{padding:"6px",fontWeight:600}}><div style={{display:"flex",alignItems:"center",gap:6}}><PlayerPhoto theme={t} name={name} sz={24}/>{name}</div></td>
+                    <td style={{padding:"6px",color:t.textMuted}}>{players.find(p=>p.n===name)?.pos||"-"}</td>
                     <td style={{padding:"6px",fontFamily:"'JetBrains Mono'",fontWeight:700,color:asiC}}>{ext.slcmj_asi?.toFixed(1)}%</td>
                     <td style={{padding:"6px",fontFamily:"'JetBrains Mono'",fontWeight:700,color:hqC}}>{ext.hq_ratio?.toFixed(2)}</td>
-                    <td style={{padding:"6px",fontFamily:"'JetBrains Mono'",color:ext.cop_sway>18?"#DC2626":"#64748b"}}>{ext.cop_sway?.toFixed(1)}mm</td>
+                    <td style={{padding:"6px",fontFamily:"'JetBrains Mono'",color:ext.cop_sway>18?"#DC2626":t.textMuted}}>{ext.cop_sway?.toFixed(1)}mm</td>
                     <td style={{padding:"6px"}}><span style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:700,background:status==="ATENÇÃO"?"#FEF2F2":"#F0FDF4",color:status==="ATENÇÃO"?"#DC2626":"#16A34A"}}>{status}</span></td>
                   </tr>;
                 })}
@@ -1277,66 +1316,66 @@ export default function Dashboard(){
 
         {/* ═══════════ PAINEL FISIOLÓGICO ═══════════ */}
         {tab==="fisio"&&<div>
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri,marginBottom:4}}>Painel Fisiológico</div>
-            <div style={{fontSize:11,color:"#64748b"}}>Monitoramento de sono, HRV, CK e wellness composto do elenco</div>
+            <div style={{fontSize:11,color:t.textMuted}}>Monitoramento de sono, HRV, CK e wellness composto do elenco</div>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12,marginBottom:16}}>
             {[{l:"Sono Médio",v:(players.reduce((s,p)=>s+(p.sq||0),0)/players.length).toFixed(1),u:"/10",c:"#2563eb"},
               {l:"Sono < 6",v:players.filter(p=>(p.sq||10)<6).length,u:"atletas",c:"#DC2626"},
               {l:"HRV Médio",v:"62.4",u:"ms (RMSSD)",c:"#16A34A"},
               {l:"CK > 2.5x Basal",v:players.filter(p=>{const pp=P.find(x=>x.n===p.n);return pp?.ck&&pp?.ckb&&(pp.ck/pp.ckb)>2.5;}).length||2,u:"atletas",c:"#EA580C"}
-            ].map((m,i)=><div key={i} style={{background:"#fff",borderRadius:10,border:"1px solid #e2e8f0",padding:14,textAlign:"center"}}>
-              <div style={{fontSize:10,color:"#94a3b8",fontWeight:600,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{m.l}</div>
+            ].map((m,i)=><div key={i} style={{background:t.bgCard,borderRadius:10,border:`1px solid ${t.border}`,padding:14,textAlign:"center"}}>
+              <div style={{fontSize:10,color:t.textFaint,fontWeight:600,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{m.l}</div>
               <div style={{fontFamily:"'JetBrains Mono'",fontSize:22,fontWeight:700,color:m.c}}>{m.v}</div>
-              <div style={{fontSize:10,color:"#94a3b8"}}>{m.u}</div>
+              <div style={{fontSize:10,color:t.textFaint}}>{m.u}</div>
             </div>)}
           </div>
           {/* Wellness Radar for selected player */}
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
-            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Wellness Composto {sp?`— ${sp.n}`:""}</div>
               {sp?<ResponsiveContainer width="100%" height={240}>
                 <RadarChart data={radarData}>
-                  <PolarGrid stroke="#e2e8f0"/>
-                  <PolarAngleAxis dataKey="s" tick={{fontSize:10,fill:"#64748b"}}/>
+                  <PolarGrid stroke={t.border}/>
+                  <PolarAngleAxis dataKey="s" tick={{fontSize:10,fill:t.textMuted}}/>
                   <PolarRadiusAxis domain={[0,10]} tick={false}/>
                   <Radar name="Wellness" dataKey="v" stroke="#7c3aed" fill="#7c3aed" fillOpacity={0.15} strokeWidth={2}/>
                 </RadarChart>
-              </ResponsiveContainer>:<div style={{textAlign:"center",padding:40,color:"#94a3b8",fontSize:12}}>Selecione um atleta na sidebar</div>}
+              </ResponsiveContainer>:<div style={{textAlign:"center",padding:40,color:t.textFaint,fontSize:12}}>Selecione um atleta na sidebar</div>}
             </div>
-            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Tendência Wellness {sp?`— ${sp.n}`:""}</div>
               {sp&&sp.wt?<ResponsiveContainer width="100%" height={240}>
                 <LineChart data={wtData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9"/>
-                  <XAxis dataKey="d" tick={{fontSize:10,fill:"#64748b"}}/>
-                  <YAxis domain={[0,10]} tick={{fontSize:10,fill:"#94a3b8"}}/>
-                  <Tooltip content={<TT/>}/>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={t.borderLight}/>
+                  <XAxis dataKey="d" tick={{fontSize:10,fill:t.textMuted}}/>
+                  <YAxis domain={[0,10]} tick={{fontSize:10,fill:t.textFaint}}/>
+                  <Tooltip content={<TT theme={t}/>}/>
                   <Line type="monotone" dataKey="sono" stroke="#2563eb" strokeWidth={2} name="Sono" dot={{r:2}}/>
                   <Line type="monotone" dataKey="rec" stroke="#16A34A" strokeWidth={2} name="Recuperação" dot={{r:2}}/>
                   <Line type="monotone" dataKey="dor" stroke="#DC2626" strokeWidth={2} name="Dor" dot={{r:2}}/>
                 </LineChart>
-              </ResponsiveContainer>:<div style={{textAlign:"center",padding:40,color:"#94a3b8",fontSize:12}}>Selecione um atleta na sidebar</div>}
+              </ResponsiveContainer>:<div style={{textAlign:"center",padding:40,color:t.textFaint,fontSize:12}}>Selecione um atleta na sidebar</div>}
             </div>
           </div>
           {/* CK / Sleep ranking table */}
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Ranking Fisiológico — Sono × CK × Wellness</div>
             <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
-              <thead><tr style={{borderBottom:"2px solid #e2e8f0"}}>
-                {["Atleta","Pos","Sono","Rec Geral","Rec Pernas","Dor","Humor","Energia","Status"].map((h,i)=><th key={i} style={{padding:"6px 4px",textAlign:"left",fontSize:9,color:"#94a3b8",fontWeight:700,textTransform:"uppercase"}}>{h}</th>)}
+              <thead><tr style={{borderBottom:`2px solid ${t.border}`}}>
+                {["Atleta","Pos","Sono","Rec Geral","Rec Pernas","Dor","Humor","Energia","Status"].map((h,i)=><th key={i} style={{padding:"6px 4px",textAlign:"left",fontSize:9,color:t.textFaint,fontWeight:700,textTransform:"uppercase"}}>{h}</th>)}
               </tr></thead>
               <tbody>
                 {players.sort((a,b)=>(a.sq||10)-(b.sq||10)).slice(0,15).map((p,i)=>{
                   const sonoC=(p.sq||10)<6?"#DC2626":(p.sq||10)<7?"#CA8A04":"#16A34A";
                   return <tr key={i} style={{borderBottom:"1px solid #f1f5f9",cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>
-                    <td style={{padding:"6px 4px",fontWeight:600}}><div style={{display:"flex",alignItems:"center",gap:6}}><PlayerPhoto name={p.n} sz={22}/>{p.n}</div></td>
-                    <td style={{padding:"6px 4px",color:"#64748b"}}>{p.pos}</td>
+                    <td style={{padding:"6px 4px",fontWeight:600}}><div style={{display:"flex",alignItems:"center",gap:6}}><PlayerPhoto theme={t} name={p.n} sz={22}/>{p.n}</div></td>
+                    <td style={{padding:"6px 4px",color:t.textMuted}}>{p.pos}</td>
                     <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'",fontWeight:700,color:sonoC}}>{p.sq||"-"}</td>
-                    <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'",color:(p.rg||10)<6?"#DC2626":"#64748b"}}>{p.rg||"-"}</td>
-                    <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'",color:(p.rp||10)<6?"#DC2626":"#64748b"}}>{p.rp||"-"}</td>
-                    <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'",color:(p.d||0)>3?"#DC2626":"#64748b"}}>{p.d||"0"}</td>
+                    <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'",color:(p.rg||10)<6?"#DC2626":t.textMuted}}>{p.rg||"-"}</td>
+                    <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'",color:(p.rp||10)<6?"#DC2626":t.textMuted}}>{p.rp||"-"}</td>
+                    <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'",color:(p.d||0)>3?"#DC2626":t.textMuted}}>{p.d||"0"}</td>
                     <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'"}}>{p.h||"-"}</td>
                     <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'"}}>{p.e||"-"}</td>
                     <td style={{padding:"6px 4px"}}><span style={{padding:"2px 6px",borderRadius:4,fontSize:9,fontWeight:700,background:(p.sq||10)<6||((p.d||0)>4)?"#FEF2F2":"#F0FDF4",color:(p.sq||10)<6||((p.d||0)>4)?"#DC2626":"#16A34A"}}>{(p.sq||10)<6||((p.d||0)>4)?"ALERTA":"OK"}</span></td>
@@ -1349,15 +1388,15 @@ export default function Dashboard(){
 
         {/* ═══════════ PAINEL TEMPORAL ═══════════ */}
         {tab==="temporal"&&<div>
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri,marginBottom:4}}>Painel Temporal — Fadiga & Tendências</div>
-            <div style={{fontSize:11,color:"#64748b"}}>Fatigue Debt (decaimento exponencial), tendências de performance e variabilidade por atleta</div>
+            <div style={{fontSize:11,color:t.textMuted}}>Fatigue Debt (decaimento exponencial), tendências de performance e variabilidade por atleta</div>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
             {/* Fatigue Debt explanation */}
-            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Fatigue Debt (λ=0.1)</div>
-              <div style={{fontSize:11,color:"#64748b",lineHeight:1.6,marginBottom:12}}>
+              <div style={{fontSize:11,color:t.textMuted,lineHeight:1.6,marginBottom:12}}>
                 FatigueDebt<sub>t</sub> = Σ Load<sub>t-i</sub> × e<sup>-λi</sup><br/>
                 Cargas recentes pesam mais que antigas (Hulin et al., 2014). Valores acima do P75 do elenco indicam fadiga acumulada significativa.
               </div>
@@ -1368,16 +1407,16 @@ export default function Dashboard(){
                   {l:"Janela sRPE",v:"5 dias"},
                   {l:"Janela HRV",v:"7 dias"},
                   {l:"Lag Features",v:"1, 3, 5, 7 dias"}
-                ].map((item,i)=><div key={i} style={{padding:"6px 8px",background:"#f8fafb",borderRadius:6}}>
-                  <div style={{fontSize:9,color:"#94a3b8",fontWeight:600}}>{item.l}</div>
+                ].map((item,i)=><div key={i} style={{padding:"6px 8px",background:t.bgMuted,borderRadius:6}}>
+                  <div style={{fontSize:9,color:t.textFaint,fontWeight:600}}>{item.l}</div>
                   <div style={{fontSize:11,fontWeight:600,color:pri}}>{item.v}</div>
                 </div>)}
               </div>
             </div>
             {/* Rolling Z-Scores explanation */}
-            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Rolling Z-Scores Individuais</div>
-              <div style={{fontSize:11,color:"#64748b",lineHeight:1.6,marginBottom:12}}>
+              <div style={{fontSize:11,color:t.textMuted,lineHeight:1.6,marginBottom:12}}>
                 Z<sub>individual</sub> = (X<sub>t</sub> - μ<sub>rolling</sub>) / σ<sub>rolling</sub><br/>
                 Cada atleta comparado contra seu próprio baseline (não contra o elenco). Detecta desvios pessoais antes de limiares populacionais.
               </div>
@@ -1386,23 +1425,23 @@ export default function Dashboard(){
                   {l:"CMJ z-score",v:"7d / 14d",d:"Fadiga neuromuscular"},
                   {l:"HRV z-score",v:"7d / 14d",d:"Estresse autonômico"},
                   {l:"CK z-score",v:"7d / 14d",d:"Dano muscular relativo"}
-                ].map((item,i)=><div key={i} style={{padding:"6px 8px",background:i<2?"#FEF2F2":"#f8fafb",borderRadius:6}}>
-                  <div style={{fontSize:9,color:"#94a3b8",fontWeight:600}}>{item.l} ({item.v})</div>
+                ].map((item,i)=><div key={i} style={{padding:"6px 8px",background:i<2?"#FEF2F2":t.bgMuted,borderRadius:6}}>
+                  <div style={{fontSize:9,color:t.textFaint,fontWeight:600}}>{item.l} ({item.v})</div>
                   <div style={{fontSize:10,fontWeight:600,color:pri}}>{item.d}</div>
                 </div>)}
               </div>
             </div>
           </div>
           {/* Performance Trends per selected player */}
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Tendências de Performance {sp?`— ${sp.n}`:""}</div>
             {sp&&sp.ct?<div>
               <ResponsiveContainer width="100%" height={180}>
                 <AreaChart data={sp.ct.map((v,i)=>({d:`D-${8-i}`,cmj:v}))}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9"/>
-                  <XAxis dataKey="d" tick={{fontSize:10,fill:"#64748b"}}/>
-                  <YAxis domain={["auto","auto"]} tick={{fontSize:10,fill:"#94a3b8"}}/>
-                  <Tooltip content={<TT/>}/>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={t.borderLight}/>
+                  <XAxis dataKey="d" tick={{fontSize:10,fill:t.textMuted}}/>
+                  <YAxis domain={["auto","auto"]} tick={{fontSize:10,fill:t.textFaint}}/>
+                  <Tooltip content={<TT theme={t}/>}/>
                   <Area type="monotone" dataKey="cmj" stroke="#7c3aed" fill="#7c3aed" fillOpacity={0.1} strokeWidth={2}/>
                 </AreaChart>
               </ResponsiveContainer>
@@ -1411,15 +1450,15 @@ export default function Dashboard(){
                   {l:"CMJ Trend 5d",v:sp.ct.length>=5?(sp.ct[sp.ct.length-1]-sp.ct[sp.ct.length-5]).toFixed(1):"-",u:"cm"},
                   {l:"Variação 8d",v:sp.ct.length>=2?((sp.ct[sp.ct.length-1]-sp.ct[0])/sp.ct[0]*100).toFixed(1):"-",u:"%"},
                   {l:"CMJ Atual",v:sp.ct[sp.ct.length-1]?.toFixed(1)||"-",u:"cm"}
-                ].map((item,i)=><div key={i} style={{padding:"8px",background:"#f8fafb",borderRadius:6,textAlign:"center"}}>
-                  <div style={{fontSize:9,color:"#94a3b8",fontWeight:600}}>{item.l}</div>
-                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:700,color:parseFloat(item.v)<-5?"#DC2626":parseFloat(item.v)>0?"#16A34A":"#64748b"}}>{item.v}{item.u}</div>
+                ].map((item,i)=><div key={i} style={{padding:"8px",background:t.bgMuted,borderRadius:6,textAlign:"center"}}>
+                  <div style={{fontSize:9,color:t.textFaint,fontWeight:600}}>{item.l}</div>
+                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:700,color:parseFloat(item.v)<-5?"#DC2626":parseFloat(item.v)>0?"#16A34A":t.textMuted}}>{item.v}{item.u}</div>
                 </div>)}
               </div>
-            </div>:<div style={{textAlign:"center",padding:30,color:"#94a3b8",fontSize:12}}>Selecione um atleta na sidebar para ver tendências temporais</div>}
+            </div>:<div style={{textAlign:"center",padding:30,color:t.textFaint,fontSize:12}}>Selecione um atleta na sidebar para ver tendências temporais</div>}
           </div>
           {/* Feature Engineering Summary */}
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Estrutura de Features Temporais (110 engenheiradas)</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
               {[{cat:"Lag Features",n:24,desc:"sRPE, CMJ, HRV, CK, sono, dor × [1,3,5,7]d",c:"#0891b2"},
@@ -1431,12 +1470,12 @@ export default function Dashboard(){
                 {cat:"Fatigue / Load",n:7,desc:"Debt, Monotonia, Strain, EWMA 7d/28d, Cum 7d/28d",c:"#16A34A"},
                 {cat:"Neuromuscular",n:6,desc:"CMJ Δ%, ISO asym, ISO Δ%, SLCMJ, NME, flag",c:"#7c3aed"},
                 {cat:"Interações",n:4,desc:"ACWR×sono, CK×asym, HRV×load, fadiga×asym",c:"#DC2626"}
-              ].map((item,i)=><div key={i} style={{padding:"10px",background:"#f8fafb",borderRadius:8,borderLeft:`3px solid ${item.c}`}}>
+              ].map((item,i)=><div key={i} style={{padding:"10px",background:t.bgMuted,borderRadius:8,borderLeft:`3px solid ${item.c}`}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
                   <span style={{fontSize:11,fontWeight:700,color:pri}}>{item.cat}</span>
                   <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,fontWeight:700,color:item.c}}>{item.n}</span>
                 </div>
-                <div style={{fontSize:9,color:"#64748b"}}>{item.desc}</div>
+                <div style={{fontSize:9,color:t.textMuted}}>{item.desc}</div>
               </div>)}
             </div>
           </div>
@@ -1444,11 +1483,11 @@ export default function Dashboard(){
 
         {/* ═══════════ PAINEL FISIOTERAPIA ═══════════ */}
         {tab==="fisioterapia"&&<div>
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
               <div>
                 <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Fisioterapia — Atendimentos</div>
-                <div style={{fontSize:12,color:"#94a3b8"}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · Registro de procedimentos e acompanhamento</div>
+                <div style={{fontSize:12,color:t.textFaint}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · Registro de procedimentos e acompanhamento</div>
               </div>
               {isLive&&<span style={{padding:"4px 10px",borderRadius:6,fontSize:10,fontWeight:700,background:"#F0FDF4",color:"#16A34A",border:"1px solid #BBF7D0"}}>LIVE</span>}
             </div>
@@ -1491,7 +1530,7 @@ export default function Dashboard(){
               }
               const topProc = Object.entries(procCount).sort((a,b)=>b[1]-a[1]).slice(0,8);
 
-              if(totalAtend===0) return <div style={{textAlign:"center",padding:40,color:"#94a3b8",fontSize:13}}>Nenhum dado de fisioterapia disponível. Verifique a conexão com o Google Sheets.</div>;
+              if(totalAtend===0) return <div style={{textAlign:"center",padding:40,color:t.textFaint,fontSize:13}}>Nenhum dado de fisioterapia disponível. Verifique a conexão com o Google Sheets.</div>;
 
               return <>
                 {/* KPIs */}
@@ -1500,22 +1539,22 @@ export default function Dashboard(){
                     {l:"Atletas Atendidos",v:atletasAtendidos.size,c:"#2563eb"},
                     {l:"Atend. Últimos 7d",v:last7.length,c:"#EA580C"},
                     {l:"Atletas Recentes (7d)",v:atletasRecentes.size,c:"#16A34A"}
-                  ].map((m,i)=><div key={i} style={{background:"#fff",borderRadius:10,border:"1px solid #e2e8f0",padding:14,textAlign:"center"}}>
-                    <div style={{fontSize:10,color:"#94a3b8",fontWeight:600,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{m.l}</div>
+                  ].map((m,i)=><div key={i} style={{background:t.bgCard,borderRadius:10,border:`1px solid ${t.border}`,padding:14,textAlign:"center"}}>
+                    <div style={{fontSize:10,color:t.textFaint,fontWeight:600,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{m.l}</div>
                     <div style={{fontFamily:"'JetBrains Mono'",fontSize:24,fontWeight:700,color:m.c}}>{m.v}</div>
                   </div>)}
                 </div>
 
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
                   {/* Top atletas — mais atendimentos */}
-                  <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+                  <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
                     <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Atletas — Frequência de Atendimentos</div>
                     <ResponsiveContainer width="100%" height={250}>
                       <BarChart data={topAtletas.map(([n,c])=>({n:n.split(" ")[0],count:c}))} layout="vertical" margin={{left:80}}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
-                        <XAxis type="number" tick={{fontSize:10,fill:"#94a3b8"}}/>
-                        <YAxis type="category" dataKey="n" tick={{fontSize:10,fill:"#64748b"}} width={75}/>
-                        <Tooltip content={<TT/>}/>
+                        <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
+                        <XAxis type="number" tick={{fontSize:10,fill:t.textFaint}}/>
+                        <YAxis type="category" dataKey="n" tick={{fontSize:10,fill:t.textMuted}} width={75}/>
+                        <Tooltip content={<TT theme={t}/>}/>
                         <Bar dataKey="count" name="Atendimentos" radius={[0,6,6,0]}>
                           {topAtletas.map(([n,c],i)=><Cell key={i} fill={c>15?"#DC2626":c>8?"#EA580C":"#2563eb"}/>)}
                         </Bar>
@@ -1524,17 +1563,17 @@ export default function Dashboard(){
                   </div>
 
                   {/* Procedimentos mais comuns */}
-                  <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+                  <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
                     <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Procedimentos Mais Frequentes</div>
                     <div style={{display:"flex",flexDirection:"column",gap:6}}>
                       {topProc.map(([proc,count],i)=>{
                         const maxC = topProc[0]?.[1]||1;
                         return <div key={i}>
                           <div style={{display:"flex",justifyContent:"space-between",marginBottom:2}}>
-                            <span style={{fontSize:11,color:"#64748b",fontWeight:500,textTransform:"capitalize"}}>{proc}</span>
+                            <span style={{fontSize:11,color:t.textMuted,fontWeight:500,textTransform:"capitalize"}}>{proc}</span>
                             <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:"#7c3aed"}}>{count}</span>
                           </div>
-                          <div style={{height:4,background:"#f1f5f9",borderRadius:4}}>
+                          <div style={{height:4,background:t.bgMuted2,borderRadius:4}}>
                             <div style={{height:"100%",width:`${(count/maxC)*100}%`,background:"#7c3aed",borderRadius:4,transition:"width .6s"}}/>
                           </div>
                         </div>;
@@ -1552,20 +1591,20 @@ export default function Dashboard(){
                     <div style={{overflowX:"auto"}}>
                     <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,minWidth:700}}>
                       <thead>
-                        <tr style={{borderBottom:"1px solid #e2e8f0"}}>
+                        <tr style={{borderBottom:`1px solid ${t.border}`}}>
                           {["Atleta","Período","Chegada","Saída","Procedimento","Responsável"].map((h,i)=>
-                            <th key={i} style={{padding:"6px 8px",textAlign:"left",fontSize:9,color:"#94a3b8",fontWeight:700,textTransform:"uppercase"}}>{h}</th>
+                            <th key={i} style={{padding:"6px 8px",textAlign:"left",fontSize:9,color:t.textFaint,fontWeight:700,textTransform:"uppercase"}}>{h}</th>
                           )}
                         </tr>
                       </thead>
                       <tbody>
                         {entries.map((e,ei)=><tr key={ei} style={{borderBottom:"1px solid #f1f5f9"}}>
-                          <td style={{padding:"6px 8px",fontWeight:600,color:"#1e293b"}}>{e.name}</td>
-                          <td style={{padding:"6px 8px",color:"#64748b"}}>{e.periodo}</td>
-                          <td style={{padding:"6px 8px",fontFamily:"'JetBrains Mono'",color:"#64748b"}}>{e.chegada}</td>
-                          <td style={{padding:"6px 8px",fontFamily:"'JetBrains Mono'",color:"#64748b"}}>{e.saida}</td>
-                          <td style={{padding:"6px 8px",color:"#1e293b"}}>{e.procedimento}</td>
-                          <td style={{padding:"6px 8px",color:"#64748b"}}>{e.responsavel}</td>
+                          <td style={{padding:"6px 8px",fontWeight:600,color:t.text}}>{e.name}</td>
+                          <td style={{padding:"6px 8px",color:t.textMuted}}>{e.periodo}</td>
+                          <td style={{padding:"6px 8px",fontFamily:"'JetBrains Mono'",color:t.textMuted}}>{e.chegada}</td>
+                          <td style={{padding:"6px 8px",fontFamily:"'JetBrains Mono'",color:t.textMuted}}>{e.saida}</td>
+                          <td style={{padding:"6px 8px",color:t.text}}>{e.procedimento}</td>
+                          <td style={{padding:"6px 8px",color:t.textMuted}}>{e.responsavel}</td>
                         </tr>)}
                       </tbody>
                     </table>
@@ -1579,14 +1618,14 @@ export default function Dashboard(){
 
         {tab==="mapa"&&<div>
           {/* Weekly Map Header */}
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <div>
                 <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Mapa Semanal — Microciclo</div>
-                <div style={{fontSize:12,color:"#94a3b8",marginTop:2}}>{WEEK_MAP.week} · Próximo Jogo: {WEEK_MAP.next_match.opponent} ({WEEK_MAP.next_match.date} — {WEEK_MAP.next_match.time}) · Série B Rodada {WEEK_MAP.next_match.rod}</div>
+                <div style={{fontSize:12,color:t.textFaint,marginTop:2}}>{WEEK_MAP.week} · Próximo Jogo: {WEEK_MAP.next_match.opponent} ({WEEK_MAP.next_match.date} — {WEEK_MAP.next_match.time}) · Série B Rodada {WEEK_MAP.next_match.rod}</div>
               </div>
               <div style={{display:"flex",gap:8}}>
-                {["Wellness","CMJ","CK"].map((t,i)=><span key={i} style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#f8fafc",color:"#64748b",border:"1px solid #e2e8f0"}}>{t}</span>)}
+                {["Wellness","CMJ","CK"].map((t,i)=><span key={i} style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:t.bgMuted,color:t.textMuted,border:`1px solid ${t.border}`}}>{t}</span>)}
               </div>
             </div>
           </div>
@@ -1595,7 +1634,7 @@ export default function Dashboard(){
           <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:8,marginBottom:16}}>
             {WEEK_MAP.days.map((day,i)=>{
               const tc=day.type==="JOGO"?acc:day.type==="FOLGA"?"#16A34A":day.type==="PRÉ-JOGO"?"#7c3aed":"#2563eb";
-              return <div key={i} style={{background:"#fff",borderRadius:12,border:`1px solid ${tc}33`,overflow:"hidden",display:"flex",flexDirection:"column"}}>
+              return <div key={i} style={{background:t.bgCard,borderRadius:12,border:`1px solid ${tc}33`,overflow:"hidden",display:"flex",flexDirection:"column"}}>
                 {/* Day Header */}
                 <div style={{padding:"8px 10px",background:`${tc}10`,borderBottom:`1px solid ${tc}22`,textAlign:"center"}}>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:11,color:tc}}>{day.d}</div>
@@ -1609,13 +1648,13 @@ export default function Dashboard(){
                 {/* Sessions */}
                 <div style={{padding:"6px 8px",flex:1}}>
                   {day.sessions.length===0?
-                    <div style={{textAlign:"center",padding:"12px 0",color:"#94a3b8",fontSize:10}}>Sem sessão</div>:
+                    <div style={{textAlign:"center",padding:"12px 0",color:t.textFaint,fontSize:10}}>Sem sessão</div>:
                     day.sessions.map((s,j)=>
-                      <div key={j} style={{padding:"4px 6px",background:"#f8fafc",borderRadius:6,marginBottom:4,fontSize:9}}>
+                      <div key={j} style={{padding:"4px 6px",background:t.bgMuted,borderRadius:6,marginBottom:4,fontSize:9}}>
                         <div style={{fontWeight:600,color:pri,marginBottom:1}}>{s.name}</div>
-                        <div style={{color:"#64748b"}}>{s.time}{s.dur?` · ${s.dur}min`:""}</div>
-                        {s.rpe_alvo&&<div style={{color:"#94a3b8",marginTop:1}}>RPE alvo: <span style={{fontFamily:"'JetBrains Mono'",fontWeight:600}}>{s.rpe_alvo}</span></div>}
-                        {s.content&&<div style={{color:"#64748b",marginTop:2,lineHeight:1.3}}>{s.content}</div>}
+                        <div style={{color:t.textMuted}}>{s.time}{s.dur?` · ${s.dur}min`:""}</div>
+                        {s.rpe_alvo&&<div style={{color:t.textFaint,marginTop:1}}>RPE alvo: <span style={{fontFamily:"'JetBrains Mono'",fontWeight:600}}>{s.rpe_alvo}</span></div>}
+                        {s.content&&<div style={{color:t.textMuted,marginTop:2,lineHeight:1.3}}>{s.content}</div>}
                         <div style={{fontSize:8,color:tc,fontWeight:500,marginTop:2}}>{s.group}</div>
                       </div>)}
                 </div>
@@ -1636,28 +1675,28 @@ export default function Dashboard(){
           {/* DM Atual + Calendário Série B */}
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
             {/* DM Atual */}
-            <div style={{background:"#fff",borderRadius:12,border:"1px solid #FECACA",overflow:"hidden"}}>
+            <div style={{background:t.bgCard,borderRadius:12,border:"1px solid #FECACA",overflow:"hidden"}}>
               <div style={{padding:"12px 16px",background:"#FEF2F2",borderBottom:"1px solid #FECACA",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:"#DC2626"}}>Departamento Médico — Atual</div>
-                  <div style={{fontSize:10,color:"#94a3b8"}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · {DM_ATUAL.length} atletas afastados</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · {DM_ATUAL.length} atletas afastados</div>
                 </div>
                 <div style={{fontFamily:"'JetBrains Mono'",fontSize:20,fontWeight:800,color:"#DC2626"}}>{DM_ATUAL.length}</div>
               </div>
               <div style={{padding:12}}>
                 {DM_ATUAL.map((p,i)=>{
                   const ec=p.estagio==="Fase 1"?"#DC2626":p.estagio==="Fase 3"?"#EA580C":"#CA8A04";
-                  return <div key={i} style={{padding:"10px 12px",background:i%2===0?"#FEF2F2":"#fff",borderRadius:8,marginBottom:6,border:"1px solid #FECACA44"}}>
+                  return <div key={i} style={{padding:"10px 12px",background:i%2===0?"#FEF2F2":t.bgCard,borderRadius:8,marginBottom:6,border:"1px solid #FECACA44"}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
                       <div style={{display:"flex",alignItems:"center",gap:8}}>
                         <span style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:"#DC2626",cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>{p.n}</span>
-                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:"#94a3b8"}}>{p.pos}</span>
+                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:t.textFaint}}>{p.pos}</span>
                         <span style={{padding:"1px 6px",borderRadius:4,fontSize:9,fontWeight:700,background:`${ec}15`,color:ec,border:`1px solid ${ec}33`}}>{p.classif}</span>
                       </div>
                       <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:"#DC2626"}}>{p.dias}d</span>
                     </div>
-                    <div style={{fontSize:10,color:"#64748b"}}>{p.regiao}</div>
-                    <div style={{display:"flex",gap:12,marginTop:3,fontSize:9,color:"#94a3b8"}}>
+                    <div style={{fontSize:10,color:t.textMuted}}>{p.regiao}</div>
+                    <div style={{display:"flex",gap:12,marginTop:3,fontSize:9,color:t.textFaint}}>
                       <span>Desde: <strong>{p.desde}</strong></span>
                       <span style={{color:ec}}>● {p.estagio}</span>
                       <span>{p.conduta}</span>
@@ -1669,28 +1708,28 @@ export default function Dashboard(){
             </div>
 
             {/* Calendário Série B */}
-            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",overflow:"hidden"}}>
-              <div style={{padding:"12px 16px",background:"#f8fafc",borderBottom:"1px solid #e2e8f0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,overflow:"hidden"}}>
+              <div style={{padding:"12px 16px",background:t.bgMuted,borderBottom:`1px solid ${t.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Calendário Série B 2026</div>
-                  <div style={{fontSize:10,color:"#94a3b8"}}>{SERIE_B.filter(g=>g.played).length} jogos realizados · {SERIE_B.filter(g=>!g.played).length} restantes</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>{SERIE_B.filter(g=>g.played).length} jogos realizados · {SERIE_B.filter(g=>!g.played).length} restantes</div>
                 </div>
-                <Calendar size={18} color="#94a3b8"/>
+                <Calendar size={18} color={t.textFaint}/>
               </div>
               <div style={{padding:12}}>
                 {SERIE_B.map((g,i)=>{
-                  const rc=g.result==="V"?"#16A34A":g.result==="D"?"#DC2626":g.result==="E"?"#CA8A04":"#64748b";
+                  const rc=g.result==="V"?"#16A34A":g.result==="D"?"#DC2626":g.result==="E"?"#CA8A04":t.textMuted;
                   const isHome=g.local==="casa";
-                  return <div key={i} style={{padding:"10px 12px",background:g.played?"#f8fafc":"#fff",borderRadius:8,marginBottom:6,border:`1px solid ${g.played?"#e2e8f0":"#BFDBFE"}`,opacity:g.played?0.85:1}}>
+                  return <div key={i} style={{padding:"10px 12px",background:g.played?t.bgMuted:t.bgCard,borderRadius:8,marginBottom:6,border:`1px solid ${g.played?t.border:"#BFDBFE"}`,opacity:g.played?0.85:1}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                       <div style={{display:"flex",alignItems:"center",gap:8}}>
-                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,fontWeight:700,color:"#94a3b8"}}>R{g.rod}</span>
+                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,fontWeight:700,color:t.textFaint}}>R{g.rod}</span>
                         <span style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:pri}}>{g.home} vs {g.away}</span>
                         <span style={{padding:"1px 6px",borderRadius:4,fontSize:8,fontWeight:600,background:isHome?"#EFF6FF":"#FFF7ED",color:isHome?"#2563EB":"#EA580C"}}>{isHome?"CASA":"FORA"}</span>
                       </div>
                       <div style={{display:"flex",alignItems:"center",gap:8}}>
-                        <span style={{fontSize:11,color:"#64748b"}}>{g.date}</span>
-                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:"#94a3b8"}}>{g.time}</span>
+                        <span style={{fontSize:11,color:t.textMuted}}>{g.date}</span>
+                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textFaint}}>{g.time}</span>
                         {g.played&&<span style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:800,color:rc}}>{g.score}</span>}
                         {g.played&&<span style={{padding:"1px 6px",borderRadius:4,fontSize:9,fontWeight:700,background:`${rc}15`,color:rc}}>{g.result}</span>}
                       </div>
@@ -1706,10 +1745,10 @@ export default function Dashboard(){
             const gr=WEEK_READINESS(players);
             return <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
               {/* Excluded */}
-              <div style={{background:"#fff",borderRadius:12,border:"1px solid #FECACA",overflow:"hidden"}}>
+              <div style={{background:t.bgCard,borderRadius:12,border:"1px solid #FECACA",overflow:"hidden"}}>
                 <div style={{padding:"10px 14px",background:"#FEF2F2",borderBottom:"1px solid #FECACA"}}>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:"#DC2626"}}>Excluídos da Sessão</div>
-                  <div style={{fontSize:10,color:"#94a3b8"}}>{gr.excluded.length} atletas</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>{gr.excluded.length} atletas</div>
                 </div>
                 <div style={{padding:10}}>
                   {gr.excluded.map((p,i)=>
@@ -1718,16 +1757,16 @@ export default function Dashboard(){
                         <span style={{fontWeight:700,fontSize:11,color:"#DC2626"}}>{p.n}</span>
                         <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:"#DC2626"}}>{(p.prob*100).toFixed(0)}%</span>
                       </div>
-                      <div style={{fontSize:9,color:"#94a3b8"}}>{p.pos} · {p.dose}</div>
+                      <div style={{fontSize:9,color:t.textFaint}}>{p.pos} · {p.dose}</div>
                     </div>)}
-                  {gr.excluded.length===0&&<div style={{textAlign:"center",padding:12,color:"#94a3b8",fontSize:10}}>Nenhum</div>}
+                  {gr.excluded.length===0&&<div style={{textAlign:"center",padding:12,color:t.textFaint,fontSize:10}}>Nenhum</div>}
                 </div>
               </div>
               {/* Limited */}
-              <div style={{background:"#fff",borderRadius:12,border:"1px solid #FED7AA",overflow:"hidden"}}>
+              <div style={{background:t.bgCard,borderRadius:12,border:"1px solid #FED7AA",overflow:"hidden"}}>
                 <div style={{padding:"10px 14px",background:"#FFF7ED",borderBottom:"1px solid #FED7AA"}}>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:"#EA580C"}}>Carga Limitada (MED)</div>
-                  <div style={{fontSize:10,color:"#94a3b8"}}>{gr.limited.length} atletas · 50% volume</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>{gr.limited.length} atletas · 50% volume</div>
                 </div>
                 <div style={{padding:10}}>
                   {gr.limited.map((p,i)=>
@@ -1736,15 +1775,15 @@ export default function Dashboard(){
                         <span style={{fontWeight:700,fontSize:11,color:"#EA580C"}}>{p.n}</span>
                         <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:"#EA580C"}}>{(p.prob*100).toFixed(0)}%</span>
                       </div>
-                      <div style={{fontSize:9,color:"#94a3b8"}}>{p.pos} · {p.dose}</div>
+                      <div style={{fontSize:9,color:t.textFaint}}>{p.pos} · {p.dose}</div>
                     </div>)}
                 </div>
               </div>
               {/* Monitored */}
-              <div style={{background:"#fff",borderRadius:12,border:"1px solid #FEF08A",overflow:"hidden"}}>
+              <div style={{background:t.bgCard,borderRadius:12,border:"1px solid #FEF08A",overflow:"hidden"}}>
                 <div style={{padding:"10px 14px",background:"#FEFCE8",borderBottom:"1px solid #FEF08A"}}>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:"#CA8A04"}}>Monitorados (HSR -30%)</div>
-                  <div style={{fontSize:10,color:"#94a3b8"}}>{gr.full.filter(p=>p.zone==="AMARELO").length} atletas</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>{gr.full.filter(p=>p.zone==="AMARELO").length} atletas</div>
                 </div>
                 <div style={{padding:10}}>
                   {gr.full.filter(p=>p.zone==="AMARELO").map((p,i)=>
@@ -1753,21 +1792,21 @@ export default function Dashboard(){
                         <span style={{fontWeight:700,fontSize:11,color:"#CA8A04"}}>{p.n}</span>
                         <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:"#CA8A04"}}>{(p.prob*100).toFixed(0)}%</span>
                       </div>
-                      <div style={{fontSize:9,color:"#94a3b8"}}>{p.pos} · {p.dose}</div>
+                      <div style={{fontSize:9,color:t.textFaint}}>{p.pos} · {p.dose}</div>
                     </div>)}
                 </div>
               </div>
               {/* Full */}
-              <div style={{background:"#fff",borderRadius:12,border:"1px solid #BBF7D0",overflow:"hidden"}}>
+              <div style={{background:t.bgCard,borderRadius:12,border:"1px solid #BBF7D0",overflow:"hidden"}}>
                 <div style={{padding:"10px 14px",background:"#F0FDF4",borderBottom:"1px solid #BBF7D0"}}>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:"#16A34A"}}>Liberados — Carga Integral</div>
-                  <div style={{fontSize:10,color:"#94a3b8"}}>{gr.full.filter(p=>p.zone==="VERDE").length} atletas</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>{gr.full.filter(p=>p.zone==="VERDE").length} atletas</div>
                 </div>
                 <div style={{padding:10,maxHeight:300,overflowY:"auto"}}>
                   {gr.full.filter(p=>p.zone==="VERDE").map((p,i)=>
                     <div key={i} style={{padding:"4px 8px",borderRadius:4,marginBottom:2,display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>
                       <span style={{fontWeight:600,fontSize:11,color:"#16A34A"}}>{p.n}</span>
-                      <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:"#94a3b8"}}>{p.pos}</span>
+                      <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:t.textFaint}}>{p.pos}</span>
                     </div>)}
                 </div>
               </div>
@@ -1776,21 +1815,21 @@ export default function Dashboard(){
         </div>}
 
         {tab==="player"&&sp&&<div>
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{display:"flex",gap:20,alignItems:"center"}}>
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
-                <PlayerPhoto name={sp.n} sz={80}/>
-                <ScoreRing v={sp.riskScore} sz={48} th={4}/>
-                <div style={{fontSize:8,color:"#94a3b8",textAlign:"center"}}>Wellness Score</div>
+                <PlayerPhoto theme={t} name={sp.n} sz={80}/>
+                <ScoreRing theme={t} v={sp.riskScore} sz={48} th={4}/>
+                <div style={{fontSize:8,color:t.textFaint,textAlign:"center"}}>Wellness Score</div>
               </div>
               <div style={{flex:1}}>
-                <div style={{fontFamily:"'Inter Tight'",fontSize:20,fontWeight:900,color:pri}}>{sp.n} <Badge level={sp.risk}/> <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:"#94a3b8",fontWeight:400,marginLeft:6}}>{sp.pos} · {sp.id} anos · {sp.nc} sessões</span></div>
+                <div style={{fontFamily:"'Inter Tight'",fontSize:20,fontWeight:900,color:pri}}>{sp.n} <Badge level={sp.risk}/> <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:t.textFaint,fontWeight:400,marginLeft:6}}>{sp.pos} · {sp.id} anos · {sp.nc} sessões</span></div>
                 {sp.reasons.length>0&&<div style={{display:"flex",gap:6,marginTop:6,flexWrap:"wrap"}}>
                   {sp.reasons.map((r,i)=><span key={i} style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:LV[sp.risk].bg,color:LV[sp.risk].c,border:`1px solid ${LV[sp.risk].bc}`}}>{r}</span>)}
                 </div>}
                 <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:12,marginTop:12}}>
                   {[{l:"ACWR Int",v:sp.ai?.toFixed(2)||"-"},{l:"PSE",v:sp.pse},{l:"sRPE avg",v:sp.sra},{l:"CK",v:sp.ck?Math.round(sp.ck):"-"},{l:"CMJ",v:sp.cmj||"-"},{l:"Humor",v:humorL[sp.h]},{l:"Energia",v:sp.e<=2?"Baixa":"OK"}].map((m,i)=>
-                    <div key={i} style={{textAlign:"center"}}><div style={{fontSize:9,color:"#94a3b8",fontWeight:500}}>{m.l}</div><div style={{fontFamily:"'JetBrains Mono'",fontSize:15,fontWeight:700,color:pri,marginTop:1}}>{m.v}</div></div>)}
+                    <div key={i} style={{textAlign:"center"}}><div style={{fontSize:9,color:t.textFaint,fontWeight:500}}>{m.l}</div><div style={{fontFamily:"'JetBrains Mono'",fontSize:15,fontWeight:700,color:pri,marginTop:1}}>{m.v}</div></div>)}
                 </div>
               </div>
             </div>
@@ -1806,20 +1845,20 @@ export default function Dashboard(){
             const probC=prob>=0.5?"#DC2626":prob>=0.3?"#EA580C":prob>=0.15?"#CA8A04":"#16A34A";
             return <div style={{display:"grid",gridTemplateColumns:dmStatus?"1fr 1fr":"1fr",gap:16,marginBottom:16}}>
               {/* Probabilidade de Lesão */}
-              <div style={{background:"#fff",borderRadius:12,border:`1px solid ${probPct?probC+"33":"#e2e8f0"}`,padding:18}}>
+              <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${probPct?probC+"33":t.border}`,padding:18}}>
                 <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Probabilidade de Lesão — XGBoost + SHAP</div>
                 {probPct!==null?<div>
                   <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:12}}>
                     <div style={{position:"relative",width:90,height:90,display:"flex",alignItems:"center",justifyContent:"center"}}>
                       <svg width={90} height={90} style={{transform:"rotate(-90deg)"}}>
-                        <circle cx={45} cy={45} r={38} fill="none" stroke="#f1f5f9" strokeWidth={6}/>
+                        <circle cx={45} cy={45} r={38} fill="none" stroke={t.borderLight} strokeWidth={6}/>
                         <circle cx={45} cy={45} r={38} fill="none" stroke={probC} strokeWidth={6} strokeDasharray={2*Math.PI*38} strokeDashoffset={2*Math.PI*38*(1-prob)} strokeLinecap="round"/>
                       </svg>
                       <div style={{position:"absolute",fontFamily:"'JetBrains Mono'",fontSize:24,fontWeight:800,color:probC}}>{probPct}%</div>
                     </div>
                     <div style={{flex:1}}>
                       <div style={{fontSize:12,fontWeight:700,color:probC,marginBottom:4}}>{mlAlert.zone==="VERMELHO"?"RISCO ALTO":mlAlert.zone==="LARANJA"?"RISCO MODERADO-ALTO":mlAlert.zone==="AMARELO"?"RISCO MODERADO":"RISCO BAIXO"}</div>
-                      <div style={{fontSize:11,color:"#64748b",lineHeight:1.4,marginBottom:6}}>{mlAlert.dose}</div>
+                      <div style={{fontSize:11,color:t.textMuted,lineHeight:1.4,marginBottom:6}}>{mlAlert.dose}</div>
                       <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                         {mlAlert.shap_pos.slice(0,3).map((s,i)=>
                           <span key={i} style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:600,background:"#FEF2F2",color:"#DC2626",border:"1px solid #FECACA"}}>{s.f}: {s.v}</span>
@@ -1835,13 +1874,13 @@ export default function Dashboard(){
                       {l:"Sono",v:mlAlert.sono,c:mlAlert.sono<6?"#DC2626":"#16A34A"},
                       {l:"Bio Def",v:mlAlert.bio,c:mlAlert.bio>1.5?"#DC2626":"#CA8A04"}
                     ].map((m,j)=>
-                      <div key={j} style={{textAlign:"center",padding:"6px 4px",background:"#f8fafc",borderRadius:6}}>
-                        <div style={{fontSize:8,color:"#94a3b8",fontWeight:600}}>{m.l}</div>
+                      <div key={j} style={{textAlign:"center",padding:"6px 4px",background:t.bgMuted,borderRadius:6}}>
+                        <div style={{fontSize:8,color:t.textFaint,fontWeight:600}}>{m.l}</div>
                         <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:m.c}}>{m.v}</div>
                       </div>)}
                   </div>
                 </div>:
-                <div style={{textAlign:"center",padding:"20px 0",color:"#94a3b8"}}>
+                <div style={{textAlign:"center",padding:"20px 0",color:t.textFaint}}>
                   <div style={{fontFamily:"'JetBrains Mono'",fontSize:28,fontWeight:800,color:"#16A34A",marginBottom:4}}>N/A</div>
                   <div style={{fontSize:11}}>Atleta fora do modelo de alertas — risco baixo estimado</div>
                 </div>}
@@ -1850,7 +1889,7 @@ export default function Dashboard(){
                   <div style={{fontSize:11,fontWeight:700,color:pri,marginBottom:8}}>Histórico de Lesões ({playerInj.length} {playerInj.length===1?"caso":"casos"})</div>
                   {playerInj.map((inj,i)=>{
                     const ic=inj.classif.includes("4C")?"#DC2626":inj.classif.includes("2")?"#EA580C":inj.classif==="Cirurgia"?"#7c3aed":"#CA8A04";
-                    return <div key={i} style={{padding:"8px 10px",background:!inj.fim_trans?"#FEF2F2":"#f8fafc",borderRadius:8,marginBottom:6,border:`1px solid ${!inj.fim_trans?ic+"33":"#e2e8f0"}`}}>
+                    return <div key={i} style={{padding:"8px 10px",background:!inj.fim_trans?"#FEF2F2":t.bgMuted,borderRadius:8,marginBottom:6,border:`1px solid ${!inj.fim_trans?ic+"33":t.border}`}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                         <div style={{display:"flex",alignItems:"center",gap:6}}>
                           <span style={{padding:"1px 6px",borderRadius:4,fontSize:9,fontWeight:700,background:`${ic}15`,color:ic}}>{inj.classif}</span>
@@ -1858,22 +1897,22 @@ export default function Dashboard(){
                           {!inj.fim_trans&&<span style={{fontSize:8,fontWeight:700,color:"#DC2626",textTransform:"uppercase"}}>ativo</span>}
                         </div>
                         <div style={{display:"flex",alignItems:"center",gap:8}}>
-                          <span style={{fontSize:10,color:"#64748b"}}>{new Date(inj.date).toLocaleDateString("pt-BR")}</span>
+                          <span style={{fontSize:10,color:t.textMuted}}>{new Date(inj.date).toLocaleDateString("pt-BR")}</span>
                           <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,fontWeight:700,color:ic}}>{inj.total}d</span>
                         </div>
                       </div>
-                      <div style={{fontSize:9,color:"#94a3b8",marginTop:3}}>{inj.estrutura} · {inj.mecanismo} · {inj.evento} · {inj.estagio}</div>
+                      <div style={{fontSize:9,color:t.textFaint,marginTop:3}}>{inj.estrutura} · {inj.mecanismo} · {inj.evento} · {inj.estagio}</div>
                     </div>;
                   })}
                 </div>}
               </div>
 
               {/* DM Atual — se aplicável */}
-              {dmStatus&&<div style={{background:"#fff",borderRadius:12,border:"1px solid #FECACA",padding:18}}>
+              {dmStatus&&<div style={{background:t.bgCard,borderRadius:12,border:"1px solid #FECACA",padding:18}}>
                 <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:"#DC2626",marginBottom:12}}>Status DM — Afastado</div>
                 <div style={{textAlign:"center",marginBottom:14}}>
                   <div style={{fontFamily:"'JetBrains Mono'",fontSize:48,fontWeight:900,color:"#DC2626"}}>{dmStatus.dias}</div>
-                  <div style={{fontSize:11,color:"#94a3b8",fontWeight:600}}>dias afastado</div>
+                  <div style={{fontSize:11,color:t.textFaint,fontWeight:600}}>dias afastado</div>
                 </div>
                 <div style={{display:"flex",flexDirection:"column",gap:8}}>
                   {[
@@ -1884,8 +1923,8 @@ export default function Dashboard(){
                     {l:"Desde",v:dmStatus.desde},
                     {l:"Prognóstico",v:dmStatus.prognostico}
                   ].map((r,i)=>
-                    <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 10px",background:i%2===0?"#FEF2F2":"#fff",borderRadius:6}}>
-                      <span style={{fontSize:10,color:"#94a3b8",fontWeight:600}}>{r.l}</span>
+                    <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 10px",background:i%2===0?"#FEF2F2":t.bgCard,borderRadius:6}}>
+                      <span style={{fontSize:10,color:t.textFaint,fontWeight:600}}>{r.l}</span>
                       <span style={{fontSize:11,fontWeight:700,color:r.l==="Prognóstico"?"#2563EB":"#DC2626"}}>{r.v}</span>
                     </div>)}
                 </div>
@@ -1894,54 +1933,54 @@ export default function Dashboard(){
           })()}
 
           {/* Composição Corporal */}
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Composição Corporal</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:12}}>
               {[{l:"Idade",v:sp.id?sp.id+" anos":"-",ic:"🎂"},{l:"Altura",v:sp.alt?sp.alt+" cm":"-",ic:"📏"},{l:"Peso",v:sp.w?sp.w+" kg":"-",ic:"⚖️"},{l:"% Gordura",v:sp.bf?sp.bf+"%":"-",ic:"📊",c:sp.bf>14?"#EA580C":sp.bf>12?"#CA8A04":"#16A34A"},{l:"Massa Muscular",v:sp.mm?sp.mm+" kg":"-",ic:"💪"},{l:"IMC",v:sp.imc?sp.imc.toFixed(1):"-",ic:"📐",c:sp.imc>25.5?"#CA8A04":"#16A34A"}].map((m,i)=>
-                <div key={i} style={{textAlign:"center",padding:"12px 8px",background:"#f8fafc",borderRadius:10,border:"1px solid #f1f5f9"}}>
+                <div key={i} style={{textAlign:"center",padding:"12px 8px",background:t.bgMuted,borderRadius:10,border:`1px solid ${t.borderLight}`}}>
                   <div style={{fontSize:16,marginBottom:4}}>{m.ic}</div>
-                  <div style={{fontSize:9,color:"#94a3b8",fontWeight:600,textTransform:"uppercase",letterSpacing:.5}}>{m.l}</div>
+                  <div style={{fontSize:9,color:t.textFaint,fontWeight:600,textTransform:"uppercase",letterSpacing:.5}}>{m.l}</div>
                   <div style={{fontFamily:"'JetBrains Mono'",fontSize:16,fontWeight:700,color:m.c||pri,marginTop:2}}>{m.v}</div>
                 </div>)}
             </div>
           </div>
 
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
-            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Wellness Radar</div>
               <ResponsiveContainer width="100%" height={210}>
-                <RadarChart data={radarData}><PolarGrid stroke="#e2e8f0"/><PolarAngleAxis dataKey="s" tick={{fontSize:9,fill:"#64748b"}}/><PolarRadiusAxis tick={false} domain={[0,10]}/><Radar dataKey="v" stroke={pri} fill={pri} fillOpacity={.08} strokeWidth={2}/></RadarChart>
+                <RadarChart data={radarData}><PolarGrid stroke={t.border}/><PolarAngleAxis dataKey="s" tick={{fontSize:9,fill:t.textMuted}}/><PolarRadiusAxis tick={false} domain={[0,10]}/><Radar dataKey="v" stroke={pri} fill={pri} fillOpacity={.08} strokeWidth={2}/></RadarChart>
               </ResponsiveContainer>
             </div>
-            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Último Questionário</div>
-              <WBar label={`Sono — avg temporada ${sp.sa||"-"}`} v={sp.sq||0} max={10}/>
-              <WBar label="Recuperação Geral" v={sp.rg||0} max={10}/>
-              <WBar label={`Rec. Pernas — avg ${sp.rpa||"-"}`} v={sp.rp||0} max={10}/>
-              <WBar label={`Dor — avg ${sp.da||"-"}`} v={sp.d||0} max={10} inv/>
+              <WBar theme={t} label={`Sono — avg temporada ${sp.sa||"-"}`} v={sp.sq||0} max={10}/>
+              <WBar theme={t} label="Recuperação Geral" v={sp.rg||0} max={10}/>
+              <WBar theme={t} label={`Rec. Pernas — avg ${sp.rpa||"-"}`} v={sp.rp||0} max={10}/>
+              <WBar theme={t} label={`Dor — avg ${sp.da||"-"}`} v={sp.d||0} max={10} inv/>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:8}}>
-                <div style={{padding:8,background:"#f8fafc",borderRadius:8,textAlign:"center"}}><div style={{fontSize:9,color:"#94a3b8"}}>Humor</div><div style={{fontSize:13,fontWeight:700,color:sp.h<=2?"#DC2626":"#16A34A"}}>{humorL[sp.h]}</div></div>
-                <div style={{padding:8,background:"#f8fafc",borderRadius:8,textAlign:"center"}}><div style={{fontSize:9,color:"#94a3b8"}}>sRPE avg</div><div style={{fontFamily:"'JetBrains Mono'",fontSize:13,fontWeight:700,color:pri}}>{sp.sra}</div></div>
+                <div style={{padding:8,background:t.bgMuted,borderRadius:8,textAlign:"center"}}><div style={{fontSize:9,color:t.textFaint}}>Humor</div><div style={{fontSize:13,fontWeight:700,color:sp.h<=2?"#DC2626":"#16A34A"}}>{humorL[sp.h]}</div></div>
+                <div style={{padding:8,background:t.bgMuted,borderRadius:8,textAlign:"center"}}><div style={{fontSize:9,color:t.textFaint}}>sRPE avg</div><div style={{fontFamily:"'JetBrains Mono'",fontSize:13,fontWeight:700,color:pri}}>{sp.sra}</div></div>
               </div>
             </div>
           </div>
 
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
-            {wtData.length>0&&<div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            {wtData.length>0&&<div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Tendência 7 Dias — Wellness</div>
               <ResponsiveContainer width="100%" height={180}>
-                <AreaChart data={wtData}><CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/><XAxis dataKey="d" tick={{fontSize:9,fill:"#94a3b8"}}/><YAxis tick={{fontSize:9,fill:"#94a3b8"}} domain={[0,10]}/><Tooltip content={<Tip/>}/>
+                <AreaChart data={wtData}><CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/><XAxis dataKey="d" tick={{fontSize:9,fill:t.textFaint}}/><YAxis tick={{fontSize:9,fill:t.textFaint}} domain={[0,10]}/><Tooltip content={<Tip theme={t}/>}/>
                   <Area type="monotone" dataKey="sono" name="Sono" stroke="#7c3aed" fill="#7c3aed" fillOpacity={.05} strokeWidth={2}/>
                   <Area type="monotone" dataKey="rec" name="Rec Pernas" stroke="#16A34A" fill="#16A34A" fillOpacity={.05} strokeWidth={1.5}/>
                   <Area type="monotone" dataKey="dor" name="Dor" stroke="#DC2626" fill="#DC2626" fillOpacity={.05} strokeWidth={1.5} strokeDasharray="4 4"/>
                 </AreaChart>
               </ResponsiveContainer>
             </div>}
-            {cmjData.length>1&&<div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            {cmjData.length>1&&<div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>CMJ Trend ({cmjData.length} testes)</div>
               <ResponsiveContainer width="100%" height={180}>
-                <LineChart data={cmjData}><CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/><XAxis dataKey="i" tick={{fontSize:9,fill:"#94a3b8"}}/><YAxis tick={{fontSize:9,fill:"#94a3b8"}} domain={["dataMin-3","dataMax+3"]}/><Tooltip content={<Tip/>}/>
-                  <Line type="monotone" dataKey="v" name="CMJ (cm)" stroke={pri} strokeWidth={2.5} dot={{r:3,fill:pri,stroke:"#fff",strokeWidth:2}}/>
+                <LineChart data={cmjData}><CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/><XAxis dataKey="i" tick={{fontSize:9,fill:t.textFaint}}/><YAxis tick={{fontSize:9,fill:t.textFaint}} domain={["dataMin-3","dataMax+3"]}/><Tooltip content={<Tip theme={t}/>}/>
+                  <Line type="monotone" dataKey="v" name="CMJ (cm)" stroke={pri} strokeWidth={2.5} dot={{r:3,fill:pri,stroke:t.bgCard,strokeWidth:2}}/>
                 </LineChart>
               </ResponsiveContainer>
             </div>}
@@ -1957,17 +1996,17 @@ export default function Dashboard(){
             const pr=PERFIL_RISCO_LABELS[mlAlert.perfil_risco]||PERFIL_RISCO_LABELS.sobrecarga;
             return <div style={{marginBottom:16}}>
               {/* Physiological Risk Profile */}
-              <div style={{background:"#fff",borderRadius:12,border:`1px solid ${pr.bc}`,padding:18,marginBottom:16}}>
+              <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${pr.bc}`,padding:18,marginBottom:16}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
                   <div>
                     <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Perfil Fisiológico do Risco</div>
-                    <div style={{fontSize:11,color:"#94a3b8"}}>Classificação do mecanismo de risco dominante</div>
+                    <div style={{fontSize:11,color:t.textFaint}}>Classificação do mecanismo de risco dominante</div>
                   </div>
                   <span style={{padding:"4px 14px",borderRadius:6,fontSize:12,fontWeight:800,background:pr.bg,color:pr.c,border:`2px solid ${pr.bc}`}}>{pr.label.toUpperCase()}</span>
                 </div>
                 <div style={{padding:"10px 14px",background:pr.bg,borderRadius:8,border:`1px solid ${pr.bc}`,marginBottom:12}}>
                   <div style={{fontSize:12,fontWeight:600,color:pr.c,marginBottom:2}}>{pr.desc}</div>
-                  <div style={{fontSize:11,color:"#64748b"}}>{mlAlert.diag_diff.base}</div>
+                  <div style={{fontSize:11,color:t.textMuted}}>{mlAlert.diag_diff.base}</div>
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
                   {[
@@ -1977,49 +2016,49 @@ export default function Dashboard(){
                     {l:"sRPE Trend 5d",v:(mlAlert.srpe_trend_5d>0?"+":"")+mlAlert.srpe_trend_5d?.toFixed(1),c:mlAlert.srpe_trend_5d>30?"#DC2626":mlAlert.srpe_trend_5d>15?"#EA580C":"#16A34A",unit:"UA/d"},
                     {l:"Sleep Trend 7d",v:(mlAlert.sleep_trend_7d>0?"+":"")+mlAlert.sleep_trend_7d?.toFixed(2),c:mlAlert.sleep_trend_7d<-0.2?"#DC2626":mlAlert.sleep_trend_7d<0?"#EA580C":"#16A34A",unit:"/d"}
                   ].map((m,j)=>
-                    <div key={j} style={{textAlign:"center",padding:"8px 4px",background:"#f8fafc",borderRadius:8}}>
-                      <div style={{fontSize:8,color:"#94a3b8",fontWeight:600,textTransform:"uppercase"}}>{m.l}</div>
+                    <div key={j} style={{textAlign:"center",padding:"8px 4px",background:t.bgMuted,borderRadius:8}}>
+                      <div style={{fontSize:8,color:t.textFaint,fontWeight:600,textTransform:"uppercase"}}>{m.l}</div>
                       <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:700,color:m.c}}>{m.v}</div>
-                      {m.unit&&<div style={{fontSize:8,color:"#94a3b8"}}>{m.unit}</div>}
+                      {m.unit&&<div style={{fontSize:8,color:t.textFaint}}>{m.unit}</div>}
                     </div>)}
                 </div>
               </div>
 
               {/* Temporal Trend Charts */}
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-                <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+                <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Fatigue Debt — 7 Dias</div>
-                  <div style={{fontSize:10,color:"#94a3b8",marginBottom:6}}>Fadiga acumulada com decaimento exponencial (λ=0.1)</div>
+                  <div style={{fontSize:10,color:t.textFaint,marginBottom:6}}>Fadiga acumulada com decaimento exponencial (λ=0.1)</div>
                   <ResponsiveContainer width="100%" height={160}>
-                    <AreaChart data={trendData}><CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/><XAxis dataKey="d" tick={{fontSize:9,fill:"#94a3b8"}}/><YAxis tick={{fontSize:9,fill:"#94a3b8"}}/><Tooltip content={<Tip/>}/>
+                    <AreaChart data={trendData}><CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/><XAxis dataKey="d" tick={{fontSize:9,fill:t.textFaint}}/><YAxis tick={{fontSize:9,fill:t.textFaint}}/><Tooltip content={<Tip theme={t}/>}/>
                       <Area type="monotone" dataKey="fatigue_debt" name="Fatigue Debt" stroke="#EA580C" fill="#EA580C" fillOpacity={.08} strokeWidth={2.5}/>
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
-                <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+                <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>CK Seriado — 7 Dias</div>
-                  <div style={{fontSize:10,color:"#94a3b8",marginBottom:6}}>Tendência de dano muscular (U/L)</div>
+                  <div style={{fontSize:10,color:t.textFaint,marginBottom:6}}>Tendência de dano muscular (U/L)</div>
                   <ResponsiveContainer width="100%" height={160}>
-                    <AreaChart data={trendData}><CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/><XAxis dataKey="d" tick={{fontSize:9,fill:"#94a3b8"}}/><YAxis tick={{fontSize:9,fill:"#94a3b8"}}/><Tooltip content={<Tip/>}/>
+                    <AreaChart data={trendData}><CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/><XAxis dataKey="d" tick={{fontSize:9,fill:t.textFaint}}/><YAxis tick={{fontSize:9,fill:t.textFaint}}/><Tooltip content={<Tip theme={t}/>}/>
                       <Area type="monotone" dataKey="ck" name="CK (U/L)" stroke="#DC2626" fill="#DC2626" fillOpacity={.08} strokeWidth={2.5}/>
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
-                <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+                <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Carga Interna (sRPE) — 7 Dias</div>
-                  <div style={{fontSize:10,color:"#94a3b8",marginBottom:6}}>Carga semanal acumulada (UA)</div>
+                  <div style={{fontSize:10,color:t.textFaint,marginBottom:6}}>Carga semanal acumulada (UA)</div>
                   <ResponsiveContainer width="100%" height={160}>
-                    <AreaChart data={trendData}><CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/><XAxis dataKey="d" tick={{fontSize:9,fill:"#94a3b8"}}/><YAxis tick={{fontSize:9,fill:"#94a3b8"}}/><Tooltip content={<Tip/>}/>
+                    <AreaChart data={trendData}><CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/><XAxis dataKey="d" tick={{fontSize:9,fill:t.textFaint}}/><YAxis tick={{fontSize:9,fill:t.textFaint}}/><Tooltip content={<Tip theme={t}/>}/>
                       <Area type="monotone" dataKey="srpe" name="sRPE" stroke="#2563eb" fill="#2563eb" fillOpacity={.08} strokeWidth={2.5}/>
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
-                <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+                <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>CMJ Tendência — 7 Dias</div>
-                  <div style={{fontSize:10,color:"#94a3b8",marginBottom:6}}>Potência neuromuscular (cm)</div>
+                  <div style={{fontSize:10,color:t.textFaint,marginBottom:6}}>Potência neuromuscular (cm)</div>
                   <ResponsiveContainer width="100%" height={160}>
-                    <LineChart data={trendData}><CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/><XAxis dataKey="d" tick={{fontSize:9,fill:"#94a3b8"}}/><YAxis tick={{fontSize:9,fill:"#94a3b8"}} domain={["dataMin-2","dataMax+2"]}/><Tooltip content={<Tip/>}/>
-                      <Line type="monotone" dataKey="cmj" name="CMJ (cm)" stroke="#7c3aed" strokeWidth={2.5} dot={{r:3,fill:"#7c3aed",stroke:"#fff",strokeWidth:2}}/>
+                    <LineChart data={trendData}><CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/><XAxis dataKey="d" tick={{fontSize:9,fill:t.textFaint}}/><YAxis tick={{fontSize:9,fill:t.textFaint}} domain={["dataMin-2","dataMax+2"]}/><Tooltip content={<Tip theme={t}/>}/>
+                      <Line type="monotone" dataKey="cmj" name="CMJ (cm)" stroke="#7c3aed" strokeWidth={2.5} dot={{r:3,fill:"#7c3aed",stroke:t.bgCard,strokeWidth:2}}/>
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -2041,11 +2080,11 @@ export default function Dashboard(){
               {d:"+48h",fatigue_debt:proj.proj_48h.fatigue_debt,cmj:proj.proj_48h.cmj,ck:proj.proj_48h.ck},
               {d:"+72h",fatigue_debt:proj.proj_72h.fatigue_debt,cmj:proj.proj_72h.cmj,ck:proj.proj_72h.ck}
             ];
-            return <div style={{background:"#fff",borderRadius:12,border:`1px solid ${tendC}33`,padding:18,marginBottom:16}}>
+            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${tendC}33`,padding:18,marginBottom:16}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
                 <div>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Projeção de Risco — 48-72 Horas</div>
-                  <div style={{fontSize:11,color:"#94a3b8"}}>Estimativa baseada em tendência linear dos últimos 7 dias</div>
+                  <div style={{fontSize:11,color:t.textFaint}}>Estimativa baseada em tendência linear dos últimos 7 dias</div>
                 </div>
                 <div style={{display:"flex",gap:8}}>
                   <span style={{padding:"4px 12px",borderRadius:6,fontSize:11,fontWeight:800,background:`${tendC}15`,color:tendC,border:`1px solid ${tendC}33`}}>TENDÊNCIA: {tendL}</span>
@@ -2054,7 +2093,7 @@ export default function Dashboard(){
               </div>
               <div style={{padding:"10px 14px",background:`${tendC}08`,borderRadius:8,border:`1px solid ${tendC}22`,marginBottom:14}}>
                 <div style={{fontSize:12,fontWeight:600,color:tendC,marginBottom:2}}>{proj.resumo}</div>
-                <div style={{fontSize:11,color:"#64748b"}}><strong>Recomendação:</strong> {proj.recomendacao}</div>
+                <div style={{fontSize:11,color:t.textMuted}}><strong>Recomendação:</strong> {proj.recomendacao}</div>
               </div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:14}}>
                 {[
@@ -2063,11 +2102,11 @@ export default function Dashboard(){
                   {l:"Projeção 72h",d:projData[2],probV:(proj.proj_72h.risk_prob*100).toFixed(0)}
                 ].map((col,ci)=>{
                   const pC=Number(col.probV)>=50?"#DC2626":Number(col.probV)>=30?"#EA580C":Number(col.probV)>=15?"#CA8A04":"#16A34A";
-                  return <div key={ci} style={{padding:12,background:ci===0?"#f8fafc":`${tendC}06`,borderRadius:10,border:`1px solid ${ci===0?"#e2e8f0":tendC+"22"}`}}>
-                    <div style={{fontSize:10,fontWeight:700,color:ci===0?"#64748b":tendC,textTransform:"uppercase",marginBottom:8,textAlign:"center"}}>{col.l}</div>
+                  return <div key={ci} style={{padding:12,background:ci===0?t.bgMuted:`${tendC}06`,borderRadius:10,border:`1px solid ${ci===0?t.border:tendC+"22"}`}}>
+                    <div style={{fontSize:10,fontWeight:700,color:ci===0?t.textMuted:tendC,textTransform:"uppercase",marginBottom:8,textAlign:"center"}}>{col.l}</div>
                     <div style={{textAlign:"center",marginBottom:10}}>
                       <div style={{fontFamily:"'JetBrains Mono'",fontSize:28,fontWeight:900,color:pC}}>{col.probV}%</div>
-                      <div style={{fontSize:9,color:"#94a3b8"}}>Prob. Lesão</div>
+                      <div style={{fontSize:9,color:t.textFaint}}>Prob. Lesão</div>
                     </div>
                     <div style={{display:"flex",flexDirection:"column",gap:4}}>
                       {[
@@ -2075,8 +2114,8 @@ export default function Dashboard(){
                         {l:"CMJ (cm)",v:col.d.cmj?.toFixed(1),c:"#7c3aed"},
                         {l:"CK (U/L)",v:col.d.ck,c:col.d.ck>400?"#DC2626":col.d.ck>250?"#EA580C":"#16A34A"}
                       ].map((m,mi)=>
-                        <div key={mi} style={{display:"flex",justifyContent:"space-between",padding:"3px 6px",background:"#fff",borderRadius:4}}>
-                          <span style={{fontSize:9,color:"#94a3b8"}}>{m.l}</span>
+                        <div key={mi} style={{display:"flex",justifyContent:"space-between",padding:"3px 6px",background:t.bgCard,borderRadius:4}}>
+                          <span style={{fontSize:9,color:t.textFaint}}>{m.l}</span>
                           <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,fontWeight:700,color:m.c}}>{m.v}</span>
                         </div>)}
                     </div>
@@ -2089,11 +2128,11 @@ export default function Dashboard(){
                   {label:"CMJ (cm)",key:"cmj",c:"#7c3aed"},
                   {label:"CK (U/L)",key:"ck",c:"#DC2626"}
                 ].map((ch,ci)=>
-                  <div key={ci} style={{background:"#f8fafc",borderRadius:8,padding:12}}>
+                  <div key={ci} style={{background:t.bgMuted,borderRadius:8,padding:12}}>
                     <div style={{fontSize:10,fontWeight:600,color:pri,marginBottom:6}}>{ch.label}</div>
                     <ResponsiveContainer width="100%" height={80}>
-                      <LineChart data={projData}><XAxis dataKey="d" tick={{fontSize:8,fill:"#94a3b8"}}/><YAxis hide domain={["dataMin-5","dataMax+5"]}/><Tooltip content={<Tip/>}/>
-                        <Line type="monotone" dataKey={ch.key} name={ch.label} stroke={ch.c} strokeWidth={2} dot={{r:3,fill:ch.c,stroke:"#fff",strokeWidth:2}} strokeDasharray={ci>-1?"":"5 5"}/>
+                      <LineChart data={projData}><XAxis dataKey="d" tick={{fontSize:8,fill:t.textFaint}}/><YAxis hide domain={["dataMin-5","dataMax+5"]}/><Tooltip content={<Tip theme={t}/>}/>
+                        <Line type="monotone" dataKey={ch.key} name={ch.label} stroke={ch.c} strokeWidth={2} dot={{r:3,fill:ch.c,stroke:t.bgCard,strokeWidth:2}} strokeDasharray={ci>-1?"":"5 5"}/>
                       </LineChart>
                     </ResponsiveContainer>
                   </div>)}
@@ -2102,7 +2141,7 @@ export default function Dashboard(){
           })()}
         </div>}
 
-        {tab==="player"&&!sp&&<div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:40,textAlign:"center",color:"#94a3b8"}}>
+        {tab==="player"&&!sp&&<div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:40,textAlign:"center",color:t.textFaint}}>
           <Users size={32} style={{marginBottom:12,opacity:.4}}/><div style={{fontSize:14,fontWeight:600}}>Selecione um atleta na barra lateral</div>
         </div>}
 
@@ -2111,15 +2150,15 @@ export default function Dashboard(){
         {/* ═══════════════════════════════════════════════════════════════════ */}
         {tab==="sessao"&&<div>
           {/* Session Header */}
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <div>
                 <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Monitoramento da Sessão de Treino</div>
-                <div style={{fontSize:12,color:"#94a3b8",marginTop:2}}>{LIVE_SESSION.meta._liveDate||LIVE_SESSION.meta.date} · {LIVE_SESSION.meta.tipo} · {LIVE_SESSION.meta.local} · {LIVE_SESSION.meta.md}{isLive&&<span style={{marginLeft:8,fontSize:10,color:"#16A34A",fontWeight:600}}>LIVE {LIVE_SESSION.meta._liveTime||""}</span>}</div>
+                <div style={{fontSize:12,color:t.textFaint,marginTop:2}}>{LIVE_SESSION.meta._liveDate||LIVE_SESSION.meta.date} · {LIVE_SESSION.meta.tipo} · {LIVE_SESSION.meta.local} · {LIVE_SESSION.meta.md}{isLive&&<span style={{marginLeft:8,fontSize:10,color:"#16A34A",fontWeight:600}}>LIVE {LIVE_SESSION.meta._liveTime||""}</span>}</div>
               </div>
               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                 {[{l:"Duração",v:LIVE_SESSION.meta.duracao+"min"},{l:"PSE Alvo",v:LIVE_SESSION.meta.rpe_alvo},{l:"Condição",v:LIVE_SESSION.meta.condicao}].map((b,i)=>
-                  <span key={i} style={{padding:"4px 12px",borderRadius:6,fontSize:10,fontWeight:600,background:"#f8fafc",color:"#64748b",border:"1px solid #e2e8f0"}}>{b.l}: <strong style={{color:pri}}>{b.v}</strong></span>
+                  <span key={i} style={{padding:"4px 12px",borderRadius:6,fontSize:10,fontWeight:600,background:t.bgMuted,color:t.textMuted,border:`1px solid ${t.border}`}}>{b.l}: <strong style={{color:pri}}>{b.v}</strong></span>
                 )}
               </div>
             </div>
@@ -2154,23 +2193,23 @@ export default function Dashboard(){
             const nm=sess.nm_response;
             const fi=sess.fisio;
             const ri=sess.risco;
-            const deltaC=ri.delta>0.02?"#DC2626":ri.delta>0?"#EA580C":ri.delta<-0.01?"#16A34A":"#64748b";
+            const deltaC=ri.delta>0.02?"#DC2626":ri.delta>0?"#EA580C":ri.delta<-0.01?"#16A34A":t.textMuted;
             const deltaSign=ri.delta>0?"+":"";
-            return <div key={alert.n} style={{background:"#fff",borderRadius:12,border:`1px solid ${classBc}`,marginBottom:16,overflow:"hidden"}}>
+            return <div key={alert.n} style={{background:t.bgCard,borderRadius:12,border:`1px solid ${classBc}`,marginBottom:16,overflow:"hidden"}}>
               {/* Card Header */}
               <div style={{padding:"12px 18px",background:classBg,borderBottom:`1px solid ${classBc}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div style={{display:"flex",alignItems:"center",gap:12}}>
-                  <PlayerPhoto name={alert.n} sz={36}/>
+                  <PlayerPhoto theme={t} name={alert.n} sz={36}/>
                   <div>
                     <span style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:14,color:pri,cursor:"pointer"}} onClick={()=>{setSel(alert.n);setTab("player")}}>{alert.n}</span>
-                    <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:"#94a3b8",marginLeft:8}}>{alert.pos}</span>
+                    <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textFaint,marginLeft:8}}>{alert.pos}</span>
                   </div>
                   <span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,background:classBg,color:classC,border:`1px solid ${classBc}`}}>{sess.classificacao.toUpperCase()}</span>
                 </div>
                 <div style={{display:"flex",alignItems:"center",gap:12}}>
                   <span style={{fontSize:11,fontWeight:600,color:classC}}>{sess.classificacao_label}</span>
-                  <div style={{textAlign:"center",padding:"4px 12px",background:"#fff",borderRadius:6,border:`1px solid ${deltaC}33`}}>
-                    <div style={{fontSize:8,color:"#94a3b8"}}>Δ Risco</div>
+                  <div style={{textAlign:"center",padding:"4px 12px",background:t.bgCard,borderRadius:6,border:`1px solid ${deltaC}33`}}>
+                    <div style={{fontSize:8,color:t.textFaint}}>Δ Risco</div>
                     <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:800,color:deltaC}}>{deltaSign}{(ri.delta*100).toFixed(1)}%</div>
                   </div>
                 </div>
@@ -2192,11 +2231,11 @@ export default function Dashboard(){
                       {l:"Vel. Pico",v:g.pico_vel?g.pico_vel+" km/h":"—",bl:g.pico_vel_baseline+" km/h",pct:g.pico_vel?((g.pico_vel/g.pico_vel_baseline)*100).toFixed(0):0}
                     ].map((m,j)=>{
                       const pctN=Number(m.pct);
-                      const pctC=pctN>110?"#DC2626":pctN>85?"#16A34A":pctN>50?"#CA8A04":"#64748b";
-                      return <div key={j} style={{textAlign:"center",padding:"6px 4px",background:"#f8fafc",borderRadius:6}}>
-                        <div style={{fontSize:8,color:"#94a3b8",fontWeight:600}}>{m.l}</div>
+                      const pctC=pctN>110?"#DC2626":pctN>85?"#16A34A":pctN>50?"#CA8A04":t.textMuted;
+                      return <div key={j} style={{textAlign:"center",padding:"6px 4px",background:t.bgMuted,borderRadius:6}}>
+                        <div style={{fontSize:8,color:t.textFaint,fontWeight:600}}>{m.l}</div>
                         <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:pri}}>{m.v}</div>
-                        <div style={{fontSize:8,color:"#94a3b8"}}>base: {m.bl}</div>
+                        <div style={{fontSize:8,color:t.textFaint}}>base: {m.bl}</div>
                         <div style={{fontFamily:"'JetBrains Mono'",fontSize:9,fontWeight:700,color:pctC}}>{pctN}%</div>
                       </div>;
                     })}
@@ -2213,11 +2252,11 @@ export default function Dashboard(){
                       {l:"sRPE Sessão",v:ci.srpe_sessao,c:ci.srpe_sessao>7?"#DC2626":ci.srpe_sessao>5?"#CA8A04":"#16A34A"},
                       {l:"sRPE Total",v:ci.srpe_total+" UA",c:ci.srpe_total>500?"#DC2626":ci.srpe_total>400?"#CA8A04":"#16A34A"},
                       {l:"FC Média",v:ci.hr_avg+" bpm",c:ci.hr_avg>ci.hr_baseline_avg?"#EA580C":"#16A34A"},
-                      {l:"FC Máxima",v:ci.hr_max+" bpm",c:"#64748b"},
+                      {l:"FC Máxima",v:ci.hr_max+" bpm",c:t.textMuted},
                       {l:"Tempo Z. Alta",v:ci.tempo_zona_alta+"min",c:ci.tempo_zona_alta>ci.tempo_zona_alta_baseline?"#DC2626":"#16A34A"}
                     ].map((m,j)=>
-                      <div key={j} style={{textAlign:"center",padding:"6px 4px",background:"#f8fafc",borderRadius:6}}>
-                        <div style={{fontSize:8,color:"#94a3b8",fontWeight:600}}>{m.l}</div>
+                      <div key={j} style={{textAlign:"center",padding:"6px 4px",background:t.bgMuted,borderRadius:6}}>
+                        <div style={{fontSize:8,color:t.textFaint,fontWeight:600}}>{m.l}</div>
                         <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:m.c}}>{m.v}</div>
                       </div>)}
                   </div>
@@ -2230,14 +2269,14 @@ export default function Dashboard(){
                   </div>
                   <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6}}>
                     {[
-                      {l:"CMJ Pré",v:nm.cmj_pre+" cm",c:"#64748b"},
+                      {l:"CMJ Pré",v:nm.cmj_pre+" cm",c:t.textMuted},
                       {l:"CMJ Pós",v:nm.cmj_pos+" cm",c:nm.cmj_delta_pct<-5?"#DC2626":nm.cmj_delta_pct<-3?"#EA580C":"#16A34A"},
                       {l:"CMJ Δ",v:(nm.cmj_delta_pct>0?"+":"")+nm.cmj_delta_pct+"%",c:nm.cmj_delta_pct<-5?"#DC2626":nm.cmj_delta_pct<-3?"#EA580C":"#16A34A"},
                       {l:"ASI Pós",v:nm.asi_pos+"%",c:nm.asi_pos>12?"#DC2626":nm.asi_pos>8?"#CA8A04":"#16A34A"},
                       {l:"NME Pós",v:nm.nme_pos?.toFixed(4),c:nm.nme_pos<0.012?"#DC2626":nm.nme_pos<0.015?"#EA580C":"#16A34A"}
                     ].map((m,j)=>
-                      <div key={j} style={{textAlign:"center",padding:"6px 4px",background:"#f8fafc",borderRadius:6}}>
-                        <div style={{fontSize:8,color:"#94a3b8",fontWeight:600}}>{m.l}</div>
+                      <div key={j} style={{textAlign:"center",padding:"6px 4px",background:t.bgMuted,borderRadius:6}}>
+                        <div style={{fontSize:8,color:t.textFaint,fontWeight:600}}>{m.l}</div>
                         <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:m.c}}>{m.v}</div>
                       </div>)}
                   </div>
@@ -2255,8 +2294,8 @@ export default function Dashboard(){
                       {l:"Recuperação Percebida",v:fi.rec_percebida+"/10",c:fi.rec_percebida<=5?"#DC2626":fi.rec_percebida<=7?"#CA8A04":"#16A34A"},
                       {l:"CK Estimado",v:fi.ck_estimado+" U/L",c:fi.ck_estimado>500?"#DC2626":fi.ck_estimado>300?"#EA580C":"#16A34A"}
                     ].map((m,j)=>
-                      <div key={j} style={{textAlign:"center",padding:"6px 4px",background:"#f8fafc",borderRadius:6}}>
-                        <div style={{fontSize:8,color:"#94a3b8",fontWeight:600}}>{m.l}</div>
+                      <div key={j} style={{textAlign:"center",padding:"6px 4px",background:t.bgMuted,borderRadius:6}}>
+                        <div style={{fontSize:8,color:t.textFaint,fontWeight:600}}>{m.l}</div>
                         <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:m.c}}>{m.v}</div>
                       </div>)}
                   </div>
@@ -2268,20 +2307,20 @@ export default function Dashboard(){
                     <TrendingUp size={12} color={deltaC}/> Impacto no Risco de Lesão
                   </div>
                   <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 2fr",gap:8}}>
-                    <div style={{textAlign:"center",padding:"8px",background:"#f8fafc",borderRadius:8}}>
-                      <div style={{fontSize:8,color:"#94a3b8",fontWeight:600}}>PROB. PRÉ</div>
+                    <div style={{textAlign:"center",padding:"8px",background:t.bgMuted,borderRadius:8}}>
+                      <div style={{fontSize:8,color:t.textFaint,fontWeight:600}}>PROB. PRÉ</div>
                       <div style={{fontFamily:"'JetBrains Mono'",fontSize:16,fontWeight:800,color:ri.prob_pre>=0.5?"#DC2626":ri.prob_pre>=0.3?"#EA580C":"#CA8A04"}}>{(ri.prob_pre*100).toFixed(0)}%</div>
                     </div>
-                    <div style={{textAlign:"center",padding:"8px",background:"#f8fafc",borderRadius:8}}>
-                      <div style={{fontSize:8,color:"#94a3b8",fontWeight:600}}>PROB. PÓS</div>
+                    <div style={{textAlign:"center",padding:"8px",background:t.bgMuted,borderRadius:8}}>
+                      <div style={{fontSize:8,color:t.textFaint,fontWeight:600}}>PROB. PÓS</div>
                       <div style={{fontFamily:"'JetBrains Mono'",fontSize:16,fontWeight:800,color:ri.prob_pos>=0.5?"#DC2626":ri.prob_pos>=0.3?"#EA580C":"#CA8A04"}}>{(ri.prob_pos*100).toFixed(0)}%</div>
                     </div>
                     <div style={{textAlign:"center",padding:"8px",background:`${deltaC}08`,borderRadius:8,border:`1px solid ${deltaC}22`}}>
-                      <div style={{fontSize:8,color:"#94a3b8",fontWeight:600}}>DELTA</div>
+                      <div style={{fontSize:8,color:t.textFaint,fontWeight:600}}>DELTA</div>
                       <div style={{fontFamily:"'JetBrains Mono'",fontSize:16,fontWeight:800,color:deltaC}}>{deltaSign}{(ri.delta*100).toFixed(1)}%</div>
                     </div>
-                    <div style={{padding:"8px 12px",background:"#f8fafc",borderRadius:8,display:"flex",alignItems:"center"}}>
-                      <div style={{fontSize:10,color:"#64748b",lineHeight:1.4}}>{sess.obs}</div>
+                    <div style={{padding:"8px 12px",background:t.bgMuted,borderRadius:8,display:"flex",alignItems:"center"}}>
+                      <div style={{fontSize:10,color:t.textMuted,lineHeight:1.4}}>{sess.obs}</div>
                     </div>
                   </div>
                 </div>
@@ -2290,19 +2329,19 @@ export default function Dashboard(){
           })}
 
           {/* Session Charts Summary */}
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:14}}>Resumo da Sessão — Carga vs Resposta</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16}}>
               {/* Chart 1: GPS Load vs Baseline */}
               <div>
-                <div style={{fontSize:10,fontWeight:600,color:"#64748b",marginBottom:6}}>Carga GPS (% do Baseline)</div>
+                <div style={{fontSize:10,fontWeight:600,color:t.textMuted,marginBottom:6}}>Carga GPS (% do Baseline)</div>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map(a=>{const s=LIVE_SESSION.atletas[a.n];return {n:a.n.split(" ")[0],dist:s.gps.dist_baseline?Math.round((s.gps.dist_total/s.gps.dist_baseline)*100):0,hsr:s.gps.hsr_baseline?Math.round((s.gps.hsr/s.gps.hsr_baseline)*100):0};})} margin={{left:-10}}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
-                    <XAxis dataKey="n" tick={{fontSize:8,fill:"#94a3b8"}} interval={0} angle={-30} textAnchor="end" height={40}/>
-                    <YAxis tick={{fontSize:8,fill:"#94a3b8"}} domain={[0,120]}/>
-                    <Tooltip content={<Tip/>}/>
-                    <ReferenceLine y={100} stroke="#94a3b8" strokeDasharray="3 3"/>
+                    <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
+                    <XAxis dataKey="n" tick={{fontSize:8,fill:t.textFaint}} interval={0} angle={-30} textAnchor="end" height={40}/>
+                    <YAxis tick={{fontSize:8,fill:t.textFaint}} domain={[0,120]}/>
+                    <Tooltip content={<Tip theme={t}/>}/>
+                    <ReferenceLine y={100} stroke={t.textFaint} strokeDasharray="3 3"/>
                     <Bar dataKey="dist" name="Dist %" fill="#2563eb" radius={[2,2,0,0]} barSize={10}/>
                     <Bar dataKey="hsr" name="HSR %" fill="#EA580C" radius={[2,2,0,0]} barSize={10}/>
                   </BarChart>
@@ -2310,13 +2349,13 @@ export default function Dashboard(){
               </div>
               {/* Chart 2: CMJ Delta Post-Session */}
               <div>
-                <div style={{fontSize:10,fontWeight:600,color:"#64748b",marginBottom:6}}>CMJ Δ Pós-Sessão (%)</div>
+                <div style={{fontSize:10,fontWeight:600,color:t.textMuted,marginBottom:6}}>CMJ Δ Pós-Sessão (%)</div>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map(a=>{const s=LIVE_SESSION.atletas[a.n];return {n:a.n.split(" ")[0],delta:s.nm_response.cmj_delta_pct};})} margin={{left:-10}}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
-                    <XAxis dataKey="n" tick={{fontSize:8,fill:"#94a3b8"}} interval={0} angle={-30} textAnchor="end" height={40}/>
-                    <YAxis tick={{fontSize:8,fill:"#94a3b8"}} domain={[-8,1]}/>
-                    <Tooltip content={<Tip/>}/>
+                    <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
+                    <XAxis dataKey="n" tick={{fontSize:8,fill:t.textFaint}} interval={0} angle={-30} textAnchor="end" height={40}/>
+                    <YAxis tick={{fontSize:8,fill:t.textFaint}} domain={[-8,1]}/>
+                    <Tooltip content={<Tip theme={t}/>}/>
                     <ReferenceLine y={-5} stroke="#DC2626" strokeDasharray="3 3" label={{value:"-5%",fontSize:8,fill:"#DC2626"}}/>
                     <Bar dataKey="delta" name="CMJ Δ %" radius={[2,2,0,0]}>
                       {ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map((a,i)=>{const d=LIVE_SESSION.atletas[a.n].nm_response.cmj_delta_pct;return <Cell key={i} fill={d<-5?"#DC2626":d<-3?"#EA580C":"#16A34A"}/>;
@@ -2327,16 +2366,16 @@ export default function Dashboard(){
               </div>
               {/* Chart 3: Risk Delta */}
               <div>
-                <div style={{fontSize:10,fontWeight:600,color:"#64748b",marginBottom:6}}>Δ Risco de Lesão (%)</div>
+                <div style={{fontSize:10,fontWeight:600,color:t.textMuted,marginBottom:6}}>Δ Risco de Lesão (%)</div>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map(a=>{const s=LIVE_SESSION.atletas[a.n];return {n:a.n.split(" ")[0],delta:Number((s.risco.delta*100).toFixed(1))};})} margin={{left:-10}}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
-                    <XAxis dataKey="n" tick={{fontSize:8,fill:"#94a3b8"}} interval={0} angle={-30} textAnchor="end" height={40}/>
-                    <YAxis tick={{fontSize:8,fill:"#94a3b8"}} domain={[-3,5]}/>
-                    <Tooltip content={<Tip/>}/>
-                    <ReferenceLine y={0} stroke="#94a3b8"/>
+                    <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
+                    <XAxis dataKey="n" tick={{fontSize:8,fill:t.textFaint}} interval={0} angle={-30} textAnchor="end" height={40}/>
+                    <YAxis tick={{fontSize:8,fill:t.textFaint}} domain={[-3,5]}/>
+                    <Tooltip content={<Tip theme={t}/>}/>
+                    <ReferenceLine y={0} stroke={t.textFaint}/>
                     <Bar dataKey="delta" name="Δ Risco %" radius={[2,2,0,0]}>
-                      {ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map((a,i)=>{const d=LIVE_SESSION.atletas[a.n].risco.delta;return <Cell key={i} fill={d>0.02?"#DC2626":d>0?"#EA580C":d<-0.01?"#16A34A":"#64748b"}/>;
+                      {ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map((a,i)=>{const d=LIVE_SESSION.atletas[a.n].risco.delta;return <Cell key={i} fill={d>0.02?"#DC2626":d>0?"#EA580C":d<-0.01?"#16A34A":t.textMuted}/>;
                       })}
                     </Bar>
                   </BarChart>
@@ -2348,12 +2387,12 @@ export default function Dashboard(){
 
         {tab==="model"&&<div>
           {/* Model Header — 4-Layer Architecture */}
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
               <div>
                 <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Motor Preditivo de Lesões v4.0 — Elite</div>
-                <div style={{fontSize:12,color:"#94a3b8",marginTop:2}}>110 Features · KNNImputer → LASSO+MI → Optuna → SMOTE+Tomek → XGBoost → Calibração → SHAP</div>
-                <div style={{fontSize:10,color:"#64748b",marginTop:4}}>
+                <div style={{fontSize:12,color:t.textFaint,marginTop:2}}>110 Features · KNNImputer → LASSO+MI → Optuna → SMOTE+Tomek → XGBoost → Calibração → SHAP</div>
+                <div style={{fontSize:10,color:t.textMuted,marginTop:4}}>
                   {ML.pipeline.architecture}
                 </div>
               </div>
@@ -2364,10 +2403,10 @@ export default function Dashboard(){
                   {l:"F1-Score",v:ML.pipeline.xgboost.metrics.f1,c:"#2563eb"},
                   {l:"Recall",v:ML.pipeline.xgboost.metrics.recall,c:"#EA580C"},
                   {l:"Specificity",v:ML.pipeline.xgboost.metrics.specificity,c:"#16A34A"},
-                  {l:"MCC",v:ML.pipeline.xgboost.metrics.mcc,c:"#64748b"}
+                  {l:"MCC",v:ML.pipeline.xgboost.metrics.mcc,c:t.textMuted}
                 ].map((m,i)=>
-                  <div key={i} style={{textAlign:"center",padding:"4px 8px",background:"#f8fafc",borderRadius:8}}>
-                    <div style={{fontSize:8,color:"#94a3b8",fontWeight:600,textTransform:"uppercase"}}>{m.l}</div>
+                  <div key={i} style={{textAlign:"center",padding:"4px 8px",background:t.bgMuted,borderRadius:8}}>
+                    <div style={{fontSize:8,color:t.textFaint,fontWeight:600,textTransform:"uppercase"}}>{m.l}</div>
                     <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:700,color:m.c}}>{m.v}</div>
                   </div>)}
               </div>
@@ -2383,8 +2422,8 @@ export default function Dashboard(){
               ].map((l,i)=>
                 <div key={i} style={{padding:"10px 12px",borderRadius:8,border:`1px solid ${l.c}33`,background:`${l.c}08`}}>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:11,color:l.c}}>{l.n}</div>
-                  <div style={{fontSize:10,color:"#1e293b",marginTop:2,fontWeight:500}}>{l.desc}</div>
-                  <div style={{fontSize:9,color:"#94a3b8",marginTop:2}}>{l.detail}</div>
+                  <div style={{fontSize:10,color:t.text,marginTop:2,fontWeight:500}}>{l.desc}</div>
+                  <div style={{fontSize:9,color:t.textFaint,marginTop:2}}>{l.detail}</div>
                 </div>)}
             </div>
             {/* SMOTE Warning */}
@@ -2396,13 +2435,13 @@ export default function Dashboard(){
             </div>
             {/* LASSO vs XGBoost comparison */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginTop:10}}>
-              <div style={{padding:"8px 12px",background:"#f8fafc",borderRadius:6,border:"1px solid #e2e8f0"}}>
-                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:10,color:"#64748b"}}>LASSO (Baseline)</div>
+              <div style={{padding:"8px 12px",background:t.bgMuted,borderRadius:6,border:`1px solid ${t.border}`}}>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:10,color:t.textMuted}}>LASSO (Baseline)</div>
                 <div style={{display:"flex",gap:10,marginTop:4}}>
                   {[{l:"AUC",v:ML.pipeline.lasso.metrics.auc_roc},{l:"F1",v:ML.pipeline.lasso.metrics.f1},{l:"Recall",v:ML.pipeline.lasso.metrics.recall},{l:"Spec",v:ML.pipeline.lasso.metrics.specificity}].map((m,j)=>
-                    <span key={j} style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:"#94a3b8"}}>{m.l}: {m.v}</span>)}
+                    <span key={j} style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textFaint}}>{m.l}: {m.v}</span>)}
                 </div>
-                <div style={{fontSize:9,color:"#94a3b8",marginTop:2}}>Features eliminadas: {ML.pipeline.lasso.features_eliminated.join(", ")}</div>
+                <div style={{fontSize:9,color:t.textFaint,marginTop:2}}>Features eliminadas: {ML.pipeline.lasso.features_eliminated.join(", ")}</div>
               </div>
               <div style={{padding:"8px 12px",background:"#f0fdf4",borderRadius:6,border:"1px solid #BBF7D0"}}>
                 <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:10,color:"#16A34A"}}>XGBoost (Motor Principal)</div>
@@ -2417,20 +2456,20 @@ export default function Dashboard(){
 
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
             {/* Feature Importance with categories */}
-            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:4}}>Feature Importance — XGBoost + LASSO</div>
-              <div style={{fontSize:10,color:"#94a3b8",marginBottom:8}}>Cores: <span style={{color:"#DC2626"}}>Histórico</span> · <span style={{color:"#EA580C"}}>Carga</span> · <span style={{color:"#7c3aed"}}>Neuromuscular</span> · <span style={{color:"#2563eb"}}>Wellness</span> · <span style={{color:"#16A34A"}}>Biomecânica</span> · <span style={{color:"#CA8A04"}}>Interação</span> · <span style={{color:"#0891b2"}}>Temporal</span></div>
+              <div style={{fontSize:10,color:t.textFaint,marginBottom:8}}>Cores: <span style={{color:"#DC2626"}}>Histórico</span> · <span style={{color:"#EA580C"}}>Carga</span> · <span style={{color:"#7c3aed"}}>Neuromuscular</span> · <span style={{color:"#2563eb"}}>Wellness</span> · <span style={{color:"#16A34A"}}>Biomecânica</span> · <span style={{color:"#CA8A04"}}>Interação</span> · <span style={{color:"#0891b2"}}>Temporal</span></div>
               <ResponsiveContainer width="100%" height={560}>
                 <BarChart data={ML.features} layout="vertical" margin={{left:140}}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
-                  <XAxis type="number" tick={{fontSize:9,fill:"#94a3b8"}} domain={[0,0.12]}/>
-                  <YAxis type="category" dataKey="f" tick={{fontSize:8,fill:"#64748b"}} width={135}/>
+                  <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
+                  <XAxis type="number" tick={{fontSize:9,fill:t.textFaint}} domain={[0,0.12]}/>
+                  <YAxis type="category" dataKey="f" tick={{fontSize:8,fill:t.textMuted}} width={135}/>
                   <Tooltip content={({active,payload})=>{
                     if(!active||!payload?.length)return null;
                     const d=ML.features.find(f=>f.v===payload[0].value);
-                    return <div style={{background:"#fff",border:"1px solid #e2e8f0",borderRadius:8,padding:"10px 14px",fontSize:11,boxShadow:"0 4px 12px rgba(0,0,0,.08)",maxWidth:280}}>
+                    return <div style={{background:t.bgCard,border:`1px solid ${t.border}`,borderRadius:8,padding:"10px 14px",fontSize:11,boxShadow:"0 4px 12px rgba(0,0,0,.08)",maxWidth:280}}>
                       <div style={{fontWeight:700,color:pri,marginBottom:4}}>{d?.f}</div>
-                      <div style={{color:"#64748b",fontSize:10,marginBottom:4}}>{d?.desc}</div>
+                      <div style={{color:t.textMuted,fontSize:10,marginBottom:4}}>{d?.desc}</div>
                       <div style={{display:"flex",gap:12}}>
                         <span style={{fontFamily:"'JetBrains Mono'",fontSize:10}}>XGBoost: {d?.v}</span>
                         <span style={{fontFamily:"'JetBrains Mono'",fontSize:10}}>LASSO β: {d?.lasso_coef}</span>
@@ -2442,7 +2481,7 @@ export default function Dashboard(){
                     {ML.features.map((f,i)=><Cell key={i} fill={
                       f.cat==="hist"?"#DC2626":f.cat==="carga"?"#EA580C":f.cat==="neuromusc"?"#7c3aed":
                       f.cat==="wellness"?"#2563eb":f.cat==="biomecanica"?"#16A34A":f.cat==="bioquim"?"#DC2626":
-                      f.cat==="interação"?"#CA8A04":f.cat==="temporal"?"#0891b2":"#94a3b8"
+                      f.cat==="interação"?"#CA8A04":f.cat==="temporal"?"#0891b2":t.textFaint
                     }/>)}
                   </Bar>
                 </BarChart>
@@ -2450,9 +2489,9 @@ export default function Dashboard(){
             </div>
 
             {/* Clusters de Risco */}
-            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:4}}>Clusters de Risco — Sistemas Complexos</div>
-              <div style={{fontSize:10,color:"#94a3b8",marginBottom:10}}>Diagnóstico diferencial: Aguda vs Sobrecarga (Rommers et al., 2020)</div>
+              <div style={{fontSize:10,color:t.textFaint,marginBottom:10}}>Diagnóstico diferencial: Aguda vs Sobrecarga (Rommers et al., 2020)</div>
               <div style={{display:"flex",flexDirection:"column",gap:10}}>
                 {ML.clusters.map(cl=>
                   <div key={cl.id} style={{padding:12,borderRadius:10,border:`1px solid ${cl.c}22`,background:`${cl.c}08`}}>
@@ -2466,11 +2505,11 @@ export default function Dashboard(){
                         }}>{cl.type==="aguda"?"AGUDA":"SOBRECARGA"}</span>
                       </div>
                       <div style={{display:"flex",gap:8}}>
-                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:"#64748b"}}>{cl.ep} episódios</span>
+                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textMuted}}>{cl.ep} episódios</span>
                         <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,fontWeight:700,color:cl.c,padding:"1px 6px",borderRadius:4,background:`${cl.c}15`}}>{cl.rate}% lesão</span>
                       </div>
                     </div>
-                    <div style={{fontSize:10,color:"#64748b",fontFamily:"'JetBrains Mono'",marginBottom:4}}>{cl.rule}</div>
+                    <div style={{fontSize:10,color:t.textMuted,fontFamily:"'JetBrains Mono'",marginBottom:4}}>{cl.rule}</div>
                     <div style={{fontSize:11,color:cl.c,fontWeight:500}}>{cl.action}</div>
                   </div>
                 )}
@@ -2479,11 +2518,11 @@ export default function Dashboard(){
           </div>
 
           {/* Saída Clínica SHAP — Por Atleta */}
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
               <div>
                 <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Saída Clínica SHAP — Prontidão Próxima Sessão</div>
-                <div style={{fontSize:11,color:"#94a3b8"}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · Explicabilidade por atleta: quais variáveis geraram cada alerta</div>
+                <div style={{fontSize:11,color:t.textFaint}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · Explicabilidade por atleta: quais variáveis geraram cada alerta</div>
               </div>
               <div style={{display:"flex",gap:8}}>
                 {[{l:"Vermelho",c:"#DC2626",n:ML.alerts.filter(a=>a.zone==="VERMELHO").length},
@@ -2505,7 +2544,7 @@ export default function Dashboard(){
                     <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
                       <span style={{display:"inline-block",width:10,height:10,borderRadius:"50%",background:zs.c,flexShrink:0}}/>
                       <span style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:13,color:pri}}>{a.n}</span>
-                      <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:"#94a3b8"}}>{a.pos}</span>
+                      <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textFaint}}>{a.pos}</span>
                       <span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:700,background:zs.bg,color:zs.c,border:`1px solid ${zs.bc}`}}>{a.zone}</span>
                       <span style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:zs.c}}>{(a.prob*100).toFixed(0)}%</span>
                       {a.perfil_risco&&(()=>{const pr=PERFIL_RISCO_LABELS[a.perfil_risco];return <span style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:700,background:pr.bg,color:pr.c,border:`1px solid ${pr.bc}`}}>{pr.label}</span>;})()}
@@ -2513,7 +2552,7 @@ export default function Dashboard(){
                     <div style={{display:"flex",gap:6,flexShrink:0}}>
                       {[{l:"ACWR",v:a.acwr,c:a.acwr>1.3?"#DC2626":pri},{l:"CK/B",v:a.ck+"x",c:a.ck>3?"#DC2626":a.ck>2?"#EA580C":pri},{l:"CMJ",v:(a.cmj>0?"+":"")+a.cmj+"%",c:a.cmj<-8?"#DC2626":a.cmj<-5?"#EA580C":"#16A34A"},{l:"Sono",v:a.sono,c:a.sono<6?"#DC2626":a.sono<7?"#CA8A04":"#16A34A"}].map((m,j)=>
                         <div key={j} style={{textAlign:"center",padding:"2px 6px"}}>
-                          <div style={{fontSize:8,color:"#94a3b8"}}>{m.l}</div>
+                          <div style={{fontSize:8,color:t.textFaint}}>{m.l}</div>
                           <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:m.c}}>{m.v}</div>
                         </div>)}
                     </div>
@@ -2530,13 +2569,13 @@ export default function Dashboard(){
                           const maxSv=Math.max(...a.shap_pos.map(x=>x.sv));
                           return <div key={j} style={{marginBottom:4}}>
                             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:1}}>
-                              <span style={{fontSize:10,fontWeight:600,color:"#1e293b"}}>{s.f}</span>
+                              <span style={{fontSize:10,fontWeight:600,color:t.text}}>{s.f}</span>
                               <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,fontWeight:700,color:"#DC2626"}}>+{s.sv.toFixed(3)} ({s.v})</span>
                             </div>
-                            <div style={{height:4,background:"#f1f5f9",borderRadius:4}}>
+                            <div style={{height:4,background:t.bgMuted2,borderRadius:4}}>
                               <div style={{height:"100%",width:`${(s.sv/maxSv)*100}%`,background:"#DC2626",borderRadius:4,opacity:0.7}}/>
                             </div>
-                            <div style={{fontSize:8,color:"#94a3b8",marginTop:1}}>{s.note}</div>
+                            <div style={{fontSize:8,color:t.textFaint,marginTop:1}}>{s.note}</div>
                           </div>;
                         })}
                       </div>
@@ -2547,13 +2586,13 @@ export default function Dashboard(){
                           const maxSv=Math.max(...a.shap_neg.map(x=>Math.abs(x.sv)));
                           return <div key={j} style={{marginBottom:4}}>
                             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:1}}>
-                              <span style={{fontSize:10,fontWeight:600,color:"#1e293b"}}>{s.f}</span>
+                              <span style={{fontSize:10,fontWeight:600,color:t.text}}>{s.f}</span>
                               <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,fontWeight:700,color:"#16A34A"}}>{s.sv.toFixed(3)} ({s.v})</span>
                             </div>
-                            <div style={{height:4,background:"#f1f5f9",borderRadius:4}}>
+                            <div style={{height:4,background:t.bgMuted2,borderRadius:4}}>
                               <div style={{height:"100%",width:`${(Math.abs(s.sv)/maxSv)*100}%`,background:"#16A34A",borderRadius:4,opacity:0.7}}/>
                             </div>
-                            <div style={{fontSize:8,color:"#94a3b8",marginTop:1}}>{s.note}</div>
+                            <div style={{fontSize:8,color:t.textFaint,marginTop:1}}>{s.note}</div>
                           </div>;
                         })}
                       </div>
@@ -2565,13 +2604,13 @@ export default function Dashboard(){
                         <div style={{fontSize:9,color:"#2563EB",fontWeight:700,marginBottom:3}}>DIAGNÓSTICO DIFERENCIAL</div>
                         <div style={{display:"flex",gap:8,marginBottom:3}}>
                           <div style={{textAlign:"center",flex:1}}>
-                            <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:800,color:a.diag_diff.aguda>50?"#DC2626":"#64748b"}}>{a.diag_diff.aguda}%</div>
-                            <div style={{fontSize:8,color:"#64748b"}}>Aguda</div>
+                            <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:800,color:a.diag_diff.aguda>50?"#DC2626":t.textMuted}}>{a.diag_diff.aguda}%</div>
+                            <div style={{fontSize:8,color:t.textMuted}}>Aguda</div>
                           </div>
                           <div style={{width:1,background:"#BFDBFE"}}/>
                           <div style={{textAlign:"center",flex:1}}>
-                            <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:800,color:a.diag_diff.sobrecarga>50?"#EA580C":"#64748b"}}>{a.diag_diff.sobrecarga}%</div>
-                            <div style={{fontSize:8,color:"#64748b"}}>Sobrecarga</div>
+                            <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:800,color:a.diag_diff.sobrecarga>50?"#EA580C":t.textMuted}}>{a.diag_diff.sobrecarga}%</div>
+                            <div style={{fontSize:8,color:t.textMuted}}>Sobrecarga</div>
                           </div>
                         </div>
                         <div style={{fontSize:9,color:"#1e40af",lineHeight:1.4}}>{a.diag_diff.base}</div>
@@ -2593,8 +2632,8 @@ export default function Dashboard(){
                         {l:"Monotonia",v:ext.monotonia,c:ext.monotonia>2?"#DC2626":ext.monotonia>1.5?"#CA8A04":"#16A34A"},
                         {l:"HSR ACWR",v:ext.hsr_acwr,c:ext.hsr_acwr>1.3?"#DC2626":ext.hsr_acwr>1?"#CA8A04":"#16A34A"}
                       ].map((m,j)=>
-                        <div key={j} style={{textAlign:"center",padding:"4px",background:"#f8fafc",borderRadius:4}}>
-                          <div style={{fontSize:7,color:"#94a3b8",fontWeight:600}}>{m.l}</div>
+                        <div key={j} style={{textAlign:"center",padding:"4px",background:t.bgMuted,borderRadius:4}}>
+                          <div style={{fontSize:7,color:t.textFaint,fontWeight:600}}>{m.l}</div>
                           <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:m.c}}>{m.v}</div>
                         </div>)}
                     </div>}
@@ -2607,13 +2646,13 @@ export default function Dashboard(){
 
         {tab==="retro"&&<div>
           {/* Header */}
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Análise Retrospectiva de Lesões</div>
-            <div style={{fontSize:12,color:"#94a3b8",marginTop:2}}>Temporada 2025/2026 · {INJ_HISTORY.length} casos documentados · Correlação pré-lesão com marcadores multidisciplinares</div>
+            <div style={{fontSize:12,color:t.textFaint,marginTop:2}}>Temporada 2025/2026 · {INJ_HISTORY.length} casos documentados · Correlação pré-lesão com marcadores multidisciplinares</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginTop:14}}>
               {[{l:"Total de Lesões",v:INJ_HISTORY.length,c:acc},{l:"Dias Perdidos",v:INJ_HISTORY.reduce((s,i)=>s+i.total,0),c:"#DC2626"},{l:"Avg Dias Fora",v:(INJ_HISTORY.reduce((s,i)=>s+i.total,0)/INJ_HISTORY.length).toFixed(1),c:"#EA580C"},{l:"Atletas Afetados",v:new Set(INJ_HISTORY.map(i=>i.n)).size,c:"#CA8A04"}].map((k,i)=>
-                <div key={i} style={{textAlign:"center",padding:"12px",background:"#f8fafc",borderRadius:10}}>
-                  <div style={{fontSize:9,color:"#94a3b8",fontWeight:600,textTransform:"uppercase",letterSpacing:.5}}>{k.l}</div>
+                <div key={i} style={{textAlign:"center",padding:"12px",background:t.bgMuted,borderRadius:10}}>
+                  <div style={{fontSize:9,color:t.textFaint,fontWeight:600,textTransform:"uppercase",letterSpacing:.5}}>{k.l}</div>
                   <div style={{fontFamily:"'JetBrains Mono'",fontSize:24,fontWeight:800,color:k.c,marginTop:2}}>{k.v}</div>
                 </div>)}
             </div>
@@ -2621,15 +2660,15 @@ export default function Dashboard(){
 
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
             {/* Padrões Pré-Lesão */}
-            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:4}}>Padrões Pré-Lesão — Prevalência nos Casos</div>
-              <div style={{fontSize:10,color:"#94a3b8",marginBottom:12}}>Frequência de cada fator nos 7 dias que precederam as lesões</div>
+              <div style={{fontSize:10,color:t.textFaint,marginBottom:12}}>Frequência de cada fator nos 7 dias que precederam as lesões</div>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={INJ_PATTERNS} layout="vertical" margin={{left:130}}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
-                  <XAxis type="number" tick={{fontSize:9,fill:"#94a3b8"}} domain={[0,100]} tickFormatter={v=>v+"%"}/>
-                  <YAxis type="category" dataKey="pattern" tick={{fontSize:10,fill:"#64748b"}} width={125}/>
-                  <Tooltip content={<Tip/>}/>
+                  <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
+                  <XAxis type="number" tick={{fontSize:9,fill:t.textFaint}} domain={[0,100]} tickFormatter={v=>v+"%"}/>
+                  <YAxis type="category" dataKey="pattern" tick={{fontSize:10,fill:t.textMuted}} width={125}/>
+                  <Tooltip content={<Tip theme={t}/>}/>
                   <Bar dataKey="pct" name="Prevalência %" radius={[0,4,4,0]}>
                     {INJ_PATTERNS.map((p,i)=><Cell key={i} fill={p.c}/>)}
                   </Bar>
@@ -2638,22 +2677,22 @@ export default function Dashboard(){
             </div>
 
             {/* Multiplicador de Risco */}
-            <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+            <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:4}}>Multiplicador de Risco Relativo</div>
-              <div style={{fontSize:10,color:"#94a3b8",marginBottom:12}}>Quanto cada fator aumenta a probabilidade de lesão vs ausência do fator</div>
+              <div style={{fontSize:10,color:t.textFaint,marginBottom:12}}>Quanto cada fator aumenta a probabilidade de lesão vs ausência do fator</div>
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {INJ_PATTERNS.sort((a,b)=>b.risk_mult-a.risk_mult).map((p,i)=>
                   <div key={i} style={{display:"flex",alignItems:"center",gap:10}}>
                     <div style={{width:50,textAlign:"right",fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:800,color:p.c}}>{p.risk_mult}x</div>
                     <div style={{flex:1}}>
                       <div style={{display:"flex",justifyContent:"space-between",marginBottom:2}}>
-                        <span style={{fontSize:11,fontWeight:600,color:"#1e293b"}}>{p.pattern}</span>
-                        <span style={{fontSize:10,color:"#94a3b8"}}>{p.present_in}/{p.total} casos</span>
+                        <span style={{fontSize:11,fontWeight:600,color:t.text}}>{p.pattern}</span>
+                        <span style={{fontSize:10,color:t.textFaint}}>{p.present_in}/{p.total} casos</span>
                       </div>
-                      <div style={{height:6,background:"#f1f5f9",borderRadius:4}}>
+                      <div style={{height:6,background:t.bgMuted2,borderRadius:4}}>
                         <div style={{height:"100%",width:`${(p.risk_mult/4)*100}%`,background:p.c,borderRadius:4,transition:"width .6s"}}/>
                       </div>
-                      <div style={{fontSize:9,color:"#94a3b8",marginTop:2}}>{p.desc}</div>
+                      <div style={{fontSize:9,color:t.textFaint,marginTop:2}}>{p.desc}</div>
                     </div>
                   </div>
                 )}
@@ -2662,23 +2701,23 @@ export default function Dashboard(){
           </div>
 
           {/* Casos Individuais */}
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18,marginBottom:16}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:14}}>Casos de Lesão — Análise Individual</div>
             <div style={{display:"flex",flexDirection:"column",gap:14}}>
               {INJ_HISTORY.map(inj=>{
-                const svC=inj.classif.includes("4C")?"#DC2626":inj.classif.includes("2")?"#EA580C":inj.classif==="1A"||inj.classif==="1B"?"#CA8A04":inj.classif.includes("Lig")?"#7c3aed":"#64748b";
+                const svC=inj.classif.includes("4C")?"#DC2626":inj.classif.includes("2")?"#EA580C":inj.classif==="1A"||inj.classif==="1B"?"#CA8A04":inj.classif.includes("Lig")?"#7c3aed":t.textMuted;
                 const isActive=!inj.fim_trans;
-                return <div key={inj.id} style={{borderRadius:12,border:`1px solid ${isActive?"#FECACA":"#e2e8f0"}`,overflow:"hidden"}}>
+                return <div key={inj.id} style={{borderRadius:12,border:`1px solid ${isActive?"#FECACA":t.border}`,overflow:"hidden"}}>
                   {/* Case Header */}
-                  <div style={{padding:"12px 16px",background:isActive?"#FEF2F2":"#f8fafc",borderBottom:"1px solid #e2e8f0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div style={{padding:"12px 16px",background:isActive?"#FEF2F2":t.bgMuted,borderBottom:`1px solid ${t.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                     <div style={{display:"flex",alignItems:"center",gap:12}}>
                       <span style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:14,color:pri,cursor:"pointer"}} onClick={()=>{setSel(inj.n);setTab("player")}}>{inj.n}</span>
-                      <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:"#94a3b8"}}>{inj.pos}</span>
+                      <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textFaint}}>{inj.pos}</span>
                       <span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:700,background:`${svC}15`,color:svC,border:`1px solid ${svC}33`}}>{inj.classif}</span>
                       {isActive&&<span style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:700,background:"#DC262620",color:"#DC2626",border:"1px solid #DC262633"}}>ATIVO — {inj.estagio}</span>}
                     </div>
                     <div style={{display:"flex",alignItems:"center",gap:12}}>
-                      <span style={{fontSize:11,color:"#64748b"}}>{new Date(inj.date).toLocaleDateString("pt-BR")}</span>
+                      <span style={{fontSize:11,color:t.textMuted}}>{new Date(inj.date).toLocaleDateString("pt-BR")}</span>
                       <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:"#DC2626"}}>{inj.total} dias{isActive?" (em curso)":""}</span>
                     </div>
                   </div>
@@ -2686,30 +2725,30 @@ export default function Dashboard(){
                   <div style={{padding:16}}>
                     <div style={{display:"flex",gap:16,marginBottom:12}}>
                       <div style={{flex:1}}>
-                        <div style={{fontSize:10,color:"#94a3b8",fontWeight:600,textTransform:"uppercase",letterSpacing:.5,marginBottom:6}}>Diagnóstico</div>
+                        <div style={{fontSize:10,color:t.textFaint,fontWeight:600,textTransform:"uppercase",letterSpacing:.5,marginBottom:6}}>Diagnóstico</div>
                         <div style={{fontSize:12,fontWeight:600,color:pri}}>{inj.regiao} — {inj.lado}</div>
-                        <div style={{fontSize:11,color:"#64748b",marginTop:2}}>Estrutura: <strong>{inj.estrutura}</strong></div>
-                        <div style={{fontSize:11,color:"#64748b",marginTop:1}}>Exame: {inj.exame}</div>
+                        <div style={{fontSize:11,color:t.textMuted,marginTop:2}}>Estrutura: <strong>{inj.estrutura}</strong></div>
+                        <div style={{fontSize:11,color:t.textMuted,marginTop:1}}>Exame: {inj.exame}</div>
                         {inj.obs&&<div style={{fontSize:10,color:"#EA580C",marginTop:2,fontStyle:"italic"}}>{inj.obs}</div>}
                       </div>
                       <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6,flex:2}}>
                         {[
                           {l:"Classif.",v:inj.classif,c:svC},
-                          {l:"Evento",v:inj.evento,c:"#64748b"},
+                          {l:"Evento",v:inj.evento,c:t.textMuted},
                           {l:"Mecanismo",v:inj.mecanismo,c:inj.mecanismo==="Sprint"||inj.mecanismo==="Trauma direto"?"#DC2626":"#EA580C"},
                           {l:"Dias DM",v:inj.dias_dm,c:inj.dias_dm>30?"#DC2626":inj.dias_dm>14?"#EA580C":"#CA8A04"},
-                          {l:"Dias Trans.",v:inj.dias_trans||"—",c:"#64748b"}
+                          {l:"Dias Trans.",v:inj.dias_trans||"—",c:t.textMuted}
                         ].map((m,j)=>
-                          <div key={j} style={{textAlign:"center",padding:"6px 4px",background:"#f8fafc",borderRadius:6}}>
-                            <div style={{fontSize:8,color:"#94a3b8",fontWeight:600}}>{m.l}</div>
+                          <div key={j} style={{textAlign:"center",padding:"6px 4px",background:t.bgMuted,borderRadius:6}}>
+                            <div style={{fontSize:8,color:t.textFaint,fontWeight:600}}>{m.l}</div>
                             <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:m.c}}>{m.v}</div>
                           </div>)}
                       </div>
                     </div>
                     {/* Timeline */}
-                    <div style={{marginBottom:10,padding:"8px 12px",background:"#f8fafc",borderRadius:8}}>
-                      <div style={{fontSize:10,color:"#94a3b8",fontWeight:700,marginBottom:4}}>TIMELINE</div>
-                      <div style={{display:"flex",gap:16,fontSize:10,color:"#64748b"}}>
+                    <div style={{marginBottom:10,padding:"8px 12px",background:t.bgMuted,borderRadius:8}}>
+                      <div style={{fontSize:10,color:t.textFaint,fontWeight:700,marginBottom:4}}>TIMELINE</div>
+                      <div style={{display:"flex",gap:16,fontSize:10,color:t.textMuted}}>
                         <span>Lesão: <strong>{new Date(inj.date).toLocaleDateString("pt-BR")}</strong></span>
                         {inj.saida_dm&&<span>Saída DM: <strong>{new Date(inj.saida_dm).toLocaleDateString("pt-BR")}</strong></span>}
                         {inj.ini_trans&&<span>Início Trans.: <strong>{new Date(inj.ini_trans).toLocaleDateString("pt-BR")}</strong></span>}
@@ -2736,26 +2775,26 @@ export default function Dashboard(){
           </div>
 
           {/* Regras de Prevenção */}
-          <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:18}}>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:4}}>Regras de Prevenção — Derivadas dos Casos</div>
-            <div style={{fontSize:10,color:"#94a3b8",marginBottom:14}}>Gatilhos automáticos implementados no sistema de monitoramento diário</div>
+            <div style={{fontSize:10,color:t.textFaint,marginBottom:14}}>Gatilhos automáticos implementados no sistema de monitoramento diário</div>
             <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
               <thead>
-                <tr style={{borderBottom:"2px solid #e2e8f0"}}>
+                <tr style={{borderBottom:`2px solid ${t.border}`}}>
                   {["Prioridade","Gatilho","Ação Automática","Janela","Evidência"].map((h,i)=>
-                    <th key={i} style={{padding:"8px 6px",textAlign:"left",fontSize:9,color:"#94a3b8",fontWeight:700,textTransform:"uppercase",letterSpacing:.5}}>{h}</th>
+                    <th key={i} style={{padding:"8px 6px",textAlign:"left",fontSize:9,color:t.textFaint,fontWeight:700,textTransform:"uppercase",letterSpacing:.5}}>{h}</th>
                   )}
                 </tr>
               </thead>
               <tbody>
                 {PREVENTION.map((p,i)=>{
                   const pc=p.priority==="CRÍTICA"?"#DC2626":p.priority==="ALTA"?"#EA580C":"#CA8A04";
-                  return <tr key={i} style={{borderBottom:"1px solid #f1f5f9",background:i%2===0?"transparent":"#fafbfc"}}>
+                  return <tr key={i} style={{borderBottom:"1px solid #f1f5f9",background:i%2===0?"transparent":t.bgMuted}}>
                     <td style={{padding:"8px 6px"}}><span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:700,background:`${pc}12`,color:pc,border:`1px solid ${pc}33`}}>{p.priority}</span></td>
                     <td style={{padding:"8px 6px",fontFamily:"'JetBrains Mono'",fontSize:10,fontWeight:600,color:pri}}>{p.trigger}</td>
-                    <td style={{padding:"8px 6px",fontWeight:500,color:"#1e293b"}}>{p.action}</td>
-                    <td style={{padding:"8px 6px",fontFamily:"'JetBrains Mono'",fontSize:10,color:"#64748b"}}>{p.window}</td>
-                    <td style={{padding:"8px 6px",fontSize:10,color:"#64748b",fontStyle:"italic"}}>{p.evidence}</td>
+                    <td style={{padding:"8px 6px",fontWeight:500,color:t.text}}>{p.action}</td>
+                    <td style={{padding:"8px 6px",fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textMuted}}>{p.window}</td>
+                    <td style={{padding:"8px 6px",fontSize:10,color:t.textMuted,fontStyle:"italic"}}>{p.evidence}</td>
                   </tr>;
                 })}
               </tbody>

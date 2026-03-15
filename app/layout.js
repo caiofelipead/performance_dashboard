@@ -7,5 +7,5 @@ export const metadata = {
   },
 };
 export default function RootLayout({ children }) {
-  return (<html lang="pt-BR"><body style={{ margin: 0 }}>{children}</body></html>);
+  return (<html lang="pt-BR"><body style={{ margin: 0, transition: "background .3s" }}>{children}</body></html>);
 }
