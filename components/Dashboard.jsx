@@ -648,9 +648,9 @@ const INJ_HISTORY=[
     dias_dm:10,dias_trans:8,total:18,classif:"1A",regiao:"Perna Posterior",lado:"Esquerdo",evento:"Camp. Paulista",mecanismo:"Sprint",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",
     lesson:"Sprint em jogo oficial. Sóleo esquerdo — padrão de perna posterior que domina as lesões do elenco. .",
     protocol:"Excêntrico de sóleo bilateral. Limitar volume de sprint pós-retorno. Monitorar wellness como indicador de recarga tecidual."},
-  {id:11,n:"PATRICK BREY",pos:"LE",date:"2026-02-08",saida_dm:"2026-03-02",ini_trans:"2026-03-02",fim_trans:null,
-    dias_dm:23,dias_trans:10,total:33,classif:"Ligamentar II",regiao:"Joelho",lado:"Esquerdo",evento:"Camp. Paulista",mecanismo:"Trauma direto",estrutura:"LCM",exame:"RNM",estagio:"Fase 3",conduta:"Afastado",prognostico:"2026-04-02",
-    lesson:"Lesão ligamentar grau II de LCM por trauma direto em jogo. Prognóstico de retorno em 02/Abr. Fase 3 — ainda afastado. Perda estimada de 4-5 jogos da Série B.",
+  {id:11,n:"PATRICK BREY",pos:"LE",date:"2026-02-08",saida_dm:"2026-03-02",ini_trans:"2026-03-02",fim_trans:"2026-03-12",
+    dias_dm:23,dias_trans:10,total:33,classif:"Ligamentar II",regiao:"Joelho",lado:"Esquerdo",evento:"Camp. Paulista",mecanismo:"Trauma direto",estrutura:"LCM",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",prognostico:"2026-04-02",
+    lesson:"Lesão ligamentar grau II de LCM por trauma direto em jogo. Retornou aos treinos em 12/Mar (33 dias). Monitoramento de manutenção ativo.",
     protocol:"Reabilitação ligamentar progressiva. Fortalecimento de quadríceps + isquiotibiais bilateral. Propriocepção + agilidade antes de retorno."},
   {id:12,n:"GABRIEL INOCENCIO",pos:"LAT",date:"2026-03-06",saida_dm:"2026-03-12",ini_trans:"2026-03-13",fim_trans:null,
     dias_dm:7,dias_trans:null,total:6,classif:"Contratura",regiao:"Perna Posterior",lado:"Esquerdo",evento:"Amistoso",mecanismo:"Dor Tardia",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 1",conduta:"Afastado",
@@ -671,38 +671,66 @@ const INJ_HISTORY=[
 ];
 
 // Status atual do DM — calculado dinamicamente a partir de INJ_HISTORY
+// Retorna: { afastados: [...], retornados_recentes: [...] }
 function getDmAtual() {
   const today = new Date();
   today.setHours(0,0,0,0);
-  return INJ_HISTORY
-    .filter(inj => {
-      // Lesão ativa = sem fim_trans OU fim_trans é no futuro
-      if (!inj.fim_trans) return true;
-      const fim = new Date(inj.fim_trans);
-      return fim >= today;
-    })
-    .map(inj => {
-      const dtLesao = new Date(inj.date);
-      const dias = Math.round((today - dtLesao) / 86400000);
-      const progStr = inj.prognostico || (inj.fim_trans ? new Date(inj.fim_trans).toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}) : "Em avaliação");
-      // Estágio estimado pelo tempo
-      let estagio = inj.estagio;
-      if (!inj.fim_trans) {
-        if (dias > 30) estagio = "Fase 3";
-        else if (dias > 14) estagio = "Fase 2";
-        else estagio = "Fase 1";
-      }
-      return {
-        n: inj.n, pos: inj.pos, classif: inj.classif,
-        regiao: `${inj.regiao} ${inj.lado?inj.lado[0]:""} — ${inj.estrutura}`,
-        dias, estagio, conduta: inj.conduta,
-        prognostico: progStr,
-        desde: dtLesao.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})
-      };
-    })
-    .sort((a,b) => b.dias - a.dias);
+  const afastados = [];
+  const retornados = [];
+
+  // Pegar a lesão mais recente de cada atleta para evitar duplicação
+  const latestByAthlete = {};
+  for (const inj of INJ_HISTORY) {
+    const existing = latestByAthlete[inj.n];
+    if (!existing || new Date(inj.date) > new Date(existing.date)) {
+      latestByAthlete[inj.n] = inj;
+    }
+  }
+
+  for (const inj of Object.values(latestByAthlete)) {
+    const dtLesao = new Date(inj.date);
+    const dias = Math.round((today - dtLesao) / 86400000);
+    const fimTrans = inj.fim_trans ? new Date(inj.fim_trans) : null;
+    const retornou = fimTrans && fimTrans < today;
+    const diasRetorno = retornou ? Math.round((today - fimTrans) / 86400000) : null;
+
+    // Estágio estimado
+    let estagio = inj.estagio;
+    if (retornou) {
+      estagio = "Fase 4";
+    } else if (!inj.fim_trans) {
+      if (dias > 30) estagio = "Fase 3";
+      else if (dias > 14) estagio = "Fase 2";
+      else estagio = "Fase 1";
+    }
+
+    const entry = {
+      n: inj.n, pos: inj.pos, classif: inj.classif,
+      regiao: `${inj.regiao} ${inj.lado?inj.lado[0]:""} — ${inj.estrutura}`,
+      dias, estagio,
+      conduta: retornou ? "Retornou" : inj.conduta,
+      prognostico: inj.prognostico ? new Date(inj.prognostico).toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}) : "Em avaliação",
+      retorno_real: fimTrans ? fimTrans.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}) : null,
+      dias_retorno: diasRetorno,
+      desde: dtLesao.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})
+    };
+
+    if (retornou) {
+      // Mostrar retornados recentes (últimos 30 dias desde retorno)
+      if (diasRetorno <= 30) retornados.push(entry);
+    } else {
+      afastados.push(entry);
+    }
+  }
+
+  return {
+    afastados: afastados.sort((a,b) => b.dias - a.dias),
+    retornados: retornados.sort((a,b) => a.dias_retorno - b.dias_retorno),
+    todos: [...afastados, ...retornados].sort((a,b) => b.dias - a.dias)
+  };
 }
-const DM_ATUAL = getDmAtual();
+const DM_DATA = getDmAtual();
+const DM_ATUAL = DM_DATA.afastados;
 
 // Correlação epidemiológica — padrões reais do elenco (14 lesões documentadas)
 const INJ_PATTERNS=[
@@ -1073,7 +1101,12 @@ export default function Dashboard(){
       {/* SIDEBAR */}
       <aside style={{width:240,flexShrink:0}}>
         <div style={{fontSize:10,fontWeight:700,color:t.textFaint,letterSpacing:1.5,textTransform:"uppercase",marginBottom:2,paddingLeft:4}}>Elenco — Risco</div>
-        <div style={{fontSize:8,color:t.textFaintest,marginBottom:8,paddingLeft:4}}>Score: wellness + carga do dia</div>
+        <div style={{fontSize:8,color:t.textFaintest,marginBottom:4,paddingLeft:4}}>Risk Score: composto de ACWR, Dor, Rec. Pernas, Dor média, Sono e Wellness. Quanto maior, mais atenção necessária.</div>
+        <div style={{display:"flex",gap:4,marginBottom:8,paddingLeft:4,flexWrap:"wrap"}}>
+          {[{l:"Crítico",c:"#DC2626",r:"≥40"},{l:"Alto",c:"#EA580C",r:"20–39"},{l:"Moderado",c:"#CA8A04",r:"8–19"},{l:"Ótimo",c:"#16A34A",r:"<8"}].map((z,i)=>
+            <span key={i} style={{fontSize:7,padding:"1px 5px",borderRadius:4,background:`${z.c}12`,color:z.c,border:`1px solid ${z.c}30`,fontWeight:600}}>{z.l} ({z.r})</span>
+          )}
+        </div>
         <div style={{display:"flex",flexDirection:"column",gap:4,maxHeight:"calc(100vh - 100px)",overflowY:"auto",paddingRight:4}}>
           {players.map(p=><div key={p.n} onClick={()=>{setSel(p.n);setTab("player")}} style={{background:sel===p.n?t.bgCard:"transparent",border:`1px solid ${sel===p.n?t.border:"transparent"}`,borderRadius:10,padding:"8px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,transition:"all .15s",boxShadow:sel===p.n?`0 2px 8px ${t.shadow}`:"none"}}>
             <PlayerPhoto theme={t} name={p.n} sz={34}/>
@@ -1797,14 +1830,15 @@ export default function Dashboard(){
               <div style={{padding:"12px 16px",background:"#FEF2F2",borderBottom:"1px solid #FECACA",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:"#DC2626"}}>Departamento Médico — Atual</div>
-                  <div style={{fontSize:10,color:t.textFaint}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · {DM_ATUAL.length} atletas afastados</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · {DM_ATUAL.length} afastados · {DM_DATA.retornados.length} em manutenção</div>
                 </div>
                 <div style={{fontFamily:"'JetBrains Mono'",fontSize:20,fontWeight:800,color:"#DC2626"}}>{DM_ATUAL.length}</div>
               </div>
               <div style={{padding:12}}>
+                {/* Afastados */}
                 {DM_ATUAL.map((p,i)=>{
                   const ec=p.estagio==="Fase 1"||p.estagio==="Pré-op"?"#DC2626":p.estagio==="Fase 2"?"#EA580C":p.estagio==="Fase 3"?"#CA8A04":"#16A34A";
-                  return <div key={i} style={{padding:"10px 12px",background:i%2===0?"#FEF2F2":t.bgCard,borderRadius:8,marginBottom:6,border:"1px solid #FECACA44"}}>
+                  return <div key={`af-${i}`} style={{padding:"10px 12px",background:i%2===0?"#FEF2F2":t.bgCard,borderRadius:8,marginBottom:6,border:"1px solid #FECACA44"}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
                       <div style={{display:"flex",alignItems:"center",gap:8}}>
                         <span style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:"#DC2626",cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>{p.n}</span>
@@ -1814,14 +1848,37 @@ export default function Dashboard(){
                       <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:"#DC2626"}}>{p.dias}d</span>
                     </div>
                     <div style={{fontSize:10,color:t.textMuted}}>{p.regiao}</div>
-                    <div style={{display:"flex",gap:12,marginTop:3,fontSize:9,color:t.textFaint}}>
+                    <div style={{display:"flex",gap:12,marginTop:3,fontSize:9,color:t.textFaint,flexWrap:"wrap"}}>
                       <span>Desde: <strong>{p.desde}</strong></span>
                       <span style={{color:ec}}>● {p.estagio}</span>
                       <span>{p.conduta}</span>
-                      <span>Retorno: <strong style={{color:"#2563EB"}}>{p.prognostico}</strong></span>
+                      <span>Prognóstico: <strong style={{color:"#2563EB"}}>{p.prognostico}</strong></span>
                     </div>
                   </div>;
                 })}
+                {/* Retornados recentes (em manutenção) */}
+                {DM_DATA.retornados.length>0&&<>
+                  <div style={{fontSize:9,fontWeight:700,color:"#16A34A",letterSpacing:1,textTransform:"uppercase",marginTop:8,marginBottom:6,paddingLeft:4}}>Retornados — Em Manutenção</div>
+                  {DM_DATA.retornados.map((p,i)=>{
+                    return <div key={`ret-${i}`} style={{padding:"8px 12px",background:i%2===0?"#F0FDF4":t.bgCard,borderRadius:8,marginBottom:4,border:"1px solid #BBF7D044"}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <span style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:"#16A34A",cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>{p.n}</span>
+                          <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:t.textFaint}}>{p.pos}</span>
+                          <span style={{padding:"1px 6px",borderRadius:4,fontSize:9,fontWeight:600,background:"#F0FDF4",color:"#16A34A",border:"1px solid #BBF7D0"}}>{p.classif}</span>
+                        </div>
+                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,fontWeight:600,color:"#16A34A"}}>+{p.dias_retorno}d treino</span>
+                      </div>
+                      <div style={{fontSize:10,color:t.textMuted}}>{p.regiao}</div>
+                      <div style={{display:"flex",gap:12,marginTop:3,fontSize:9,color:t.textFaint,flexWrap:"wrap"}}>
+                        <span>Lesão: <strong>{p.desde}</strong></span>
+                        <span>Prognóstico: <strong style={{color:"#CA8A04"}}>{p.prognostico}</strong></span>
+                        <span>Retorno real: <strong style={{color:"#16A34A"}}>{p.retorno_real}</strong></span>
+                        <span style={{color:"#16A34A"}}>● {p.estagio} — Manutenção</span>
+                      </div>
+                    </div>;
+                  })}
+                </>}
               </div>
             </div>
 
