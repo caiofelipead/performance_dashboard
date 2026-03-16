@@ -77,8 +77,6 @@ ATHLETES = [
      "cmj_baseline": 47.0, "iso_baseline_l": 320, "iso_baseline_r": 310, "ck_basal": 200},
     {"name": "ERIK", "pos": "VOL", "weight": 75.5, "height": 176, "bf": 9.8, "mm": 35.4,
      "cmj_baseline": 53.0, "iso_baseline_l": 240, "iso_baseline_r": 245, "ck_basal": 150},
-    {"name": "FELIPINHO", "pos": "MEI", "weight": 78.0, "height": 179, "bf": 11.2, "mm": 36.0,
-     "cmj_baseline": 42.0, "iso_baseline_l": 250, "iso_baseline_r": 255, "ck_basal": 165},
     {"name": "FELIPE VIEIRA", "pos": "LAT", "weight": 77.0, "height": 176, "bf": 7.7, "mm": 35.8,
      "cmj_baseline": 45.0, "iso_baseline_l": 260, "iso_baseline_r": 265, "ck_basal": 174},
     {"name": "GABRIEL INOCENCIO", "pos": "LAT", "weight": 78.5, "height": 177, "bf": 10.8, "mm": 36.5,
@@ -175,7 +173,7 @@ SHEETS_CONFIG = {
 NAME_MAP = {
     "Adriano A": "ADRIANO", "Brenno F": "BRENNO", "Carlos Eduardo": "CARLOS EDUARDO",
     "Darlan B": "DARLAN", "E Morelli": "MORELLI", "Ericson S": "ERICSON",
-    "Erik R": "ERIK", "Felipe Penha": "FELIPINHO", "F Vieira": "FELIPE VIEIRA",
+    "Erik R": "ERIK", "F Vieira": "FELIPE VIEIRA",
     "G Queiroz": "GUILHERME QUEIROZ", "G Vilar": "GUSTAVO VILAR",
     "G Mariano": "GUI MARIANO", "Gabriel I": "GABRIEL INOCENCIO",
     "Hebert W": "HEBERT", "Henrique L": "HENRIQUE TELES", "Hygor C": "HYGOR",
