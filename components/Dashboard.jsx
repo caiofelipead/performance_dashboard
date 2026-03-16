@@ -2484,9 +2484,9 @@ export default function Dashboard(){
           {/* Classification Overview */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:16}}>
             {[
-              {l:"Sessão Reduziu Risco",c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",count:Object.values(LIVE_SESSION.atletas).filter(a=>a.classificacao==="verde").length},
-              {l:"Carga Controlada",c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",count:Object.values(LIVE_SESSION.atletas).filter(a=>a.classificacao==="amarelo").length},
-              {l:"Sessão Aumentou Risco",c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",count:Object.values(LIVE_SESSION.atletas).filter(a=>a.classificacao==="vermelho").length}
+              {l:"Sessão Reduziu Risco",c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",count:players.filter(p=>{const s=LIVE_SESSION.atletas[p.n];return s?s.classificacao==="verde":p.risk==="LOW";}).length},
+              {l:"Carga Controlada",c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",count:players.filter(p=>{const s=LIVE_SESSION.atletas[p.n];return s?s.classificacao==="amarelo":p.risk==="MODERATE";}).length},
+              {l:"Sessão Aumentou Risco",c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",count:players.filter(p=>{const s=LIVE_SESSION.atletas[p.n];return s?s.classificacao==="vermelho":(p.risk==="CRITICAL"||p.risk==="HIGH");}).length}
             ].map((cat,i)=>
               <div key={i} style={{background:cat.bg,borderRadius:12,border:`1px solid ${cat.bc}`,padding:18,textAlign:"center"}}>
                 <div style={{fontFamily:"'JetBrains Mono'",fontSize:36,fontWeight:900,color:cat.c}}>{cat.count}</div>
@@ -2506,9 +2506,9 @@ export default function Dashboard(){
                 return `${latestDate} · ${allSess.length} atletas monitorados`;
               })()}
             </div>
-            <div style={{overflowX:"auto"}}>
+            <div style={{overflowX:"auto",overflowY:"auto",maxHeight:560}}>
               <table style={{width:"100%",borderCollapse:"collapse",fontSize:10}}>
-                <thead>
+                <thead style={{position:"sticky",top:0,zIndex:2,background:t.bgCard}}>
                   <tr style={{borderBottom:`2px solid ${t.border}`}}>
                     {["Atleta","Classificação","Dist (m)","HSR (m)","Sprints","Acel","Decel","PL","Vel. Pico","PSE","sRPE","Sono","Dor","Recup.","CMJ (cm)"].map((h,i)=>
                       <th key={i} style={{padding:"6px 8px",textAlign:i===0?"left":"center",fontWeight:700,color:t.textMuted,fontSize:9,whiteSpace:"nowrap"}}>{h}</th>
@@ -2516,48 +2516,44 @@ export default function Dashboard(){
                   </tr>
                 </thead>
                 <tbody>
-                  {liveAlerts.filter(a=>LIVE_SESSION.atletas[a.n]).map((alert,idx)=>{
-                    const sess=LIVE_SESSION.atletas[alert.n];
-                    const g=sess.gps;
-                    const ci=sess.carga_interna;
-                    const fi=sess.fisio;
-                    const nm=sess.nm_response;
-                    const classC=sess.classificacao==="vermelho"?"#DC2626":sess.classificacao==="amarelo"?"#CA8A04":"#16A34A";
+                  {(()=>{const classOrder={vermelho:0,amarelo:1,verde:2};const allSessionPlayers=players.map(p=>{const sess=LIVE_SESSION.atletas[p.n];const classif=sess?sess.classificacao:(p.risk==="CRITICAL"||p.risk==="HIGH"?"vermelho":p.risk==="MODERATE"?"amarelo":"verde");return{p,sess,classif};}).sort((a,b)=>classOrder[a.classif]-classOrder[b.classif]);return allSessionPlayers.map(({p,sess,classif},idx)=>{
+                    const classC=classif==="vermelho"?"#DC2626":classif==="amarelo"?"#CA8A04":"#16A34A";
+                    const g=sess?.gps||{};const ci=sess?.carga_interna||{};const fi=sess?.fisio||{};const nm=sess?.nm_response||{};
                     const distPct=g.dist_baseline>0?Math.round((g.dist_total/g.dist_baseline)*100):0;
                     const hsrPct=g.hsr_baseline>0?Math.round((g.hsr/g.hsr_baseline)*100):0;
                     const distColor=distPct>120?"#DC2626":distPct>100?"#CA8A04":"#16A34A";
                     const hsrColor=hsrPct>130?"#DC2626":hsrPct>100?"#CA8A04":"#16A34A";
-                    return <tr key={alert.n} style={{borderBottom:`1px solid ${t.border}`,background:idx%2===0?"transparent":t.bgMuted+"44",cursor:"pointer"}} onClick={()=>{setSel(alert.n);setTab("player")}}>
+                    return <tr key={p.n} style={{borderBottom:`1px solid ${t.border}`,background:idx%2===0?"transparent":t.bgMuted+"44",cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>
                       <td style={{padding:"8px",fontWeight:700,color:pri,whiteSpace:"nowrap"}}>
                         <div style={{display:"flex",alignItems:"center",gap:6}}>
                           <div style={{width:6,height:6,borderRadius:3,background:classC,flexShrink:0}}/>
-                          {alert.n}
-                          <span style={{fontSize:8,color:t.textFaint}}>{alert.pos}</span>
+                          {p.n}
+                          <span style={{fontSize:8,color:t.textFaint}}>{p.pos}</span>
                         </div>
                       </td>
-                      <td style={{padding:"8px",textAlign:"center"}}><span style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:700,color:classC,background:classC+"15"}}>{sess.classificacao.toUpperCase()}</span></td>
-                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}><span style={{color:distColor}}>{g.dist_total||"—"}</span> <span style={{fontSize:8,color:t.textFaint}}>({distPct}%)</span></td>
-                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}><span style={{color:hsrColor}}>{g.hsr||"—"}</span> <span style={{fontSize:8,color:t.textFaint}}>({hsrPct}%)</span></td>
-                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.sprints||0}</td>
-                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.acel||0}</td>
-                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.decel||0}</td>
-                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.player_load?Math.round(g.player_load):"—"}</td>
-                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.pico_vel||"—"}</td>
-                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:ci.srpe_sessao>7?"#DC2626":ci.srpe_sessao>5?"#CA8A04":"#16A34A"}}>{ci.srpe_sessao||"—"}</td>
-                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{ci.srpe_total||"—"}</td>
-                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:fi.sono_noite>0&&fi.sono_noite<6?"#DC2626":fi.sono_noite<7?"#CA8A04":"#16A34A"}}>{fi.sono_noite||"—"}</td>
+                      <td style={{padding:"8px",textAlign:"center"}}><span style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:700,color:classC,background:classC+"15"}}>{classif.toUpperCase()}</span></td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.dist_total?<><span style={{color:distColor}}>{g.dist_total}</span> <span style={{fontSize:8,color:t.textFaint}}>({distPct}%)</span></>:<span style={{color:t.textFaint}}>—</span>}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.hsr?<><span style={{color:hsrColor}}>{g.hsr}</span> <span style={{fontSize:8,color:t.textFaint}}>({hsrPct}%)</span></>:<span style={{color:t.textFaint}}>—</span>}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.sprints||<span style={{color:t.textFaint}}>—</span>}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.acel||<span style={{color:t.textFaint}}>—</span>}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.decel||<span style={{color:t.textFaint}}>—</span>}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.player_load?Math.round(g.player_load):<span style={{color:t.textFaint}}>—</span>}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.pico_vel||<span style={{color:t.textFaint}}>—</span>}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:ci.srpe_sessao>7?"#DC2626":ci.srpe_sessao>5?"#CA8A04":"#16A34A"}}>{ci.srpe_sessao||<span style={{color:t.textFaint}}>—</span>}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{ci.srpe_total||<span style={{color:t.textFaint}}>—</span>}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:fi.sono_noite>0&&fi.sono_noite<6?"#DC2626":fi.sono_noite<7?"#CA8A04":"#16A34A"}}>{fi.sono_noite||<span style={{color:t.textFaint}}>—</span>}</td>
                       <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:fi.dor_pos>=4?"#DC2626":fi.dor_pos>=2?"#CA8A04":"#16A34A"}}>{fi.dor_pos||0}</td>
-                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:fi.rec_percebida<=5?"#DC2626":fi.rec_percebida<=7?"#CA8A04":"#16A34A"}}>{fi.rec_percebida||"—"}</td>
-                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{nm.cmj_pre||"—"}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:fi.rec_percebida>0&&fi.rec_percebida<=5?"#DC2626":fi.rec_percebida<=7?"#CA8A04":"#16A34A"}}>{fi.rec_percebida||<span style={{color:t.textFaint}}>—</span>}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{nm.cmj_pre||<span style={{color:t.textFaint}}>—</span>}</td>
                     </tr>;
-                  })}
+                  });})()}
                 </tbody>
                 {/* Médias do time */}
                 {(()=>{
-                  const sessAtletas=liveAlerts.filter(a=>LIVE_SESSION.atletas[a.n]).map(a=>LIVE_SESSION.atletas[a.n]);
+                  const sessAtletas=Object.values(LIVE_SESSION.atletas).filter(s=>s.gps);
                   if(!sessAtletas.length) return null;
                   const avg=(arr,fn)=>{const vals=arr.map(fn).filter(v=>v>0);return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;};
-                  return <tfoot><tr style={{borderTop:`2px solid ${pri}`,fontWeight:800}}>
+                  return <tfoot style={{position:"sticky",bottom:0,background:t.bgCard}}><tr style={{borderTop:`2px solid ${pri}`,fontWeight:800}}>
                     <td style={{padding:"8px",color:pri}}>MÉDIA EQUIPE</td>
                     <td style={{padding:"8px",textAlign:"center",fontSize:9,color:t.textFaint}}>{sessAtletas.length} atl.</td>
                     <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.dist_total)}</td>
