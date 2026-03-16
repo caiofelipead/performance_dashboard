@@ -2246,7 +2246,8 @@ export default function Dashboard(){
             <div style={{fontSize:11,color:t.textFaint,marginBottom:14}}>
               {(() => {
                 const allSess = Object.values(LIVE_SESSION.atletas).filter(a => a._fromSheet);
-                const latestDate = allSess.length ? allSess.reduce((max, a) => a._sessionDate > max ? a._sessionDate : max, "") : LIVE_SESSION.meta._liveDate || LIVE_SESSION.meta.date;
+                const pDate = (d) => { if (!d) return 0; const s = String(d).trim(); if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s).getTime(); const p = s.split(/[\/\-\.]/); if (p.length >= 3) { const [a,b,c] = p.map(Number); if (a > 31) return new Date(a,b-1,c).getTime(); if (c > 31) return new Date(c,b-1,a).getTime(); return new Date(c,a-1,b).getTime(); } return new Date(s).getTime() || 0; };
+                const latestDate = allSess.length ? allSess.reduce((max, a) => pDate(a._sessionDate) > pDate(max) ? a._sessionDate : max, "") : LIVE_SESSION.meta._liveDate || LIVE_SESSION.meta.date;
                 return `${latestDate} · ${allSess.length} atletas monitorados`;
               })()}
             </div>
