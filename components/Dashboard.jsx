@@ -368,7 +368,7 @@ const ML={
         {f:"Delta CMJ",sv:-0.032,v:"-1.6%",note:"Dentro do normal."},
         {f:"Assimetria SLCMJ",sv:-0.028,v:"6.8%",note:"Adequado."}
       ],
-      protocolo:{mecanica:"Programa preventivo padrão",carga_reducao:30,carga_nota:"HSR -30%. Monitorar bem-estar.",compensatorio:"Monitorar wellness. Se déficit biológico > 2.0: reclassificar para LARANJA"}}
+      protocolo:{mecanica:"Programa preventivo padrão",carga_reducao:30,carga_nota:"HSR -30%. Monitorar bem-estar.",compensatorio:"Monitorar bem-estar. Se déficit biológico > 2.0: reclassificar para LARANJA"}}
   ]
 };
 const ZC={"VERMELHO":{c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA"},"LARANJA":{c:"#EA580C",bg:"#FFF7ED",bc:"#FED7AA"},"AMARELO":{c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A"},"VERDE":{c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0"}};
@@ -1181,7 +1181,7 @@ export default function Dashboard(){
       {/* SIDEBAR */}
       <aside style={{width:240,flexShrink:0}}>
         <div style={{fontSize:10,fontWeight:700,color:t.textFaint,letterSpacing:1.5,textTransform:"uppercase",marginBottom:2,paddingLeft:4}}>Elenco — Risco</div>
-        <div style={{fontSize:8,color:t.textFaintest,marginBottom:4,paddingLeft:4}}>Risk Score: composto de ACWR, Dor, Rec. Pernas, Dor média, Sono e Wellness. Quanto maior, mais atenção necessária.</div>
+        <div style={{fontSize:8,color:t.textFaintest,marginBottom:4,paddingLeft:4}}>Risk Score: composto de ACWR, Dor, Rec. Pernas, Dor média, Sono e Bem-estar. Quanto maior, mais atenção necessária.</div>
         <div style={{display:"flex",gap:4,marginBottom:4,paddingLeft:4,flexWrap:"wrap"}}>
           {[{l:"Crítico",c:"#DC2626",r:"≥65"},{l:"Alto",c:"#EA580C",r:"50–64"},{l:"Moderado",c:"#CA8A04",r:"20–49"},{l:"Ótimo",c:"#16A34A",r:"<20"}].map((z,i)=>
             <span key={i} style={{fontSize:7,padding:"1px 5px",borderRadius:4,background:`${z.c}12`,color:z.c,border:`1px solid ${z.c}30`,fontWeight:600}}>{z.l} ({z.r})</span>
@@ -1217,7 +1217,7 @@ export default function Dashboard(){
               {l:"Críticos",desc:"Risco score ≥ 65",v:players.filter(p=>p.risk==="CRITICAL").length,total:players.length,c:"#DC2626",bg:"#FEF2F2",bgDark:"#2a1215",bc:"#FECACA",ic:AlertTriangle},
               {l:"Alto Risco",desc:"Risco score 50–64",v:players.filter(p=>p.risk==="HIGH").length,total:players.length,c:"#EA580C",bg:"#FFF7ED",bgDark:"#2a1c0f",bc:"#FED7AA",ic:Zap},
               {l:"ACWR > 1.45",desc:"Carga aguda elevada",v:players.filter(p=>p.ai>1.45).length,total:players.filter(p=>p.ai).length,c:"#CA8A04",bg:"#FEFCE8",bgDark:"#292510",bc:"#FEF08A",ic:TrendingUp},
-              {l:"Bem-estar Baixo",desc:"Wellness < 6.5",v:players.filter(p=>p.rpa&&p.rpa<6.5).length,total:players.length,c:"#DC2626",bg:"#FEF2F2",bgDark:"#2a1215",bc:"#FECACA",ic:Activity},
+              {l:"Bem-estar Baixo",desc:"Bem-estar < 6.5",v:players.filter(p=>p.rpa&&p.rpa<6.5).length,total:players.length,c:"#DC2626",bg:"#FEF2F2",bgDark:"#2a1215",bc:"#FECACA",ic:Activity},
               {l:"Ótimos",desc:"Risco score < 20",v:players.filter(p=>p.risk==="LOW").length,total:players.length,c:"#16A34A",bg:"#F0FDF4",bgDark:"#0f2418",bc:"#BBF7D0",ic:CheckCircle2}
             ];
             return <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,marginBottom:16}}>
@@ -1256,10 +1256,10 @@ export default function Dashboard(){
                   </div>
                 </div>
                 <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                  {[{l:"Crítico",r:">60%",c:"#DC2626",n:liveAlerts.filter(a=>a.prob>0.60).length},
-                    {l:"Moderado",r:"35–60%",c:"#EA580C",n:liveAlerts.filter(a=>a.prob>0.35&&a.prob<=0.60).length},
-                    {l:"Atenção",r:"20–35%",c:"#CA8A04",n:liveAlerts.filter(a=>a.prob>0.20&&a.prob<=0.35).length},
-                    {l:"Normal",r:"<20%",c:"#16A34A",n:liveAlerts.filter(a=>a.prob<=0.20).length}
+                  {[{l:"Crítico",r:">60%",c:"#DC2626",n:players.filter(p=>{const al=liveAlerts.find(a=>a.n===p.n);const pr=al?al.prob:Math.min(p.riskScore/100,1);return pr>0.60;}).length},
+                    {l:"Moderado",r:"35–60%",c:"#EA580C",n:players.filter(p=>{const al=liveAlerts.find(a=>a.n===p.n);const pr=al?al.prob:Math.min(p.riskScore/100,1);return pr>0.35&&pr<=0.60;}).length},
+                    {l:"Atenção",r:"20–35%",c:"#CA8A04",n:players.filter(p=>{const al=liveAlerts.find(a=>a.n===p.n);const pr=al?al.prob:Math.min(p.riskScore/100,1);return pr>0.20&&pr<=0.35;}).length},
+                    {l:"Apto",r:"<20%",c:"#16A34A",n:players.filter(p=>{const al=liveAlerts.find(a=>a.n===p.n);const pr=al?al.prob:Math.min(p.riskScore/100,1);return pr<=0.20;}).length}
                   ].map((z,i)=><div key={i} style={{padding:"5px 10px",borderRadius:8,background:`${z.c}${dark?"20":"10"}`,border:`1px solid ${z.c}${dark?"40":"25"}`,textAlign:"center",minWidth:56}}>
                     <div style={{fontFamily:"'JetBrains Mono'",fontSize:16,fontWeight:800,color:z.c,lineHeight:1}}>{z.n}</div>
                     <div style={{fontSize:8,color:z.c,fontWeight:600,marginTop:2,opacity:.8}}>{z.l} <span style={{opacity:.6}}>({z.r})</span></div>
@@ -1267,48 +1267,55 @@ export default function Dashboard(){
                 </div>
               </div>
             </div>
-            <div style={{padding:"0 20px 18px",overflowX:"auto"}}>
+            <div style={{overflowX:"auto",overflowY:"auto",maxHeight:520,padding:"0 20px 18px"}}>
             <table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:800}}>
-              <thead>
+              <thead style={{position:"sticky",top:0,zIndex:2,background:t.bgCard}}>
                 <tr style={{borderBottom:`2px solid ${t.border}`}}>
-                  {["Atleta","Pos","Probabilidade","Status","Perfil","F. Debt","NME","Ação"].map((h,i)=>
+                  {["#","Atleta","Pos","Risco","Prontidão","Perfil","F. Debt","NME","Ação"].map((h,i)=>
                     <th key={i} style={{padding:"12px 6px 8px",textAlign:"left",fontSize:9,color:t.textFaint,fontWeight:700,textTransform:"uppercase",letterSpacing:.5,whiteSpace:"nowrap"}}>{h}</th>
                   )}
                 </tr>
               </thead>
               <tbody>
-                {liveAlerts.map((a,i)=>{
-                  const zs=ZC[a.zone];
-                  const pr=PERFIL_RISCO_LABELS[a.perfil_risco]||PERFIL_RISCO_LABELS.sobrecarga;
-                  const statusLabel=a.prob>0.60?"Crítico":a.prob>0.35?"Moderado":a.prob>0.20?"Atenção":"Normal";
-                  const statusIcon=a.prob>0.60?"🔴":a.prob>0.35?"🟠":a.prob>0.20?"🟡":"🟢";
-                  return <tr key={i} style={{borderBottom:`1px solid ${t.borderLight}`,background:i%2===0?"transparent":t.bgMuted,cursor:"pointer",transition:"background .15s"}} onClick={()=>{setSel(a.n);setTab("player")}} onMouseEnter={e=>e.currentTarget.style.background=dark?"#282d3c":"#f1f5f9"} onMouseLeave={e=>e.currentTarget.style.background=i%2===0?"transparent":t.bgMuted}>
+                {(()=>{const boardPlayers=[...players].sort((a,b)=>a.riskScore-b.riskScore);return boardPlayers.map((p,i)=>{
+                  const alert=liveAlerts.find(a=>a.n===p.n);
+                  const prob=alert?alert.prob:Math.min(p.riskScore/100,1);
+                  const zone=prob>0.60?"VERMELHO":prob>0.35?"LARANJA":prob>0.20?"AMARELO":"VERDE";
+                  const zs=ZC[zone];
+                  const statusLabel=prob>0.60?"Crítico":prob>0.35?"Moderado":prob>0.20?"Atenção":"Apto";
+                  const statusIcon=prob>0.60?"🔴":prob>0.35?"🟠":prob>0.20?"🟡":"🟢";
+                  const pr=alert?PERFIL_RISCO_LABELS[alert.perfil_risco]||PERFIL_RISCO_LABELS.sobrecarga:null;
+                  const fDebt=alert?.fatigue_debt||null;
+                  const nme=alert?.nme||null;
+                  const dose=alert?.dose||"Programa preventivo padrão.";
+                  return <tr key={i} style={{borderBottom:`1px solid ${t.borderLight}`,background:i%2===0?"transparent":t.bgMuted,cursor:"pointer",transition:"background .15s"}} onClick={()=>{setSel(p.n);setTab("player")}} onMouseEnter={e=>e.currentTarget.style.background=dark?"#282d3c":"#f1f5f9"} onMouseLeave={e=>e.currentTarget.style.background=i%2===0?"transparent":t.bgMuted}>
+                    <td style={{padding:"10px 6px",fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textFaint,fontWeight:600}}>{i+1}</td>
                     <td style={{padding:"10px 8px"}}>
                       <div style={{display:"flex",alignItems:"center",gap:8}}>
-                        <PlayerPhoto theme={t} name={a.n} sz={30}/>
-                        <span style={{fontWeight:700,color:t.text}}>{a.n}</span>
+                        <PlayerPhoto theme={t} name={p.n} sz={30}/>
+                        <span style={{fontWeight:700,color:t.text}}>{p.n}</span>
                       </div>
                     </td>
-                    <td style={{padding:"10px 8px",fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textFaint}}>{a.pos}</td>
+                    <td style={{padding:"10px 8px",fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textFaint}}>{p.pos}</td>
                     <td style={{padding:"10px 8px"}}>
                       <div style={{display:"flex",alignItems:"center",gap:6}}>
                         <div style={{width:56,height:6,background:t.bgMuted2,borderRadius:4,overflow:"hidden"}}>
-                          <div style={{height:"100%",width:`${Math.min(a.prob*100,100)}%`,background:zs.c,borderRadius:4,transition:"width .4s"}}/>
+                          <div style={{height:"100%",width:`${Math.min(prob*100,100)}%`,background:zs.c,borderRadius:4,transition:"width .4s"}}/>
                         </div>
-                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:zs.c}}>{(a.prob*100).toFixed(0)}%</span>
+                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:zs.c}}>{(prob*100).toFixed(0)}%</span>
                       </div>
                     </td>
                     <td style={{padding:"10px 8px"}}>
                       <span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,background:zs.bg,color:zs.c,border:`1px solid ${zs.bc}`}}>{statusIcon} {statusLabel}</span>
                     </td>
                     <td style={{padding:"10px 8px"}}>
-                      <span style={{padding:"3px 10px",borderRadius:6,fontSize:9,fontWeight:600,background:pr.bg,color:pr.c,border:`1px solid ${pr.bc}`}}>{pr.label}</span>
+                      {pr?<span style={{padding:"3px 10px",borderRadius:6,fontSize:9,fontWeight:600,background:pr.bg,color:pr.c,border:`1px solid ${pr.bc}`}}>{pr.label}</span>:<span style={{fontSize:9,color:t.textFaint}}>—</span>}
                     </td>
-                    <td style={{padding:"10px 8px",fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:a.fatigue_debt>3000?"#DC2626":a.fatigue_debt>2500?"#EA580C":t.textMuted}}>{a.fatigue_debt}</td>
-                    <td style={{padding:"10px 8px",fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:a.nme<0.012?"#DC2626":a.nme<0.015?"#EA580C":"#16A34A"}}>{a.nme?.toFixed(4)||"-"}</td>
-                    <td style={{padding:"10px 8px",fontSize:10,color:t.textMuted,maxWidth:220}}>{a.dose}</td>
+                    <td style={{padding:"10px 8px",fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:fDebt?fDebt>3000?"#DC2626":fDebt>2500?"#EA580C":t.textMuted:t.textFaint}}>{fDebt||"—"}</td>
+                    <td style={{padding:"10px 8px",fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:nme?nme<0.012?"#DC2626":nme<0.015?"#EA580C":"#16A34A":t.textFaint}}>{nme?.toFixed(4)||"—"}</td>
+                    <td style={{padding:"10px 8px",fontSize:10,color:t.textMuted,maxWidth:220}}>{dose}</td>
                   </tr>;
-                })}
+                });})()}
               </tbody>
             </table>
             </div>
@@ -1350,7 +1357,7 @@ export default function Dashboard(){
               </ResponsiveContainer>
             </div>
             <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:4}}>Wellness Score — Elenco</div>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:4}}>Bem-estar — Elenco</div>
               <div style={{fontSize:9,color:t.textFaint,marginBottom:8,lineHeight:1.4}}>Média ponderada de Rec. Pernas, Sono, Dor e Rec. Geral (últimos 7 dias). Linha tracejada = limiar de atenção (6.5/10).</div>
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={players.filter(p=>p.rpa).sort((a,b)=>a.rpa-b.rpa).slice(0,25)} margin={{bottom:45}}>
@@ -1359,7 +1366,7 @@ export default function Dashboard(){
                   <YAxis tick={{fontSize:9,fill:t.textFaint}} domain={[0,10]}/>
                   <Tooltip content={<Tip theme={t}/>}/>
                   <ReferenceLine y={6.5} stroke="#CA8A04" strokeDasharray="4 4" label={{value:"6.5",fill:"#CA8A04",fontSize:9}}/>
-                  <Bar dataKey="rpa" name="Wellness" radius={[3,3,0,0]}>
+                  <Bar dataKey="rpa" name="Bem-estar" radius={[3,3,0,0]}>
                     {players.filter(p=>p.rpa).sort((a,b)=>a.rpa-b.rpa).slice(0,25).map((p,i)=><Cell key={i} fill={p.rpa<6?"#DC2626":p.rpa<7?"#CA8A04":"#16A34A"}/>)}
                   </Bar>
                 </BarChart>
@@ -1370,7 +1377,7 @@ export default function Dashboard(){
           {/* Wellness + CMJ */}
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
             <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Wellness Squad — Média</div>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Bem-estar Elenco — Média</div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
                 <div><WBar theme={t} label="Sono (qualidade)" v={+(players.reduce((s,p)=>s+(p.sq||0),0)/players.length).toFixed(1)} max={10}/><WBar theme={t} label="Rec. Geral" v={+(players.reduce((s,p)=>s+(p.rg||0),0)/players.length).toFixed(1)} max={10}/><WBar theme={t} label="Rec. Pernas" v={+(players.reduce((s,p)=>s+(p.rp||0),0)/players.length).toFixed(1)} max={10}/></div>
                 <div><WBar theme={t} label="Dor" v={+(players.reduce((s,p)=>s+(p.d||0),0)/players.length).toFixed(1)} max={10} inv/><WBar theme={t} label="Humor (1-5)" v={+(players.reduce((s,p)=>s+(p.h||0),0)/players.length).toFixed(1)} max={5}/><WBar theme={t} label="Energia (1-4)" v={+(players.reduce((s,p)=>s+(p.e||0),0)/players.length).toFixed(1)} max={4}/></div>
@@ -1393,7 +1400,7 @@ export default function Dashboard(){
 
         {tab==="alerts"&&<div>
           <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri,marginBottom:4}}>Alertas Ativos</div>
-          <div style={{fontSize:12,color:t.textFaint,marginBottom:16}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · Score de criticidade composto (ACWR + Wellness + CMJ + Dor)</div>
+          <div style={{fontSize:12,color:t.textFaint,marginBottom:16}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · Score de criticidade composto (ACWR + Bem-estar + CMJ + Dor)</div>
           {players.filter(p=>p.riskScore>=20).map((p,i)=>{
             const lv=LV[p.risk];
             const rx=p.risk==="CRITICAL"?
@@ -1551,7 +1558,7 @@ export default function Dashboard(){
         {tab==="fisio"&&<div>
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri,marginBottom:4}}>Painel Fisiológico</div>
-            <div style={{fontSize:11,color:t.textMuted}}>Monitoramento de sono, HRV e wellness composto do elenco</div>
+            <div style={{fontSize:11,color:t.textMuted}}>Monitoramento de sono, HRV e bem-estar composto do elenco</div>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12,marginBottom:16}}>
             {[{l:"Sono Médio",v:(players.reduce((s,p)=>s+(p.sq||0),0)/players.length).toFixed(1),u:"/10",c:"#2563eb"},
@@ -1564,21 +1571,21 @@ export default function Dashboard(){
               <div style={{fontSize:10,color:t.textFaint}}>{m.u}</div>
             </div>)}
           </div>
-          {/* Wellness Radar for selected player */}
+          {/* Radar Bem-estar for selected player */}
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
             <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Wellness Composto {sp?`— ${sp.n}`:""}</div>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Bem-estar Composto {sp?`— ${sp.n}`:""}</div>
               {sp?<ResponsiveContainer width="100%" height={240}>
                 <RadarChart data={radarData}>
                   <PolarGrid stroke={t.border}/>
                   <PolarAngleAxis dataKey="s" tick={{fontSize:10,fill:t.textMuted}}/>
                   <PolarRadiusAxis domain={[0,10]} tick={false}/>
-                  <Radar name="Wellness" dataKey="v" stroke="#7c3aed" fill="#7c3aed" fillOpacity={0.15} strokeWidth={2}/>
+                  <Radar name="Bem-estar" dataKey="v" stroke="#7c3aed" fill="#7c3aed" fillOpacity={0.15} strokeWidth={2}/>
                 </RadarChart>
               </ResponsiveContainer>:<div style={{textAlign:"center",padding:40,color:t.textFaint,fontSize:12}}>Selecione um atleta na sidebar</div>}
             </div>
             <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Tendência Wellness {sp?`— ${sp.n}`:""}</div>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Tendência Bem-estar {sp?`— ${sp.n}`:""}</div>
               {sp&&sp.wt?<ResponsiveContainer width="100%" height={240}>
                 <LineChart data={wtData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={t.borderLight}/>
@@ -1594,7 +1601,7 @@ export default function Dashboard(){
           </div>
           {/* Sleep / Wellness ranking table */}
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Ranking Fisiológico — Sono × Wellness</div>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Ranking Fisiológico — Sono × Bem-estar</div>
             <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
               <thead><tr style={{borderBottom:`2px solid ${t.border}`}}>
                 {["Atleta","Pos","Sono","Rec Geral","Rec Pernas","Dor","Humor","Energia","Status"].map((h,i)=><th key={i} style={{padding:"6px 4px",textAlign:"left",fontSize:9,color:t.textFaint,fontWeight:700,textTransform:"uppercase"}}>{h}</th>)}
@@ -1657,7 +1664,7 @@ export default function Dashboard(){
                 {[{l:"sRPE z-score",v:"7d / 14d",d:"Sobrecarga relativa"},
                   {l:"CMJ z-score",v:"7d / 14d",d:"Fadiga neuromuscular"},
                   {l:"HRV z-score",v:"7d / 14d",d:"Estresse autonômico"},
-                  {l:"Wellness z-score",v:"7d / 14d",d:"Bem-estar composto"}
+                  {l:"Bem-estar z-score",v:"7d / 14d",d:"Bem-estar composto"}
                 ].map((item,i)=><div key={i} style={{padding:"6px 8px",background:i<2?"#FEF2F2":t.bgMuted,borderRadius:6}}>
                   <div style={{fontSize:9,color:t.textFaint,fontWeight:600}}>{item.l} ({item.v})</div>
                   <div style={{fontSize:10,fontWeight:600,color:pri}}>{item.d}</div>
@@ -1862,7 +1869,7 @@ export default function Dashboard(){
                 <div style={{fontSize:12,color:t.textFaint,marginTop:2}}>{WEEK_MAP.week} · Próximo Jogo: {WEEK_MAP.next_match.opponent} ({WEEK_MAP.next_match.date} — {WEEK_MAP.next_match.time}) · Série B Rodada {WEEK_MAP.next_match.rod}</div>
               </div>
               <div style={{display:"flex",gap:8}}>
-                {["Wellness","CMJ","GPS"].map((t,i)=><span key={i} style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:t.bgMuted,color:t.textMuted,border:`1px solid ${t.border}`}}>{t}</span>)}
+                {["Bem-estar","CMJ","GPS"].map((t,i)=><span key={i} style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:t.bgMuted,color:t.textMuted,border:`1px solid ${t.border}`}}>{t}</span>)}
               </div>
             </div>
           </div>
@@ -1897,7 +1904,7 @@ export default function Dashboard(){
                 </div>
                 {/* Monitoring */}
                 <div style={{padding:"4px 8px",borderTop:"1px solid #f1f5f9",display:"flex",justifyContent:"center",gap:4}}>
-                  {day.wellness&&<span style={{width:6,height:6,borderRadius:"50%",background:"#16A34A"}} title="Wellness"/>}
+                  {day.wellness&&<span style={{width:6,height:6,borderRadius:"50%",background:"#16A34A"}} title="Bem-estar"/>}
                   {day.cmj&&<span style={{width:6,height:6,borderRadius:"50%",background:"#2563eb"}} title="CMJ"/>}
                   {day.gps&&<span style={{width:6,height:6,borderRadius:"50%",background:"#DC2626"}} title="GPS"/>}
                 </div>
@@ -2222,7 +2229,7 @@ export default function Dashboard(){
 
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
             <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Wellness Radar</div>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Radar Bem-estar</div>
               <ResponsiveContainer width="100%" height={210}>
                 <RadarChart data={radarData}><PolarGrid stroke={t.border}/><PolarAngleAxis dataKey="s" tick={{fontSize:9,fill:t.textMuted}}/><PolarRadiusAxis tick={false} domain={[0,10]}/><Radar dataKey="v" stroke={pri} fill={pri} fillOpacity={.08} strokeWidth={2}/></RadarChart>
               </ResponsiveContainer>
@@ -2242,7 +2249,7 @@ export default function Dashboard(){
 
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
             {wtData.length>0&&<div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Tendência 7 Dias — Wellness</div>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Tendência 7 Dias — Bem-estar</div>
               <ResponsiveContainer width="100%" height={180}>
                 <AreaChart data={wtData}><CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/><XAxis dataKey="d" tick={{fontSize:9,fill:t.textFaint}}/><YAxis tick={{fontSize:9,fill:t.textFaint}} domain={[0,10]}/><Tooltip content={<Tip theme={t}/>}/>
                   <Area type="monotone" dataKey="sono" name="Sono" stroke="#7c3aed" fill="#7c3aed" fillOpacity={.05} strokeWidth={2}/>
@@ -2345,11 +2352,11 @@ export default function Dashboard(){
                   </ResponsiveContainer>
                 </div>
                 <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Wellness Score — 7 Dias</div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Bem-estar — 7 Dias</div>
                   <div style={{fontSize:10,color:t.textFaint,marginBottom:6}}>Score composto de bem-estar (sono + rec + dor inv.)</div>
                   <ResponsiveContainer width="100%" height={160}>
                     <AreaChart data={trendData}><CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/><XAxis dataKey="d" tick={{fontSize:9,fill:t.textFaint}}/><YAxis tick={{fontSize:9,fill:t.textFaint}} domain={[0,10]}/><Tooltip content={<Tip theme={t}/>}/>
-                      <Area type="monotone" dataKey="wellness" name="Wellness" stroke="#16A34A" fill="#16A34A" fillOpacity={.08} strokeWidth={2.5}/>
+                      <Area type="monotone" dataKey="wellness" name="Bem-estar" stroke="#16A34A" fill="#16A34A" fillOpacity={.08} strokeWidth={2.5}/>
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -2848,7 +2855,7 @@ export default function Dashboard(){
             {/* Feature Importance with categories */}
             <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:4}}>Feature Importance — XGBoost + LASSO</div>
-              <div style={{fontSize:10,color:t.textFaint,marginBottom:8}}>Cores: <span style={{color:"#DC2626"}}>Histórico</span> · <span style={{color:"#EA580C"}}>Carga</span> · <span style={{color:"#7c3aed"}}>Neuromuscular</span> · <span style={{color:"#2563eb"}}>Wellness</span> · <span style={{color:"#16A34A"}}>Biomecânica</span> · <span style={{color:"#CA8A04"}}>Interação</span> · <span style={{color:"#0891b2"}}>Temporal</span></div>
+              <div style={{fontSize:10,color:t.textFaint,marginBottom:8}}>Cores: <span style={{color:"#DC2626"}}>Histórico</span> · <span style={{color:"#EA580C"}}>Carga</span> · <span style={{color:"#7c3aed"}}>Neuromuscular</span> · <span style={{color:"#2563eb"}}>Bem-estar</span> · <span style={{color:"#16A34A"}}>Biomecânica</span> · <span style={{color:"#CA8A04"}}>Interação</span> · <span style={{color:"#0891b2"}}>Temporal</span></div>
               <ResponsiveContainer width="100%" height={560}>
                 <BarChart data={ML.features} layout="vertical" margin={{left:140}}>
                   <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
