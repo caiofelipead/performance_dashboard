@@ -734,7 +734,7 @@ const WEEK_MAP={
         {name:"Treino",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
       ],
       almoco:true,tarde:"Descanso Programado",
-      wellness:true,cmj:falsetrue,notes:"Semana de jogo (Fortaleza, sáb). DM: chegar 30min antes."},
+      wellness:true,cmj:false,notes:"Semana de jogo (Fortaleza, sáb). DM: chegar 30min antes."},
     {d:"3ª 17",md:"MD-4",type:"TREINO",focus:"Treino",local:"A definir",
       sessions:[
         {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
@@ -742,7 +742,7 @@ const WEEK_MAP={
         {name:"Treino",time:"09:00",dur:80,rpe_alvo:"6-7",content:"Treino de campo",group:"Elenco"}
       ],
       almoco:true,tarde:"Descanso Programado",
-      wellness:true,cmj:falsefalse,notes:"Local a definir. Último treino de maior volume antes da redução pré-jogo."},
+      wellness:true,cmj:false,notes:"Local a definir. Último treino de maior volume antes da redução pré-jogo."},
     {d:"4ª 18",md:"MD-3",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Treino (tarde)",local:"A definir",
       sessions:[
         {name:"Apresentação",time:"14:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
@@ -750,7 +750,7 @@ const WEEK_MAP={
         {name:"Treino",time:"16:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
       ],
       almoco:false,tarde:"Lanche (Sala anexa)",
-      wellness:true,cmj:falsefalse,notes:"Descanso programado pela manhã. Treino à tarde — local a definir."},
+      wellness:true,cmj:false,notes:"Descanso programado pela manhã. Treino à tarde — local a definir."},
     {d:"5ª 19",md:"MD-2",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Treino (tarde)",local:"A definir",
       sessions:[
         {name:"Apresentação",time:"14:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
@@ -758,7 +758,7 @@ const WEEK_MAP={
         {name:"Treino",time:"16:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
       ],
       almoco:false,tarde:"Lanche (Sala anexa)",
-      wellness:true,cmj:truefalse,notes:"Treino à tarde — local a definir. CMJ como marcador de prontidão NM."},
+      wellness:true,cmj:true,notes:"Treino à tarde — local a definir. CMJ como marcador de prontidão NM."},
     {d:"6ª 20",md:"MD-1",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Treino (tarde) + CONCENTRAÇÃO",local:"A definir",
       sessions:[
         {name:"Apresentação",time:"14:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
@@ -766,7 +766,7 @@ const WEEK_MAP={
         {name:"Treino",time:"16:00",dur:60,rpe_alvo:"4-5",content:"Treino tático leve — último antes do jogo",group:"Elenco"}
       ],
       almoco:false,tarde:"INÍCIO DE CONCENTRAÇÃO",
-      wellness:true,cmj:falsefalse,notes:"Último treino antes do jogo. Após treino: INÍCIO DE CONCENTRAÇÃO. Redução máxima de volume."},
+      wellness:true,cmj:false,notes:"Último treino antes do jogo. Após treino: INÍCIO DE CONCENTRAÇÃO. Redução máxima de volume."},
     {d:"Sáb 21",md:"MD",type:"JOGO",focus:"Botafogo SP × Fortaleza",local:"Estádio Santa Cruz",
       sessions:[
         {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
@@ -775,11 +775,11 @@ const WEEK_MAP={
         {name:"JOGO — Série B R1",time:"19:15",dur:90,rpe_alvo:"8-10",content:"Botafogo SP × Fortaleza · Brasileiro Série B · 1ª Rodada · Estádio Santa Cruz",group:"Relacionados"}
       ],
       almoco:true,tarde:"Jogo 19:15",
-      wellness:true,cmj:falsefalse,notes:"DIA DE JOGO — Série B 1ª Rodada. Treino manhã apenas para não relacionados. Jogo às 19:15 no Estádio Santa Cruz."},
+      wellness:true,cmj:false,notes:"DIA DE JOGO — Série B 1ª Rodada. Treino manhã apenas para não relacionados. Jogo às 19:15 no Estádio Santa Cruz."},
     {d:"Dom 22",md:"MD+1",type:"FOLGA",focus:"Descanso Programado",local:"-",
       sessions:[],
       almoco:false,tarde:"Descanso Programado",
-      wellness:false,cmj:falsefalse,notes:"Descanso programado pós-jogo. Recuperação total."}
+      wellness:false,cmj:false,notes:"Descanso programado pós-jogo. Recuperação total."}
   ]
 };
 
