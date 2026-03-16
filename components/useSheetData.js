@@ -85,7 +85,7 @@ export function useSheetData({ interval = DEFAULT_INTERVAL, enabled = true } = {
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Construir SESSION_DATA.atletas a partir dos dados da planilha
-// Combina GPS (última sessão) + Diário (PSE/CK) + Questionários (wellness)
+// Combina GPS (última sessão) + Diário (PSE) + Questionários (wellness)
 // ═══════════════════════════════════════════════════════════════════════════════
 function buildSessionData(result) {
   const gpsData = result.gps || {};
@@ -132,7 +132,6 @@ function buildSessionData(result) {
     const pse = latestDiario?.pse || 0;
     const duracao = latestDiario?.duracao || 0;
     const spe = latestDiario?.spe || (pse * duracao);
-    const ck = latestDiario?.ck || 0;
     const peso = latestDiario?.peso_pre || 0;
 
     // CMJ (melhor dos 3 saltos)
@@ -200,7 +199,7 @@ function buildSessionData(result) {
         sono_noite: sonoQual,
         dor_pos: dor,
         rec_percebida: recGeral,
-        ck_estimado: ck
+        ck_estimado: 0
       },
       risco: {
         prob_pre: 0,

@@ -66,71 +66,71 @@ np.random.seed(42)
 
 ATHLETES = [
     {"name": "ADRIANO", "pos": "GOL", "weight": 82.7, "height": 183, "bf": 12.4, "mm": 38.2,
-     "cmj_baseline": 51.5, "iso_baseline_l": 280, "iso_baseline_r": 290, "ck_basal": 180},
+     "cmj_baseline": 51.5, "iso_baseline_l": 280, "iso_baseline_r": 290},
     {"name": "BRENNO", "pos": "GOL", "weight": 90.8, "height": 191, "bf": 13.8, "mm": 41.5,
-     "cmj_baseline": 46.2, "iso_baseline_l": 310, "iso_baseline_r": 305, "ck_basal": 160},
+     "cmj_baseline": 46.2, "iso_baseline_l": 310, "iso_baseline_r": 305},
     {"name": "CARLOS EDUARDO", "pos": "ZAG", "weight": 85.9, "height": 186, "bf": 11.9, "mm": 39.8,
-     "cmj_baseline": 47.5, "iso_baseline_l": 295, "iso_baseline_r": 300, "ck_basal": 190},
+     "cmj_baseline": 47.5, "iso_baseline_l": 295, "iso_baseline_r": 300},
     {"name": "DARLAN", "pos": "ZAG", "weight": 80.2, "height": 186, "bf": 10.5, "mm": 37.1,
-     "cmj_baseline": 33.0, "iso_baseline_l": 260, "iso_baseline_r": 265, "ck_basal": 170},
+     "cmj_baseline": 33.0, "iso_baseline_l": 260, "iso_baseline_r": 265},
     {"name": "ERICSON", "pos": "ZAG", "weight": 91.6, "height": 184, "bf": 13.2, "mm": 42.0,
-     "cmj_baseline": 47.0, "iso_baseline_l": 320, "iso_baseline_r": 310, "ck_basal": 200},
+     "cmj_baseline": 47.0, "iso_baseline_l": 320, "iso_baseline_r": 310},
     {"name": "ERIK", "pos": "VOL", "weight": 75.5, "height": 176, "bf": 9.8, "mm": 35.4,
-     "cmj_baseline": 53.0, "iso_baseline_l": 240, "iso_baseline_r": 245, "ck_basal": 150},
+     "cmj_baseline": 53.0, "iso_baseline_l": 240, "iso_baseline_r": 245},
     {"name": "FELIPE VIEIRA", "pos": "LAT", "weight": 77.0, "height": 176, "bf": 7.7, "mm": 35.8,
-     "cmj_baseline": 45.0, "iso_baseline_l": 260, "iso_baseline_r": 265, "ck_basal": 174},
+     "cmj_baseline": 45.0, "iso_baseline_l": 260, "iso_baseline_r": 265},
     {"name": "GABRIEL INOCENCIO", "pos": "LAT", "weight": 78.5, "height": 177, "bf": 10.8, "mm": 36.5,
-     "cmj_baseline": 49.5, "iso_baseline_l": 270, "iso_baseline_r": 275, "ck_basal": 175},
+     "cmj_baseline": 49.5, "iso_baseline_l": 270, "iso_baseline_r": 275},
     {"name": "GUI MARIANO", "pos": "ZAG", "weight": 89.7, "height": 191, "bf": 12.7, "mm": 41.0,
-     "cmj_baseline": 53.0, "iso_baseline_l": 305, "iso_baseline_r": 310, "ck_basal": 185},
+     "cmj_baseline": 53.0, "iso_baseline_l": 305, "iso_baseline_r": 310},
     {"name": "GUILHERME QUEIROZ", "pos": "ATA", "weight": 87.9, "height": 180, "bf": 13.1, "mm": 40.2,
-     "cmj_baseline": 45.5, "iso_baseline_l": 290, "iso_baseline_r": 285, "ck_basal": 195},
+     "cmj_baseline": 45.5, "iso_baseline_l": 290, "iso_baseline_r": 285},
     {"name": "GUSTAVO VILAR", "pos": "ZAG", "weight": 86.4, "height": 189, "bf": 12.9, "mm": 39.5,
-     "cmj_baseline": 44.5, "iso_baseline_l": 275, "iso_baseline_r": 280, "ck_basal": 185},
+     "cmj_baseline": 44.5, "iso_baseline_l": 275, "iso_baseline_r": 280},
     {"name": "HEBERT", "pos": "ZAG", "weight": 88.1, "height": 187, "bf": 12.5, "mm": 40.8,
-     "cmj_baseline": 50.5, "iso_baseline_l": 300, "iso_baseline_r": 295, "ck_basal": 190},
+     "cmj_baseline": 50.5, "iso_baseline_l": 300, "iso_baseline_r": 295},
     {"name": "HENRIQUE TELES", "pos": "LAT", "weight": 80.1, "height": 179, "bf": 11.3, "mm": 37.2,
-     "cmj_baseline": 52.0, "iso_baseline_l": 260, "iso_baseline_r": 270, "ck_basal": 170},
+     "cmj_baseline": 52.0, "iso_baseline_l": 260, "iso_baseline_r": 270},
     {"name": "HYGOR", "pos": "ATA", "weight": 83.3, "height": 183, "bf": 11.6, "mm": 38.6,
-     "cmj_baseline": 42.8, "iso_baseline_l": 280, "iso_baseline_r": 285, "ck_basal": 180},
+     "cmj_baseline": 42.8, "iso_baseline_l": 280, "iso_baseline_r": 285},
     {"name": "JEFFERSON NEM", "pos": "ATA", "weight": 72.5, "height": 166, "bf": 10.1, "mm": 33.8,
-     "cmj_baseline": 48.0, "iso_baseline_l": 235, "iso_baseline_r": 240, "ck_basal": 155},
+     "cmj_baseline": 48.0, "iso_baseline_l": 235, "iso_baseline_r": 240},
     {"name": "JONATHAN", "pos": "LAT", "weight": 73.7, "height": 177, "bf": 10.9, "mm": 34.3,
-     "cmj_baseline": 45.0, "iso_baseline_l": 245, "iso_baseline_r": 240, "ck_basal": 160},
+     "cmj_baseline": 45.0, "iso_baseline_l": 245, "iso_baseline_r": 240},
     {"name": "JORDAN", "pos": "GOL", "weight": 92.2, "height": 189, "bf": 12.0, "mm": 42.8,
-     "cmj_baseline": 54.5, "iso_baseline_l": 330, "iso_baseline_r": 325, "ck_basal": 200},
+     "cmj_baseline": 54.5, "iso_baseline_l": 330, "iso_baseline_r": 325},
     {"name": "KELVIN", "pos": "ATA", "weight": 74.6, "height": 170, "bf": 10.3, "mm": 34.8,
-     "cmj_baseline": 40.0, "iso_baseline_l": 230, "iso_baseline_r": 235, "ck_basal": 145},
+     "cmj_baseline": 40.0, "iso_baseline_l": 230, "iso_baseline_r": 235},
     {"name": "LEANDRO MACIEL", "pos": "MEI", "weight": 91.3, "height": 175, "bf": 13.5, "mm": 41.6,
-     "cmj_baseline": 45.0, "iso_baseline_l": 310, "iso_baseline_r": 305, "ck_basal": 190},
+     "cmj_baseline": 45.0, "iso_baseline_l": 310, "iso_baseline_r": 305},
     {"name": "MARANHAO", "pos": "EXT", "weight": 75.1, "height": 171, "bf": 11.0, "mm": 34.9,
-     "cmj_baseline": 46.0, "iso_baseline_l": 255, "iso_baseline_r": 260, "ck_basal": 165},
+     "cmj_baseline": 46.0, "iso_baseline_l": 255, "iso_baseline_r": 260},
     {"name": "MARQUINHO JR.", "pos": "MEI", "weight": 64.9, "height": 182, "bf": 9.2, "mm": 30.8,
-     "cmj_baseline": 44.5, "iso_baseline_l": 220, "iso_baseline_r": 225, "ck_basal": 140},
+     "cmj_baseline": 44.5, "iso_baseline_l": 220, "iso_baseline_r": 225},
     {"name": "MATHEUS SALES", "pos": "VOL", "weight": 80.1, "height": 176, "bf": 11.7, "mm": 37.0,
-     "cmj_baseline": 47.0, "iso_baseline_l": 270, "iso_baseline_r": 275, "ck_basal": 175},
+     "cmj_baseline": 47.0, "iso_baseline_l": 270, "iso_baseline_r": 275},
     {"name": "MORELLI", "pos": "VOL", "weight": 82.4, "height": 181, "bf": 12.1, "mm": 38.0,
-     "cmj_baseline": 45.5, "iso_baseline_l": 275, "iso_baseline_r": 270, "ck_basal": 180},
+     "cmj_baseline": 45.5, "iso_baseline_l": 275, "iso_baseline_r": 270},
     {"name": "PATRICK BREY", "pos": "LAT", "weight": 73.5, "height": 176, "bf": 10.0, "mm": 34.5,
-     "cmj_baseline": 43.0, "iso_baseline_l": 240, "iso_baseline_r": 235, "ck_basal": 150},
+     "cmj_baseline": 43.0, "iso_baseline_l": 240, "iso_baseline_r": 235},
     {"name": "PEDRINHO", "pos": "LAT", "weight": 67.5, "height": 175, "bf": 9.5, "mm": 31.9,
-     "cmj_baseline": 43.0, "iso_baseline_l": 230, "iso_baseline_r": 235, "ck_basal": 145},
+     "cmj_baseline": 43.0, "iso_baseline_l": 230, "iso_baseline_r": 235},
     {"name": "PEDRO TORTELLO", "pos": "VOL", "weight": 75.1, "height": 176, "bf": 10.6, "mm": 35.0,
-     "cmj_baseline": 43.0, "iso_baseline_l": 255, "iso_baseline_r": 250, "ck_basal": 160},
+     "cmj_baseline": 43.0, "iso_baseline_l": 255, "iso_baseline_r": 250},
     {"name": "RAFAEL GAVA", "pos": "MEI", "weight": 78.3, "height": 178, "bf": 11.4, "mm": 36.3,
-     "cmj_baseline": 37.0, "iso_baseline_l": 260, "iso_baseline_r": 255, "ck_basal": 170},
+     "cmj_baseline": 37.0, "iso_baseline_l": 260, "iso_baseline_r": 255},
     {"name": "THALLES", "pos": "ATA", "weight": 83.9, "height": 178, "bf": 12.2, "mm": 38.7,
-     "cmj_baseline": 45.0, "iso_baseline_l": 295, "iso_baseline_r": 290, "ck_basal": 185},
+     "cmj_baseline": 45.0, "iso_baseline_l": 295, "iso_baseline_r": 290},
     {"name": "THIAGUINHO", "pos": "MEI", "weight": 64.5, "height": 176, "bf": 7.7, "mm": 30.0,
-     "cmj_baseline": 41.5, "iso_baseline_l": 235, "iso_baseline_r": 240, "ck_basal": 185},
+     "cmj_baseline": 41.5, "iso_baseline_l": 235, "iso_baseline_r": 240},
     {"name": "VICTOR SOUZA", "pos": "GOL", "weight": 92.8, "height": 187, "bf": 14.1, "mm": 42.2,
-     "cmj_baseline": 57.0, "iso_baseline_l": 325, "iso_baseline_r": 320, "ck_basal": 195},
+     "cmj_baseline": 57.0, "iso_baseline_l": 325, "iso_baseline_r": 320},
     {"name": "WALLACE", "pos": "ZAG", "weight": 91.6, "height": 192, "bf": 14.0, "mm": 41.3,
-     "cmj_baseline": 41.0, "iso_baseline_l": 300, "iso_baseline_r": 295, "ck_basal": 190},
+     "cmj_baseline": 41.0, "iso_baseline_l": 300, "iso_baseline_r": 295},
     {"name": "WESLEY", "pos": "EXT", "weight": 76.8, "height": 185, "bf": 10.4, "mm": 35.8,
-     "cmj_baseline": 43.2, "iso_baseline_l": 255, "iso_baseline_r": 260, "ck_basal": 160},
+     "cmj_baseline": 43.2, "iso_baseline_l": 255, "iso_baseline_r": 260},
     {"name": "YURI", "pos": "VOL", "weight": 66.4, "height": 172, "bf": 9.0, "mm": 31.5,
-     "cmj_baseline": 43.0, "iso_baseline_l": 225, "iso_baseline_r": 230, "ck_basal": 140},
+     "cmj_baseline": 43.0, "iso_baseline_l": 225, "iso_baseline_r": 230},
 ]
 
 N_DAYS = 150  # Expanded window for better temporal modeling
@@ -519,10 +519,7 @@ def load_real_data():
     # Basal
     if tag_col_b:
         basal_mask = bioq_df[tag_col_b[0]].astype(str).str.contains("basal|Basal", na=False)
-        ck_basal = bioq_df[basal_mask].dropna(subset=["ck_today"]).groupby("athlete")["ck_today"].first().reset_index()
     else:
-        ck_basal = bioq_df.dropna(subset=["ck_today"]).sort_values("date").groupby("athlete")["ck_today"].first().reset_index()
-    ck_basal.columns = ["athlete", "ck_basal"]
 
     bioq_daily = bioq_df.groupby(["athlete", "date"]).agg(
         ck_today=("ck_today", "max"),
@@ -728,7 +725,6 @@ def generate_longitudinal_data():
             postural_sway = np.clip(np.random.normal(14, 3) + fatigue_state * 1.5, 5, 35)
 
             # --- Biochemistry ---
-            ck_today = ath["ck_basal"] * (1 + fatigue_state * 0.6 +
                                            np.random.exponential(0.3))
             if is_match:
                 ck_today *= np.random.uniform(1.5, 3.0)
@@ -1074,8 +1070,8 @@ def engineer_features(df):
         # Flag: houve jogo nos últimos 3 dias (janela pós-jogo de 72h)
         g["post_match_72h"] = g["is_match"].rolling(window=4, min_periods=1).sum().clip(upper=1)
         # CK só entra pós-jogo — neutro (1.0) fora dessa janela
-        g["ck_ratio"] = np.where(g["post_match_72h"] == 1, g["ck_ratio_raw"], 1.0)
-        g["biological_deficit"] = g["ck_ratio"] * (10 - g["sleep_quality"]) / 10
+        g[] = np.where(g["post_match_72h"] == 1, g["ck_ratio_raw"], 1.0)
+        g["biological_deficit"] = g[] * (10 - g["sleep_quality"]) / 10
 
         # Sleep debt (cumulative deficit below 7h)
         g["sleep_debt"] = (7 - g["sleep_hours"]).clip(lower=0).rolling(7, min_periods=1).sum()
@@ -1111,7 +1107,7 @@ def engineer_features(df):
         # INTERACTIONS
         # =================================================================
         g["acwr_x_sleep_deficit"] = g["acwr_combined"] * (10 - g["sleep_quality"])
-        g["ck_x_asymmetry"] = g["ck_ratio"] * g["iso_asymmetry_pct"]
+        g["ck_x_asymmetry"] = g[] * g["iso_asymmetry_pct"]
         g["acwr_x_hrv_low"] = g["acwr_combined"] * (g["hrv_zscore"] < -1).astype(float)
         g["fatigue_x_pain"] = g["fatigue_debt"] * g["pain"]
 
@@ -1493,7 +1489,7 @@ def identify_risk_clusters(df, importances):
          "Reduzir volume HSR 30%. Protocolo de simetria pré-treino."),
         ("Estresse Biológico Composto",
          "CK/Basal > 2.5 + Sono < 6 + Dor > 3",
-         lambda d: (d["ck_ratio"] > 2.5) & (d["sleep_quality"] < 6) & (d["pain"] > 3),
+         lambda d: (d[] > 2.5) & (d["sleep_quality"] < 6) & (d["pain"] > 3),
          "Sessão regenerativa. Crioterapia. Remonitorar CK 48h."),
         ("Sobrecarga + Fadiga Neuromuscular",
          "sRPE 7d > 3000 + CMJ Delta < -8%",
@@ -1552,8 +1548,7 @@ def survival_analysis(df):
             if row["injury"] == 1:
                 survival_data.append({
                     "duration": max(time_since, 1), "event": 1,
-                    "acwr_combined": row.get("acwr_combined", 1),
-                    "ck_ratio": row.get("ck_ratio", 1),
+                    "acwr_combined": row.get("acwr_combined", 1),: row.get( 1),
                     "cmj_delta_pct": row.get("cmj_delta_pct", 0),
                     "sleep_quality": row.get("sleep_quality", 7),
                     "hrv_zscore": row.get("hrv_zscore", 0),
@@ -1562,8 +1557,7 @@ def survival_analysis(df):
                 last_event = i
         survival_data.append({
             "duration": max(len(g) - last_event, 1), "event": 0,
-            "acwr_combined": g.iloc[-1].get("acwr_combined", 1),
-            "ck_ratio": g.iloc[-1].get("ck_ratio", 1),
+            "acwr_combined": g.iloc[-1].get("acwr_combined", 1),: g.iloc[-1].get( 1),
             "cmj_delta_pct": g.iloc[-1].get("cmj_delta_pct", 0),
             "sleep_quality": g.iloc[-1].get("sleep_quality", 7),
             "hrv_zscore": g.iloc[-1].get("hrv_zscore", 0),
@@ -1615,7 +1609,7 @@ def generate_tomorrow_alerts(df, model, feature_cols, threshold, imputer):
         drivers = []
         if row.get("acwr_combined", 0) > 1.3:
             drivers.append(f"ACWR alto ({row['acwr_combined']:.2f})")
-        if row.get("ck_ratio", 0) > 2.0:
+        if row.get( 0) > 2.0:
             drivers.append(f"CK elevado ({row['ck_ratio']:.1f}x basal)")
         if row.get("cmj_delta_pct", 0) < -8:
             drivers.append(f"CMJ em queda ({row['cmj_delta_pct']:.1f}%)")
@@ -1706,8 +1700,7 @@ def injury_retrospective(df):
             # Nórdico (iso asymmetry)
             "iso_asymmetry_pct": round(float(window["iso_asymmetry_pct"].iloc[-1]), 1),
             "iso_asymmetry_flag": int(window["iso_asymmetry_flag"].iloc[-1]),
-            # CK (se semana de jogo)
-            "ck_ratio": round(float(window["ck_ratio"].iloc[-1]), 2),
+            # CK (se semana de jogo): round(float(window[].iloc[-1]), 2),
             # Tendências 7d
             "wellness_trend": [
                 round(float(v), 1) for v in window["wellness_composite"].values
@@ -1763,8 +1756,7 @@ def export_to_dashboard(alerts, importances, clusters, metrics, shap_data, injur
             "cmj_delta_pct": round(float(row.get("cmj_delta_pct", 0)), 1),
             "slcmj_asymmetry": round(float(row.get("slcmj_asymmetry", 0)), 1),
             "nme": round(float(row.get("nme", 0)), 4),
-            # Biological
-            "ck_ratio": round(float(row.get("ck_ratio", 0)), 2),
+            # Biological: round(float(row.get( 0)), 2),
             "sleep_quality": round(float(row.get("sleep_quality", 0)), 1),
             "sleep_debt": round(float(row.get("sleep_debt", 0)), 1),
             "hrv_zscore": round(float(row.get("hrv_zscore", 0)), 2),
