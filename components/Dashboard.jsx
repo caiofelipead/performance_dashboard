@@ -1277,7 +1277,7 @@ export default function Dashboard(){
                 </tr>
               </thead>
               <tbody>
-                {(()=>{const boardPlayers=[...players].sort((a,b)=>a.riskScore-b.riskScore);return boardPlayers.map((p,i)=>{
+                {(()=>{const boardPlayers=[...players].sort((a,b)=>b.riskScore-a.riskScore);return boardPlayers.map((p,i)=>{
                   const alert=liveAlerts.find(a=>a.n===p.n);
                   const prob=alert?alert.prob:Math.min(p.riskScore/100,1);
                   const zone=prob>0.60?"VERMELHO":prob>0.35?"LARANJA":prob>0.20?"AMARELO":"VERDE";
