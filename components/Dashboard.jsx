@@ -987,11 +987,12 @@ export default function Dashboard(){
 
   // Merge: SESSION_DATA com dados live da planilha (live tem prioridade)
   const LIVE_SESSION = useMemo(() => {
-    if (!sheetData?.sessionAtletas || Object.keys(sheetData.sessionAtletas).length === 0) return SESSION_DATA;
-    const merged = { ...SESSION_DATA, meta: { ...SESSION_DATA.meta }, atletas: { ...SESSION_DATA.atletas } };
-    // Sobrescrever/adicionar atletas com dados live
+    const hasLive = sheetData?.sessionAtletas && Object.keys(sheetData.sessionAtletas).length > 0;
+    if (!hasLive) return SESSION_DATA;
+    // Quando há dados live, usar APENAS atletas da planilha (não mesclar com hardcoded)
+    const merged = { meta: { ...SESSION_DATA.meta }, atletas: {} };
     for (const [name, data] of Object.entries(sheetData.sessionAtletas)) {
-      merged.atletas[name] = { ...SESSION_DATA.atletas[name], ...data };
+      merged.atletas[name] = { ...data, _fromSheet: true };
     }
     if (sheetData.timestamp) {
       const d = new Date(sheetData.timestamp);
