@@ -1069,9 +1069,15 @@ def engineer_features(df):
         g["nme"] = g["nme"].fillna(g["nme"].median())
 
         # =================================================================
-        # BIOLOGICAL
+        # BIOLOGICAL — CK só relevante em semana de jogo para quem joga
+        # (reunião: CK longitudinal sem contexto de jogo causa ruído)
         # =================================================================
-        g["ck_ratio"] = g["ck_today"] / g["ck_basal"]
+        g["ck_ratio_raw"] = g["ck_today"] / g["ck_basal"].replace(0, np.nan)
+        # Flag: semana tem pelo menos 1 jogo (rolling 7 dias)
+        g["match_week"] = g["is_match"].rolling(window=7, min_periods=1).sum().clip(upper=1)
+        # CK só entra quando é semana de jogo — zera fora
+        g["ck_ratio"] = g["ck_ratio_raw"] * g["match_week"]
+        g["ck_ratio"] = g["ck_ratio"].replace(0, 1.0)  # neutro fora de semana de jogo
         g["biological_deficit"] = g["ck_ratio"] * (10 - g["sleep_quality"]) / 10
 
         # Sleep debt (cumulative deficit below 7h)
@@ -1137,46 +1143,52 @@ def engineer_features(df):
 # ==============================================================================
 
 FEATURE_COLS = [
-    # Historical
-    "injury_last_30d", "injury_last_60d", "injury_last_180d", "days_since_last_injury",
-    # ACWR / Load
-    "acwr_hsr", "acwr_sprints", "acwr_sprints_25", "acwr_decels", "acwr_accels", "acwr_total_dist", "acwr_combined", "acwr_srpe",
+    # =========================================================================
+    # FOCO PRINCIPAL (reunião): Bem-estar, GPS/ACWR, CMJ, Nórdico
+    # =========================================================================
+
+    # 1. BEM-ESTAR (questionário) — prioridade máxima
+    "sleep_quality", "pain", "recovery_general", "recovery_legs",
+    "mood", "energy", "wellness_composite",
+    "sleep_trend_7d",
+    "sleep_quality_roll_mean_7d", "sleep_quality_roll_zscore_7d",
+
+    # 2. GPS / ACWR (agudo:crônico) — foco no agudo:crônico
+    "acwr_hsr", "acwr_sprints", "acwr_sprints_25",
+    "acwr_decels", "acwr_accels", "acwr_total_dist",
+    "acwr_combined", "acwr_srpe",
     "ewma_load_acute", "ewma_load_chronic",
     "cumulative_load_7d", "cumulative_load_28d",
     "monotony", "strain",
-    # Fatigue
-    "fatigue_debt",
-    # Temporal trends
-    "cmj_trend_3d", "cmj_trend_5d", "sleep_trend_7d", "srpe_trend_5d",
-    "hrv_trend_7d", "ck_growth_48h",
-    # Neuromuscular
-    "cmj_delta_pct", "slcmj_asymmetry", "iso_asymmetry_pct", "iso_asymmetry_flag",
-    "iso_delta_pct", "force_asymmetry", "nme",
-    # Biological
-    "ck_ratio", "biological_deficit", "sleep_debt", "hrv_zscore",
-    # Biomechanical
-    "dynamic_knee_valgus", "postural_sway",
-    # GPS
     "hsr_m", "sprints", "decels_3ms2", "player_load", "pl_3d_sum",
-    # Wellness
-    "sleep_quality", "sleep_hours", "pain", "recovery_general",
-    "recovery_legs", "mood", "energy", "wellness_composite",
-    "sleep_deficit_flag",
-    # Anthropometry
-    "weight_kg", "bf_pct", "weight_delta",
-    # Interactions
-    "acwr_x_sleep_deficit", "ck_x_asymmetry", "acwr_x_hrv_low", "fatigue_x_pain",
-    # Lag features
-    "srpe_lag1", "srpe_lag3", "srpe_lag5", "srpe_lag7",
-    "cmj_lag1", "cmj_lag3", "cmj_lag5", "cmj_lag7",
-    "ck_lag1", "ck_lag3", "ck_lag5", "ck_lag7",
-    "hrv_lag1", "hrv_lag3", "hrv_lag5", "hrv_lag7",
-    # Rolling stats
-    "srpe_roll_mean_7d", "srpe_roll_std_7d", "srpe_roll_zscore_7d",
-    "cmj_cm_roll_mean_7d", "cmj_cm_roll_std_7d", "cmj_cm_roll_zscore_7d",
-    "ck_today_roll_mean_7d", "ck_today_roll_std_7d", "ck_today_roll_zscore_7d",
-    "hrv_rmssd_roll_mean_7d", "hrv_rmssd_roll_std_7d", "hrv_rmssd_roll_zscore_7d",
-    "sleep_quality_roll_mean_7d", "sleep_quality_roll_std_7d", "sleep_quality_roll_zscore_7d",
+    "srpe_trend_5d",
+    "srpe_roll_mean_7d", "srpe_roll_zscore_7d",
+
+    # 3. CMJ — neuromuscular
+    "cmj_delta_pct", "cmj_trend_3d", "cmj_trend_5d",
+    "slcmj_asymmetry", "nme",
+    "cmj_lag1", "cmj_lag3",
+    "cmj_cm_roll_mean_7d", "cmj_cm_roll_zscore_7d",
+
+    # 4. NÓRDICO (isométrico como proxy) — assimetria bilateral
+    "iso_asymmetry_pct", "iso_asymmetry_flag", "iso_delta_pct", "force_asymmetry",
+
+    # =========================================================================
+    # CONTEXTUAIS (menor peso, mas necessários para o modelo)
+    # =========================================================================
+
+    # Histórico de lesões
+    "injury_last_30d", "injury_last_60d", "injury_last_180d", "days_since_last_injury",
+
+    # CK — só relevante em semana de jogo (filtrado no engineer_features)
+    "ck_ratio",
+
+    # Fadiga acumulada
+    "fatigue_debt",
+
+    # Interações priorizadas (ACWR × bem-estar)
+    "acwr_x_sleep_deficit", "fatigue_x_pain",
+
     # Match / Position
     "is_match", "pos_encoded",
 ]
@@ -1652,7 +1664,74 @@ def generate_tomorrow_alerts(df, model, feature_cols, threshold, imputer):
 # 8. EXPORT TO DASHBOARD (JSON)
 # ==============================================================================
 
-def export_to_dashboard(alerts, importances, clusters, metrics, shap_data):
+def injury_retrospective(df):
+    """
+    Análise retrospectiva de lesões: como o atleta estava nos 7 dias antes
+    de cada lesão. Gera um "retrato" pré-lesão para análise individual.
+    Foco: bem-estar, GPS/ACWR, CMJ, nórdico (iso asymmetry).
+    """
+    injury_rows = df[df["injury"] == 1].copy()
+    retrospectives = []
+
+    for _, inj_row in injury_rows.iterrows():
+        athlete = inj_row["athlete"]
+        inj_date = inj_row["date"]
+
+        # 7 dias antes da lesão
+        window = df[(df["athlete"] == athlete) &
+                    (df["date"] >= inj_date - pd.Timedelta(days=7)) &
+                    (df["date"] < inj_date)]
+
+        if len(window) == 0:
+            continue
+
+        retro = {
+            "athlete": athlete,
+            "injury_date": inj_date.strftime("%Y-%m-%d"),
+            "position": inj_row.get("position", ""),
+            "days_data_before": len(window),
+            # Bem-estar (média 7d pré-lesão)
+            "wellness_composite_avg": round(float(window["wellness_composite"].mean()), 1),
+            "sleep_quality_avg": round(float(window["sleep_quality"].mean()), 1),
+            "pain_avg": round(float(window["pain"].mean()), 1),
+            "recovery_general_avg": round(float(window["recovery_general"].mean()), 1),
+            "mood_avg": round(float(window["mood"].mean()), 1),
+            "energy_avg": round(float(window["energy"].mean()), 1),
+            # GPS / ACWR no dia anterior
+            "acwr_combined": round(float(window["acwr_combined"].iloc[-1]), 2),
+            "acwr_hsr": round(float(window["acwr_hsr"].iloc[-1]), 2),
+            "acwr_decels": round(float(window["acwr_decels"].iloc[-1]), 2),
+            "acwr_accels": round(float(window["acwr_accels"].iloc[-1]), 2),
+            "acwr_sprints_25": round(float(window["acwr_sprints_25"].iloc[-1]), 2),
+            "cumulative_load_7d": round(float(window["cumulative_load_7d"].iloc[-1]), 0),
+            "monotony": round(float(window["monotony"].iloc[-1]), 2),
+            "strain": round(float(window["strain"].iloc[-1]), 0),
+            # CMJ
+            "cmj_delta_pct": round(float(window["cmj_delta_pct"].iloc[-1]), 1),
+            "cmj_trend_5d": round(float(window["cmj_trend_5d"].iloc[-1]), 3),
+            # Nórdico (iso asymmetry)
+            "iso_asymmetry_pct": round(float(window["iso_asymmetry_pct"].iloc[-1]), 1),
+            "iso_asymmetry_flag": int(window["iso_asymmetry_flag"].iloc[-1]),
+            # CK (se semana de jogo)
+            "ck_ratio": round(float(window["ck_ratio"].iloc[-1]), 2),
+            # Tendências 7d
+            "wellness_trend": [
+                round(float(v), 1) for v in window["wellness_composite"].values
+            ],
+            "acwr_trend": [
+                round(float(v), 2) for v in window["acwr_combined"].values
+            ],
+            "cmj_trend": [
+                round(float(v), 1) for v in window["cmj_delta_pct"].values
+            ],
+        }
+        retrospectives.append(retro)
+
+    print(f"  → {len(retrospectives)} casos de lesão com retrospectiva gerada")
+    return retrospectives
+
+
+def export_to_dashboard(alerts, importances, clusters, metrics, shap_data, injury_retro=None):
     """Exporta resultados completos para o dashboard Next.js."""
     output = {
         "generated_at": datetime.now().isoformat(),
@@ -1664,6 +1743,7 @@ def export_to_dashboard(alerts, importances, clusters, metrics, shap_data):
         ],
         "shap": shap_data,
         "risk_clusters": clusters,
+        "injury_retrospective": injury_retro or [],
         "alerts": [],
     }
 
@@ -1765,11 +1845,15 @@ if __name__ == "__main__":
     survival_analysis(df_feat)
 
     # 7. Alerts
-    print(f"\n[7/7] Motor de decisão operacional...")
+    print(f"\n[7/8] Motor de decisão operacional...")
     alerts = generate_tomorrow_alerts(df_feat, model, selected_features, threshold, imputer)
 
+    # 8. Injury retrospective
+    print(f"\n[8/8] Análise retrospectiva de lesões...")
+    injury_retro = injury_retrospective(df_feat)
+
     # Export
-    output = export_to_dashboard(alerts, importances, clusters, metrics, shap_data)
+    output = export_to_dashboard(alerts, importances, clusters, metrics, shap_data, injury_retro)
 
     print(f"\n{'='*60}")
     print(f"  PIPELINE ELITE CONCLUÍDO COM SUCESSO")
