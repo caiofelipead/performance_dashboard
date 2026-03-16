@@ -1179,9 +1179,6 @@ FEATURE_COLS = [
     # Histórico de lesões
     "injury_last_30d", "injury_last_60d", "injury_last_180d", "days_since_last_injury",
 
-    # CK — só relevante em semana de jogo (filtrado no engineer_features)
-    "ck_ratio",
-
     # Fadiga acumulada
     "fatigue_debt",
 
