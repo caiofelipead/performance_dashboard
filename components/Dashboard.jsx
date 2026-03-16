@@ -1165,10 +1165,16 @@ export default function Dashboard(){
       <aside style={{width:240,flexShrink:0}}>
         <div style={{fontSize:10,fontWeight:700,color:t.textFaint,letterSpacing:1.5,textTransform:"uppercase",marginBottom:2,paddingLeft:4}}>Elenco — Risco</div>
         <div style={{fontSize:8,color:t.textFaintest,marginBottom:4,paddingLeft:4}}>Risk Score: composto de ACWR, Dor, Rec. Pernas, Dor média, Sono e Wellness. Quanto maior, mais atenção necessária.</div>
-        <div style={{display:"flex",gap:4,marginBottom:8,paddingLeft:4,flexWrap:"wrap"}}>
+        <div style={{display:"flex",gap:4,marginBottom:4,paddingLeft:4,flexWrap:"wrap"}}>
           {[{l:"Crítico",c:"#DC2626",r:"≥40"},{l:"Alto",c:"#EA580C",r:"20–39"},{l:"Moderado",c:"#CA8A04",r:"8–19"},{l:"Ótimo",c:"#16A34A",r:"<8"}].map((z,i)=>
             <span key={i} style={{fontSize:7,padding:"1px 5px",borderRadius:4,background:`${z.c}12`,color:z.c,border:`1px solid ${z.c}30`,fontWeight:600}}>{z.l} ({z.r})</span>
           )}
+        </div>
+        <div style={{fontSize:7,color:t.textFaintest,marginBottom:2,paddingLeft:4,lineHeight:1.4}}>
+          <strong style={{color:t.textFaint}}>Déf. Biológico:</strong> (10−Sono)×0.4 + Dor×0.3 + (10−Rec)×0.3. Quanto maior, pior a recuperação. {">"}1.5 = atenção, {">"}2.0 = crítico.
+        </div>
+        <div style={{fontSize:7,color:t.textFaintest,marginBottom:8,paddingLeft:4,lineHeight:1.4}}>
+          <strong style={{color:t.textFaint}}>Monotonia:</strong> Média sRPE 7d ÷ DP sRPE 7d. Mede variabilidade da carga. {">"}2.0 = carga repetitiva sem variação → risco de overreaching (Foster, 1998).
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:4,maxHeight:"calc(100vh - 100px)",overflowY:"auto",paddingRight:4}}>
           {players.map(p=><div key={p.n} onClick={()=>{setSel(p.n);setTab("player")}} style={{background:sel===p.n?t.bgCard:"transparent",border:`1px solid ${sel===p.n?t.border:"transparent"}`,borderRadius:10,padding:"8px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,transition:"all .15s",boxShadow:sel===p.n?`0 2px 8px ${t.shadow}`:"none"}}>
@@ -2241,14 +2247,48 @@ export default function Dashboard(){
           {/* ═══ CAMADA 4: TENDÊNCIA TEMPORAL — Fatigue Debt, sRPE, CMJ ═══ */}
           {(()=>{
             const mlAlert=liveAlerts.find(a=>a.n===sp.n);
-            if(!mlAlert||!mlAlert.trends) return null;
-            const tr=mlAlert.trends;
-            const days=["D-7","D-6","D-5","D-4","D-3","D-2","D-1"];
-            const trendData=days.map((d,i)=>({d,fatigue_debt:tr.fatigue_debt[i],srpe:tr.srpe[i],cmj:tr.cmj[i],wellness:tr.wellness?tr.wellness[i]:(mlAlert.sono||7)}));
-            const pr=PERFIL_RISCO_LABELS[mlAlert.perfil_risco]||PERFIL_RISCO_LABELS.sobrecarga;
+            // Construir trendData de ML.alerts OU dos dados live da planilha
+            let trendData=null;
+            if(mlAlert&&mlAlert.trends){
+              const tr=mlAlert.trends;
+              const days=["D-7","D-6","D-5","D-4","D-3","D-2","D-1"];
+              trendData=days.map((d,i)=>({d,fatigue_debt:tr.fatigue_debt[i],srpe:tr.srpe[i],cmj:tr.cmj[i],wellness:tr.wellness?tr.wellness[i]:(mlAlert.sono||7)}));
+            } else {
+              // Gerar trends a partir dos dados live (questionários + diário + saltos)
+              const questEntries=sheetData?.questionarios?.[sp.n]||[];
+              const diarioEntries=sheetData?.diario?.[sp.n]||[];
+              const saltosEntries=sheetData?.saltos?.[sp.n]||[];
+              const gpsEntries=sheetData?.gps?.[sp.n]||[];
+              const last7q=questEntries.slice(-7);
+              const last7d=diarioEntries.slice(-7);
+              const last7s=saltosEntries.slice(-7);
+              const last7g=gpsEntries.slice(-7);
+              const nDays=Math.max(last7q.length,last7d.length,1);
+              if(nDays>=2||last7q.length>=2||last7d.length>=2){
+                const days=Array.from({length:Math.min(nDays,7)},(_,i)=>"D-"+(Math.min(nDays,7)-i));
+                trendData=days.map((_d,i)=>{
+                  const q=last7q[i]||{};
+                  const d=last7d[i]||{};
+                  const s=last7s[i]||{};
+                  const g=last7g[i]||{};
+                  const sono=q.sono_qualidade||0;
+                  const dor=q.dor||0;
+                  const rec=q.recuperacao_geral||q.recuperacao_pernas||7;
+                  const wellnessV=sono>0?Math.round(((sono+(10-dor)+rec)/3)*10)/10:0;
+                  const pse=d.pse||0;
+                  const duracao=d.duracao||0;
+                  const srpeV=d.spe||(pse*duracao)||0;
+                  const cmjV=s.cmj_1?Math.max(s.cmj_1||0,s.cmj_2||0,s.cmj_3||0):0;
+                  const fatV=srpeV>0?Math.round(srpeV*(g.gps?.hsr_baseline>0?(g.gps.hsr/g.gps.hsr_baseline):1)*2.5):0;
+                  return {d:_d,fatigue_debt:fatV,srpe:srpeV,cmj:cmjV||sp.cmj||0,wellness:wellnessV||sp.sq||7};
+                });
+              }
+            }
+            const hasTrends=trendData&&trendData.length>=2;
+            const pr=mlAlert?PERFIL_RISCO_LABELS[mlAlert.perfil_risco]||PERFIL_RISCO_LABELS.sobrecarga:null;
             return <div style={{marginBottom:16}}>
-              {/* Physiological Risk Profile */}
-              <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${pr.bc}`,padding:18,marginBottom:16}}>
+              {/* Physiological Risk Profile — só mostra se tem mlAlert com diag_diff */}
+              {mlAlert&&pr&&mlAlert.diag_diff&&<div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${pr.bc}`,padding:18,marginBottom:16}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
                   <div>
                     <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Perfil Fisiológico do Risco</div>
@@ -2274,10 +2314,10 @@ export default function Dashboard(){
                       {m.unit&&<div style={{fontSize:8,color:t.textFaint}}>{m.unit}</div>}
                     </div>)}
                 </div>
-              </div>
+              </div>}
 
-              {/* Temporal Trend Charts */}
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+              {/* Temporal Trend Charts — disponível para TODOS os atletas */}
+              {hasTrends&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
                 <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Fatigue Debt — 7 Dias</div>
                   <div style={{fontSize:10,color:t.textFaint,marginBottom:6}}>Fadiga acumulada com decaimento exponencial (λ=0.1)</div>
@@ -2314,7 +2354,7 @@ export default function Dashboard(){
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
-              </div>
+              </div>}
             </div>;
           })()}
 
