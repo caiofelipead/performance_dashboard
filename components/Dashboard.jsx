@@ -908,9 +908,16 @@ export default function Dashboard(){
   // Merge P com dados live do Google Sheets e recalcular scores
   const players=useMemo(()=>{
     const liveAtletas = sheetData?.sessionAtletas || {};
+    const gpsData = sheetData?.gps || {};
     return P.map(p=>{
       const live = liveAtletas[p.n];
       const merged = {...p};
+      // Nº de sessões do GPS real (contagem de sessões distintas)
+      const gpsEntries = gpsData[p.n];
+      if(gpsEntries?.length) {
+        const uniqueSessions = new Set(gpsEntries.map(e => e.date + "||" + (e.sessionTitle || "")));
+        merged.nc = uniqueSessions.size;
+      }
       if(live){
         // Sobrescrever campos com dados live quando disponíveis
         if(live.fisio?.dor_pos>0) merged.d=live.fisio.dor_pos;
@@ -2208,6 +2215,89 @@ export default function Dashboard(){
                 <div style={{fontSize:11,fontWeight:700,color:cat.c,marginTop:2}}>{cat.l}</div>
               </div>
             )}
+          </div>
+
+          {/* Relatório Última Sessão — Tabela consolidada */}
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:14,color:pri,marginBottom:4}}>Relatório da Última Sessão</div>
+            <div style={{fontSize:11,color:t.textFaint,marginBottom:14}}>
+              {(() => {
+                const allSess = Object.values(LIVE_SESSION.atletas).filter(a => a._fromSheet);
+                const latestDate = allSess.length ? allSess.reduce((max, a) => a._sessionDate > max ? a._sessionDate : max, "") : LIVE_SESSION.meta._liveDate || LIVE_SESSION.meta.date;
+                return `${latestDate} · ${allSess.length} atletas monitorados`;
+              })()}
+            </div>
+            <div style={{overflowX:"auto"}}>
+              <table style={{width:"100%",borderCollapse:"collapse",fontSize:10}}>
+                <thead>
+                  <tr style={{borderBottom:`2px solid ${t.border}`}}>
+                    {["Atleta","Classificação","Dist (m)","HSR (m)","Sprints","Acel","Decel","PL","Vel. Pico","PSE","sRPE","Sono","Dor","Recup.","CMJ (cm)"].map((h,i)=>
+                      <th key={i} style={{padding:"6px 8px",textAlign:i===0?"left":"center",fontWeight:700,color:t.textMuted,fontSize:9,whiteSpace:"nowrap"}}>{h}</th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map((alert,idx)=>{
+                    const sess=LIVE_SESSION.atletas[alert.n];
+                    const g=sess.gps;
+                    const ci=sess.carga_interna;
+                    const fi=sess.fisio;
+                    const nm=sess.nm_response;
+                    const classC=sess.classificacao==="vermelho"?"#DC2626":sess.classificacao==="amarelo"?"#CA8A04":"#16A34A";
+                    const distPct=g.dist_baseline>0?Math.round((g.dist_total/g.dist_baseline)*100):0;
+                    const hsrPct=g.hsr_baseline>0?Math.round((g.hsr/g.hsr_baseline)*100):0;
+                    const distColor=distPct>120?"#DC2626":distPct>100?"#CA8A04":"#16A34A";
+                    const hsrColor=hsrPct>130?"#DC2626":hsrPct>100?"#CA8A04":"#16A34A";
+                    return <tr key={alert.n} style={{borderBottom:`1px solid ${t.border}`,background:idx%2===0?"transparent":t.bgMuted+"44",cursor:"pointer"}} onClick={()=>{setSel(alert.n);setTab("player")}}>
+                      <td style={{padding:"8px",fontWeight:700,color:pri,whiteSpace:"nowrap"}}>
+                        <div style={{display:"flex",alignItems:"center",gap:6}}>
+                          <div style={{width:6,height:6,borderRadius:3,background:classC,flexShrink:0}}/>
+                          {alert.n}
+                          <span style={{fontSize:8,color:t.textFaint}}>{alert.pos}</span>
+                        </div>
+                      </td>
+                      <td style={{padding:"8px",textAlign:"center"}}><span style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:700,color:classC,background:classC+"15"}}>{sess.classificacao.toUpperCase()}</span></td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}><span style={{color:distColor}}>{g.dist_total||"—"}</span> <span style={{fontSize:8,color:t.textFaint}}>({distPct}%)</span></td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}><span style={{color:hsrColor}}>{g.hsr||"—"}</span> <span style={{fontSize:8,color:t.textFaint}}>({hsrPct}%)</span></td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.sprints||0}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.acel||0}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.decel||0}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.player_load?Math.round(g.player_load):"—"}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.pico_vel||"—"}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:ci.srpe_sessao>7?"#DC2626":ci.srpe_sessao>5?"#CA8A04":"#16A34A"}}>{ci.srpe_sessao||"—"}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{ci.srpe_total||"—"}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:fi.sono_noite>0&&fi.sono_noite<6?"#DC2626":fi.sono_noite<7?"#CA8A04":"#16A34A"}}>{fi.sono_noite||"—"}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:fi.dor_pos>=4?"#DC2626":fi.dor_pos>=2?"#CA8A04":"#16A34A"}}>{fi.dor_pos||0}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:fi.rec_percebida<=5?"#DC2626":fi.rec_percebida<=7?"#CA8A04":"#16A34A"}}>{fi.rec_percebida||"—"}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{nm.cmj_pre||"—"}</td>
+                    </tr>;
+                  })}
+                </tbody>
+                {/* Médias do time */}
+                {(()=>{
+                  const sessAtletas=ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map(a=>LIVE_SESSION.atletas[a.n]);
+                  if(!sessAtletas.length) return null;
+                  const avg=(arr,fn)=>{const vals=arr.map(fn).filter(v=>v>0);return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;};
+                  return <tfoot><tr style={{borderTop:`2px solid ${pri}`,fontWeight:800}}>
+                    <td style={{padding:"8px",color:pri}}>MÉDIA EQUIPE</td>
+                    <td style={{padding:"8px",textAlign:"center",fontSize:9,color:t.textFaint}}>{sessAtletas.length} atl.</td>
+                    <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.dist_total)}</td>
+                    <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.hsr)}</td>
+                    <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.sprints)}</td>
+                    <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.acel)}</td>
+                    <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.decel)}</td>
+                    <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.player_load)}</td>
+                    <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.pico_vel)}</td>
+                    <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.carga_interna.srpe_sessao)}</td>
+                    <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.carga_interna.srpe_total)}</td>
+                    <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.fisio.sono_noite)}</td>
+                    <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.fisio.dor_pos)}</td>
+                    <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.fisio.rec_percebida)}</td>
+                    <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.nm_response.cmj_pre)}</td>
+                  </tr></tfoot>;
+                })()}
+              </table>
+            </div>
           </div>
 
           {/* Individual Session Cards */}
