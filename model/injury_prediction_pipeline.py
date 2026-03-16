@@ -179,8 +179,8 @@ def generate_longitudinal_data():
 
             # --- GPS (External Load) ---
             if is_rest:
-                hsr = 0; sprints = 0; decels = 0; player_load = 0
-                duration = 0; minutes_played = 0
+                hsr = 0; sprints = 0; decels = 0; accels = 0; player_load = 0
+                total_distance = 0; duration = 0; minutes_played = 0
             elif is_match:
                 minutes_played = np.random.choice([90, 70, 45, 30, 0],
                                                    p=[0.45, 0.2, 0.15, 0.1, 0.1])
@@ -188,6 +188,8 @@ def generate_longitudinal_data():
                 hsr = np.random.gamma(4, 80) * base_intensity * (minutes_played / 90)
                 sprints = int(np.random.poisson(12) * (minutes_played / 90))
                 decels = int(np.random.poisson(18) * (minutes_played / 90))
+                accels = int(np.random.poisson(20) * (minutes_played / 90))
+                total_distance = np.random.normal(10500, 1200) * (minutes_played / 90)
                 player_load = np.random.normal(650, 80) * (minutes_played / 90)
                 duration = minutes_played
             else:
@@ -196,6 +198,8 @@ def generate_longitudinal_data():
                 hsr = np.random.gamma(3, 50) * base_intensity
                 sprints = np.random.poisson(6)
                 decels = np.random.poisson(10)
+                accels = np.random.poisson(12)
+                total_distance = np.random.normal(5500, 800) * base_intensity
                 player_load = np.random.normal(400, 60)
                 duration = np.random.choice([90, 75, 60], p=[0.3, 0.5, 0.2])
                 minutes_played = duration
@@ -328,6 +332,8 @@ def generate_longitudinal_data():
                 "hsr_m": round(hsr, 1),
                 "sprints": sprints,
                 "decels_3ms2": decels,
+                "accels_3ms2": accels,
+                "total_distance_m": round(total_distance, 1),
                 "player_load": round(player_load, 1),
                 "duration_min": duration,
                 "minutes_played": minutes_played,
@@ -491,7 +497,13 @@ def engineer_features(df):
         g["acwr_hsr"] = compute_ewma_acwr(g, "hsr_m")
         g["acwr_sprints"] = compute_ewma_acwr(g, "sprints")
         g["acwr_decels"] = compute_ewma_acwr(g, "decels_3ms2")
-        g["acwr_combined"] = g["acwr_hsr"] * 0.4 + g["acwr_sprints"] * 0.35 + g["acwr_decels"] * 0.25
+        g["acwr_accels"] = compute_ewma_acwr(g, "accels_3ms2")
+        g["acwr_total_dist"] = compute_ewma_acwr(g, "total_distance_m")
+        g["acwr_combined"] = (g["acwr_hsr"] * 0.25
+                              + g["acwr_sprints"] * 0.20
+                              + g["acwr_decels"] * 0.15
+                              + g["acwr_accels"] * 0.15
+                              + g["acwr_total_dist"] * 0.25)
 
         # EWMA Load (sRPE)
         g["ewma_load_acute"] = ewma(g["srpe"], span=7)
@@ -633,7 +645,7 @@ FEATURE_COLS = [
     # Historical
     "injury_last_30d", "injury_last_60d", "injury_last_180d", "days_since_last_injury",
     # ACWR / Load
-    "acwr_hsr", "acwr_sprints", "acwr_decels", "acwr_combined", "acwr_srpe",
+    "acwr_hsr", "acwr_sprints", "acwr_decels", "acwr_accels", "acwr_total_dist", "acwr_combined", "acwr_srpe",
     "ewma_load_acute", "ewma_load_chronic",
     "cumulative_load_7d", "cumulative_load_28d",
     "monotony", "strain",
@@ -1170,6 +1182,8 @@ def export_to_dashboard(alerts, importances, clusters, metrics, shap_data):
             "risk_drivers": row["risk_drivers"],
             # Load metrics
             "acwr_combined": round(float(row.get("acwr_combined", 0)), 2),
+            "acwr_accels": round(float(row.get("acwr_accels", 0)), 2),
+            "acwr_total_dist": round(float(row.get("acwr_total_dist", 0)), 2),
             "acwr_srpe": round(float(row.get("acwr_srpe", 0)), 2),
             "cumulative_load_7d": round(float(row.get("cumulative_load_7d", 0)), 0),
             "cumulative_load_28d": round(float(row.get("cumulative_load_28d", 0)), 0),
