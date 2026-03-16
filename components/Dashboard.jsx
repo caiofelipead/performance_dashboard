@@ -908,9 +908,16 @@ export default function Dashboard(){
   // Merge P com dados live do Google Sheets e recalcular scores
   const players=useMemo(()=>{
     const liveAtletas = sheetData?.sessionAtletas || {};
+    const gpsData = sheetData?.gps || {};
     return P.map(p=>{
       const live = liveAtletas[p.n];
       const merged = {...p};
+      // Nº de sessões do GPS real (contagem de sessões distintas)
+      const gpsEntries = gpsData[p.n];
+      if(gpsEntries?.length) {
+        const uniqueSessions = new Set(gpsEntries.map(e => e.date + "||" + (e.sessionTitle || "")));
+        merged.nc = uniqueSessions.size;
+      }
       if(live){
         // Sobrescrever campos com dados live quando disponíveis
         if(live.fisio?.dor_pos>0) merged.d=live.fisio.dor_pos;
