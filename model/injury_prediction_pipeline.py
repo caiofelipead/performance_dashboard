@@ -141,6 +141,286 @@ N_DAYS = 120
 START_DATE = datetime(2025, 11, 15)
 TRAINING_TYPES = ["strength", "tactical", "technical", "conditioning", "recovery"]
 
+# ==============================================================================
+# CAMINHO DA PLANILHA DE DADOS REAIS
+# ==============================================================================
+DATA_FILE = Path(__file__).parent.parent / "Botafogo FSA - Dados Performance-2.xlsx"
+
+
+# ==============================================================================
+# LEITURA DE DADOS REAIS DA PLANILHA
+# ==============================================================================
+
+def load_real_data(filepath=None):
+    """
+    Carrega e consolida dados reais do Excel multidisciplinar (GPS, carga,
+    bem-estar, testes, bioquímico, lesões) em um DataFrame atleta-dia
+    compatível com o pipeline.
+    """
+    fp = Path(filepath) if filepath else DATA_FILE
+    print(f"  Lendo planilha: {fp.name}")
+
+    # --- Jogadores (cadastro) ---
+    jogadores = pd.read_excel(fp, sheet_name="jogadores")
+    jogadores = jogadores.rename(columns={
+        "jogador_id": "player_id", "apelido": "athlete",
+        "posicao": "position",
+    })
+    jogadores["athlete"] = jogadores["athlete"].str.upper()
+
+    # --- GPS ---
+    # Colunas da planilha Google Sheets "Performance - 2026"
+    gps_raw = pd.read_excel(fp, sheet_name="gps")
+    gps = gps_raw.rename(columns={
+        "jogador_id": "player_id",
+        "data": "date",
+        "sessao": "session",
+        "split": "split_name",
+        "distancia_km": "total_distance_km",
+        "dist_sprint_m": "hsr_m",
+        "sprints": "sprints",
+        "player_load": "player_load",
+        "dist_por_min": "dist_per_min",
+        "vel_max_ms": "top_speed_ms",
+        "acel_4ms2": "accels_3ms2",
+        "decel_4ms2": "decels_3ms2",
+        # Colunas extras do Google Sheets
+        "Distance (km)": "total_distance_km",
+        "Sprint Distance 20km/h (m)": "hsr_m",
+        "Sprints 20km/h": "sprints",
+        "Player Load": "player_load",
+        "Distance Per Min (m/min)": "dist_per_min",
+        "Sprint Distance Per Min (m/min)": "sprint_dist_per_min",
+        "Top Speed (km/h)": "top_speed_kmh",
+        "Sprint Distance 25km/h (km)": "sprint_dist_25_m",
+        "Sprints 25km/h": "sprints_25",
+        "Acelerações B1-3 (>1)": "accels_1ms2",
+        "Acelerações B2-3 (>3)": "accels_3ms2",
+        "Desacelerações B1-3 (>1)": "decels_1ms2",
+        "Desacelerações B2-3 (>3)": "decels_3ms2",
+        "Ações>30Km/h": "actions_above_30",
+        "RHIE": "rhie",
+    })
+
+    # Conversões de unidade
+    if "total_distance_km" in gps.columns:
+        gps["total_distance_m"] = gps["total_distance_km"] * 1000
+    if "sprint_dist_25_m" in gps.columns:
+        gps["sprint_dist_25_m"] = gps["sprint_dist_25_m"] * 1000  # km → m
+    if "top_speed_kmh" in gps.columns and "top_speed_ms" not in gps.columns:
+        gps["top_speed_ms"] = gps["top_speed_kmh"] / 3.6
+
+    # Garantir colunas com 0 se ausentes
+    for c in ["sprints_25", "accels_1ms2", "decels_1ms2",
+              "actions_above_30", "rhie", "sprint_dist_25_m",
+              "total_distance_m", "accels_3ms2", "decels_3ms2"]:
+        if c not in gps.columns:
+            gps[c] = 0
+
+    # Agregar por jogador-dia (pode haver múltiplas sessões/splits)
+    gps["date"] = pd.to_datetime(gps["date"])
+    gps_daily = gps.groupby(["player_id", "date"]).agg(
+        hsr_m=("hsr_m", "sum"),
+        sprints=("sprints", "sum"),
+        sprints_25=("sprints_25", "sum"),
+        accels_3ms2=("accels_3ms2", "sum"),
+        decels_3ms2=("decels_3ms2", "sum"),
+        total_distance_m=("total_distance_m", "sum"),
+        player_load=("player_load", "sum"),
+        dist_per_min=("dist_per_min", "mean"),
+        top_speed_ms=("top_speed_ms", "max"),
+    ).reset_index()
+
+    # --- Carga de treino ---
+    carga = pd.read_excel(fp, sheet_name="carga_treino")
+    carga = carga.rename(columns={
+        "jogador_id": "player_id", "data": "date",
+        "pse": "pse", "duracao_min": "duration_min",
+        "carga_sessao": "srpe", "atividade": "training_type",
+        "tags": "tags", "semana": "week", "dia_semana": "day_of_week",
+    })
+    carga["date"] = pd.to_datetime(carga["date"])
+    # Agregar por jogador-dia
+    carga_daily = carga.groupby(["player_id", "date"]).agg(
+        pse=("pse", "max"),
+        duration_min=("duration_min", "sum"),
+        srpe=("srpe", "sum"),
+        training_type=("training_type", "first"),
+        tags=("tags", "first"),
+        week=("week", "first"),
+        day_of_week=("day_of_week", "first"),
+    ).reset_index()
+    carga_daily["srpe"] = carga_daily["srpe"].fillna(0)
+
+    # --- Bem-estar ---
+    bem_estar = pd.read_excel(fp, sheet_name="bem_estar")
+    bem_estar = bem_estar.rename(columns={
+        "jogador_id": "player_id", "data": "date",
+        "peso_kg": "weight_kg", "humor": "mood_raw",
+        "energia": "energy_raw", "recuperacao_geral": "recovery_general",
+        "dor_nivel": "pain",
+    })
+    bem_estar["date"] = pd.to_datetime(bem_estar["date"])
+    # Mapear humor e energia para numérico
+    mood_map = {"Muito mal": 1, "Mal estar": 2, "Normal": 3, "Bem": 4, "Muito bem": 5}
+    energy_map = {"Desanimado": 1, "Sem energia": 2, "Com energia": 3, "Muito animado": 4}
+    bem_estar["mood"] = bem_estar["mood_raw"].map(mood_map).fillna(3).astype(int)
+    bem_estar["energy"] = bem_estar["energy_raw"].map(energy_map).fillna(2).astype(int)
+    bem_estar["recovery_general"] = pd.to_numeric(bem_estar["recovery_general"], errors="coerce").fillna(5)
+    bem_estar["pain"] = pd.to_numeric(bem_estar["pain"], errors="coerce").fillna(0)
+    # Usar período "pré" se disponível, senão primeiro do dia
+    bem_estar_daily = bem_estar.sort_values("periodo").groupby(["player_id", "date"]).agg(
+        weight_kg=("weight_kg", "first"),
+        mood=("mood", "first"),
+        energy=("energy", "first"),
+        recovery_general=("recovery_general", "first"),
+        pain=("pain", "first"),
+    ).reset_index()
+
+    # --- Testes físicos (CMJ) ---
+    testes = pd.read_excel(fp, sheet_name="testes_fisicos")
+    testes = testes.rename(columns={
+        "jogador_id": "player_id", "data": "date",
+        "cmj_melhor_cm": "cmj_cm",
+    })
+    testes["date"] = pd.to_datetime(testes["date"])
+    # Baseline = primeiro teste de cada jogador
+    cmj_baseline = testes.groupby("player_id")["cmj_cm"].first().reset_index()
+    cmj_baseline.columns = ["player_id", "cmj_baseline"]
+    # Último CMJ por jogador-dia
+    testes_daily = testes.sort_values("date").groupby(["player_id", "date"]).agg(
+        cmj_cm=("cmj_cm", "max"),
+    ).reset_index()
+
+    # --- Bioquímico ---
+    bioq = pd.read_excel(fp, sheet_name="bioquimico")
+    bioq = bioq.rename(columns={
+        "jogador_id": "player_id", "data": "date",
+        "ck_u_l": "ck_today",
+    })
+    bioq["date"] = pd.to_datetime(bioq["date"])
+    # Basal = primeiro exame com tag "Basal"
+    basal_mask = bioq["tag"].str.contains("Basal", case=False, na=False)
+    ck_basal = bioq[basal_mask].groupby("player_id")["ck_today"].first().reset_index()
+    ck_basal.columns = ["player_id", "ck_basal"]
+    bioq_daily = bioq.groupby(["player_id", "date"]).agg(
+        ck_today=("ck_today", "max"),
+    ).reset_index()
+
+    # --- Lesões ---
+    lesoes = pd.read_excel(fp, sheet_name="lesoes")
+    lesoes = lesoes.rename(columns={
+        "jogador_id": "player_id",
+        "data_entrada": "injury_date",
+        "data_saida_dm": "return_date",
+    })
+    lesoes["injury_date"] = pd.to_datetime(lesoes["injury_date"])
+    lesoes["return_date"] = pd.to_datetime(lesoes["return_date"])
+
+    # =====================================================================
+    # MERGE — Construir DataFrame atleta-dia
+    # =====================================================================
+    # Base: todas as datas com GPS ou carga
+    base_dates_gps = gps_daily[["player_id", "date"]].drop_duplicates()
+    base_dates_carga = carga_daily[["player_id", "date"]].drop_duplicates()
+    base_dates = pd.concat([base_dates_gps, base_dates_carga]).drop_duplicates().sort_values(["player_id", "date"])
+
+    df = base_dates.merge(jogadores[["player_id", "athlete", "position"]], on="player_id", how="left")
+    df = df.merge(gps_daily, on=["player_id", "date"], how="left")
+    df = df.merge(carga_daily, on=["player_id", "date"], how="left")
+    df = df.merge(bem_estar_daily, on=["player_id", "date"], how="left")
+    df = df.merge(cmj_baseline, on="player_id", how="left")
+    df = df.merge(ck_basal, on="player_id", how="left")
+
+    # CMJ: forward fill do último teste disponível por jogador
+    testes_all = df[["player_id", "date"]].merge(testes_daily, on=["player_id", "date"], how="left")
+    testes_all = testes_all.sort_values(["player_id", "date"])
+    testes_all["cmj_cm"] = testes_all.groupby("player_id")["cmj_cm"].ffill()
+    df["cmj_cm"] = testes_all["cmj_cm"].values
+    df["cmj_cm"] = df["cmj_cm"].fillna(df["cmj_baseline"])
+
+    # CK: forward fill
+    bioq_all = df[["player_id", "date"]].merge(bioq_daily, on=["player_id", "date"], how="left")
+    bioq_all = bioq_all.sort_values(["player_id", "date"])
+    bioq_all["ck_today"] = bioq_all.groupby("player_id")["ck_today"].ffill()
+    df["ck_today"] = bioq_all["ck_today"].values
+    df["ck_today"] = df["ck_today"].fillna(df["ck_basal"])
+
+    # Marcar lesões no dia
+    df["injury"] = 0
+    for _, row in lesoes.dropna(subset=["player_id", "injury_date"]).iterrows():
+        pid = row["player_id"]
+        inj_date = row["injury_date"]
+        mask = (df["player_id"] == pid) & (df["date"] == inj_date)
+        df.loc[mask, "injury"] = 1
+
+    # Dias desde última lesão
+    df["days_since_last_injury"] = 999
+    for pid in df["player_id"].unique():
+        pmask = df["player_id"] == pid
+        pdf = df[pmask].copy()
+        inj_dates = pdf[pdf["injury"] == 1]["date"]
+        for idx in pdf.index:
+            curr_date = pdf.loc[idx, "date"]
+            prev_inj = inj_dates[inj_dates < curr_date]
+            if len(prev_inj) > 0:
+                df.loc[idx, "days_since_last_injury"] = (curr_date - prev_inj.max()).days
+
+    # Flags auxiliares
+    df["is_match"] = df["training_type"].str.contains("Jogo|Match", case=False, na=False).astype(int)
+    df["is_rest"] = ((df["srpe"].fillna(0) == 0) & (df["total_distance_m"].fillna(0) == 0)).astype(int)
+
+    # Preencher NaN de GPS/carga com 0 (dias sem treino)
+    gps_cols = ["hsr_m", "sprints", "sprints_25", "accels_3ms2", "decels_3ms2",
+                "total_distance_m", "player_load", "dist_per_min", "top_speed_ms"]
+    for c in gps_cols:
+        if c in df.columns:
+            df[c] = df[c].fillna(0)
+    df["srpe"] = df["srpe"].fillna(0)
+    df["pse"] = df["pse"].fillna(0)
+    df["duration_min"] = df["duration_min"].fillna(0)
+
+    # Preencher wellness com medianas
+    for c in ["weight_kg", "mood", "energy", "recovery_general", "pain"]:
+        if c in df.columns:
+            df[c] = df[c].fillna(df[c].median())
+
+    # Colunas que o pipeline espera e não existem na planilha — preencher com defaults
+    # (serão NaN/ignoradas onde não disponíveis, mas evitam quebra)
+    defaults = {
+        "training_load": df["srpe"],
+        "match_load": df["srpe"] * df["is_match"],
+        "minutes_played": df["duration_min"],
+        "sleep_quality": 7.0,    # não disponível na planilha — placeholder
+        "sleep_hours": 7.5,
+        "recovery_legs": df.get("recovery_general", 5.0),
+        "hrv_rmssd": 65.0,       # placeholder — sem HRV na planilha
+        "hrv_baseline": 65.0,
+        "slcmj_l": df["cmj_cm"] * 0.51 if "cmj_cm" in df.columns else 20.0,
+        "slcmj_r": df["cmj_cm"] * 0.49 if "cmj_cm" in df.columns else 20.0,
+        "iso_left_n": 270.0,     # placeholder — sem isometria por sessão
+        "iso_right_n": 270.0,
+        "iso_baseline_l": 270.0,
+        "iso_baseline_r": 270.0,
+        "dynamic_knee_valgus": 5.5,
+        "postural_sway": 14.0,
+        "force_asymmetry": 0.0,
+        "bf_pct": 11.0,
+        "height_cm": 180.0,
+        "muscle_mass_kg": 37.0,
+    }
+    for col, default_val in defaults.items():
+        if col not in df.columns:
+            df[col] = default_val
+
+    df = df.sort_values(["athlete", "date"]).reset_index(drop=True)
+
+    n_athletes = df["player_id"].nunique()
+    n_days = df["date"].nunique()
+    print(f"  → {len(df)} registros | {n_athletes} atletas | {n_days} datas | "
+          f"{df['injury'].sum()} lesões")
+    return df
+
 
 # ==============================================================================
 # 1. SIMULAÇÃO DE DADOS LONGITUDINAIS (ATLETA-DIA)
@@ -179,7 +459,8 @@ def generate_longitudinal_data():
 
             # --- GPS (External Load) ---
             if is_rest:
-                hsr = 0; sprints = 0; decels = 0; accels = 0; player_load = 0
+                hsr = 0; sprints = 0; sprints_25 = 0
+                decels = 0; accels = 0; player_load = 0
                 total_distance = 0; duration = 0; minutes_played = 0
             elif is_match:
                 minutes_played = np.random.choice([90, 70, 45, 30, 0],
@@ -187,6 +468,7 @@ def generate_longitudinal_data():
                 base_intensity = 1.3 if minutes_played > 0 else 0
                 hsr = np.random.gamma(4, 80) * base_intensity * (minutes_played / 90)
                 sprints = int(np.random.poisson(12) * (minutes_played / 90))
+                sprints_25 = int(np.random.poisson(5) * (minutes_played / 90))
                 decels = int(np.random.poisson(18) * (minutes_played / 90))
                 accels = int(np.random.poisson(20) * (minutes_played / 90))
                 total_distance = np.random.normal(10500, 1200) * (minutes_played / 90)
@@ -197,6 +479,7 @@ def generate_longitudinal_data():
                 base_intensity = np.random.uniform(0.6, 1.0)
                 hsr = np.random.gamma(3, 50) * base_intensity
                 sprints = np.random.poisson(6)
+                sprints_25 = np.random.poisson(2)
                 decels = np.random.poisson(10)
                 accels = np.random.poisson(12)
                 total_distance = np.random.normal(5500, 800) * base_intensity
@@ -331,6 +614,7 @@ def generate_longitudinal_data():
                 # GPS
                 "hsr_m": round(hsr, 1),
                 "sprints": sprints,
+                "sprints_25": sprints_25,
                 "decels_3ms2": decels,
                 "accels_3ms2": accels,
                 "total_distance_m": round(total_distance, 1),
@@ -496,14 +780,16 @@ def engineer_features(df):
         # EWMA ACWR
         g["acwr_hsr"] = compute_ewma_acwr(g, "hsr_m")
         g["acwr_sprints"] = compute_ewma_acwr(g, "sprints")
+        g["acwr_sprints_25"] = compute_ewma_acwr(g, "sprints_25")
         g["acwr_decels"] = compute_ewma_acwr(g, "decels_3ms2")
         g["acwr_accels"] = compute_ewma_acwr(g, "accels_3ms2")
         g["acwr_total_dist"] = compute_ewma_acwr(g, "total_distance_m")
-        g["acwr_combined"] = (g["acwr_hsr"] * 0.25
-                              + g["acwr_sprints"] * 0.20
-                              + g["acwr_decels"] * 0.15
+        g["acwr_combined"] = (g["acwr_total_dist"] * 0.20
+                              + g["acwr_hsr"] * 0.20
+                              + g["acwr_sprints"] * 0.15
+                              + g["acwr_sprints_25"] * 0.10
                               + g["acwr_accels"] * 0.15
-                              + g["acwr_total_dist"] * 0.25)
+                              + g["acwr_decels"] * 0.20)
 
         # EWMA Load (sRPE)
         g["ewma_load_acute"] = ewma(g["srpe"], span=7)
@@ -645,7 +931,7 @@ FEATURE_COLS = [
     # Historical
     "injury_last_30d", "injury_last_60d", "injury_last_180d", "days_since_last_injury",
     # ACWR / Load
-    "acwr_hsr", "acwr_sprints", "acwr_decels", "acwr_accels", "acwr_total_dist", "acwr_combined", "acwr_srpe",
+    "acwr_hsr", "acwr_sprints", "acwr_sprints_25", "acwr_decels", "acwr_accels", "acwr_total_dist", "acwr_combined", "acwr_srpe",
     "ewma_load_acute", "ewma_load_chronic",
     "cumulative_load_7d", "cumulative_load_28d",
     "monotony", "strain",
@@ -1234,10 +1520,14 @@ if __name__ == "__main__":
     print("           → Calibração → Threshold → SHAP → Dashboard")
     print("=" * 60)
 
-    # 1. Generate data
-    print(f"\n[1/7] Gerando dados longitudinais ({len(ATHLETES)} atletas x {N_DAYS} dias)...")
-    df_raw = generate_longitudinal_data()
-    print(f"  → {len(df_raw)} registros | {df_raw['injury'].sum()} eventos de lesão")
+    # 1. Load real data (or fall back to synthetic)
+    if DATA_FILE.exists():
+        print(f"\n[1/7] Carregando dados REAIS da planilha...")
+        df_raw = load_real_data(DATA_FILE)
+    else:
+        print(f"\n[1/7] Planilha não encontrada — gerando dados sintéticos ({len(ATHLETES)} atletas x {N_DAYS} dias)...")
+        df_raw = generate_longitudinal_data()
+        print(f"  → {len(df_raw)} registros | {df_raw['injury'].sum()} eventos de lesão")
 
     # 2. Exposure tables
     print(f"\n[2/7] Calculando tabelas de exposição (semanal/mensal)...")
