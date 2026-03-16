@@ -2145,27 +2145,42 @@ export default function Dashboard(){
               </div>
 
               {/* DM Atual — se aplicável */}
-              {dmStatus&&<div style={{background:t.bgCard,borderRadius:12,border:"1px solid #FECACA",padding:18}}>
-                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:"#DC2626",marginBottom:12}}>Status DM — Afastado</div>
-                <div style={{textAlign:"center",marginBottom:14}}>
-                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:48,fontWeight:900,color:"#DC2626"}}>{dmStatus.dias}</div>
-                  <div style={{fontSize:11,color:t.textFaint,fontWeight:600}}>dias afastado</div>
-                </div>
-                <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                  {[
-                    {l:"Classificação",v:dmStatus.classif},
-                    {l:"Região",v:dmStatus.regiao},
-                    {l:"Estágio",v:dmStatus.estagio},
-                    {l:"Conduta",v:dmStatus.conduta},
-                    {l:"Desde",v:dmStatus.desde},
-                    {l:"Prognóstico",v:dmStatus.prognostico}
-                  ].map((r,i)=>
-                    <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 10px",background:i%2===0?"#FEF2F2":t.bgCard,borderRadius:6}}>
-                      <span style={{fontSize:10,color:t.textFaint,fontWeight:600}}>{r.l}</span>
-                      <span style={{fontSize:11,fontWeight:700,color:r.l==="Prognóstico"?"#2563EB":"#DC2626"}}>{r.v}</span>
-                    </div>)}
-                </div>
-              </div>}
+              {dmStatus&&(()=>{
+                const isRetornou = dmStatus.conduta === "Retornou";
+                const accentC = isRetornou ? "#16A34A" : "#DC2626";
+                const bgTint = isRetornou ? "#F0FDF4" : "#FEF2F2";
+                const borderC = isRetornou ? "#BBF7D0" : "#FECACA";
+                const rows = [
+                  {l:"Classificação",v:dmStatus.classif},
+                  {l:"Região",v:dmStatus.regiao},
+                  {l:"Estágio",v:dmStatus.estagio},
+                  {l:"Conduta",v:dmStatus.conduta,c:isRetornou?"#16A34A":"#DC2626"},
+                  {l:"Desde",v:dmStatus.desde},
+                  {l:"Prognóstico",v:dmStatus.prognostico,c:"#CA8A04"},
+                ];
+                if (dmStatus.retorno_real) rows.push({l:"Retorno Real",v:dmStatus.retorno_real,c:"#16A34A"});
+                if (dmStatus.dias_retorno !== null && dmStatus.dias_retorno !== undefined) rows.push({l:"Dias desde retorno",v:`+${dmStatus.dias_retorno}d`,c:"#16A34A"});
+                return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${borderC}`,padding:18}}>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:accentC,marginBottom:12}}>
+                    {isRetornou ? "Status DM — Retornou" : "Status DM — Afastado"}
+                  </div>
+                  <div style={{textAlign:"center",marginBottom:14}}>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:48,fontWeight:900,color:accentC}}>
+                      {isRetornou ? `+${dmStatus.dias_retorno||0}d` : dmStatus.dias}
+                    </div>
+                    <div style={{fontSize:11,color:t.textFaint,fontWeight:600}}>
+                      {isRetornou ? "dias desde retorno ao treino" : "dias afastado"}
+                    </div>
+                  </div>
+                  <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                    {rows.map((r,i)=>
+                      <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 10px",background:i%2===0?bgTint:t.bgCard,borderRadius:6}}>
+                        <span style={{fontSize:10,color:t.textFaint,fontWeight:600}}>{r.l}</span>
+                        <span style={{fontSize:11,fontWeight:700,color:r.c||accentC}}>{r.v}</span>
+                      </div>)}
+                  </div>
+                </div>;
+              })()}
             </div>;
           })()}
 
