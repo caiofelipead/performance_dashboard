@@ -986,12 +986,19 @@ def engineer_features(df):
         g["acwr_decels"] = compute_ewma_acwr(g, "decels_3ms2")
         g["acwr_accels"] = compute_ewma_acwr(g, "accels_3ms2")
         g["acwr_total_dist"] = compute_ewma_acwr(g, "total_distance_m")
-        g["acwr_combined"] = (g["acwr_total_dist"] * 0.20
-                              + g["acwr_hsr"] * 0.20
-                              + g["acwr_sprints"] * 0.15
-                              + g["acwr_sprints_25"] * 0.10
+        # Pesos baseados em evidências de revistas indexadas (A/B):
+        # - Decels 0.25: Bowen et al. 2017/2020 (BJSM) RR=6.7; AUC=0.91 (carga excêntrica)
+        # - HSR   0.25: Malone et al. 2018 (JSSM) OR=3.0-5.6; Bowen (BJSM); Nobari (IJERPH)
+        # - Spr25 0.15: Nobari et al. 2021 (IJERPH) OR=6.9; Malone OR=6.12 para Δ sprint dist
+        # - Accels 0.15: Bowen (BJSM) RR=5.4-6.6; Jaspers 2017 (Sports Med) RR=3.86
+        # - TDist 0.10: Bowen (BJSM) RR=3.7-3.9; indicador de volume geral
+        # - Spr20 0.10: parcialmente redundante com HSR; frequência mecânica
+        g["acwr_combined"] = (g["acwr_decels"] * 0.25
+                              + g["acwr_hsr"] * 0.25
+                              + g["acwr_sprints_25"] * 0.15
                               + g["acwr_accels"] * 0.15
-                              + g["acwr_decels"] * 0.20)
+                              + g["acwr_total_dist"] * 0.10
+                              + g["acwr_sprints"] * 0.10)
 
         # EWMA Load (sRPE)
         g["ewma_load_acute"] = ewma(g["srpe"], span=7)
