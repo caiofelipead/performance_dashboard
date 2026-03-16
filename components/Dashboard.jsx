@@ -2484,9 +2484,9 @@ export default function Dashboard(){
           {/* Classification Overview */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:16}}>
             {[
-              {l:"Sessão Reduziu Risco",c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",count:players.filter(p=>{const s=LIVE_SESSION.atletas[p.n];return s?s.classificacao==="verde":p.risk==="LOW";}).length},
-              {l:"Carga Controlada",c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",count:players.filter(p=>{const s=LIVE_SESSION.atletas[p.n];return s?s.classificacao==="amarelo":p.risk==="MODERATE";}).length},
-              {l:"Sessão Aumentou Risco",c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",count:players.filter(p=>{const s=LIVE_SESSION.atletas[p.n];return s?s.classificacao==="vermelho":(p.risk==="CRITICAL"||p.risk==="HIGH");}).length}
+              {l:"Sessão Reduziu Risco",c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",count:Object.values(LIVE_SESSION.atletas).filter(a=>a.classificacao==="verde").length},
+              {l:"Carga Controlada",c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",count:Object.values(LIVE_SESSION.atletas).filter(a=>a.classificacao==="amarelo").length},
+              {l:"Sessão Aumentou Risco",c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",count:Object.values(LIVE_SESSION.atletas).filter(a=>a.classificacao==="vermelho").length}
             ].map((cat,i)=>
               <div key={i} style={{background:cat.bg,borderRadius:12,border:`1px solid ${cat.bc}`,padding:18,textAlign:"center"}}>
                 <div style={{fontFamily:"'JetBrains Mono'",fontSize:36,fontWeight:900,color:cat.c}}>{cat.count}</div>
@@ -2516,7 +2516,7 @@ export default function Dashboard(){
                   </tr>
                 </thead>
                 <tbody>
-                  {(()=>{const classOrder={vermelho:0,amarelo:1,verde:2};const allSessionPlayers=players.map(p=>{const sess=LIVE_SESSION.atletas[p.n];const classif=sess?sess.classificacao:(p.risk==="CRITICAL"||p.risk==="HIGH"?"vermelho":p.risk==="MODERATE"?"amarelo":"verde");return{p,sess,classif};}).sort((a,b)=>classOrder[a.classif]-classOrder[b.classif]);return allSessionPlayers.map(({p,sess,classif},idx)=>{
+                  {(()=>{const classOrder={vermelho:0,amarelo:1,verde:2};const allSessionPlayers=players.filter(p=>LIVE_SESSION.atletas[p.n]).map(p=>{const sess=LIVE_SESSION.atletas[p.n];return{p,sess,classif:sess.classificacao};}).sort((a,b)=>classOrder[a.classif]-classOrder[b.classif]);return allSessionPlayers.map(({p,sess,classif},idx)=>{
                     const classC=classif==="vermelho"?"#DC2626":classif==="amarelo"?"#CA8A04":"#16A34A";
                     const g=sess?.gps||{};const ci=sess?.carga_interna||{};const fi=sess?.fisio||{};const nm=sess?.nm_response||{};
                     const distPct=g.dist_baseline>0?Math.round((g.dist_total/g.dist_baseline)*100):0;
