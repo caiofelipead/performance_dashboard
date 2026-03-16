@@ -862,7 +862,7 @@ const score=(p)=>{
   if(p.da>=2.5){s+=10;reasons.push("Dor avg "+p.da);}
   if(p.sa&&p.sa<6){s+=8;reasons.push("Sono avg "+p.sa);}
   if(p.rpa&&p.rpa<6){s+=6;}
-  return {score:Math.min(s,100),reasons,level:s>=40?"CRITICAL":s>=20?"HIGH":s>=8?"MODERATE":"LOW"};
+  return {score:Math.min(s,100),reasons,level:s>=65?"CRITICAL":s>=50?"HIGH":s>=20?"MODERATE":"LOW"};
 };
 
 const LV={CRITICAL:{c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",l:"Crítico"},HIGH:{c:"#EA580C",bg:"#FFF7ED",bc:"#FED7AA",l:"Alto"},MODERATE:{c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",l:"Moderado"},LOW:{c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",l:"Ótimo"}};
@@ -880,7 +880,7 @@ const Tip=({active,payload,label,theme})=>{
 
 const ScoreRing=({v,sz=48,th=4,theme})=>{
   const t=theme||THEMES.light;
-  const c=v>=40?"#DC2626":v>=20?"#EA580C":v>=8?"#CA8A04":"#16A34A";
+  const c=v>=65?"#DC2626":v>=50?"#EA580C":v>=20?"#CA8A04":"#16A34A";
   const pct=Math.min(v/100,1),r=(sz-th)/2,ci=2*Math.PI*r;
   return <div style={{position:"relative",width:sz,height:sz,display:"flex",alignItems:"center",justifyContent:"center"}}>
     <svg width={sz} height={sz} style={{transform:"rotate(-90deg)"}}>
@@ -1040,6 +1040,23 @@ export default function Dashboard(){
         const dVals = recent.map(q => q.dor).filter(v => v >= 0);
         if(dVals.length) merged.da = Math.round(dVals.reduce((a,b)=>a+b,0)/dVals.length*10)/10;
       }
+      // Monotonia e Strain dinâmicos a partir do diário (últimos 7 dias de sRPE)
+      const diarioEntries = sheetData?.diario?.[p.n];
+      if(diarioEntries?.length>=3) {
+        const last7 = diarioEntries.slice(-7);
+        const srpeVals = last7.map(d => d.spe || (d.pse||0)*(d.duracao||0)).filter(v => v > 0);
+        if(srpeVals.length>=3) {
+          const mean = srpeVals.reduce((a,b)=>a+b,0)/srpeVals.length;
+          const sd = Math.sqrt(srpeVals.reduce((a,v)=>a+Math.pow(v-mean,2),0)/srpeVals.length);
+          merged._monotonia = sd > 0 ? Math.round((mean/sd)*10)/10 : 0;
+          merged._strain = Math.round(mean * merged._monotonia);
+        }
+      }
+      // Fallback: PLAYER_EXT se não tiver dados live
+      if(!merged._monotonia) {
+        const ext = PLAYER_EXT[p.n];
+        if(ext) { merged._monotonia = ext.monotonia; merged._strain = ext.strain; }
+      }
       const s=score(merged);
       return {...merged,riskScore:s.score,risk:s.level,reasons:s.reasons};
     }).sort((a,b)=>b.riskScore-a.riskScore);
@@ -1166,7 +1183,7 @@ export default function Dashboard(){
         <div style={{fontSize:10,fontWeight:700,color:t.textFaint,letterSpacing:1.5,textTransform:"uppercase",marginBottom:2,paddingLeft:4}}>Elenco — Risco</div>
         <div style={{fontSize:8,color:t.textFaintest,marginBottom:4,paddingLeft:4}}>Risk Score: composto de ACWR, Dor, Rec. Pernas, Dor média, Sono e Wellness. Quanto maior, mais atenção necessária.</div>
         <div style={{display:"flex",gap:4,marginBottom:4,paddingLeft:4,flexWrap:"wrap"}}>
-          {[{l:"Crítico",c:"#DC2626",r:"≥40"},{l:"Alto",c:"#EA580C",r:"20–39"},{l:"Moderado",c:"#CA8A04",r:"8–19"},{l:"Ótimo",c:"#16A34A",r:"<8"}].map((z,i)=>
+          {[{l:"Crítico",c:"#DC2626",r:"≥65"},{l:"Alto",c:"#EA580C",r:"50–64"},{l:"Moderado",c:"#CA8A04",r:"20–49"},{l:"Ótimo",c:"#16A34A",r:"<20"}].map((z,i)=>
             <span key={i} style={{fontSize:7,padding:"1px 5px",borderRadius:4,background:`${z.c}12`,color:z.c,border:`1px solid ${z.c}30`,fontWeight:600}}>{z.l} ({z.r})</span>
           )}
         </div>
@@ -1197,11 +1214,11 @@ export default function Dashboard(){
           {/* KPIs */}
           {(()=>{
             const kpis=[
-              {l:"Críticos",desc:"Risco score ≥ 40",v:players.filter(p=>p.risk==="CRITICAL").length,total:players.length,c:"#DC2626",bg:"#FEF2F2",bgDark:"#2a1215",bc:"#FECACA",ic:AlertTriangle},
-              {l:"Alto Risco",desc:"Risco score 20–39",v:players.filter(p=>p.risk==="HIGH").length,total:players.length,c:"#EA580C",bg:"#FFF7ED",bgDark:"#2a1c0f",bc:"#FED7AA",ic:Zap},
+              {l:"Críticos",desc:"Risco score ≥ 65",v:players.filter(p=>p.risk==="CRITICAL").length,total:players.length,c:"#DC2626",bg:"#FEF2F2",bgDark:"#2a1215",bc:"#FECACA",ic:AlertTriangle},
+              {l:"Alto Risco",desc:"Risco score 50–64",v:players.filter(p=>p.risk==="HIGH").length,total:players.length,c:"#EA580C",bg:"#FFF7ED",bgDark:"#2a1c0f",bc:"#FED7AA",ic:Zap},
               {l:"ACWR > 1.45",desc:"Carga aguda elevada",v:players.filter(p=>p.ai>1.45).length,total:players.filter(p=>p.ai).length,c:"#CA8A04",bg:"#FEFCE8",bgDark:"#292510",bc:"#FEF08A",ic:TrendingUp},
               {l:"Bem-estar Baixo",desc:"Wellness < 6.5",v:players.filter(p=>p.rpa&&p.rpa<6.5).length,total:players.length,c:"#DC2626",bg:"#FEF2F2",bgDark:"#2a1215",bc:"#FECACA",ic:Activity},
-              {l:"Ótimos",desc:"Risco score < 8",v:players.filter(p=>p.risk==="LOW").length,total:players.length,c:"#16A34A",bg:"#F0FDF4",bgDark:"#0f2418",bc:"#BBF7D0",ic:CheckCircle2}
+              {l:"Ótimos",desc:"Risco score < 20",v:players.filter(p=>p.risk==="LOW").length,total:players.length,c:"#16A34A",bg:"#F0FDF4",bgDark:"#0f2418",bc:"#BBF7D0",ic:CheckCircle2}
             ];
             return <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,marginBottom:16}}>
               {kpis.map((k,i)=>{const Ic=k.ic;const pct=k.total?Math.round((k.v/k.total)*100):0;return <div key={i} style={{background:t.bgCard,borderRadius:14,border:`1px solid ${t.border}`,padding:0,boxShadow:`0 1px 4px ${t.shadow}`,overflow:"hidden",transition:"box-shadow .2s"}}>
@@ -1377,7 +1394,7 @@ export default function Dashboard(){
         {tab==="alerts"&&<div>
           <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri,marginBottom:4}}>Alertas Ativos</div>
           <div style={{fontSize:12,color:t.textFaint,marginBottom:16}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · Score de criticidade composto (ACWR + Wellness + CMJ + Dor)</div>
-          {players.filter(p=>p.riskScore>=8).map((p,i)=>{
+          {players.filter(p=>p.riskScore>=20).map((p,i)=>{
             const lv=LV[p.risk];
             const rx=p.risk==="CRITICAL"?
               (p.ai>1.45?"Reduzir volume 30% por 3 dias. sRPE alvo < 300.":p.d>=4?"Fisioterapia preventiva imediata. Avaliar cadeia posterior.":"Monitoramento diário reforçado."):
@@ -1423,8 +1440,8 @@ export default function Dashboard(){
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12,marginBottom:16}}>
             {[{l:"ACWR Médio",v:players.reduce((s,p)=>s+(p.ai||1),0)/players.length,u:"",c:players.reduce((s,p)=>s+(p.ai||1),0)/players.length>1.3?"#DC2626":"#16A34A"},
               {l:"Atletas ACWR > 1.3",v:players.filter(p=>(p.ai||0)>1.3).length,u:"atletas",c:"#EA580C"},
-              {l:"Monotonia > 2.0",v:players.filter(p=>{const ext=PLAYER_EXT[p.n];return ext?.monotonia>2.0;}).length,u:"atletas",c:"#CA8A04"},
-              {l:"Strain Médio",v:Math.round(Object.values(PLAYER_EXT).reduce((s,e)=>s+(e?.strain||0),0)/Math.max(Object.keys(PLAYER_EXT).length,1)),u:"UA",c:"#2563eb"}
+              {l:"Monotonia > 2.0",v:players.filter(p=>p._monotonia>2.0).length,u:"atletas",c:"#CA8A04"},
+              {l:"Strain Médio",v:Math.round(players.reduce((s,p)=>s+(p._strain||0),0)/players.length),u:"UA",c:"#2563eb"}
             ].map((m,i)=><div key={i} style={{background:t.bgCard,borderRadius:10,border:`1px solid ${t.border}`,padding:14,textAlign:"center"}}>
               <div style={{fontSize:10,color:t.textFaint,fontWeight:600,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{m.l}</div>
               <div style={{fontFamily:"'JetBrains Mono'",fontSize:22,fontWeight:700,color:m.c}}>{typeof m.v==="number"?m.v.toFixed(m.u?"0":"2"):m.v}</div>
@@ -2996,20 +3013,20 @@ export default function Dashboard(){
                       </div>
                     </div>
                     {/* Biomechanical extras if available */}
-                    {ext&&<div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:6,marginTop:8}}>
+                    {ext&&(()=>{const pl=players.find(pp=>pp.n===a.n);const mono=pl?._monotonia||ext.monotonia;const hsrAcwr=pl?.ai||ext.hsr_acwr;return <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:6,marginTop:8}}>
                       {[
                         {l:"SLCMJ ASI",v:ext.slcmj_asi+"%",c:ext.slcmj_asi>12?"#DC2626":ext.slcmj_asi>8?"#EA580C":"#16A34A"},
                         {l:"H:Q Ratio",v:ext.hq_ratio,c:ext.hq_ratio<0.55?"#DC2626":"#16A34A"},
                         {l:"COP Sway",v:ext.cop_sway+"mm",c:ext.cop_sway>18?"#DC2626":ext.cop_sway>15?"#EA580C":"#16A34A"},
                         {l:"Valgo DLS",v:ext.valgus_dls+"°",c:ext.valgus_dls>8?"#DC2626":ext.valgus_dls>6?"#EA580C":"#16A34A"},
-                        {l:"Monotonia",v:ext.monotonia,c:ext.monotonia>2?"#DC2626":ext.monotonia>1.5?"#CA8A04":"#16A34A"},
-                        {l:"HSR ACWR",v:ext.hsr_acwr,c:ext.hsr_acwr>1.3?"#DC2626":ext.hsr_acwr>1?"#CA8A04":"#16A34A"}
+                        {l:"Monotonia",v:mono,c:mono>2?"#DC2626":mono>1.5?"#CA8A04":"#16A34A"},
+                        {l:"HSR ACWR",v:hsrAcwr,c:hsrAcwr>1.3?"#DC2626":hsrAcwr>1?"#CA8A04":"#16A34A"}
                       ].map((m,j)=>
                         <div key={j} style={{textAlign:"center",padding:"4px",background:t.bgMuted,borderRadius:4}}>
                           <div style={{fontSize:7,color:t.textFaint,fontWeight:600}}>{m.l}</div>
                           <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:m.c}}>{m.v}</div>
                         </div>)}
-                    </div>}
+                    </div>;})()}
                   </div>
                 </div>;
               })}
