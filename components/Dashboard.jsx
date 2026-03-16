@@ -919,6 +919,8 @@ const WBar=({label,v,max=10,inv,theme})=>{
 export default function Dashboard(){
   const [sel,setSel]=useState(null);
   const [tab,setTab]=useState("squad");
+  const [riskSort,setRiskSort]=useState({col:"riskScore",dir:"desc"});
+  const [sessSort,setSessSort]=useState({col:"classif",dir:"asc"});
   const [dark,setDark]=useState(()=>{if(typeof window!=="undefined"){const s=localStorage.getItem("theme");if(s)return s==="dark";return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches||false;}return false;});
   const t=THEMES[dark?"dark":"light"];
   const pri=dark?"#f1f5f9":"#1A1A1A";
@@ -1271,15 +1273,15 @@ export default function Dashboard(){
             <table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:800}}>
               <thead style={{position:"sticky",top:0,zIndex:2,background:t.bgCard}}>
                 <tr style={{borderBottom:`2px solid ${t.border}`}}>
-                  {["#","Atleta","Pos","Risco","Prontidão","Perfil","F. Debt","NME","Ação"].map((h,i)=>
-                    <th key={i} style={{padding:"12px 6px 8px",textAlign:"left",fontSize:9,color:t.textFaint,fontWeight:700,textTransform:"uppercase",letterSpacing:.5,whiteSpace:"nowrap"}}>{h}</th>
+                  {[{l:"#",k:null},{l:"Atleta",k:"n"},{l:"Pos",k:"pos"},{l:"Risco",k:"prob"},{l:"Prontidão",k:"prontidao"},{l:"Perfil",k:null},{l:"F. Debt",k:"fatigue_debt"},{l:"NME",k:"nme"},{l:"Ação",k:null}].map((h,i)=>
+                    <th key={i} style={{padding:"12px 6px 8px",textAlign:"left",fontSize:9,color:riskSort.col===h.k?acc:t.textFaint,fontWeight:700,textTransform:"uppercase",letterSpacing:.5,whiteSpace:"nowrap",cursor:h.k?"pointer":"default",userSelect:"none"}} onClick={()=>{if(h.k)setRiskSort(prev=>({col:h.k,dir:prev.col===h.k&&prev.dir==="desc"?"asc":"desc"}))}}>{h.l}{riskSort.col===h.k?riskSort.dir==="desc"?" ↓":" ↑":""}</th>
                   )}
                 </tr>
               </thead>
               <tbody>
-                {(()=>{const boardPlayers=[...players].sort((a,b)=>b.riskScore-a.riskScore);return boardPlayers.map((p,i)=>{
-                  const alert=liveAlerts.find(a=>a.n===p.n);
-                  const prob=alert?alert.prob:Math.min(p.riskScore/100,1);
+                {(()=>{const enriched=players.map(p=>{const alert=liveAlerts.find(a=>a.n===p.n);const prob=alert?alert.prob:Math.min(p.riskScore/100,1);const prontidao=prob>0.60?3:prob>0.35?2:prob>0.20?1:0;return{...p,_alert:alert,_prob:prob,_prontidao:prontidao,_fDebt:alert?.fatigue_debt||0,_nme:alert?.nme||0};});const sorted=[...enriched].sort((a,b)=>{const d=riskSort.dir==="desc"?-1:1;const col=riskSort.col;if(col==="n")return d*a.n.localeCompare(b.n);if(col==="pos")return d*a.pos.localeCompare(b.pos);if(col==="prob")return d*(a._prob-b._prob);if(col==="prontidao")return d*(a._prontidao-b._prontidao);if(col==="fatigue_debt")return d*(a._fDebt-b._fDebt);if(col==="nme")return d*(a._nme-b._nme);return d*(a.riskScore-b.riskScore);});return sorted.map((p,i)=>{
+                  const alert=p._alert;
+                  const prob=p._prob;
                   const zone=prob>0.60?"VERMELHO":prob>0.35?"LARANJA":prob>0.20?"AMARELO":"VERDE";
                   const zs=ZC[zone];
                   const statusLabel=prob>0.60?"Crítico":prob>0.35?"Moderado":prob>0.20?"Atenção":"Apto";
@@ -2510,13 +2512,13 @@ export default function Dashboard(){
               <table style={{width:"100%",borderCollapse:"collapse",fontSize:10}}>
                 <thead style={{position:"sticky",top:0,zIndex:2,background:t.bgCard}}>
                   <tr style={{borderBottom:`2px solid ${t.border}`}}>
-                    {["Atleta","Classificação","Dist (m)","HSR (m)","Sprints","Acel","Decel","PL","Vel. Pico","PSE","sRPE","Sono","Dor","Recup.","CMJ (cm)"].map((h,i)=>
-                      <th key={i} style={{padding:"6px 8px",textAlign:i===0?"left":"center",fontWeight:700,color:t.textMuted,fontSize:9,whiteSpace:"nowrap"}}>{h}</th>
+                    {[{l:"Atleta",k:"n"},{l:"Classificação",k:"classif"},{l:"Dist (m)",k:"dist"},{l:"HSR (m)",k:"hsr"},{l:"Sprints",k:"sprints"},{l:"Acel",k:"acel"},{l:"Decel",k:"decel"},{l:"PL",k:"pl"},{l:"Vel. Pico",k:"vel"},{l:"PSE",k:"pse"},{l:"sRPE",k:"srpe"},{l:"Sono",k:"sono"},{l:"Dor",k:"dor"},{l:"Recup.",k:"rec"},{l:"CMJ (cm)",k:"cmj"}].map((h,i)=>
+                      <th key={i} style={{padding:"6px 8px",textAlign:i===0?"left":"center",fontWeight:700,color:sessSort.col===h.k?acc:t.textMuted,fontSize:9,whiteSpace:"nowrap",cursor:"pointer",userSelect:"none"}} onClick={()=>setSessSort(prev=>({col:h.k,dir:prev.col===h.k&&prev.dir==="asc"?"desc":"asc"}))}>{h.l}{sessSort.col===h.k?sessSort.dir==="desc"?" ↓":" ↑":""}</th>
                     )}
                   </tr>
                 </thead>
                 <tbody>
-                  {(()=>{const classOrder={vermelho:0,amarelo:1,verde:2};const allSessionPlayers=players.filter(p=>LIVE_SESSION.atletas[p.n]).map(p=>{const sess=LIVE_SESSION.atletas[p.n];return{p,sess,classif:sess.classificacao};}).sort((a,b)=>classOrder[a.classif]-classOrder[b.classif]);return allSessionPlayers.map(({p,sess,classif},idx)=>{
+                  {(()=>{const classOrder={vermelho:0,amarelo:1,verde:2};const allSessionPlayers=players.filter(p=>LIVE_SESSION.atletas[p.n]).map(p=>{const sess=LIVE_SESSION.atletas[p.n];return{p,sess,classif:sess.classificacao};}).sort((a,b)=>{const d=sessSort.dir==="asc"?1:-1;const col=sessSort.col;if(col==="n")return d*a.p.n.localeCompare(b.p.n);if(col==="classif")return d*(classOrder[a.classif]-classOrder[b.classif]);const gv=(x,k)=>{const s=x.sess;if(!s)return 0;if(k==="dist")return s.gps?.dist_total||0;if(k==="hsr")return s.gps?.hsr||0;if(k==="sprints")return s.gps?.sprints||0;if(k==="acel")return s.gps?.acel||0;if(k==="decel")return s.gps?.decel||0;if(k==="pl")return s.gps?.player_load||0;if(k==="vel")return s.gps?.pico_vel||0;if(k==="pse")return s.carga_interna?.srpe_sessao||0;if(k==="srpe")return s.carga_interna?.srpe_total||0;if(k==="sono")return s.fisio?.sono_noite||0;if(k==="dor")return s.fisio?.dor_pos||0;if(k==="rec")return s.fisio?.rec_percebida||0;if(k==="cmj")return s.nm_response?.cmj_pre||0;return 0;};return d*(gv(a,col)-gv(b,col));});return allSessionPlayers.map(({p,sess,classif},idx)=>{
                     const classC=classif==="vermelho"?"#DC2626":classif==="amarelo"?"#CA8A04":"#16A34A";
                     const g=sess?.gps||{};const ci=sess?.carga_interna||{};const fi=sess?.fisio||{};const nm=sess?.nm_response||{};
                     const distPct=g.dist_baseline>0?Math.round((g.dist_total/g.dist_baseline)*100):0;
