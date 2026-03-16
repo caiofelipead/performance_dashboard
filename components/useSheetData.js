@@ -53,6 +53,8 @@ export function useSheetData({ interval = DEFAULT_INTERVAL, enabled = true } = {
         saltos: result.saltos || {},
         questionarios: result.questionarios || {},
         fisioterapia: result.fisioterapia || {},
+        lesoes: result.lesoes || [],
+        cmj_externo: result.cmj_externo || {},
         sessionAtletas,
         timestamp: result.timestamp
       });

@@ -927,6 +927,62 @@ export default function Dashboard(){
   // ═══ Google Sheets — dados em tempo real ═══
   const { sheetData, loading: sheetLoading, error: sheetError, lastUpdate, refresh: refreshSheet, isLive } = useSheetData({ interval: 120_000, enabled: true });
 
+  // Lesões: usar dados live da planilha quando disponíveis, senão fallback para INJ_HISTORY
+  const liveInjuries = useMemo(() => {
+    const sheetLesoes = sheetData?.lesoes;
+    if (sheetLesoes && sheetLesoes.length > 0) return sheetLesoes;
+    return INJ_HISTORY;
+  }, [sheetData]);
+
+  // DM dinâmico baseado em liveInjuries
+  const liveDmData = useMemo(() => {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const afastados = [];
+    const retornados = [];
+    const latestByAthlete = {};
+    for (const inj of liveInjuries) {
+      const existing = latestByAthlete[inj.n];
+      if (!existing || new Date(inj.date) > new Date(existing.date)) {
+        latestByAthlete[inj.n] = inj;
+      }
+    }
+    for (const inj of Object.values(latestByAthlete)) {
+      const dtLesao = new Date(inj.date);
+      if (isNaN(dtLesao.getTime())) continue;
+      const dias = Math.round((today - dtLesao) / 86400000);
+      const fimTrans = inj.fim_trans ? new Date(inj.fim_trans) : null;
+      const retornou = fimTrans && !isNaN(fimTrans.getTime()) && fimTrans < today;
+      const diasRetorno = retornou ? Math.round((today - fimTrans) / 86400000) : null;
+      let estagio = inj.estagio || "";
+      if (retornou) { estagio = "Fase 4"; }
+      else if (!inj.fim_trans) {
+        if (dias > 30) estagio = "Fase 3";
+        else if (dias > 14) estagio = "Fase 2";
+        else estagio = "Fase 1";
+      }
+      const entry = {
+        n: inj.n, pos: inj.pos, classif: inj.classif,
+        regiao: inj.regiao && inj.estrutura ? `${inj.regiao} ${inj.lado?String(inj.lado)[0]:""} — ${inj.estrutura}` : (inj.regiao || ""),
+        dias, estagio,
+        conduta: retornou ? "Retornou" : (inj.conduta || "Afastado"),
+        prognostico: inj.prognostico ? (() => { const d = new Date(inj.prognostico); return isNaN(d.getTime()) ? inj.prognostico : d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}); })() : "Em avaliação",
+        retorno_real: fimTrans && !isNaN(fimTrans.getTime()) ? fimTrans.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}) : null,
+        dias_retorno: diasRetorno,
+        desde: dtLesao.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})
+      };
+      if (retornou) { if (diasRetorno <= 30) retornados.push(entry); }
+      else { afastados.push(entry); }
+    }
+    return {
+      afastados: afastados.sort((a,b) => b.dias - a.dias),
+      retornados: retornados.sort((a,b) => a.dias_retorno - b.dias_retorno),
+    };
+  }, [liveInjuries]);
+
+  // CMJ externo: merge com dados existentes
+  const liveCmjExterno = useMemo(() => sheetData?.cmj_externo || {}, [sheetData]);
+
   // Merge: SESSION_DATA com dados live da planilha (live tem prioridade)
   const LIVE_SESSION = useMemo(() => {
     if (!sheetData?.sessionAtletas || Object.keys(sheetData.sessionAtletas).length === 0) return SESSION_DATA;
@@ -1022,7 +1078,7 @@ export default function Dashboard(){
       const bioFactor = merged.bio > 2.0 ? 0.08 : merged.bio > 1.5 ? 0.04 : 0;
       // Lesão prévia dinâmica: calcular a partir de INJ_HISTORY em vez de SHAP hardcoded
       const today = new Date(); today.setHours(0,0,0,0);
-      const playerInj = INJ_HISTORY.filter(inj => inj.n === a.n);
+      const playerInj = liveInjuries.filter(inj => inj.n === a.n);
       const recentInj = playerInj.filter(inj => {
         const d = new Date(inj.date);
         return (today - d) / 86400000 < 90;
@@ -1055,7 +1111,14 @@ export default function Dashboard(){
 
   const radarData=sp?[{s:"Sono",v:sp.sq||0},{s:"Rec Geral",v:sp.rg||0},{s:"Rec Pernas",v:sp.rp||0},{s:"Dor (inv)",v:10-(sp.d||0)},{s:"Humor",v:(sp.h||3)*2},{s:"Energia",v:(sp.e||3)*2.5}]:[];
   const wtData=sp?.wt?sp.wt.dt.map((d,i)=>({d:"Mar/"+d,sono:sp.wt.s[i],rec:sp.wt.r[i],dor:sp.wt.dr[i]})):[];
-  const cmjData=sp?.ct?sp.ct.map((v,i)=>({i:i+1,v})):[];
+  const cmjData=useMemo(()=>{
+    // Prioridade: CMJ externo da planilha, senão ct do P array
+    const ext = liveCmjExterno[sp?.n];
+    if (ext?.length) {
+      return ext.map((e,i) => ({ i:i+1, v: e.cmj || Math.max(e.cmj_1||0, e.cmj_2||0, e.cmj_3||0), date: e.date, nordico: e.nordico||0 }));
+    }
+    return sp?.ct ? sp.ct.map((v,i) => ({ i:i+1, v })) : [];
+  }, [sp, liveCmjExterno]);
 
   return <div style={{minHeight:"100vh",background:t.bg,fontFamily:"'Inter',system-ui,sans-serif",fontSize:13,color:t.text,transition:"background .3s,color .3s"}}>
     <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap');
@@ -1830,13 +1893,13 @@ export default function Dashboard(){
               <div style={{padding:"12px 16px",background:"#FEF2F2",borderBottom:"1px solid #FECACA",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:"#DC2626"}}>Departamento Médico — Atual</div>
-                  <div style={{fontSize:10,color:t.textFaint}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · {DM_ATUAL.length} afastados · {DM_DATA.retornados.length} em manutenção</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · {liveDmData.afastados.length} afastados · {liveDmData.retornados.length} em manutenção</div>
                 </div>
-                <div style={{fontFamily:"'JetBrains Mono'",fontSize:20,fontWeight:800,color:"#DC2626"}}>{DM_ATUAL.length}</div>
+                <div style={{fontFamily:"'JetBrains Mono'",fontSize:20,fontWeight:800,color:"#DC2626"}}>{liveDmData.afastados.length}</div>
               </div>
               <div style={{padding:12}}>
                 {/* Afastados */}
-                {DM_ATUAL.map((p,i)=>{
+                {liveDmData.afastados.map((p,i)=>{
                   const ec=p.estagio==="Fase 1"||p.estagio==="Pré-op"?"#DC2626":p.estagio==="Fase 2"?"#EA580C":p.estagio==="Fase 3"?"#CA8A04":"#16A34A";
                   return <div key={`af-${i}`} style={{padding:"10px 12px",background:i%2===0?"#FEF2F2":t.bgCard,borderRadius:8,marginBottom:6,border:"1px solid #FECACA44"}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
@@ -1857,9 +1920,9 @@ export default function Dashboard(){
                   </div>;
                 })}
                 {/* Retornados recentes (em manutenção) */}
-                {DM_DATA.retornados.length>0&&<>
+                {liveDmData.retornados.length>0&&<>
                   <div style={{fontSize:9,fontWeight:700,color:"#16A34A",letterSpacing:1,textTransform:"uppercase",marginTop:8,marginBottom:6,paddingLeft:4}}>Retornados — Em Manutenção</div>
-                  {DM_DATA.retornados.map((p,i)=>{
+                  {liveDmData.retornados.map((p,i)=>{
                     return <div key={`ret-${i}`} style={{padding:"8px 12px",background:i%2===0?"#F0FDF4":t.bgCard,borderRadius:8,marginBottom:4,border:"1px solid #BBF7D044"}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
                         <div style={{display:"flex",alignItems:"center",gap:8}}>
@@ -2013,8 +2076,8 @@ export default function Dashboard(){
           {/* Risco de Lesão + DM + Histórico */}
           {(()=>{
             const mlAlert=liveAlerts.find(a=>a.n===sp.n);
-            const dmStatus=DM_ATUAL.find(d=>d.n===sp.n);
-            const playerInj=INJ_HISTORY.filter(h=>h.n===sp.n);
+            const dmStatus=[...liveDmData.afastados,...liveDmData.retornados].find(d=>d.n===sp.n);
+            const playerInj=liveInjuries.filter(h=>h.n===sp.n);
             const prob=mlAlert?mlAlert.prob:null;
             const probPct=prob!==null?(prob*100).toFixed(0):null;
             const probC=prob>=0.5?"#DC2626":prob>=0.3?"#EA580C":prob>=0.15?"#CA8A04":"#16A34A";
@@ -2903,9 +2966,9 @@ export default function Dashboard(){
           {/* Header */}
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Análise Retrospectiva de Lesões</div>
-            <div style={{fontSize:12,color:t.textFaint,marginTop:2}}>Temporada 2025/2026 · {INJ_HISTORY.length} casos documentados · Correlação pré-lesão com marcadores multidisciplinares</div>
+            <div style={{fontSize:12,color:t.textFaint,marginTop:2}}>Temporada 2025/2026 · {liveInjuries.length} casos documentados · Correlação pré-lesão com marcadores multidisciplinares</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginTop:14}}>
-              {[{l:"Total de Lesões",v:INJ_HISTORY.length,c:acc},{l:"Dias Perdidos",v:INJ_HISTORY.reduce((s,i)=>s+i.total,0),c:"#DC2626"},{l:"Avg Dias Fora",v:(INJ_HISTORY.reduce((s,i)=>s+i.total,0)/INJ_HISTORY.length).toFixed(1),c:"#EA580C"},{l:"Atletas Afetados",v:new Set(INJ_HISTORY.map(i=>i.n)).size,c:"#CA8A04"}].map((k,i)=>
+              {[{l:"Total de Lesões",v:liveInjuries.length,c:acc},{l:"Dias Perdidos",v:liveInjuries.reduce((s,i)=>s+(i.total||0),0),c:"#DC2626"},{l:"Avg Dias Fora",v:liveInjuries.length?(liveInjuries.reduce((s,i)=>s+(i.total||0),0)/liveInjuries.length).toFixed(1):"0",c:"#EA580C"},{l:"Atletas Afetados",v:new Set(liveInjuries.map(i=>i.n)).size,c:"#CA8A04"}].map((k,i)=>
                 <div key={i} style={{textAlign:"center",padding:"12px",background:t.bgMuted,borderRadius:10}}>
                   <div style={{fontSize:9,color:t.textFaint,fontWeight:600,textTransform:"uppercase",letterSpacing:.5}}>{k.l}</div>
                   <div style={{fontFamily:"'JetBrains Mono'",fontSize:24,fontWeight:800,color:k.c,marginTop:2}}>{k.v}</div>
@@ -2959,7 +3022,7 @@ export default function Dashboard(){
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:14}}>Casos de Lesão — Análise Individual</div>
             <div style={{display:"flex",flexDirection:"column",gap:14}}>
-              {INJ_HISTORY.map(inj=>{
+              {liveInjuries.map((inj,_idx)=>{
                 const svC=inj.classif.includes("4C")?"#DC2626":inj.classif.includes("2")?"#EA580C":inj.classif==="1A"||inj.classif==="1B"?"#CA8A04":inj.classif.includes("Lig")?"#7c3aed":t.textMuted;
                 const isActive=!inj.fim_trans;
                 return <div key={inj.id} style={{borderRadius:12,border:`1px solid ${isActive?"#FECACA":t.border}`,overflow:"hidden"}}>

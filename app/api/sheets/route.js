@@ -24,6 +24,17 @@ const SHEETS_CONFIG = {
     questionarios: 1014986912,
     atletas: 1315104851,
     fisioterapia: 1541953765
+  },
+  // Planilhas externas (publicadas separadamente)
+  external: {
+    lesoes: {
+      csv_url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSoScIHg_LFmt7CraUjcwVGoUZAwtri3YT-MwtS890B01L5eLCnoh4Yx9q9CHJ7Zw/pub?output=csv",
+      published_key: "2PACX-1vSoScIHg_LFmt7CraUjcwVGoUZAwtri3YT-MwtS890B01L5eLCnoh4Yx9q9CHJ7Zw",
+      spreadsheet_id: "1cAPY5omeDQlCy19khEuRvXuM4yoj3Y05"
+    },
+    cmj: {
+      csv_url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNl68Hb8Qy6JH0TLmf96oufeWBtHjCqDCclUhKle6YR9ajxMVlfO5LoxILhOPNqg/pub?output=csv"
+    }
   }
 };
 
@@ -492,6 +503,98 @@ function processFisioterapia(rows) {
   return result;
 }
 
+// Lesões: Histórico de lesões do elenco (planilha externa)
+function processLesoes(rows) {
+  const result = [];
+  for (const row of rows) {
+    // Flexível: busca nome por múltiplas colunas possíveis
+    const athlete = row.nome || row.atleta || row.atletas || row.jogador || row.name || "";
+    if (!athlete) continue;
+    const name = resolveName(athlete);
+
+    // Busca data por múltiplas colunas
+    const findField = (row, ...keys) => {
+      for (const k of keys) {
+        if (row[k] !== undefined && row[k] !== "") return row[k];
+      }
+      const rowKeys = Object.keys(row);
+      for (const k of keys) {
+        const match = rowKeys.find(rk => rk.includes(k));
+        if (match && row[match] !== undefined && row[match] !== "") return row[match];
+      }
+      return "";
+    };
+
+    const dateStr = findField(row, "data_lesao", "data_da_lesao", "data", "date", "data_inicio", "inicio");
+    const saidaDm = findField(row, "saida_dm", "saida_do_dm", "data_saida", "saida");
+    const iniTrans = findField(row, "inicio_transicao", "ini_trans", "ini_transicao", "data_transicao", "transicao");
+    const fimTrans = findField(row, "fim_transicao", "fim_trans", "data_retorno", "retorno", "data_fim", "fim", "alta");
+    const prognostico = findField(row, "prognostico", "previsao", "previsao_retorno", "data_prognostico");
+
+    result.push({
+      n: name,
+      pos: findField(row, "posicao", "pos", "position") || "",
+      date: dateStr,
+      saida_dm: saidaDm,
+      ini_trans: iniTrans,
+      fim_trans: fimTrans,
+      dias_dm: toNum(findField(row, "dias_dm", "dias_afastado", "dias_departamento_medico")),
+      dias_trans: toNum(findField(row, "dias_trans", "dias_transicao")),
+      total: toNum(findField(row, "total", "total_dias", "dias_total")),
+      classif: findField(row, "classificacao", "classif", "grau", "gravidade", "tipo") || "",
+      regiao: findField(row, "regiao", "regiao_lesao", "local", "area") || "",
+      lado: findField(row, "lado", "lateralidade") || "",
+      evento: findField(row, "evento", "contexto", "momento", "atividade") || "",
+      mecanismo: findField(row, "mecanismo", "mecanismo_lesao", "causa") || "",
+      estrutura: findField(row, "estrutura", "estrutura_lesada", "musculo", "tecido") || "",
+      exame: findField(row, "exame", "exame_complementar", "diagnostico_exame") || "",
+      estagio: findField(row, "estagio", "fase", "fase_atual", "status") || "",
+      conduta: findField(row, "conduta", "conduta_atual", "tratamento") || "",
+      prognostico: prognostico,
+      obs: findField(row, "observacao", "obs", "observacoes", "notas", "nota") || ""
+    });
+  }
+  return result;
+}
+
+// CMJ Externo: dados de salto contra-movimento (planilha externa)
+function processCmjExterno(rows) {
+  const result = {};
+  for (const row of rows) {
+    const athlete = row.atleta || row.atletas || row.nome || row.jogador || "";
+    if (!athlete) continue;
+    const name = resolveName(athlete);
+    if (!name) continue;
+
+    if (!result[name]) result[name] = [];
+
+    const findField = (row, ...keys) => {
+      for (const k of keys) {
+        if (row[k] !== undefined && row[k] !== "") return row[k];
+      }
+      const rowKeys = Object.keys(row);
+      for (const k of keys) {
+        const match = rowKeys.find(rk => rk.includes(k));
+        if (match && row[match] !== undefined && row[match] !== "") return row[match];
+      }
+      return "";
+    };
+
+    result[name].push({
+      date: findField(row, "data", "date", "data_avaliacao"),
+      cmj: toNum(findField(row, "cmj", "cmj_cm", "altura_cmj", "counter_movement_jump")),
+      cmj_1: toNum(findField(row, "cmj_1", "tentativa_1", "jump_1")),
+      cmj_2: toNum(findField(row, "cmj_2", "tentativa_2", "jump_2")),
+      cmj_3: toNum(findField(row, "cmj_3", "tentativa_3", "jump_3")),
+      nordico: toNum(findField(row, "nordico", "nordic", "nordic_hamstring", "nordico_cm", "forca_nordico")),
+      nordico_d: toNum(findField(row, "nordico_d", "nordic_d", "nordico_direito")),
+      nordico_e: toNum(findField(row, "nordico_e", "nordic_e", "nordico_esquerdo")),
+      tag: findField(row, "tag", "tags", "tipo", "momento") || ""
+    });
+  }
+  return result;
+}
+
 function toNum(v) {
   if (v === null || v === undefined || v === "") return 0;
   if (typeof v === "number") return v;
@@ -542,6 +645,57 @@ async function fetchSheetCSV(gid = 0) {
   throw new Error(`Falha ao buscar planilha (gid=${gid}). Tentativas: ${errors.join("; ")}`);
 }
 
+// Fetch CSV de planilha externa (publicada separadamente)
+async function fetchExternalCSV(config, gid = 0) {
+  const errors = [];
+
+  // Se tem URL direta de CSV
+  if (config.csv_url) {
+    try {
+      const res = await fetch(config.csv_url, { next: { revalidate: 60 } });
+      if (res.ok) {
+        const text = await res.text();
+        if (text && !text.includes("<!DOCTYPE")) return text;
+      }
+    } catch (e) { errors.push(`csv_url: ${e.message}`); }
+  }
+
+  // Via published key
+  if (config.published_key) {
+    try {
+      const url = `https://docs.google.com/spreadsheets/d/e/${config.published_key}/pub?gid=${gid}&single=true&output=csv`;
+      const res = await fetch(url, { next: { revalidate: 60 } });
+      if (res.ok) {
+        const text = await res.text();
+        if (text && !text.includes("<!DOCTYPE")) return text;
+      }
+    } catch (e) { errors.push(`pub: ${e.message}`); }
+  }
+
+  // Via spreadsheet_id export
+  if (config.spreadsheet_id) {
+    try {
+      const url = `https://docs.google.com/spreadsheets/d/${config.spreadsheet_id}/export?format=csv&gid=${gid}`;
+      const res = await fetch(url, { next: { revalidate: 60 } });
+      if (res.ok) {
+        const text = await res.text();
+        if (text && !text.includes("<!DOCTYPE")) return text;
+      }
+    } catch (e) { errors.push(`export: ${e.message}`); }
+
+    try {
+      const url = `https://docs.google.com/spreadsheets/d/${config.spreadsheet_id}/gviz/tq?tqx=out:csv&gid=${gid}`;
+      const res = await fetch(url, { next: { revalidate: 60 } });
+      if (res.ok) {
+        const text = await res.text();
+        if (text && !text.includes("<!DOCTYPE")) return text;
+      }
+    } catch (e) { errors.push(`gviz: ${e.message}`); }
+  }
+
+  throw new Error(`Falha ao buscar planilha externa. Tentativas: ${errors.join("; ")}`);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // GET /api/sheets?tab=gps|diario|saltos|questionarios|all&date=YYYY-MM-DD
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -554,12 +708,14 @@ export async function GET(request) {
 
     if (tab === "all") {
       // Buscar todas as abas em paralelo
-      const [gpsCSV, diarioCSV, saltosCSV, questCSV, fisioCSV] = await Promise.allSettled([
+      const [gpsCSV, diarioCSV, saltosCSV, questCSV, fisioCSV, lesoesCSV, cmjExtCSV] = await Promise.allSettled([
         fetchSheetCSV(SHEETS_CONFIG.tabs.gps),
         fetchSheetCSV(SHEETS_CONFIG.tabs.diario),
         fetchSheetCSV(SHEETS_CONFIG.tabs.saltos),
         fetchSheetCSV(SHEETS_CONFIG.tabs.questionarios),
-        fetchSheetCSV(SHEETS_CONFIG.tabs.fisioterapia)
+        fetchSheetCSV(SHEETS_CONFIG.tabs.fisioterapia),
+        fetchExternalCSV(SHEETS_CONFIG.external.lesoes),
+        fetchExternalCSV(SHEETS_CONFIG.external.cmj)
       ]);
 
       const result = { ok: true, timestamp: new Date().toISOString(), _debug: {} };
@@ -598,6 +754,20 @@ export async function GET(request) {
         result._debug.fisioterapia = { rows: rows.length, headers: headers, athletes: Object.keys(result.fisioterapia).length };
       } else {
         result._debug.fisioterapia = { error: fisioCSV.reason?.message || "failed" };
+      }
+      if (lesoesCSV.status === "fulfilled") {
+        const { rows, headers } = parseCSV(lesoesCSV.value);
+        result.lesoes = processLesoes(rows);
+        result._debug.lesoes = { rows: rows.length, headers: headers, total: result.lesoes.length };
+      } else {
+        result._debug.lesoes = { error: lesoesCSV.reason?.message || "failed" };
+      }
+      if (cmjExtCSV.status === "fulfilled") {
+        const { rows, headers } = parseCSV(cmjExtCSV.value);
+        result.cmj_externo = processCmjExterno(rows);
+        result._debug.cmj_externo = { rows: rows.length, headers: headers, athletes: Object.keys(result.cmj_externo).length };
+      } else {
+        result._debug.cmj_externo = { error: cmjExtCSV.reason?.message || "failed" };
       }
 
       return Response.json(result, {
