@@ -1258,11 +1258,11 @@ export default function Dashboard(){
                   </div>
                 </div>
                 <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                  {[{l:"Crítico",r:">60%",c:"#DC2626",n:players.filter(p=>{const al=liveAlerts.find(a=>a.n===p.n);const pr=al?al.prob:Math.min(p.riskScore/100,1);return pr>0.60;}).length},
-                    {l:"Moderado",r:"35–60%",c:"#EA580C",n:players.filter(p=>{const al=liveAlerts.find(a=>a.n===p.n);const pr=al?al.prob:Math.min(p.riskScore/100,1);return pr>0.35&&pr<=0.60;}).length},
-                    {l:"Atenção",r:"20–35%",c:"#CA8A04",n:players.filter(p=>{const al=liveAlerts.find(a=>a.n===p.n);const pr=al?al.prob:Math.min(p.riskScore/100,1);return pr>0.20&&pr<=0.35;}).length},
-                    {l:"Apto",r:"<20%",c:"#16A34A",n:players.filter(p=>{const al=liveAlerts.find(a=>a.n===p.n);const pr=al?al.prob:Math.min(p.riskScore/100,1);return pr<=0.20;}).length}
-                  ].map((z,i)=><div key={i} style={{padding:"5px 10px",borderRadius:8,background:`${z.c}${dark?"20":"10"}`,border:`1px solid ${z.c}${dark?"40":"25"}`,textAlign:"center",minWidth:56}}>
+                  {(()=>{const _dm=new Set(liveDmData.afastados.map(a=>a.n));const _ap=players.filter(p=>!_dm.has(p.n));return[{l:"Crítico",r:">60%",c:"#DC2626",n:_ap.filter(p=>{const al=liveAlerts.find(a=>a.n===p.n);const pr=al?al.prob:Math.min(p.riskScore/100,1);return pr>0.60;}).length},
+                    {l:"Moderado",r:"35–60%",c:"#EA580C",n:_ap.filter(p=>{const al=liveAlerts.find(a=>a.n===p.n);const pr=al?al.prob:Math.min(p.riskScore/100,1);return pr>0.35&&pr<=0.60;}).length},
+                    {l:"Atenção",r:"20–35%",c:"#CA8A04",n:_ap.filter(p=>{const al=liveAlerts.find(a=>a.n===p.n);const pr=al?al.prob:Math.min(p.riskScore/100,1);return pr>0.20&&pr<=0.35;}).length},
+                    {l:"Apto",r:"<20%",c:"#16A34A",n:_ap.filter(p=>{const al=liveAlerts.find(a=>a.n===p.n);const pr=al?al.prob:Math.min(p.riskScore/100,1);return pr<=0.20;}).length}];})()
+                  .map((z,i)=><div key={i} style={{padding:"5px 10px",borderRadius:8,background:`${z.c}${dark?"20":"10"}`,border:`1px solid ${z.c}${dark?"40":"25"}`,textAlign:"center",minWidth:56}}>
                     <div style={{fontFamily:"'JetBrains Mono'",fontSize:16,fontWeight:800,color:z.c,lineHeight:1}}>{z.n}</div>
                     <div style={{fontSize:8,color:z.c,fontWeight:600,marginTop:2,opacity:.8}}>{z.l} <span style={{opacity:.6}}>({z.r})</span></div>
                   </div>)}
@@ -1279,7 +1279,7 @@ export default function Dashboard(){
                 </tr>
               </thead>
               <tbody>
-                {(()=>{const enriched=players.map(p=>{const alert=liveAlerts.find(a=>a.n===p.n);const prob=alert?alert.prob:Math.min(p.riskScore/100,1);const prontidao=prob>0.60?3:prob>0.35?2:prob>0.20?1:0;return{...p,_alert:alert,_prob:prob,_prontidao:prontidao,_fDebt:alert?.fatigue_debt||0,_nme:alert?.nme||0};});const sorted=[...enriched].sort((a,b)=>{const d=riskSort.dir==="desc"?-1:1;const col=riskSort.col;if(col==="n")return d*a.n.localeCompare(b.n);if(col==="pos")return d*a.pos.localeCompare(b.pos);if(col==="prob")return d*(a._prob-b._prob);if(col==="prontidao")return d*(a._prontidao-b._prontidao);if(col==="fatigue_debt")return d*(a._fDebt-b._fDebt);if(col==="nme")return d*(a._nme-b._nme);return d*(a.riskScore-b.riskScore);});return sorted.map((p,i)=>{
+                {(()=>{const dmNomes=new Set(liveDmData.afastados.map(a=>a.n));const enriched=players.filter(p=>!dmNomes.has(p.n)).map(p=>{const alert=liveAlerts.find(a=>a.n===p.n);const prob=alert?alert.prob:Math.min(p.riskScore/100,1);const prontidao=prob>0.60?3:prob>0.35?2:prob>0.20?1:0;return{...p,_alert:alert,_prob:prob,_prontidao:prontidao,_fDebt:alert?.fatigue_debt||0,_nme:alert?.nme||0};});const sorted=[...enriched].sort((a,b)=>{const d=riskSort.dir==="desc"?-1:1;const col=riskSort.col;if(col==="n")return d*a.n.localeCompare(b.n);if(col==="pos")return d*a.pos.localeCompare(b.pos);if(col==="prob")return d*(a._prob-b._prob);if(col==="prontidao")return d*(a._prontidao-b._prontidao);if(col==="fatigue_debt")return d*(a._fDebt-b._fDebt);if(col==="nme")return d*(a._nme-b._nme);return d*(a.riskScore-b.riskScore);});return sorted.map((p,i)=>{
                   const alert=p._alert;
                   const prob=p._prob;
                   const zone=prob>0.60?"VERMELHO":prob>0.35?"LARANJA":prob>0.20?"AMARELO":"VERDE";
