@@ -98,8 +98,21 @@ function buildSessionData(result) {
   for (const [name, entries] of Object.entries(gpsData)) {
     if (!entries.length) continue;
 
-    // Última sessão do atleta
-    const sorted = [...entries].sort((a, b) => (a.date > b.date ? 1 : -1));
+    // Última sessão do atleta (sort por data real, não string)
+    const parseDate = (d) => {
+      if (!d) return 0;
+      const s = String(d).trim();
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s).getTime();
+      const parts = s.split(/[\/\-\.]/);
+      if (parts.length >= 3) {
+        const [a, b, c] = parts.map(Number);
+        if (a > 31) return new Date(a, b - 1, c).getTime();
+        if (c > 31) return new Date(c, b - 1, a).getTime();
+        return new Date(c, a - 1, b).getTime();
+      }
+      return new Date(s).getTime() || 0;
+    };
+    const sorted = [...entries].sort((a, b) => parseDate(a.date) - parseDate(b.date));
     const latest = sorted[sorted.length - 1];
     const g = latest.gps;
 

@@ -314,8 +314,23 @@ function processGPS(rows) {
 
   // Calcular baselines (média das últimas 4 semanas / 21 dias para cada atleta)
   for (const [name, entries] of Object.entries(result)) {
-    // Ordenar por data
-    entries.sort((a, b) => (a.date > b.date ? 1 : -1));
+    // Ordenar por data (parsing robusto para DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD)
+    const parseDate = (d) => {
+      if (!d) return 0;
+      const s = String(d).trim();
+      // YYYY-MM-DD
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s).getTime();
+      // DD/MM/YYYY ou D/M/YYYY
+      const parts = s.split(/[\/\-\.]/);
+      if (parts.length >= 3) {
+        const [a, b, c] = parts.map(Number);
+        if (a > 31) return new Date(a, b - 1, c).getTime(); // YYYY/MM/DD
+        if (c > 31) return new Date(c, b - 1, a).getTime(); // DD/MM/YYYY
+        return new Date(c, a - 1, b).getTime(); // MM/DD/YYYY fallback
+      }
+      return new Date(s).getTime() || 0;
+    };
+    entries.sort((a, b) => parseDate(a.date) - parseDate(b.date));
     const len = entries.length;
     if (len < 2) continue;
 
