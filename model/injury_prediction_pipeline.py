@@ -142,84 +142,226 @@ START_DATE = datetime(2025, 11, 15)
 TRAINING_TYPES = ["strength", "tactical", "technical", "conditioning", "recovery"]
 
 # ==============================================================================
-# CAMINHO DA PLANILHA DE DADOS REAIS
+# GOOGLE SHEETS — Leitura direta via CSV público (atualizado diariamente)
+# Mesma config da API route.js do dashboard
 # ==============================================================================
-DATA_FILE = Path(__file__).parent.parent / "Botafogo FSA - Dados Performance-2.xlsx"
+import io
+import time
+try:
+    import requests
+    HAS_REQUESTS = True
+except ImportError:
+    HAS_REQUESTS = False
+
+SHEETS_CONFIG = {
+    "published_key": "2PACX-1vQSxRZObs5anHZcJH7LsETalW7vY1U5A066mLFpWVZMWgHNWL28PWSnhjJHWtznCQ2R8AV5YYdlt6AP",
+    "spreadsheet_ids": [
+        "1f4j4Qj0o3BYZPZ5YOTKoG0mk3H7UUCiK8gw2Ywv2LPU",
+        "1PRwHxkPWQmlwiXC6i2kbkaQSOmqW6-BKFq51pWaPwxY",
+    ],
+    "tabs": {
+        "gps": 0,
+        "diario": 555914149,
+        "saltos": 1915291461,
+        "bioquimico": 193203862,
+        "questionarios": 1014986912,
+        "atletas": 1315104851,
+        "fisioterapia": 1541953765,
+        "antropometria": 461631273,
+    },
+}
+
+# Mapeamento de nomes (planilha → dashboard) — idêntico ao route.js
+NAME_MAP = {
+    "Adriano A": "ADRIANO", "Brenno F": "BRENNO", "Carlos Eduardo": "CARLOS EDUARDO",
+    "Darlan B": "DARLAN", "E Morelli": "MORELLI", "Ericson S": "ERICSON",
+    "Erik R": "ERIK", "Felipe Penha": "FELIPINHO", "F Vieira": "FELIPE VIEIRA",
+    "G Queiroz": "GUILHERME QUEIROZ", "G Vilar": "GUSTAVO VILAR",
+    "G Mariano": "GUI MARIANO", "Gabriel I": "GABRIEL INOCENCIO",
+    "Hebert W": "HEBERT", "Henrique L": "HENRIQUE TELES", "Hygor C": "HYGOR",
+    "J Nem": "JEFFERSON NEM", "Jeferson C": "JEFERSON", "J Costa": "J COSTA",
+    "Jonas Toró": "JONAS TORO", "Jonathan F": "JONATHAN", "Jordan E": "JORDAN",
+    "Kelvin G": "KELVIN", "L Maciel": "LEANDRO MACIEL", "Leo Gamalho": "LEO GAMALHO",
+    "M Sales": "MATHEUS SALES", "M Maranhao": "MARANHAO",
+    "Marquinho A": "MARQUINHO JR.", "P Brey": "PATRICK BREY",
+    "Pedro H": "PEDRINHO", "Pedro T": "PEDRO TORTELLO", "R Gava": "RAFAEL GAVA",
+    "Thalles E": "THALLES", "Thiago M": "THIAGUINHO", "Victor Souza": "VICTOR SOUZA",
+    "Wallace F": "WALLACE", "Whalacy W": "WHALACY", "Wesley P": "WESLEY",
+    "Yuri F": "YURI", "Luizao G": "LUIZAO", "Ze Hugo": "ZE HUGO",
+    "Ruan R": "RUAN", "Caua F": "CAUA",
+}
 
 
-# ==============================================================================
-# LEITURA DE DADOS REAIS DA PLANILHA
-# ==============================================================================
+def _resolve_name(name):
+    """Resolve nome da planilha para nome padrão do dashboard."""
+    if not name:
+        return None
+    name = str(name).strip()
+    if name in NAME_MAP:
+        return NAME_MAP[name]
+    for k, v in NAME_MAP.items():
+        if k.lower() == name.lower():
+            return v
+    return name.upper()
 
-def load_real_data(filepath=None):
+
+def _fetch_sheet_csv(gid, max_retries=4):
     """
-    Carrega e consolida dados reais do Excel multidisciplinar (GPS, carga,
-    bem-estar, testes, bioquímico, lesões) em um DataFrame atleta-dia
-    compatível com o pipeline.
+    Busca CSV de uma aba do Google Sheets com 3 estratégias de fallback
+    e retry com backoff exponencial (idêntico ao route.js).
     """
-    fp = Path(filepath) if filepath else DATA_FILE
-    print(f"  Lendo planilha: {fp.name}")
+    cfg = SHEETS_CONFIG
+    urls = [
+        # 1) Published CSV
+        f"https://docs.google.com/spreadsheets/d/e/{cfg['published_key']}/pub?gid={gid}&single=true&output=csv",
+        # 2) Direct export
+        f"https://docs.google.com/spreadsheets/d/{cfg['spreadsheet_ids'][0]}/export?format=csv&gid={gid}",
+        # 3) Google Visualization API
+        f"https://docs.google.com/spreadsheets/d/{cfg['spreadsheet_ids'][0]}/gviz/tq?tqx=out:csv&gid={gid}",
+    ]
 
-    # --- Jogadores (cadastro) ---
-    jogadores = pd.read_excel(fp, sheet_name="jogadores")
-    jogadores = jogadores.rename(columns={
-        "jogador_id": "player_id", "apelido": "athlete",
-        "posicao": "position",
-    })
-    jogadores["athlete"] = jogadores["athlete"].str.upper()
+    last_error = None
+    for url in urls:
+        for attempt in range(max_retries):
+            try:
+                resp = requests.get(url, timeout=30)
+                if resp.status_code == 200 and len(resp.text) > 10:
+                    return resp.text
+            except Exception as e:
+                last_error = e
+            if attempt < max_retries - 1:
+                time.sleep(2 ** (attempt + 1))
 
-    # --- GPS ---
-    # Colunas da planilha Google Sheets "Performance - 2026"
-    gps_raw = pd.read_excel(fp, sheet_name="gps")
-    gps = gps_raw.rename(columns={
-        "jogador_id": "player_id",
-        "data": "date",
-        "sessao": "session",
-        "split": "split_name",
-        "distancia_km": "total_distance_km",
-        "dist_sprint_m": "hsr_m",
-        "sprints": "sprints",
+    raise RuntimeError(f"Falha ao buscar aba GID={gid} do Google Sheets: {last_error}")
+
+
+def _csv_to_df(csv_text):
+    """Converte CSV do Google Sheets em DataFrame com headers normalizados."""
+    df = pd.read_csv(io.StringIO(csv_text))
+    # Normalizar headers (remover acentos, lowercase, substituir espaços)
+    import unicodedata
+    def normalize_header(h):
+        h = str(h).strip()
+        h = unicodedata.normalize("NFD", h)
+        h = "".join(c for c in h if unicodedata.category(c) != "Mn")  # remove acentos
+        h = h.lower().replace(" ", "_").replace("/", "_")
+        h = "".join(c if c.isalnum() or c == "_" else "_" for c in h)
+        h = "_".join(p for p in h.split("_") if p)
+        return h
+    df.columns = [normalize_header(c) for c in df.columns]
+    return df
+
+
+def load_real_data():
+    """
+    Carrega dados REAIS diretamente do Google Sheets (Performance - 2026).
+    Lê GPS, Diário (carga), Questionários (bem-estar), Saltos (CMJ),
+    Bioquímico e Atletas, consolida em DataFrame atleta-dia.
+    """
+    if not HAS_REQUESTS:
+        raise ImportError("Instale 'requests': pip install requests")
+
+    print("  Conectando ao Google Sheets (Performance - 2026)...")
+
+    # =====================================================================
+    # FETCH — Baixar todas as abas em sequência
+    # =====================================================================
+    tabs = SHEETS_CONFIG["tabs"]
+
+    print("    → Baixando aba GPS...")
+    gps_df = _csv_to_df(_fetch_sheet_csv(tabs["gps"]))
+
+    print("    → Baixando aba Diário (carga)...")
+    diario_df = _csv_to_df(_fetch_sheet_csv(tabs["diario"]))
+
+    print("    → Baixando aba Questionários (bem-estar)...")
+    quest_df = _csv_to_df(_fetch_sheet_csv(tabs["questionarios"]))
+
+    print("    → Baixando aba Saltos (CMJ)...")
+    saltos_df = _csv_to_df(_fetch_sheet_csv(tabs["saltos"]))
+
+    print("    → Baixando aba Bioquímico...")
+    bioq_df = _csv_to_df(_fetch_sheet_csv(tabs["bioquimico"]))
+
+    print("    → Baixando aba Atletas...")
+    atletas_df = _csv_to_df(_fetch_sheet_csv(tabs["atletas"]))
+
+    # =====================================================================
+    # ATLETAS — Cadastro base
+    # =====================================================================
+    # Headers normalizados: atleta, n_bloco, posicao, grupo, etc.
+    atletas_df["athlete"] = atletas_df.iloc[:, 0].apply(_resolve_name)
+    # Usar posição se disponível
+    pos_col = [c for c in atletas_df.columns if "posic" in c]
+    if pos_col:
+        atletas_df["position"] = atletas_df[pos_col[0]]
+    else:
+        atletas_df["position"] = "N/A"
+    atletas_lookup = atletas_df[["athlete", "position"]].drop_duplicates(subset="athlete")
+
+    # =====================================================================
+    # GPS — Colunas: atleta, date, distance_km, sprint_distance_20km_h_m, etc.
+    # =====================================================================
+    # Identificar coluna de atleta (primeira coluna textual)
+    gps_df["athlete"] = gps_df.iloc[:, 0].apply(_resolve_name)
+
+    # Mapear colunas GPS normalizadas → nomes internos
+    GPS_COL_MAP = {
+        "distance_km": "total_distance_km",
+        "sprint_distance_20km_h_m": "hsr_m",
+        "sprints_20km_h": "sprints",
         "player_load": "player_load",
-        "dist_por_min": "dist_per_min",
-        "vel_max_ms": "top_speed_ms",
-        "acel_4ms2": "accels_3ms2",
-        "decel_4ms2": "decels_3ms2",
-        # Colunas extras do Google Sheets
-        "Distance (km)": "total_distance_km",
-        "Sprint Distance 20km/h (m)": "hsr_m",
-        "Sprints 20km/h": "sprints",
-        "Player Load": "player_load",
-        "Distance Per Min (m/min)": "dist_per_min",
-        "Sprint Distance Per Min (m/min)": "sprint_dist_per_min",
-        "Top Speed (km/h)": "top_speed_kmh",
-        "Sprint Distance 25km/h (km)": "sprint_dist_25_m",
-        "Sprints 25km/h": "sprints_25",
-        "Acelerações B1-3 (>1)": "accels_1ms2",
-        "Acelerações B2-3 (>3)": "accels_3ms2",
-        "Desacelerações B1-3 (>1)": "decels_1ms2",
-        "Desacelerações B2-3 (>3)": "decels_3ms2",
-        "Ações>30Km/h": "actions_above_30",
-        "RHIE": "rhie",
-    })
+        "distance_per_min_m_min": "dist_per_min",
+        "sprint_distance_per_min_m_min": "sprint_dist_per_min",
+        "top_speed_km_h": "top_speed_kmh",
+        "sprint_distance_25km_h_km": "sprint_dist_25_km",
+        "sprints_25km_h": "sprints_25",
+        "aceleracoes_b1_3_1": "accels_1ms2",
+        "aceleracoes_b2_3_3": "accels_3ms2",
+        "desaceleracoes_b1_3_1": "decels_1ms2",
+        "desaceleracoes_b2_3_3": "decels_3ms2",
+        "acoes_30km_h": "actions_above_30",
+        "rhie": "rhie",
+        "tempo_de_jogo": "minutes_played_gps",
+        "tags": "tags",
+        "dia_da_semana": "day_of_week",
+        "semana": "week",
+        "grupo": "grupo",
+        "dpj": "dpj",
+    }
+    gps_df = gps_df.rename(columns=GPS_COL_MAP)
+
+    # Detectar coluna de data
+    date_col = [c for c in gps_df.columns if c in ("date", "data")]
+    if date_col:
+        gps_df["date"] = pd.to_datetime(gps_df[date_col[0]], dayfirst=True, errors="coerce")
+    else:
+        # Tentar 3ª coluna (Date no screenshot está na posição C)
+        gps_df["date"] = pd.to_datetime(gps_df.iloc[:, 2], dayfirst=True, errors="coerce")
 
     # Conversões de unidade
-    if "total_distance_km" in gps.columns:
-        gps["total_distance_m"] = gps["total_distance_km"] * 1000
-    if "sprint_dist_25_m" in gps.columns:
-        gps["sprint_dist_25_m"] = gps["sprint_dist_25_m"] * 1000  # km → m
-    if "top_speed_kmh" in gps.columns and "top_speed_ms" not in gps.columns:
-        gps["top_speed_ms"] = gps["top_speed_kmh"] / 3.6
+    if "total_distance_km" in gps_df.columns:
+        gps_df["total_distance_m"] = pd.to_numeric(gps_df["total_distance_km"], errors="coerce") * 1000
+    if "sprint_dist_25_km" in gps_df.columns:
+        gps_df["sprint_dist_25_m"] = pd.to_numeric(gps_df["sprint_dist_25_km"], errors="coerce") * 1000
+    if "top_speed_kmh" in gps_df.columns:
+        gps_df["top_speed_ms"] = pd.to_numeric(gps_df["top_speed_kmh"], errors="coerce") / 3.6
 
-    # Garantir colunas com 0 se ausentes
-    for c in ["sprints_25", "accels_1ms2", "decels_1ms2",
-              "actions_above_30", "rhie", "sprint_dist_25_m",
-              "total_distance_m", "accels_3ms2", "decels_3ms2"]:
-        if c not in gps.columns:
-            gps[c] = 0
+    # Converter colunas numéricas
+    num_cols = ["hsr_m", "sprints", "sprints_25", "accels_3ms2", "decels_3ms2",
+                "accels_1ms2", "decels_1ms2", "total_distance_m", "player_load",
+                "dist_per_min", "top_speed_ms", "actions_above_30", "rhie"]
+    for c in num_cols:
+        if c in gps_df.columns:
+            gps_df[c] = pd.to_numeric(gps_df[c], errors="coerce").fillna(0)
 
-    # Agregar por jogador-dia (pode haver múltiplas sessões/splits)
-    gps["date"] = pd.to_datetime(gps["date"])
-    gps_daily = gps.groupby(["player_id", "date"]).agg(
+    # Garantir colunas ausentes
+    for c in num_cols + ["sprints_25", "total_distance_m"]:
+        if c not in gps_df.columns:
+            gps_df[c] = 0
+
+    # Agregar por atleta-dia (somar splits/sessões)
+    gps_daily = gps_df.groupby(["athlete", "date"]).agg(
         hsr_m=("hsr_m", "sum"),
         sprints=("sprints", "sum"),
         sprints_25=("sprints_25", "sum"),
@@ -230,150 +372,206 @@ def load_real_data(filepath=None):
         dist_per_min=("dist_per_min", "mean"),
         top_speed_ms=("top_speed_ms", "max"),
     ).reset_index()
+    print(f"    → GPS: {len(gps_daily)} registros atleta-dia")
 
-    # --- Carga de treino ---
-    carga = pd.read_excel(fp, sheet_name="carga_treino")
-    carga = carga.rename(columns={
-        "jogador_id": "player_id", "data": "date",
-        "pse": "pse", "duracao_min": "duration_min",
-        "carga_sessao": "srpe", "atividade": "training_type",
-        "tags": "tags", "semana": "week", "dia_semana": "day_of_week",
-    })
-    carga["date"] = pd.to_datetime(carga["date"])
-    # Agregar por jogador-dia
-    carga_daily = carga.groupby(["player_id", "date"]).agg(
+    # =====================================================================
+    # DIÁRIO — Carga de treino (PSE, duração, sRPE)
+    # =====================================================================
+    diario_df["athlete"] = diario_df.iloc[:, 0].apply(_resolve_name)
+    date_col_d = [c for c in diario_df.columns if c in ("date", "data")]
+    if date_col_d:
+        diario_df["date"] = pd.to_datetime(diario_df[date_col_d[0]], dayfirst=True, errors="coerce")
+    else:
+        diario_df["date"] = pd.to_datetime(diario_df.iloc[:, 1], dayfirst=True, errors="coerce")
+
+    # Detectar colunas de PSE, duração, carga
+    pse_col = [c for c in diario_df.columns if "pse" in c and "srpse" not in c]
+    dur_col = [c for c in diario_df.columns if "durac" in c or "tempo" in c or "min" in c]
+    carga_col = [c for c in diario_df.columns if "carga" in c or "srpe" in c or "srpse" in c]
+    ativ_col = [c for c in diario_df.columns if "ativid" in c or "tipo" in c]
+    tag_col = [c for c in diario_df.columns if "tag" in c]
+    ck_col = [c for c in diario_df.columns if "ck" in c]
+
+    if pse_col:
+        diario_df["pse"] = pd.to_numeric(diario_df[pse_col[0]], errors="coerce").fillna(0)
+    else:
+        diario_df["pse"] = 0
+    if dur_col:
+        diario_df["duration_min"] = pd.to_numeric(diario_df[dur_col[0]], errors="coerce").fillna(0)
+    else:
+        diario_df["duration_min"] = 0
+    if carga_col:
+        diario_df["srpe"] = pd.to_numeric(diario_df[carga_col[0]], errors="coerce").fillna(0)
+    else:
+        diario_df["srpe"] = diario_df["pse"] * diario_df["duration_min"]
+    if ativ_col:
+        diario_df["training_type"] = diario_df[ativ_col[0]].fillna("")
+    else:
+        diario_df["training_type"] = ""
+
+    # CK do diário (se disponível)
+    if ck_col:
+        diario_df["ck_diario"] = pd.to_numeric(diario_df[ck_col[0]], errors="coerce")
+
+    carga_daily = diario_df.groupby(["athlete", "date"]).agg(
         pse=("pse", "max"),
         duration_min=("duration_min", "sum"),
         srpe=("srpe", "sum"),
         training_type=("training_type", "first"),
-        tags=("tags", "first"),
-        week=("week", "first"),
-        day_of_week=("day_of_week", "first"),
     ).reset_index()
     carga_daily["srpe"] = carga_daily["srpe"].fillna(0)
+    print(f"    → Diário: {len(carga_daily)} registros atleta-dia")
 
-    # --- Bem-estar ---
-    bem_estar = pd.read_excel(fp, sheet_name="bem_estar")
-    bem_estar = bem_estar.rename(columns={
-        "jogador_id": "player_id", "data": "date",
-        "peso_kg": "weight_kg", "humor": "mood_raw",
-        "energia": "energy_raw", "recuperacao_geral": "recovery_general",
-        "dor_nivel": "pain",
-    })
-    bem_estar["date"] = pd.to_datetime(bem_estar["date"])
-    # Mapear humor e energia para numérico
-    mood_map = {"Muito mal": 1, "Mal estar": 2, "Normal": 3, "Bem": 4, "Muito bem": 5}
-    energy_map = {"Desanimado": 1, "Sem energia": 2, "Com energia": 3, "Muito animado": 4}
-    bem_estar["mood"] = bem_estar["mood_raw"].map(mood_map).fillna(3).astype(int)
-    bem_estar["energy"] = bem_estar["energy_raw"].map(energy_map).fillna(2).astype(int)
-    bem_estar["recovery_general"] = pd.to_numeric(bem_estar["recovery_general"], errors="coerce").fillna(5)
-    bem_estar["pain"] = pd.to_numeric(bem_estar["pain"], errors="coerce").fillna(0)
-    # Usar período "pré" se disponível, senão primeiro do dia
-    bem_estar_daily = bem_estar.sort_values("periodo").groupby(["player_id", "date"]).agg(
-        weight_kg=("weight_kg", "first"),
+    # =====================================================================
+    # QUESTIONÁRIOS — Bem-estar (humor, energia, recuperação, dor, sono)
+    # =====================================================================
+    quest_df["athlete"] = quest_df.iloc[:, 0].apply(_resolve_name)
+    date_col_q = [c for c in quest_df.columns if c in ("date", "data")]
+    if date_col_q:
+        quest_df["date"] = pd.to_datetime(quest_df[date_col_q[0]], dayfirst=True, errors="coerce")
+    else:
+        quest_df["date"] = pd.to_datetime(quest_df.iloc[:, 1], dayfirst=True, errors="coerce")
+
+    # Detectar colunas de wellness
+    humor_col = [c for c in quest_df.columns if "humor" in c]
+    energia_col = [c for c in quest_df.columns if "energ" in c]
+    recup_col = [c for c in quest_df.columns if "recup" in c]
+    dor_col = [c for c in quest_df.columns if "dor" in c and "nivel" in c]
+    sono_col = [c for c in quest_df.columns if "sono" in c or "sleep" in c or "qualidade" in c]
+
+    mood_map = {"muito mal": 1, "mal estar": 2, "normal": 3, "bem": 4, "muito bem": 5}
+    energy_map = {"desanimado": 1, "sem energia": 2, "com energia": 3, "muito animado": 4}
+
+    if humor_col:
+        quest_df["mood"] = quest_df[humor_col[0]].astype(str).str.lower().str.strip().map(mood_map).fillna(3).astype(int)
+    else:
+        quest_df["mood"] = 3
+    if energia_col:
+        quest_df["energy"] = quest_df[energia_col[0]].astype(str).str.lower().str.strip().map(energy_map).fillna(2).astype(int)
+    else:
+        quest_df["energy"] = 2
+    if recup_col:
+        quest_df["recovery_general"] = pd.to_numeric(quest_df[recup_col[0]], errors="coerce").fillna(5)
+    else:
+        quest_df["recovery_general"] = 5
+    if dor_col:
+        quest_df["pain"] = pd.to_numeric(quest_df[dor_col[0]], errors="coerce").fillna(0)
+    else:
+        quest_df["pain"] = 0
+    if sono_col:
+        quest_df["sleep_quality"] = pd.to_numeric(quest_df[sono_col[0]], errors="coerce").fillna(7)
+    else:
+        quest_df["sleep_quality"] = 7.0
+
+    quest_daily = quest_df.groupby(["athlete", "date"]).agg(
         mood=("mood", "first"),
         energy=("energy", "first"),
         recovery_general=("recovery_general", "first"),
         pain=("pain", "first"),
+        sleep_quality=("sleep_quality", "first"),
     ).reset_index()
+    print(f"    → Questionários: {len(quest_daily)} registros atleta-dia")
 
-    # --- Testes físicos (CMJ) ---
-    testes = pd.read_excel(fp, sheet_name="testes_fisicos")
-    testes = testes.rename(columns={
-        "jogador_id": "player_id", "data": "date",
-        "cmj_melhor_cm": "cmj_cm",
-    })
-    testes["date"] = pd.to_datetime(testes["date"])
-    # Baseline = primeiro teste de cada jogador
-    cmj_baseline = testes.groupby("player_id")["cmj_cm"].first().reset_index()
-    cmj_baseline.columns = ["player_id", "cmj_baseline"]
-    # Último CMJ por jogador-dia
-    testes_daily = testes.sort_values("date").groupby(["player_id", "date"]).agg(
+    # =====================================================================
+    # SALTOS — CMJ
+    # =====================================================================
+    saltos_df["athlete"] = saltos_df.iloc[:, 0].apply(_resolve_name)
+    date_col_s = [c for c in saltos_df.columns if c in ("date", "data")]
+    if date_col_s:
+        saltos_df["date"] = pd.to_datetime(saltos_df[date_col_s[0]], dayfirst=True, errors="coerce")
+    else:
+        saltos_df["date"] = pd.to_datetime(saltos_df.iloc[:, 1], dayfirst=True, errors="coerce")
+
+    cmj_col = [c for c in saltos_df.columns if "cmj" in c and ("melhor" in c or "cm" in c)]
+    if cmj_col:
+        saltos_df["cmj_cm"] = pd.to_numeric(saltos_df[cmj_col[0]], errors="coerce")
+    else:
+        # Tentar qualquer coluna com "cmj"
+        cmj_any = [c for c in saltos_df.columns if "cmj" in c]
+        if cmj_any:
+            saltos_df["cmj_cm"] = pd.to_numeric(saltos_df[cmj_any[0]], errors="coerce")
+        else:
+            saltos_df["cmj_cm"] = np.nan
+
+    cmj_baseline = saltos_df.dropna(subset=["cmj_cm"]).sort_values("date").groupby("athlete")["cmj_cm"].first().reset_index()
+    cmj_baseline.columns = ["athlete", "cmj_baseline"]
+
+    saltos_daily = saltos_df.groupby(["athlete", "date"]).agg(
         cmj_cm=("cmj_cm", "max"),
     ).reset_index()
+    print(f"    → Saltos: {len(saltos_daily)} registros")
 
-    # --- Bioquímico ---
-    bioq = pd.read_excel(fp, sheet_name="bioquimico")
-    bioq = bioq.rename(columns={
-        "jogador_id": "player_id", "data": "date",
-        "ck_u_l": "ck_today",
-    })
-    bioq["date"] = pd.to_datetime(bioq["date"])
-    # Basal = primeiro exame com tag "Basal"
-    basal_mask = bioq["tag"].str.contains("Basal", case=False, na=False)
-    ck_basal = bioq[basal_mask].groupby("player_id")["ck_today"].first().reset_index()
-    ck_basal.columns = ["player_id", "ck_basal"]
-    bioq_daily = bioq.groupby(["player_id", "date"]).agg(
+    # =====================================================================
+    # BIOQUÍMICO — CK
+    # =====================================================================
+    bioq_df["athlete"] = bioq_df.iloc[:, 0].apply(_resolve_name)
+    date_col_b = [c for c in bioq_df.columns if c in ("date", "data")]
+    if date_col_b:
+        bioq_df["date"] = pd.to_datetime(bioq_df[date_col_b[0]], dayfirst=True, errors="coerce")
+    else:
+        bioq_df["date"] = pd.to_datetime(bioq_df.iloc[:, 1], dayfirst=True, errors="coerce")
+
+    ck_col_b = [c for c in bioq_df.columns if "ck" in c]
+    tag_col_b = [c for c in bioq_df.columns if "tag" in c]
+    if ck_col_b:
+        bioq_df["ck_today"] = pd.to_numeric(bioq_df[ck_col_b[0]], errors="coerce")
+    else:
+        bioq_df["ck_today"] = np.nan
+
+    # Basal
+    if tag_col_b:
+        basal_mask = bioq_df[tag_col_b[0]].astype(str).str.contains("basal|Basal", na=False)
+        ck_basal = bioq_df[basal_mask].dropna(subset=["ck_today"]).groupby("athlete")["ck_today"].first().reset_index()
+    else:
+        ck_basal = bioq_df.dropna(subset=["ck_today"]).sort_values("date").groupby("athlete")["ck_today"].first().reset_index()
+    ck_basal.columns = ["athlete", "ck_basal"]
+
+    bioq_daily = bioq_df.groupby(["athlete", "date"]).agg(
         ck_today=("ck_today", "max"),
     ).reset_index()
-
-    # --- Lesões ---
-    lesoes = pd.read_excel(fp, sheet_name="lesoes")
-    lesoes = lesoes.rename(columns={
-        "jogador_id": "player_id",
-        "data_entrada": "injury_date",
-        "data_saida_dm": "return_date",
-    })
-    lesoes["injury_date"] = pd.to_datetime(lesoes["injury_date"])
-    lesoes["return_date"] = pd.to_datetime(lesoes["return_date"])
+    print(f"    → Bioquímico: {len(bioq_daily)} registros")
 
     # =====================================================================
     # MERGE — Construir DataFrame atleta-dia
     # =====================================================================
+    print("    → Consolidando dados atleta-dia...")
+
     # Base: todas as datas com GPS ou carga
-    base_dates_gps = gps_daily[["player_id", "date"]].drop_duplicates()
-    base_dates_carga = carga_daily[["player_id", "date"]].drop_duplicates()
-    base_dates = pd.concat([base_dates_gps, base_dates_carga]).drop_duplicates().sort_values(["player_id", "date"])
+    base_gps = gps_daily[["athlete", "date"]].drop_duplicates()
+    base_carga = carga_daily[["athlete", "date"]].drop_duplicates()
+    base_dates = pd.concat([base_gps, base_carga]).drop_duplicates().sort_values(["athlete", "date"])
 
-    df = base_dates.merge(jogadores[["player_id", "athlete", "position"]], on="player_id", how="left")
-    df = df.merge(gps_daily, on=["player_id", "date"], how="left")
-    df = df.merge(carga_daily, on=["player_id", "date"], how="left")
-    df = df.merge(bem_estar_daily, on=["player_id", "date"], how="left")
-    df = df.merge(cmj_baseline, on="player_id", how="left")
-    df = df.merge(ck_basal, on="player_id", how="left")
+    df = base_dates.merge(atletas_lookup, on="athlete", how="left")
+    df = df.merge(gps_daily, on=["athlete", "date"], how="left")
+    df = df.merge(carga_daily, on=["athlete", "date"], how="left")
+    df = df.merge(quest_daily, on=["athlete", "date"], how="left")
+    df = df.merge(cmj_baseline, on="athlete", how="left")
+    df = df.merge(ck_basal, on="athlete", how="left")
 
-    # CMJ: forward fill do último teste disponível por jogador
-    testes_all = df[["player_id", "date"]].merge(testes_daily, on=["player_id", "date"], how="left")
-    testes_all = testes_all.sort_values(["player_id", "date"])
-    testes_all["cmj_cm"] = testes_all.groupby("player_id")["cmj_cm"].ffill()
-    df["cmj_cm"] = testes_all["cmj_cm"].values
+    # CMJ: forward fill do último teste
+    cmj_all = df[["athlete", "date"]].merge(saltos_daily, on=["athlete", "date"], how="left")
+    cmj_all = cmj_all.sort_values(["athlete", "date"])
+    cmj_all["cmj_cm"] = cmj_all.groupby("athlete")["cmj_cm"].ffill()
+    df["cmj_cm"] = cmj_all["cmj_cm"].values
     df["cmj_cm"] = df["cmj_cm"].fillna(df["cmj_baseline"])
 
     # CK: forward fill
-    bioq_all = df[["player_id", "date"]].merge(bioq_daily, on=["player_id", "date"], how="left")
-    bioq_all = bioq_all.sort_values(["player_id", "date"])
-    bioq_all["ck_today"] = bioq_all.groupby("player_id")["ck_today"].ffill()
-    df["ck_today"] = bioq_all["ck_today"].values
+    ck_all = df[["athlete", "date"]].merge(bioq_daily, on=["athlete", "date"], how="left")
+    ck_all = ck_all.sort_values(["athlete", "date"])
+    ck_all["ck_today"] = ck_all.groupby("athlete")["ck_today"].ffill()
+    df["ck_today"] = ck_all["ck_today"].values
     df["ck_today"] = df["ck_today"].fillna(df["ck_basal"])
 
-    # Marcar lesões no dia
-    df["injury"] = 0
-    for _, row in lesoes.dropna(subset=["player_id", "injury_date"]).iterrows():
-        pid = row["player_id"]
-        inj_date = row["injury_date"]
-        mask = (df["player_id"] == pid) & (df["date"] == inj_date)
-        df.loc[mask, "injury"] = 1
-
-    # Dias desde última lesão
-    df["days_since_last_injury"] = 999
-    for pid in df["player_id"].unique():
-        pmask = df["player_id"] == pid
-        pdf = df[pmask].copy()
-        inj_dates = pdf[pdf["injury"] == 1]["date"]
-        for idx in pdf.index:
-            curr_date = pdf.loc[idx, "date"]
-            prev_inj = inj_dates[inj_dates < curr_date]
-            if len(prev_inj) > 0:
-                df.loc[idx, "days_since_last_injury"] = (curr_date - prev_inj.max()).days
-
     # Flags auxiliares
-    df["is_match"] = df["training_type"].str.contains("Jogo|Match", case=False, na=False).astype(int)
+    df["is_match"] = df["training_type"].astype(str).str.contains("Jogo|Match|jogo", case=False, na=False).astype(int)
     df["is_rest"] = ((df["srpe"].fillna(0) == 0) & (df["total_distance_m"].fillna(0) == 0)).astype(int)
+    df["injury"] = 0  # Lesões não têm data-dia no Google Sheets — será cruzado se disponível
+    df["days_since_last_injury"] = 999
 
-    # Preencher NaN de GPS/carga com 0 (dias sem treino)
-    gps_cols = ["hsr_m", "sprints", "sprints_25", "accels_3ms2", "decels_3ms2",
-                "total_distance_m", "player_load", "dist_per_min", "top_speed_ms"]
-    for c in gps_cols:
+    # Preencher NaN GPS com 0
+    gps_fill_cols = ["hsr_m", "sprints", "sprints_25", "accels_3ms2", "decels_3ms2",
+                     "total_distance_m", "player_load", "dist_per_min", "top_speed_ms"]
+    for c in gps_fill_cols:
         if c in df.columns:
             df[c] = df[c].fillna(0)
     df["srpe"] = df["srpe"].fillna(0)
@@ -381,24 +579,23 @@ def load_real_data(filepath=None):
     df["duration_min"] = df["duration_min"].fillna(0)
 
     # Preencher wellness com medianas
-    for c in ["weight_kg", "mood", "energy", "recovery_general", "pain"]:
+    for c in ["mood", "energy", "recovery_general", "pain", "sleep_quality"]:
         if c in df.columns:
-            df[c] = df[c].fillna(df[c].median())
+            median_val = df[c].median()
+            df[c] = df[c].fillna(median_val if not pd.isna(median_val) else 5)
 
-    # Colunas que o pipeline espera e não existem na planilha — preencher com defaults
-    # (serão NaN/ignoradas onde não disponíveis, mas evitam quebra)
+    # Colunas que o pipeline espera — defaults para dados indisponíveis
     defaults = {
         "training_load": df["srpe"],
         "match_load": df["srpe"] * df["is_match"],
         "minutes_played": df["duration_min"],
-        "sleep_quality": 7.0,    # não disponível na planilha — placeholder
         "sleep_hours": 7.5,
         "recovery_legs": df.get("recovery_general", 5.0),
-        "hrv_rmssd": 65.0,       # placeholder — sem HRV na planilha
+        "hrv_rmssd": 65.0,
         "hrv_baseline": 65.0,
         "slcmj_l": df["cmj_cm"] * 0.51 if "cmj_cm" in df.columns else 20.0,
         "slcmj_r": df["cmj_cm"] * 0.49 if "cmj_cm" in df.columns else 20.0,
-        "iso_left_n": 270.0,     # placeholder — sem isometria por sessão
+        "iso_left_n": 270.0,
         "iso_right_n": 270.0,
         "iso_baseline_l": 270.0,
         "iso_baseline_r": 270.0,
@@ -408,14 +605,19 @@ def load_real_data(filepath=None):
         "bf_pct": 11.0,
         "height_cm": 180.0,
         "muscle_mass_kg": 37.0,
+        "weight_kg": 78.0,
     }
     for col, default_val in defaults.items():
         if col not in df.columns:
             df[col] = default_val
 
+    # player_id sintético para compatibilidade com o pipeline
+    athlete_ids = {name: i for i, name in enumerate(sorted(df["athlete"].unique()))}
+    df["player_id"] = df["athlete"].map(athlete_ids)
+
     df = df.sort_values(["athlete", "date"]).reset_index(drop=True)
 
-    n_athletes = df["player_id"].nunique()
+    n_athletes = df["athlete"].nunique()
     n_days = df["date"].nunique()
     print(f"  → {len(df)} registros | {n_athletes} atletas | {n_days} datas | "
           f"{df['injury'].sum()} lesões")
@@ -1520,12 +1722,13 @@ if __name__ == "__main__":
     print("           → Calibração → Threshold → SHAP → Dashboard")
     print("=" * 60)
 
-    # 1. Load real data (or fall back to synthetic)
-    if DATA_FILE.exists():
-        print(f"\n[1/7] Carregando dados REAIS da planilha...")
-        df_raw = load_real_data(DATA_FILE)
-    else:
-        print(f"\n[1/7] Planilha não encontrada — gerando dados sintéticos ({len(ATHLETES)} atletas x {N_DAYS} dias)...")
+    # 1. Load real data from Google Sheets (or fall back to synthetic)
+    try:
+        print(f"\n[1/7] Carregando dados REAIS do Google Sheets...")
+        df_raw = load_real_data()
+    except Exception as e:
+        print(f"  ⚠ Falha ao conectar ao Google Sheets: {e}")
+        print(f"  → Gerando dados sintéticos ({len(ATHLETES)} atletas x {N_DAYS} dias)...")
         df_raw = generate_longitudinal_data()
         print(f"  → {len(df_raw)} registros | {df_raw['injury'].sum()} eventos de lesão")
 
