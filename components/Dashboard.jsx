@@ -15,8 +15,7 @@ const THEMES={
     shadow:"rgba(0,0,0,.04)",shadowMd:"rgba(0,0,0,.06)",shadowLg:"rgba(0,0,0,.1)",
     headerBg:"#1A1A1A",headerShadow:"rgba(0,0,0,.15)",
     ringBg:"#f1f5f9",
-    tooltipBg:"#fff",
-  },
+    tooltipBg:"#fff"},
   dark:{
     bg:"#0c0e14",bgCard:"#181b25",bgMuted:"#1e2230",bgMuted2:"#282d3c",
     text:"#f1f5f9",textMuted:"#b8c4d0",textFaint:"#8896a8",textFaintest:"#5e6b7d",
@@ -25,11 +24,10 @@ const THEMES={
     shadow:"rgba(0,0,0,.35)",shadowMd:"rgba(0,0,0,.45)",shadowLg:"rgba(0,0,0,.55)",
     headerBg:"#10121a",headerShadow:"rgba(0,0,0,.5)",
     ringBg:"#282d3c",
-    tooltipBg:"#1e2230",
-  }
+    tooltipBg:"#1e2230"}
 };
 
-const P=[{n:"ADRIANO",pos:"GOL",id:19,h:5,e:4,rg:7,rp:6,d:2,sq:7,rpa:7,da:1.6,sa:7.3,nw:39,pse:3,sra:331,w:82.7,alt:183,bf:12.4,mm:38.2,imc:24.2,nc:60,ai:1.24,cmj:49.6,ct:[54.2,50.3,48.5,51.4,52,52.2,52.6,49.6],wt:{dt:["02","03","07","09","10","11","12"],s:[10,8,7,7,8,7,7],r:[8,6,6,8,8,7,6],dr:[1,1,1,1,2,1,2]}},{n:"BRENNO",pos:"GOL",id:23,h:4,e:4,rg:8,rp:8,d:3,sq:7,rpa:7.3,da:1.3,sa:7.3,nw:50,pse:4,sra:310,w:90.8,alt:191,bf:13.8,mm:41.5,imc:24.9,nc:75,ai:1.17,cmj:44.6,ct:[45,47.8,49.3,48,47.6,49.3,46.2,44.6],wt:{dt:["04","05","06","07","09","10","11"],s:[7,7,7,6,10,8,7],r:[7,7,8,5,8,7,8],dr:[0,0,0,0,0,2,3]}},{n:"CARLOS EDUARDO",pos:"ZAG",id:25,h:5,e:3,rg:8,rp:8,d:2,sq:8,rpa:7.9,da:1,sa:9.2,nw:57,pse:3,sra:391,w:85.9,alt:186,bf:11.9,mm:39.8,imc:24.6,ck:973,nc:75,ai:1.07,cmj:46.7,ckm:973,ct:[49.1,44,47.1,44.5,48.8,46.5,52.6,46.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,9,8,8,9,10,8],r:[9,5,6,9,8,6,8],dr:[1,1,0,0,0,2,2]}},{n:"DARLAN",pos:"ZAG",id:20,h:4,e:3,rg:9,rp:8,d:0,sq:8,rpa:7.8,da:.7,sa:7.8,nw:17,pse:5,sra:317,w:80.2,alt:186,bf:10.5,mm:37.1,imc:25.3,nc:20,ai:.95,cmj:31.1,ct:[31.1]},{n:"ERICSON",pos:"ZAG",id:26,h:5,e:3,rg:10,rp:9,d:3,sq:9,rpa:6.7,da:1.1,sa:8.8,nw:51,pse:0,sra:431,w:91.6,alt:184,bf:13.2,mm:42.0,imc:25.4,ck:562,nc:75,ai:.64,cmj:43.1,ckm:916,ct:[44.3,47.4,42.4,47.1,50.9,50.9,55.5,43.1],wt:{dt:["26","27","28","02","03","04","06"],s:[9,9,9,7,9,8,9],r:[6,6,5,8,7,9,9],dr:[1,1,1,1,4,3,3]}},{n:"ERIK",pos:"VOL",id:20,h:5,e:4,rg:7,rp:7,d:0,sq:9,rpa:7.2,da:.2,sa:9.3,nw:22,pse:6,sra:308,w:75.5,alt:176,bf:9.8,mm:35.4,imc:24.4,nc:59,ai:1.97,ct:[54.1,52.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,8,8,10,10,9],r:[7,8,7,10,7,7,7],dr:[0,0,0,0,0,0,0]}},{n:"FELIPE VIEIRA",pos:"LE",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.2,da:.3,sa:8.2,nw:27,pse:7,sra:385,w:77,alt:176,bf:7.7,mm:35.8,imc:24.9,ck:174,nc:27,ai:1.0,cmj:39.3,ckm:174,ct:[45.0,39.3],wt:{dt:["03","04","05","06","07","09","10"],s:[7,7,8,9,6,5,7],r:[7,7,7,8,6,5,7],dr:[0,0,0,0,0,0,0]}},{n:"GABRIEL INOCENCIO",pos:"LAT",id:31,h:4,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.8,da:.4,sa:7.2,nw:58,pse:3,sra:407,w:78.5,alt:177,bf:10.8,mm:36.5,imc:25.1,ck:533,nc:75,ai:.97,cmj:48.2,ckm:916,ct:[48.2,52.3,45.3,48.9,53.6,49.3,50.8,48.2],wt:{dt:["04","05","06","09","10","11","12"],s:[8,9,8,8,7,7,8],r:[7,7,7,8,8,8,8],dr:[1,2,7,2,2,2,1]}},{n:"GUI MARIANO",pos:"ZAG",id:26,h:5,e:4,rg:8,rp:8,d:4,sq:8,rpa:7.6,da:.3,sa:8.2,nw:59,pse:7,sra:476,w:89.7,alt:191,bf:12.7,mm:41.0,imc:25.1,nc:75,ai:1.1,cmj:53.1,ct:[52.4,52.2,52,55.1,47.5,53.7,53.5,53.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,9,9,8,8],r:[7,7,5,10,8,6,8],dr:[0,0,0,0,0,0,4]}},{n:"GUILHERME QUEIROZ",pos:"ATA",id:35,h:5,e:3,rg:7,rp:7,d:2,sq:8,rpa:7.3,da:1.5,sa:6.9,nw:56,pse:6,sra:369,w:87.9,alt:180,bf:13.1,mm:40.2,imc:24.9,ck:493,nc:75,ai:1.14,cmj:46,ckm:493,ct:[43.3,43.3,46.2,47.4,44.7,48.3,48,46],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,7,7,5,8],r:[10,7,6,8,6,7,7],dr:[0,0,1,0,1,1,2]}},{n:"GUSTAVO VILAR",pos:"ZAG",id:25,h:5,e:3,rg:6,rp:6,d:0,sq:7,rpa:6.5,da:.2,sa:7.7,nw:55,pse:5,sra:410,w:86.4,alt:189,bf:12.9,mm:39.5,imc:25.8,ck:658,nc:75,ai:1.07,cmj:43.5,ckm:1113,ct:[43.3,42.9,47.9,42.8,43.1,44,44.8,43.5]},{n:"HEBERT",pos:"ZAG",id:20,h:5,e:3,rg:8,rp:7,d:0,sq:7,rpa:6.7,da:.1,sa:7.7,nw:46,pse:5,sra:366,w:88.1,alt:187,bf:12.5,mm:40.8,imc:25.5,nc:59,ai:1.04,cmj:46.9,ct:[50.1,49.8,50,52.5,48.6,51.2,53.3,46.9]},{n:"HENRIQUE TELES",pos:"LAT",id:19,h:5,e:4,rg:8,rp:8,d:2,sq:8,rpa:7,da:1.4,sa:7.7,nw:54,pse:6,sra:415,w:80.1,alt:179,bf:11.3,mm:37.2,imc:24.7,ck:415,nc:69,ai:1.14,cmj:45.5,ckm:415,ct:[53.1,55.5,49.8,54.9,51.6,50.8,55.1,45.5],wt:{dt:["04","05","07","09","10","11","12"],s:[8,9,6,9,8,9,8],r:[6,8,6,10,8,9,8],dr:[2,1,7,5,3,3,2]}},{n:"HYGOR",pos:"ATA",id:33,h:5,e:4,rg:10,rp:8,d:2,sq:7,rpa:8.8,da:1.6,sa:9.2,nw:57,pse:4,sra:387,w:83.3,alt:183,bf:11.6,mm:38.6,imc:25.2,ck:749,nc:75,ai:1.12,cmj:42.1,ckm:1034,ct:[40.8,44.5,39.9,44.2,43.5,42.4,41.9,42.1],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,10,10,10,10,7],r:[10,6,8,10,8,8,8],dr:[0,2,0,0,0,3,2]}},{n:"JEFFERSON NEM",pos:"ATA",id:29,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:7.1,da:.8,sa:7.9,nw:57,pse:7,sra:423,w:72.5,alt:166,bf:10.1,mm:33.8,imc:23.9,ck:985,nc:75,ai:.97,cmj:47.5,ckm:3539,ct:[44,48.2,44.5,50.4,50,44.1,47.2,47.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,7],r:[7,6,7,8,8,7,7],dr:[0,0,0,0,0,0,2]}},{n:"JONATHAN",pos:"LD",id:33,h:5,e:4,rg:5,rp:5,d:4,sq:7,rpa:5.8,da:2.9,sa:5.9,nw:51,pse:4,sra:333,w:73.7,alt:177,bf:10.9,mm:34.3,imc:24.1,ck:981,nc:75,ai:1.14,cmj:42.8,ckm:1372,ct:[46.4,46.8,46.9,37.3,45,44.7,45,42.8],wt:{dt:["04","05","07","09","10","11","12"],s:[5,7,6,6,6,6,7],r:[6,7,4,7,5,6,5],dr:[3,3,3,2,3,3,4]}},{n:"JORDAN",pos:"GOL",id:28,h:5,e:3,rg:7,rp:7,d:0,sq:9,rpa:8,da:.7,sa:8,nw:60,pse:4,sra:418,w:92.2,alt:189,bf:12.0,mm:42.8,imc:25.0,nc:75,ai:1.1,cmj:54.1,ct:[52.2,53.4,53.4,53.2,54.5,56,55.7,54.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,9],r:[8,8,6,8,8,7,7],dr:[1,0,0,0,0,0,0]}},{n:"KELVIN",pos:"EXT",id:28,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:6.9,da:3,sa:7.4,nw:49,pse:3,sra:288,w:74.6,alt:170,bf:10.3,mm:34.8,imc:23.8,ck:207,nc:67,ai:.86,cmj:38.4,ckm:375,ct:[40.4,38.3,40.8,40.2,40.6,39.5,42.3,38.4],wt:{dt:["04","05","06","09","10","11","12"],s:[7,9,8,9,9,8,7],r:[7,7,7,10,10,9,7],dr:[3,3,3,0,0,2,2]}},{n:"LEANDRO MACIEL",pos:"MEI",id:30,h:4,e:3,rg:8,rp:8,d:0,sq:9,rpa:7.7,da:.5,sa:8.6,nw:57,pse:4,sra:399,w:91.3,alt:175,bf:13.5,mm:41.6,imc:25.8,ck:349,nc:75,ai:1.08,cmj:43.8,ckm:510,ct:[41.7,47.4,40.5,46.2,47.8,44.3,50.4,43.8],wt:{dt:["05","06","07","09","10","11","12"],s:[8,7,9,8,8,8,9],r:[8,7,8,8,7,7,8],dr:[0,1,0,0,0,1,0]}},{n:"MARANHAO",pos:"EXT",id:26,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:6.9,da:1,sa:6.8,nw:58,pse:4,sra:339,w:75.1,alt:171,bf:11.0,mm:34.9,imc:24.2,ck:274,nc:75,ai:.95,cmj:42.2,ckm:419,ct:[45.2,45.2,44.4,48.8,44.9,43.8,54.1,42.2],wt:{dt:["05","06","07","09","10","11","12"],s:[7,5,6,7,7,7,7],r:[7,6,5,7,7,7,7],dr:[1,1,1,1,1,1,1]}},{n:"MARQUINHO JR.",pos:"ATA",id:23,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.4,da:0,sa:8.1,nw:58,pse:5,sra:360,w:64.9,alt:182,bf:9.2,mm:30.8,imc:22.5,ck:511,nc:75,ai:1.17,cmj:41.3,ckm:511,ct:[44.4,45.7,42.6,46.7,43.1,42.5,47.6,41.3]},{n:"MATHEUS SALES",pos:"MEI",id:30,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:7.2,da:.6,sa:6.8,nw:58,pse:7,sra:454,w:80.1,alt:176,bf:11.7,mm:37.0,imc:24.7,ck:558,nc:75,ai:1.06,cmj:44.3,ckm:558,ct:[47.4,47.9,46.1,47.3,44.3,49.1,49.8,44.3],wt:{dt:["05","06","07","09","10","11","12"],s:[6,4,8,7,7,5,7],r:[7,4,5,8,8,7,7],dr:[1,2,1,0,1,2,1]}},{n:"MORELLI",pos:"MEI",id:28,h:5,e:3,rg:6,rp:7,d:0,sq:8,rpa:7,da:.5,sa:7.4,nw:56,pse:3,sra:356,w:82.4,alt:181,bf:12.1,mm:38.0,imc:24.6,ck:298,nc:75,ai:1.07,cmj:43.8,ckm:621,ct:[46,50.6,44.9,44.8,43.8,38.1,46.6,43.8]},{n:"PATRICK BREY",pos:"LE",id:28,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.9,da:2,sa:7.3,nw:33,pse:3,sra:385,w:73.5,alt:176,bf:10.0,mm:34.5,imc:24.0,ck:347,nc:63,ai:1.3,ct:[43.2,42.6,42.3,41.9,41,45.8,42.8,45.1],wt:{dt:["05","06","07","09","10","11","12"],s:[4,7,2,9,8,7,8],r:[4,5,3,9,8,7,8],dr:[3,2,4,0,0,3,1]}},{n:"PEDRINHO",pos:"LD",id:19,h:5,e:3,rg:8,rp:8,d:0,sq:10,rpa:7.3,da:.4,sa:9.9,nw:44,pse:6,sra:343,w:67.5,alt:175,bf:9.5,mm:31.9,imc:22.8,nc:52,ai:1.02,cmj:45.5,ct:[41.6,42.6,38.6,42.9,44.9,40.1,44,45.5]},{n:"PEDRO TORTELLO",pos:"VOL",id:21,h:5,e:3,rg:7,rp:7,d:0,sq:10,rpa:8.4,da:.3,sa:9.2,nw:56,pse:4,sra:381,w:75.1,alt:176,bf:10.6,mm:35.0,imc:23.7,nc:75,ai:1.14,cmj:41,ct:[40.6,47.6,41.3,43.7,39.2,41.6,44,41]},{n:"RAFAEL GAVA",pos:"MEI",id:32,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:6.2,da:1,sa:5.8,nw:55,pse:7,sra:364,w:78.3,alt:178,bf:11.4,mm:36.3,imc:24.4,ck:303,nc:75,ai:1.1,ckm:2969,ct:[36.2,38.9,33.8,33.6,39.2,35.3,36.7,38.7],wt:{dt:["05","06","07","09","10","11","12"],s:[4,4,6,4,5,6,8],r:[5,5,6,4,7,7,7],dr:[1,1,1,0,0,0,0]}},{n:"THALLES",pos:"ATA",id:20,h:5,e:4,rg:10,rp:10,d:2,sq:7,rpa:5.7,da:.5,sa:7.4,dpo:1,nw:60,pse:3,sra:409,w:83.9,alt:178,bf:12.2,mm:38.7,imc:24.8,ck:1865,nc:75,ai:1.19,cmj:43.3,ckm:1865,ct:[46.4,44.1,44,45.1,43,47.4,44.9,43.3],wt:{dt:["04","05","06","07","09","11","12"],s:[7,7,10,6,7,8,7],r:[5,5,7,4,7,10,10],dr:[3,0,0,3,3,3,2]}},{n:"THIAGUINHO",pos:"MEI",id:27,h:3,e:4,rg:7,rp:7,d:0,sq:7,rpa:6.5,da:.2,sa:7.4,nw:17,pse:7,sra:390,w:64.5,alt:176,bf:7.7,mm:30.0,imc:20.8,ck:185,nc:17,ai:1.0,cmj:41.5,ckm:185,ct:[41.5],wt:{dt:["03","04","05","06","07","09","10"],s:[7,6,7,8,5,9,6],r:[7,6,7,7,5,8,6],dr:[0,0,0,0,0,0,0]}},{n:"VICTOR SOUZA",pos:"GOL",id:33,h:4,e:3,rg:7,rp:7,d:0,sq:6,rpa:7.2,da:.5,sa:6.1,nw:57,pse:3,sra:473,w:92.8,alt:187,bf:14.1,mm:42.2,imc:24.9,nc:75,ai:1.04,cmj:46.9,ct:[55.4,56.5,60.9,57.9,58.7,53.2,59.5,46.9]},{n:"WALLACE",pos:"ZAG",id:31,h:4,e:3,rg:7,rp:7,d:0,sq:8,rpa:6.7,da:.8,sa:7.8,nw:47,pse:5,sra:305,w:91.6,alt:192,bf:14.0,mm:41.3,imc:26.5,nc:75,ai:.98,cmj:40.8,ct:[43.6,38.3,40.3,39.4,40.8],wt:{dt:["04","05","06","09","10","11","12"],s:[8,8,8,8,8,8,8],r:[7,8,5,8,7,7,7],dr:[2,2,2,0,2,2,0]}},{n:"YURI",pos:"VOL",id:19,h:4,e:4,rg:8,rp:8,d:0,sq:8,rpa:7.9,da:0,sa:8.1,nw:49,pse:6,sra:320,w:66.4,alt:172,bf:9.0,mm:31.5,imc:23.2,nc:69,ai:1.16,cmj:41.5,ct:[40.8,44.9,43.8,43.2,42.8,42.9,43.5,41.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,8,8,8],r:[9,8,7,8,7,8,8],dr:[0,0,0,0,0,0,0]}},{n:"WESLEY",pos:"EXT",id:25,h:5,e:4,rg:8,rp:7,d:1,sq:8,rpa:7.4,da:.6,sa:7.8,nw:52,pse:5,sra:378,w:76.8,alt:185,bf:10.4,mm:35.8,imc:24.2,ck:245,nc:68,ai:1.08,cmj:43.2,ckm:382,ct:[44.8,45.1,43.5,44.2,42.8,43.9,44.5,43.2],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,7,8,8],r:[8,7,7,8,8,7,7],dr:[0,0,1,0,1,1,0]}},{n:"LUIZAO",pos:"ATA",id:23,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:7.5,da:.4,sa:8.0,nw:55,pse:4,sra:395,w:88.5,alt:183,bf:12.8,mm:40.6,imc:25.0,ck:420,nc:72,ai:1.05,cmj:45.2,ckm:580,ct:[46.8,44.5,47.2,45.8,46.1,44.9,45.6,45.2],wt:{dt:["05","06","07","09","10","11","12"],s:[9,8,8,8,9,8,8],r:[8,7,7,9,8,7,8],dr:[0,1,0,0,0,1,1]}},{n:"ZE HUGO",pos:"EXT",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.6,da:.3,sa:8.2,nw:48,pse:5,sra:342,w:72.1,alt:178,bf:9.6,mm:33.6,imc:23.5,nc:62,ai:1.12,cmj:42.5,ckm:310,ct:[43.8,44.2,41.9,43.5,42.8,43.1,42.6,42.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,8,8,7,8],r:[8,8,7,9,7,8,7],dr:[0,0,0,0,0,0,0]}}];
+const P=[{n:"ADRIANO",pos:"GOL",id:19,h:5,e:4,rg:7,rp:6,d:2,sq:7,rpa:7,da:1.6,sa:7.3,nw:39,pse:3,sra:331,w:82.7,alt:183,bf:12.4,mm:38.2,imc:24.2,nc:60,ai:1.24,cmj:49.6,ct:[54.2,50.3,48.5,51.4,52,52.2,52.6,49.6],wt:{dt:["02","03","07","09","10","11","12"],s:[10,8,7,7,8,7,7],r:[8,6,6,8,8,7,6],dr:[1,1,1,1,2,1,2]}},{n:"BRENNO",pos:"GOL",id:23,h:4,e:4,rg:8,rp:8,d:3,sq:7,rpa:7.3,da:1.3,sa:7.3,nw:50,pse:4,sra:310,w:90.8,alt:191,bf:13.8,mm:41.5,imc:24.9,nc:75,ai:1.17,cmj:44.6,ct:[45,47.8,49.3,48,47.6,49.3,46.2,44.6],wt:{dt:["04","05","06","07","09","10","11"],s:[7,7,7,6,10,8,7],r:[7,7,8,5,8,7,8],dr:[0,0,0,0,0,2,3]}},{n:"CARLOS EDUARDO",pos:"ZAG",id:25,h:5,e:3,rg:8,rp:8,d:2,sq:8,rpa:7.9,da:1,sa:9.2,nw:57,pse:3,sra:391,w:85.9,alt:186,bf:11.9,mm:39.8,imc:24.6,nc:75,ai:1.07,cmj:46.7,ct:[49.1,44,47.1,44.5,48.8,46.5,52.6,46.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,9,8,8,9,10,8],r:[9,5,6,9,8,6,8],dr:[1,1,0,0,0,2,2]}},{n:"DARLAN",pos:"ZAG",id:20,h:4,e:3,rg:9,rp:8,d:0,sq:8,rpa:7.8,da:.7,sa:7.8,nw:17,pse:5,sra:317,w:80.2,alt:186,bf:10.5,mm:37.1,imc:25.3,nc:20,ai:.95,cmj:31.1,ct:[31.1]},{n:"ERICSON",pos:"ZAG",id:26,h:5,e:3,rg:10,rp:9,d:3,sq:9,rpa:6.7,da:1.1,sa:8.8,nw:51,pse:0,sra:431,w:91.6,alt:184,bf:13.2,mm:42.0,imc:25.4,nc:75,ai:.64,cmj:43.1,ct:[44.3,47.4,42.4,47.1,50.9,50.9,55.5,43.1],wt:{dt:["26","27","28","02","03","04","06"],s:[9,9,9,7,9,8,9],r:[6,6,5,8,7,9,9],dr:[1,1,1,1,4,3,3]}},{n:"ERIK",pos:"VOL",id:20,h:5,e:4,rg:7,rp:7,d:0,sq:9,rpa:7.2,da:.2,sa:9.3,nw:22,pse:6,sra:308,w:75.5,alt:176,bf:9.8,mm:35.4,imc:24.4,nc:59,ai:1.97,ct:[54.1,52.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,8,8,10,10,9],r:[7,8,7,10,7,7,7],dr:[0,0,0,0,0,0,0]}},{n:"FELIPE VIEIRA",pos:"LE",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.2,da:.3,sa:8.2,nw:27,pse:7,sra:385,w:77,alt:176,bf:7.7,mm:35.8,imc:24.9,nc:27,ai:1.0,cmj:39.3,ct:[45.0,39.3],wt:{dt:["03","04","05","06","07","09","10"],s:[7,7,8,9,6,5,7],r:[7,7,7,8,6,5,7],dr:[0,0,0,0,0,0,0]}},{n:"GABRIEL INOCENCIO",pos:"LAT",id:31,h:4,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.8,da:.4,sa:7.2,nw:58,pse:3,sra:407,w:78.5,alt:177,bf:10.8,mm:36.5,imc:25.1,nc:75,ai:.97,cmj:48.2,ct:[48.2,52.3,45.3,48.9,53.6,49.3,50.8,48.2],wt:{dt:["04","05","06","09","10","11","12"],s:[8,9,8,8,7,7,8],r:[7,7,7,8,8,8,8],dr:[1,2,7,2,2,2,1]}},{n:"GUI MARIANO",pos:"ZAG",id:26,h:5,e:4,rg:8,rp:8,d:4,sq:8,rpa:7.6,da:.3,sa:8.2,nw:59,pse:7,sra:476,w:89.7,alt:191,bf:12.7,mm:41.0,imc:25.1,nc:75,ai:1.1,cmj:53.1,ct:[52.4,52.2,52,55.1,47.5,53.7,53.5,53.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,9,9,8,8],r:[7,7,5,10,8,6,8],dr:[0,0,0,0,0,0,4]}},{n:"GUILHERME QUEIROZ",pos:"ATA",id:35,h:5,e:3,rg:7,rp:7,d:2,sq:8,rpa:7.3,da:1.5,sa:6.9,nw:56,pse:6,sra:369,w:87.9,alt:180,bf:13.1,mm:40.2,imc:24.9,nc:75,ai:1.14,cmj:46,ct:[43.3,43.3,46.2,47.4,44.7,48.3,48,46],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,7,7,5,8],r:[10,7,6,8,6,7,7],dr:[0,0,1,0,1,1,2]}},{n:"GUSTAVO VILAR",pos:"ZAG",id:25,h:5,e:3,rg:6,rp:6,d:0,sq:7,rpa:6.5,da:.2,sa:7.7,nw:55,pse:5,sra:410,w:86.4,alt:189,bf:12.9,mm:39.5,imc:25.8,nc:75,ai:1.07,cmj:43.5,ct:[43.3,42.9,47.9,42.8,43.1,44,44.8,43.5]},{n:"HEBERT",pos:"ZAG",id:20,h:5,e:3,rg:8,rp:7,d:0,sq:7,rpa:6.7,da:.1,sa:7.7,nw:46,pse:5,sra:366,w:88.1,alt:187,bf:12.5,mm:40.8,imc:25.5,nc:59,ai:1.04,cmj:46.9,ct:[50.1,49.8,50,52.5,48.6,51.2,53.3,46.9]},{n:"HENRIQUE TELES",pos:"LAT",id:19,h:5,e:4,rg:8,rp:8,d:2,sq:8,rpa:7,da:1.4,sa:7.7,nw:54,pse:6,sra:415,w:80.1,alt:179,bf:11.3,mm:37.2,imc:24.7,nc:69,ai:1.14,cmj:45.5,ct:[53.1,55.5,49.8,54.9,51.6,50.8,55.1,45.5],wt:{dt:["04","05","07","09","10","11","12"],s:[8,9,6,9,8,9,8],r:[6,8,6,10,8,9,8],dr:[2,1,7,5,3,3,2]}},{n:"HYGOR",pos:"ATA",id:33,h:5,e:4,rg:10,rp:8,d:2,sq:7,rpa:8.8,da:1.6,sa:9.2,nw:57,pse:4,sra:387,w:83.3,alt:183,bf:11.6,mm:38.6,imc:25.2,nc:75,ai:1.12,cmj:42.1,ct:[40.8,44.5,39.9,44.2,43.5,42.4,41.9,42.1],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,10,10,10,10,7],r:[10,6,8,10,8,8,8],dr:[0,2,0,0,0,3,2]}},{n:"JEFFERSON NEM",pos:"ATA",id:29,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:7.1,da:.8,sa:7.9,nw:57,pse:7,sra:423,w:72.5,alt:166,bf:10.1,mm:33.8,imc:23.9,nc:75,ai:.97,cmj:47.5,ct:[44,48.2,44.5,50.4,50,44.1,47.2,47.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,7],r:[7,6,7,8,8,7,7],dr:[0,0,0,0,0,0,2]}},{n:"JONATHAN",pos:"LD",id:33,h:5,e:4,rg:5,rp:5,d:4,sq:7,rpa:5.8,da:2.9,sa:5.9,nw:51,pse:4,sra:333,w:73.7,alt:177,bf:10.9,mm:34.3,imc:24.1,nc:75,ai:1.14,cmj:42.8,ct:[46.4,46.8,46.9,37.3,45,44.7,45,42.8],wt:{dt:["04","05","07","09","10","11","12"],s:[5,7,6,6,6,6,7],r:[6,7,4,7,5,6,5],dr:[3,3,3,2,3,3,4]}},{n:"JORDAN",pos:"GOL",id:28,h:5,e:3,rg:7,rp:7,d:0,sq:9,rpa:8,da:.7,sa:8,nw:60,pse:4,sra:418,w:92.2,alt:189,bf:12.0,mm:42.8,imc:25.0,nc:75,ai:1.1,cmj:54.1,ct:[52.2,53.4,53.4,53.2,54.5,56,55.7,54.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,9],r:[8,8,6,8,8,7,7],dr:[1,0,0,0,0,0,0]}},{n:"KELVIN",pos:"EXT",id:28,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:6.9,da:3,sa:7.4,nw:49,pse:3,sra:288,w:74.6,alt:170,bf:10.3,mm:34.8,imc:23.8,nc:67,ai:.86,cmj:38.4,ct:[40.4,38.3,40.8,40.2,40.6,39.5,42.3,38.4],wt:{dt:["04","05","06","09","10","11","12"],s:[7,9,8,9,9,8,7],r:[7,7,7,10,10,9,7],dr:[3,3,3,0,0,2,2]}},{n:"LEANDRO MACIEL",pos:"MEI",id:30,h:4,e:3,rg:8,rp:8,d:0,sq:9,rpa:7.7,da:.5,sa:8.6,nw:57,pse:4,sra:399,w:91.3,alt:175,bf:13.5,mm:41.6,imc:25.8,nc:75,ai:1.08,cmj:43.8,ct:[41.7,47.4,40.5,46.2,47.8,44.3,50.4,43.8],wt:{dt:["05","06","07","09","10","11","12"],s:[8,7,9,8,8,8,9],r:[8,7,8,8,7,7,8],dr:[0,1,0,0,0,1,0]}},{n:"MARANHAO",pos:"EXT",id:26,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:6.9,da:1,sa:6.8,nw:58,pse:4,sra:339,w:75.1,alt:171,bf:11.0,mm:34.9,imc:24.2,nc:75,ai:.95,cmj:42.2,ct:[45.2,45.2,44.4,48.8,44.9,43.8,54.1,42.2],wt:{dt:["05","06","07","09","10","11","12"],s:[7,5,6,7,7,7,7],r:[7,6,5,7,7,7,7],dr:[1,1,1,1,1,1,1]}},{n:"MARQUINHO JR.",pos:"ATA",id:23,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.4,da:0,sa:8.1,nw:58,pse:5,sra:360,w:64.9,alt:182,bf:9.2,mm:30.8,imc:22.5,nc:75,ai:1.17,cmj:41.3,ct:[44.4,45.7,42.6,46.7,43.1,42.5,47.6,41.3]},{n:"MATHEUS SALES",pos:"MEI",id:30,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:7.2,da:.6,sa:6.8,nw:58,pse:7,sra:454,w:80.1,alt:176,bf:11.7,mm:37.0,imc:24.7,nc:75,ai:1.06,cmj:44.3,ct:[47.4,47.9,46.1,47.3,44.3,49.1,49.8,44.3],wt:{dt:["05","06","07","09","10","11","12"],s:[6,4,8,7,7,5,7],r:[7,4,5,8,8,7,7],dr:[1,2,1,0,1,2,1]}},{n:"MORELLI",pos:"MEI",id:28,h:5,e:3,rg:6,rp:7,d:0,sq:8,rpa:7,da:.5,sa:7.4,nw:56,pse:3,sra:356,w:82.4,alt:181,bf:12.1,mm:38.0,imc:24.6,nc:75,ai:1.07,cmj:43.8,ct:[46,50.6,44.9,44.8,43.8,38.1,46.6,43.8]},{n:"PATRICK BREY",pos:"LE",id:28,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.9,da:2,sa:7.3,nw:33,pse:3,sra:385,w:73.5,alt:176,bf:10.0,mm:34.5,imc:24.0,nc:63,ai:1.3,ct:[43.2,42.6,42.3,41.9,41,45.8,42.8,45.1],wt:{dt:["05","06","07","09","10","11","12"],s:[4,7,2,9,8,7,8],r:[4,5,3,9,8,7,8],dr:[3,2,4,0,0,3,1]}},{n:"PEDRINHO",pos:"LD",id:19,h:5,e:3,rg:8,rp:8,d:0,sq:10,rpa:7.3,da:.4,sa:9.9,nw:44,pse:6,sra:343,w:67.5,alt:175,bf:9.5,mm:31.9,imc:22.8,nc:52,ai:1.02,cmj:45.5,ct:[41.6,42.6,38.6,42.9,44.9,40.1,44,45.5]},{n:"PEDRO TORTELLO",pos:"VOL",id:21,h:5,e:3,rg:7,rp:7,d:0,sq:10,rpa:8.4,da:.3,sa:9.2,nw:56,pse:4,sra:381,w:75.1,alt:176,bf:10.6,mm:35.0,imc:23.7,nc:75,ai:1.14,cmj:41,ct:[40.6,47.6,41.3,43.7,39.2,41.6,44,41]},{n:"RAFAEL GAVA",pos:"MEI",id:32,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:6.2,da:1,sa:5.8,nw:55,pse:7,sra:364,w:78.3,alt:178,bf:11.4,mm:36.3,imc:24.4,nc:75,ai:1.1,ct:[36.2,38.9,33.8,33.6,39.2,35.3,36.7,38.7],wt:{dt:["05","06","07","09","10","11","12"],s:[4,4,6,4,5,6,8],r:[5,5,6,4,7,7,7],dr:[1,1,1,0,0,0,0]}},{n:"THALLES",pos:"ATA",id:20,h:5,e:4,rg:10,rp:10,d:2,sq:7,rpa:5.7,da:.5,sa:7.4,dpo:1,nw:60,pse:3,sra:409,w:83.9,alt:178,bf:12.2,mm:38.7,imc:24.8,nc:75,ai:1.19,cmj:43.3,ct:[46.4,44.1,44,45.1,43,47.4,44.9,43.3],wt:{dt:["04","05","06","07","09","11","12"],s:[7,7,10,6,7,8,7],r:[5,5,7,4,7,10,10],dr:[3,0,0,3,3,3,2]}},{n:"THIAGUINHO",pos:"MEI",id:27,h:3,e:4,rg:7,rp:7,d:0,sq:7,rpa:6.5,da:.2,sa:7.4,nw:17,pse:7,sra:390,w:64.5,alt:176,bf:7.7,mm:30.0,imc:20.8,nc:17,ai:1.0,cmj:41.5,ct:[41.5],wt:{dt:["03","04","05","06","07","09","10"],s:[7,6,7,8,5,9,6],r:[7,6,7,7,5,8,6],dr:[0,0,0,0,0,0,0]}},{n:"VICTOR SOUZA",pos:"GOL",id:33,h:4,e:3,rg:7,rp:7,d:0,sq:6,rpa:7.2,da:.5,sa:6.1,nw:57,pse:3,sra:473,w:92.8,alt:187,bf:14.1,mm:42.2,imc:24.9,nc:75,ai:1.04,cmj:46.9,ct:[55.4,56.5,60.9,57.9,58.7,53.2,59.5,46.9]},{n:"WALLACE",pos:"ZAG",id:31,h:4,e:3,rg:7,rp:7,d:0,sq:8,rpa:6.7,da:.8,sa:7.8,nw:47,pse:5,sra:305,w:91.6,alt:192,bf:14.0,mm:41.3,imc:26.5,nc:75,ai:.98,cmj:40.8,ct:[43.6,38.3,40.3,39.4,40.8],wt:{dt:["04","05","06","09","10","11","12"],s:[8,8,8,8,8,8,8],r:[7,8,5,8,7,7,7],dr:[2,2,2,0,2,2,0]}},{n:"YURI",pos:"VOL",id:19,h:4,e:4,rg:8,rp:8,d:0,sq:8,rpa:7.9,da:0,sa:8.1,nw:49,pse:6,sra:320,w:66.4,alt:172,bf:9.0,mm:31.5,imc:23.2,nc:69,ai:1.16,cmj:41.5,ct:[40.8,44.9,43.8,43.2,42.8,42.9,43.5,41.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,8,8,8],r:[9,8,7,8,7,8,8],dr:[0,0,0,0,0,0,0]}},{n:"WESLEY",pos:"EXT",id:25,h:5,e:4,rg:8,rp:7,d:1,sq:8,rpa:7.4,da:.6,sa:7.8,nw:52,pse:5,sra:378,w:76.8,alt:185,bf:10.4,mm:35.8,imc:24.2,nc:68,ai:1.08,cmj:43.2,ct:[44.8,45.1,43.5,44.2,42.8,43.9,44.5,43.2],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,7,8,8],r:[8,7,7,8,8,7,7],dr:[0,0,1,0,1,1,0]}},{n:"LUIZAO",pos:"ATA",id:23,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:7.5,da:.4,sa:8.0,nw:55,pse:4,sra:395,w:88.5,alt:183,bf:12.8,mm:40.6,imc:25.0,nc:72,ai:1.05,cmj:45.2,ct:[46.8,44.5,47.2,45.8,46.1,44.9,45.6,45.2],wt:{dt:["05","06","07","09","10","11","12"],s:[9,8,8,8,9,8,8],r:[8,7,7,9,8,7,8],dr:[0,1,0,0,0,1,1]}},{n:"ZE HUGO",pos:"EXT",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.6,da:.3,sa:8.2,nw:48,pse:5,sra:342,w:72.1,alt:178,bf:9.6,mm:33.6,imc:23.5,nc:62,ai:1.12,cmj:42.5,ct:[43.8,44.2,41.9,43.5,42.8,43.1,42.6,42.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,8,8,7,8],r:[8,8,7,9,7,8,7],dr:[0,0,0,0,0,0,0]}}];
 
 // Tooltip customizado para Recharts
 const TT=({active,payload,label,theme})=>{
@@ -117,7 +115,6 @@ const ML={
     {f:"Déficit Biológico",v:0.0823,cat:"wellness",lasso_coef:0.65,dir:"+",desc:"Score composto: sono + dor + recuperação invertidos. Interage com carga."},
     {f:"H:Q Ratio (funcional)",v:0.0789,cat:"neuromusc",lasso_coef:0.61,dir:"-",desc:"Razão isquiotibiais/quadríceps. < 0.55 = risco. Protetor quando > 0.60."},
     {f:"sRPE Acum. 7d",v:0.0756,cat:"carga",lasso_coef:0.58,dir:"+",desc:"Carga interna acumulada. > 3000 UA em interação com CMJ < -8%."},
-    {f:"CK / Basal",v:0.0698,cat:"bioquim",lasso_coef:0.54,dir:"+",desc:"Dano muscular relativo. CK crônico (CKm) > 3x = acúmulo sem recuperação."},
     {f:"Delta CMJ (%)",v:0.0654,cat:"neuromusc",lasso_coef:0.52,dir:"-",desc:"Fadiga neuromuscular objetiva. < -8% = flag, < -10% = crítico."},
     {f:"Training Strain",v:0.0612,cat:"carga",lasso_coef:0.48,dir:"+",desc:"sRPE × Monotonia. Captura sobrecarga repetitiva."},
     {f:"COP Sway",v:0.0567,cat:"neuromusc",lasso_coef:0.44,dir:"+",desc:"Controle postural estático. > 18mm = instabilidade NM (Oliver et al.)."},
@@ -129,14 +126,13 @@ const ML={
     {f:"Fatigue Debt",v:0.0812,cat:"temporal",lasso_coef:0.63,dir:"+",desc:"Fadiga acumulada com decaimento exponencial (λ=0.1). Cargas recentes pesam mais que antigas. Melhor que sRPE semanal isolado."},
     {f:"Tendência CMJ 3d",v:0.0534,cat:"temporal",lasso_coef:0.42,dir:"-",desc:"Slope linear do CMJ nos últimos 3 dias. Queda progressiva = fadiga NM acumulativa."},
     {f:"Tendência CMJ 5d",v:0.0478,cat:"temporal",lasso_coef:0.38,dir:"-",desc:"Slope linear do CMJ nos últimos 5 dias. Janela maior para tendências lentas."},
-    {f:"Crescimento CK 48h",v:0.0445,cat:"temporal",lasso_coef:0.35,dir:"+",desc:"Variação percentual de CK em 48h. Pico > 50% indica dano muscular agudo."},
     {f:"Tendência Sono 7d",v:0.0398,cat:"temporal",lasso_coef:0.32,dir:"-",desc:"Slope da qualidade do sono em 7 dias. Declínio progressivo precede lesão."},
     {f:"Tendência sRPE 5d",v:0.0367,cat:"temporal",lasso_coef:0.30,dir:"+",desc:"Slope de carga interna em 5 dias. Aumento progressivo sem recuperação."},
     {f:"Eficiência Neuromuscular",v:0.0623,cat:"neuromusc",lasso_coef:0.49,dir:"-",desc:"NME = CMJ / sRPE 7d. Queda indica potência diminuindo com carga alta — típico pré-lesão muscular."}
   ],
   clusters:[
     {id:1,name:"ACWR Alto + Assimetria Bilateral",rule:"ACWR > 1.4 + SLCMJ ASI > 12%",ep:47,rate:17.0,action:"Reduzir volume HSR 30%. Protocolo de simetria pré-treino.",c:"#DC2626",type:"aguda"},
-    {id:2,name:"Estresse Biológico Composto",rule:"CK/Basal > 2.5 + Sono < 6 + Dor > 3",ep:38,rate:21.1,action:"Sessão regenerativa. Crioterapia. Remonitorar CK 48h.",c:"#DC2626",type:"sobrecarga"},
+    {id:2,name:"Estresse Biológico Composto",rule:"Sono < 6 + Dor > 3 + Rec < 5",ep:38,rate:21.1,action:"Sessão regenerativa. Crioterapia. Monitorar bem-estar.",c:"#DC2626",type:"sobrecarga"},
     {id:3,name:"Sobrecarga + Fadiga Neuromuscular",rule:"sRPE 7d > 3000 + CMJ Δ < -8% + H:Q < 0.55",ep:52,rate:13.5,action:"MED (Minimum Effective Dose). Apenas técnico-tático.",c:"#EA580C",type:"aguda"},
     {id:4,name:"Monotonia + Histórico Recente",rule:"Monotonia > 2.0 + Lesão < 90d + COP > 16mm",ep:29,rate:24.1,action:"Variar estímulos. Reduzir frequência. Fisio preventiva.",c:"#DC2626",type:"sobrecarga"},
     {id:5,name:"Déficit Biológico + Carga HSR",rule:"Déf. Bio > 1.5 + HSR ACWR > 1.3 + Valgo > 7°",ep:33,rate:15.2,action:"Recuperação ativa. Suplementação. Sono prioritário.",c:"#EA580C",type:"aguda"}
@@ -148,11 +144,11 @@ const ML={
   alerts:[
     {n:"ERIK",pos:"VOL",prob:0.72,zone:"VERMELHO",
       dose:"EXCLUIR da sessão. Apenas fisioterapia preventiva.",
-      acwr:1.97,ck:2.1,cmj:-5.4,sono:6.2,bio:1.8,
+      acwr:1.97,cmj:-5.4,sono:6.2,bio:1.8,
       classif:"Alto",
       perfil_risco:"aguda",
       fatigue_debt:2840,nme:0.0142,cmj_trend_3d:-1.82,srpe_trend_5d:48.3,sleep_trend_7d:-0.31,
-      trends:{fatigue_debt:[1620,1780,1950,2110,2340,2580,2840],ck:[148,165,198,224,268,290,315],srpe:[280,310,350,420,480,520,560],cmj:[53.2,52.8,52.1,51.4,50.8,49.6,48.2]},
+      trends:{fatigue_debt:[1620,1780,1950,2110,2340,2580,2840][148,165,198,224,268,290,315],srpe:[280,310,350,420,480,520,560],cmj:[53.2,52.8,52.1,51.4,50.8,49.6,48.2]},
       diag_diff:{aguda:78,sobrecarga:22,base:"ACWR extremo (1.97) + assimetria SLCMJ 14.8% + H:Q 0.52 → perfil de lesão aguda muscular em sprint/aceleração (Rommers et al., 2020)"},
       shap_pos:[
         {f:"ACWR Combinado",sv:0.182,v:"1.97",note:"2.3x acima do limiar (0.85). Maior contribuição individual."},
@@ -168,15 +164,14 @@ const ML={
       protocolo:{mecanica:"Protocolo Nordic Hamstring + Single-Leg RDL bilateral",carga_reducao:100,carga_nota:"Exclusão total. Retorno gradual D+2 se ACWR < 1.40.",compensatorio:"Crioterapia + eletroestimulação + mobilidade ativa de quadril"}},
     {n:"JONATHAN",pos:"LD",prob:0.61,zone:"VERMELHO",
       dose:"EXCLUIR da sessão. Fisioterapia + regenerativo.",
-      acwr:1.14,ck:3.8,cmj:-4.9,sono:5.9,bio:2.2,
+      acwr:1.14,cmj:-4.9,sono:5.9,bio:2.2,
       classif:"Alto",
       perfil_risco:"sobrecarga",
       fatigue_debt:3120,nme:0.0108,cmj_trend_3d:-0.94,srpe_trend_5d:22.1,sleep_trend_7d:-0.42,
-      trends:{fatigue_debt:[2210,2380,2540,2690,2850,2980,3120],ck:[320,345,380,410,445,470,510],srpe:[310,330,340,355,370,380,395],cmj:[44.8,44.2,43.6,43.1,42.5,41.8,42.8]},
-      diag_diff:{aguda:45,sobrecarga:55,base:"Lesão recente (dez/25, posterior coxa) + CK 3.8x + sono 5.9 + dor crônica (2.9 avg) → perfil misto com dominância de sobrecarga residual"},
+      trends:{fatigue_debt:[2210,2380,2540,2690,2850,2980,3120][320,345,380,410,445,470,510],srpe:[310,330,340,355,370,380,395],cmj:[44.8,44.2,43.6,43.1,42.5,41.8,42.8]},
+      diag_diff:{aguda:45,sobrecarga:55,base:"Lesão recente (dez/25, posterior coxa) + sono 5.9 + dor crônica (2.9 avg) → perfil misto com dominância de sobrecarga residual"},
       shap_pos:[
         {f:"Lesão Prévia (< 90d)",sv:0.198,v:"Posterior Coxa (dez/25)",note:"MAIOR PREDITOR. 21 dias fora, < 90 dias. RR = 3.4x (Kolodziej)."},
-        {f:"CK / Basal",sv:0.086,v:"3.8x",note:"Dano muscular elevado. CKm 1372 indica acúmulo crônico."},
         {f:"Déficit Biológico",sv:0.074,v:"2.2",note:"Score composto elevado: sono 5.9 + dor 2.9 + rec pernas 5."},
         {f:"Assimetria SLCMJ",sv:0.062,v:"13.1%",note:"Zona de atenção. Pode refletir compensação pós-lesão."},
         {f:"COP Sway",sv:0.048,v:"22.4mm",note:"Pior do elenco. Instabilidade NM marcante."}
@@ -187,15 +182,14 @@ const ML={
       ],
       protocolo:{mecanica:"Copenhagen adutor + Nordic Hamstring + equilíbrio unipodal (COP)",carga_reducao:100,carga_nota:"Exclusão. Retorno gradual com protocolo RTP (Return to Play) individualizado.",compensatorio:"Readequação NM: propriocepção + ativação glútea + sprint progressivo D+3"}},
     {n:"THALLES",pos:"ATA",prob:0.54,zone:"VERMELHO",
-      dose:"EXCLUIR da sessão. Monitorar CK 48h.",
-      acwr:1.19,ck:6.2,cmj:-3.8,sono:7.0,bio:1.9,
+      dose:"EXCLUIR da sessão. Monitorar bem-estar.",
+      acwr:1.19,cmj:-3.8,sono:7.0,bio:1.9,
       classif:"Alto",
       perfil_risco:"sobrecarga",
       fatigue_debt:3450,nme:0.0095,cmj_trend_3d:-0.62,srpe_trend_5d:35.7,sleep_trend_7d:0.08,
-      trends:{fatigue_debt:[2480,2650,2810,2980,3140,3290,3450],ck:[680,720,810,890,960,1120,1150],srpe:[340,360,380,395,410,425,440],cmj:[44.9,44.5,44.1,43.8,43.5,43.1,43.3]},
-      diag_diff:{aguda:32,sobrecarga:68,base:"CK 6.2x basal (maior do elenco) + CKm 1865 + lesão recente adutor (jan/26) → perfil dominante de sobrecarga com acúmulo bioquímico sem recuperação"},
+      trends:{fatigue_debt:[2480,2650,2810,2980,3140,3290,3450][680,720,810,890,960,1120,1150],srpe:[340,360,380,395,410,425,440],cmj:[44.9,44.5,44.1,43.8,43.5,43.1,43.3]},
+      diag_diff:{aguda:32,sobrecarga:68,base:""},
       shap_pos:[
-        {f:"CK / Basal",sv:0.164,v:"6.2x",note:"MAIOR CONTRIBUIÇÃO. 6.2x basal é extremo. CKm 1865 = dano crônico."},
         {f:"Lesão Prévia (< 90d)",sv:0.121,v:"Adutor E (jan/26)",note:"60 dias. Tecido em remodelação. Vulnerável."},
         {f:"Déficit Biológico",sv:0.068,v:"1.9",note:"RecPernas 10/10 mas dor 2 + histórico compensa."},
         {f:"Training Strain",sv:0.042,v:"4190",note:"Carga × Monotonia elevada para perfil de recuperação."}
@@ -205,17 +199,16 @@ const ML={
         {f:"ACWR Combinado",sv:-0.034,v:"1.19",note:"Carga controlada. Protege contra pico agudo."},
         {f:"Assimetria SLCMJ",sv:-0.028,v:"5.4%",note:"Simetria bilateral boa. Protetor NM."}
       ],
-      protocolo:{mecanica:"Copenhagen adutor progressivo + isometria adutor longo",carga_reducao:100,carga_nota:"Exclusão até CK < 3x basal (monitorar 48h/48h).",compensatorio:"Hidratação agressiva + anti-inflamatórios naturais + crioterapia sistêmica"}},
+      protocolo:{mecanica:"Copenhagen adutor progressivo + isometria adutor longo",carga_reducao:100,carga_nota:"Exclusão. Monitorar bem-estar e retorno gradual.",compensatorio:"Hidratação agressiva + anti-inflamatórios naturais + crioterapia sistêmica"}},
     {n:"JEFFERSON NEM",pos:"ATA",prob:0.47,zone:"LARANJA",
       dose:"MED: 50% volume. Sem HSR.",
-      acwr:0.97,ck:4.1,cmj:-1.0,sono:7.2,bio:1.5,
+      acwr:0.97,cmj:-1.0,sono:7.2,bio:1.5,
       classif:"Moderado",
       perfil_risco:"sobrecarga",
       fatigue_debt:2680,nme:0.0118,cmj_trend_3d:-0.35,srpe_trend_5d:18.4,sleep_trend_7d:-0.12,
-      trends:{fatigue_debt:[2050,2180,2310,2420,2510,2590,2680],ck:[380,395,420,460,510,545,580],srpe:[350,365,380,390,400,415,430],cmj:[48.0,47.8,47.5,47.3,47.1,46.8,47.5]},
-      diag_diff:{aguda:38,sobrecarga:62,base:"CK 4.1x + CKm 3539 (maior crônico do elenco) + histórico tornozelo → sobrecarga crônica com compensação biomecânica"},
+      trends:{fatigue_debt:[2050,2180,2310,2420,2510,2590,2680][380,395,420,460,510,545,580],srpe:[350,365,380,390,400,415,430],cmj:[48.0,47.8,47.5,47.3,47.1,46.8,47.5]},
+      diag_diff:{aguda:38,sobrecarga:62,base:"+ ) + histórico tornozelo → sobrecarga crônica com compensação biomecânica"},
       shap_pos:[
-        {f:"CK / Basal",sv:0.098,v:"4.1x",note:"Elevado. CKm 3539 = pior dano crônico acumulado do elenco."},
         {f:"Déficit Biológico",sv:0.054,v:"1.5",note:"Limiar de atenção."},
         {f:"sRPE Acum. 7d",sv:0.042,v:"3780 UA",note:"Acima do limiar 3000. Volume elevado."}
       ],
@@ -224,14 +217,14 @@ const ML={
         {f:"Qual. Sono",sv:-0.034,v:"7.2",note:"Adequado."},
         {f:"Assimetria SLCMJ",sv:-0.026,v:"5.8%",note:"Simétrico."}
       ],
-      protocolo:{mecanica:"Fortalecimento excêntrico de cadeia posterior",carga_reducao:50,carga_nota:"50% volume. Zero HSR até CK < 2x basal.",compensatorio:"Suplementação proteica pós-treino + sono > 7.5h + banho contraste"}},
+      protocolo:{mecanica:"Fortalecimento excêntrico de cadeia posterior",carga_reducao:50,carga_nota:"50% volume. Zero HSR até bem-estar normalizar.",compensatorio:"Suplementação proteica pós-treino + sono > 7.5h + banho contraste"}},
     {n:"PATRICK BREY",pos:"LE",prob:0.43,zone:"LARANJA",
       dose:"MED: 50% volume. Sem HSR.",
-      acwr:1.30,ck:2.3,cmj:-2.5,sono:6.5,bio:1.3,
+      acwr:1.30,cmj:-2.5,sono:6.5,bio:1.3,
       classif:"Moderado",
       perfil_risco:"aguda",
       fatigue_debt:2150,nme:0.0125,cmj_trend_3d:-0.78,srpe_trend_5d:31.2,sleep_trend_7d:-0.18,
-      trends:{fatigue_debt:[1580,1690,1790,1880,1960,2060,2150],ck:[180,195,210,225,240,260,280],srpe:[310,325,340,355,370,385,400],cmj:[43.8,43.2,42.8,42.3,41.8,42.0,42.6]},
+      trends:{fatigue_debt:[1580,1690,1790,1880,1960,2060,2150][180,195,210,225,240,260,280],srpe:[310,325,340,355,370,385,400],cmj:[43.8,43.2,42.8,42.3,41.8,42.0,42.6]},
       diag_diff:{aguda:61,sobrecarga:39,base:"Lesão recente reto femoral (fev/26) + ACWR 1.30 ascendente + SLCMJ ASI 11.9% + H:Q 0.51 → perfil agudo em construção"},
       shap_pos:[
         {f:"Lesão Prévia (< 90d)",sv:0.142,v:"Reto Femoral E (fev/26)",note:"36 dias. Tecido vulnerável."},
@@ -240,17 +233,16 @@ const ML={
         {f:"H:Q Ratio",sv:0.048,v:"0.51",note:"Abaixo de 0.55. Isquiotibiais vulneráveis."}
       ],
       shap_neg:[
-        {f:"CK / Basal",sv:-0.038,v:"2.3x",note:"Controlado. Sem acúmulo bioquímico."},
         {f:"Monotonia",sv:-0.024,v:"1.9",note:"Limítrofe mas não crítico."}
       ],
       protocolo:{mecanica:"Protocolo RTP progressivo: isometria → concêntrico → excêntrico → pliometria",carga_reducao:50,carga_nota:"50% volume. HSR proibido por mais 14 dias pós-retorno.",compensatorio:"Ativação glútea + hip flexor mobility + sprint progressivo controlado"}},
     {n:"KELVIN",pos:"EXT",prob:0.38,zone:"LARANJA",
       dose:"MED: 50% volume. Sem HSR.",
-      acwr:0.86,ck:1.4,cmj:-4.0,sono:7.4,bio:0.8,
+      acwr:0.86,cmj:-4.0,sono:7.4,bio:0.8,
       classif:"Moderado",
       perfil_risco:"neuromuscular",
       fatigue_debt:1890,nme:0.0138,cmj_trend_3d:-1.12,srpe_trend_5d:8.6,sleep_trend_7d:0.04,
-      trends:{fatigue_debt:[1420,1510,1580,1640,1710,1800,1890],ck:[145,150,158,165,172,180,190],srpe:[240,248,255,262,270,278,290],cmj:[42.3,41.8,41.2,40.8,40.3,39.8,38.4]},
+      trends:{fatigue_debt:[1420,1510,1580,1640,1710,1800,1890][145,150,158,165,172,180,190],srpe:[240,248,255,262,270,278,290],cmj:[42.3,41.8,41.2,40.8,40.3,39.8,38.4]},
       diag_diff:{aguda:28,sobrecarga:72,base:"Monotonia 2.2 (maior do elenco) + histórico tendinopatia patelar + dor avg 3.0 → perfil de sobrecarga tendínea por repetição"},
       shap_pos:[
         {f:"Monotonia",sv:0.092,v:"2.2",note:"Maior do elenco. Tendão reage a carga monotônica (caso retrospectivo)."},
@@ -259,18 +251,17 @@ const ML={
       ],
       shap_neg:[
         {f:"ACWR Combinado",sv:-0.052,v:"0.86",note:"Subcarga relativa. Protege."},
-        {f:"CK / Basal",sv:-0.038,v:"1.4x",note:"Normal. Sem dano bioquímico."},
         {f:"Qual. Sono",sv:-0.034,v:"7.4",note:"Bom."}
       ],
       protocolo:{mecanica:"Isometric Holds patelar (45° e 70°) + progressão excêntrica slow",carga_reducao:50,carga_nota:"Variar estímulos (quebrar monotonia). Reduzir impacto cíclico.",compensatorio:"Propriocepção + fortalecimento VMO + stretching cadeia anterior"}},
     {n:"RAFAEL GAVA",pos:"MEI",prob:0.35,zone:"LARANJA",
       dose:"MED: 50% volume. Sem HSR.",
-      acwr:1.10,ck:1.8,cmj:-7.2,sono:5.8,bio:1.4,
+      acwr:1.10,cmj:-7.2,sono:5.8,bio:1.4,
       classif:"Moderado",
       perfil_risco:"neuromuscular",
       fatigue_debt:2320,nme:0.0098,cmj_trend_3d:-1.45,srpe_trend_5d:14.8,sleep_trend_7d:-0.38,
-      trends:{fatigue_debt:[1780,1890,1980,2060,2140,2230,2320],ck:[210,225,240,258,270,285,300],srpe:[300,310,320,335,350,360,375],cmj:[39.2,38.8,38.2,37.6,37.1,36.4,38.7]},
-      diag_diff:{aguda:54,sobrecarga:46,base:"2 lesões prévias no mesmo segmento (panturrilha D) + CMJ -7.2% + CKm 2969 + sono 5.8 → recidiva muscular por fadiga NM crônica"},
+      trends:{fatigue_debt:[1780,1890,1980,2060,2140,2230,2320][210,225,240,258,270,285,300],srpe:[300,310,320,335,350,360,375],cmj:[39.2,38.8,38.2,37.6,37.1,36.4,38.7]},
+      diag_diff:{aguda:54,sobrecarga:46,base:"2 lesões prévias no mesmo segmento (panturrilha D) + CMJ -7.2% + + sono 5.8 → recidiva muscular por fadiga NM crônica"},
       shap_pos:[
         {f:"Lesão Prévia (recidiva)",sv:0.134,v:"2 lesões panturrilha D",note:"Recidiva ipsilateral. Máximo peso (Kolodziej). Tecido comprometido."},
         {f:"Delta CMJ",sv:0.072,v:"-7.2%",note:"Próximo do flag -8%. Fadiga NM em progressão."},
@@ -279,17 +270,16 @@ const ML={
       ],
       shap_neg:[
         {f:"ACWR Combinado",sv:-0.038,v:"1.10",note:"Zona segura."},
-        {f:"CK / Basal",sv:-0.028,v:"1.8x",note:"Controlado (mas CKm 2969 preocupa)."},
         {f:"Monotonia",sv:-0.022,v:"1.3",note:"Boa variabilidade."}
       ],
       protocolo:{mecanica:"Excêntrico gastrocnêmio bilateral + soleus loading",carga_reducao:50,carga_nota:"50% volume. Foco em regeneração do sono (< 6h por 3+ dias = flag).",compensatorio:"Melatonina (se indicado) + higiene do sono + fascioterapia"}},
     {n:"HENRIQUE TELES",pos:"LAT",prob:0.28,zone:"AMARELO",
       dose:"Reduzir HSR 30%. Monitorar PSE.",
-      acwr:1.14,ck:2.4,cmj:-12.5,sono:7.7,bio:0.9,
+      acwr:1.14,cmj:-12.5,sono:7.7,bio:0.9,
       classif:"Moderado",
       perfil_risco:"biomecanico",
       fatigue_debt:2010,nme:0.0112,cmj_trend_3d:-2.15,srpe_trend_5d:12.4,sleep_trend_7d:0.14,
-      trends:{fatigue_debt:[1520,1610,1700,1780,1850,1930,2010],ck:[190,200,215,228,240,255,268],srpe:[340,350,360,375,390,400,415],cmj:[55.1,53.8,52.4,50.8,49.1,47.2,45.5]},
+      trends:{fatigue_debt:[1520,1610,1700,1780,1850,1930,2010][190,200,215,228,240,255,268],srpe:[340,350,360,375,390,400,415],cmj:[55.1,53.8,52.4,50.8,49.1,47.2,45.5]},
       diag_diff:{aguda:67,sobrecarga:33,base:"Lesão recente posterior coxa E (fev/26) + SLCMJ ASI 16.1% (pior do elenco) + CMJ -12.5% + H:Q 0.49 → alto risco agudo mesmo com prob moderada"},
       shap_pos:[
         {f:"Assimetria SLCMJ",sv:0.148,v:"16.1%",note:"PIOR DO ELENCO. Acima de 15% = flag crítico. Risco posterior coxa."},
@@ -301,21 +291,19 @@ const ML={
       shap_neg:[
         {f:"Qual. Sono",sv:-0.058,v:"7.7",note:"Excelente. Fator protetivo forte."},
         {f:"ACWR Combinado",sv:-0.044,v:"1.14",note:"Controlado. Carga não excessiva."},
-        {f:"CK / Basal",sv:-0.032,v:"2.4x",note:"Controlado."},
         {f:"Monotonia",sv:-0.024,v:"1.6",note:"Adequada."}
       ],
       protocolo:{mecanica:"Protocolo Nordic + RDL unilateral + hip hinge pattern",carga_reducao:30,carga_nota:"HSR -30%. ZERO sprint máximo até assimetria < 12% e CMJ normalizar.",compensatorio:"Normalização bilateral: leg press unilateral + Bulgarian split squat + propriocepção"}},
     {n:"GUILHERME QUEIROZ",pos:"ATA",prob:0.26,zone:"AMARELO",
       dose:"Reduzir HSR 30%. Monitorar PSE.",
-      acwr:1.14,ck:2.5,cmj:1.1,sono:6.9,bio:1.1,
+      acwr:1.14,cmj:1.1,sono:6.9,bio:1.1,
       classif:"Baixo-Moderado",
       perfil_risco:"sobrecarga",
       fatigue_debt:1780,nme:0.0168,cmj_trend_3d:0.22,srpe_trend_5d:10.2,sleep_trend_7d:-0.08,
-      trends:{fatigue_debt:[1380,1440,1510,1580,1640,1710,1780],ck:[220,235,250,268,285,300,320],srpe:[300,310,320,330,340,350,370],cmj:[44.7,45.0,45.2,45.5,45.8,46.0,46.0]},
-      diag_diff:{aguda:25,sobrecarga:75,base:"Lesão lombar recente (jan/26) + Delta BF% elevado + CK limítrofe → perfil de desregulação sistêmica (caso atípico da retrospectiva)"},
+      trends:{fatigue_debt:[1380,1440,1510,1580,1640,1710,1780][220,235,250,268,285,300,320],srpe:[300,310,320,330,340,350,370],cmj:[44.7,45.0,45.2,45.5,45.8,46.0,46.0]},
+      diag_diff:{aguda:25,sobrecarga:75,base:"Lesão lombar recente (jan/26) + Delta BF% elevado → perfil de desregulação sistêmica (caso atípico da retrospectiva)"},
       shap_pos:[
         {f:"Lesão Prévia",sv:0.082,v:"Lombar D (jan/26)",note:"45 dias. Região vulnerável."},
-        {f:"CK / Basal",sv:0.048,v:"2.5x",note:"Limítrofe."},
         {f:"Déficit Biológico",sv:0.038,v:"1.1",note:"Moderado."}
       ],
       shap_neg:[
@@ -327,11 +315,11 @@ const ML={
       protocolo:{mecanica:"Core stability + anti-rotação + hip mobility",carga_reducao:30,carga_nota:"HSR -30%. Avaliação nutricional semanal (delta BF%).",compensatorio:"Controle composição corporal + variação de estímulos + fisio preventiva lombar"}},
     {n:"ADRIANO",pos:"GOL",prob:0.23,zone:"AMARELO",
       dose:"Reduzir HSR 30%. Monitorar PSE.",
-      acwr:1.24,ck:1.6,cmj:-3.7,sono:7.3,bio:0.7,
+      acwr:1.24,cmj:-3.7,sono:7.3,bio:0.7,
       classif:"Baixo",
       perfil_risco:"aguda",
       fatigue_debt:1540,nme:0.0155,cmj_trend_3d:-0.48,srpe_trend_5d:15.8,sleep_trend_7d:0.06,
-      trends:{fatigue_debt:[1180,1240,1300,1360,1410,1470,1540],ck:[145,150,155,162,170,178,185],srpe:[280,290,300,310,320,330,340],cmj:[52.2,51.8,51.4,51.0,50.6,50.2,49.6]},
+      trends:{fatigue_debt:[1180,1240,1300,1360,1410,1470,1540][145,150,155,162,170,178,185],srpe:[280,290,300,310,320,330,340],cmj:[52.2,51.8,51.4,51.0,50.6,50.2,49.6]},
       diag_diff:{aguda:52,sobrecarga:48,base:"Sem histórico + ACWR 1.24 moderado + métricas NM boas → risco residual por carga, sem vulnerabilidade estrutural"},
       shap_pos:[
         {f:"ACWR Combinado",sv:0.058,v:"1.24",note:"Zona de atenção (> 1.20). Tendência ascendente."},
@@ -346,15 +334,14 @@ const ML={
       protocolo:{mecanica:"Manutenção — programa preventivo padrão",carga_reducao:30,carga_nota:"HSR -30% como precaução pelo ACWR ascendente.",compensatorio:"Monitorar ACWR nos próximos 3 dias. Se < 1.20: liberação total."}},
     {n:"BRENNO",pos:"GOL",prob:0.19,zone:"AMARELO",
       dose:"Reduzir volume 20%. Monitorar.",
-      acwr:1.17,ck:1.9,cmj:-3.5,sono:7.3,bio:0.8,
+      acwr:1.17,cmj:-3.5,sono:7.3,bio:0.8,
       classif:"Baixo",
       perfil_risco:"sobrecarga",
       fatigue_debt:1320,nme:0.0162,cmj_trend_3d:-0.38,srpe_trend_5d:6.4,sleep_trend_7d:-0.05,
-      trends:{fatigue_debt:[1020,1060,1110,1160,1210,1260,1320],ck:[155,162,170,178,185,192,200],srpe:[260,268,275,282,290,298,310],cmj:[46.2,45.8,45.5,45.2,44.8,44.5,44.6]},
+      trends:{fatigue_debt:[1020,1060,1110,1160,1210,1260,1320][155,162,170,178,185,192,200],srpe:[260,268,275,282,290,298,310],cmj:[46.2,45.8,45.5,45.2,44.8,44.5,44.6]},
       diag_diff:{aguda:40,sobrecarga:60,base:"Sem histórico + goleiro (menor HSR) + dor 3/10 incipiente → atenção por dor, mas perfil protetivo"},
       shap_pos:[
         {f:"Tendência Dor 3d",sv:0.042,v:"↑ 3.0",note:"Dor ascendente. Monitorar."},
-        {f:"CK / Basal",sv:0.034,v:"1.9x",note:"Ligeiramente acima."}
       ],
       shap_neg:[
         {f:"Lesão Prévia",sv:-0.065,v:"Nenhuma",note:"Protetor máximo."},
@@ -365,14 +352,13 @@ const ML={
       protocolo:{mecanica:"Programa preventivo padrão goleiro",carga_reducao:20,carga_nota:"Redução leve. Monitorar tendência de dor.",compensatorio:"Se dor continuar subindo 48h: avaliação fisioterapia"}},
     {n:"HYGOR",pos:"ATA",prob:0.18,zone:"AMARELO",
       dose:"Reduzir HSR 30%. Monitorar PSE.",
-      acwr:1.12,ck:2.8,cmj:-1.6,sono:7.0,bio:1.2,
+      acwr:1.12,cmj:-1.6,sono:7.0,bio:1.2,
       classif:"Baixo",
       perfil_risco:"sobrecarga",
       fatigue_debt:1680,nme:0.0128,cmj_trend_3d:-0.28,srpe_trend_5d:9.2,sleep_trend_7d:-0.10,
-      trends:{fatigue_debt:[1280,1340,1400,1460,1520,1600,1680],ck:[280,295,310,328,345,360,380],srpe:[320,330,340,350,360,370,390],cmj:[41.9,41.6,41.4,41.2,41.0,40.8,42.1]},
-      diag_diff:{aguda:42,sobrecarga:58,base:"Histórico coxa D (set/25) > 90d + CK 2.8x + monotonia 1.7 → risco residual por carga e bioquímica, sem urgência"},
+      trends:{fatigue_debt:[1280,1340,1400,1460,1520,1600,1680][280,295,310,328,345,360,380],srpe:[320,330,340,350,360,370,390],cmj:[41.9,41.6,41.4,41.2,41.0,40.8,42.1]},
+      diag_diff:{aguda:42,sobrecarga:58,base:"Histórico coxa D (set/25) > 90d + monotonia 1.7 → risco residual por carga e bioquímica, sem urgência"},
       shap_pos:[
-        {f:"CK / Basal",sv:0.054,v:"2.8x",note:"Elevado. CKm 1034 indica acúmulo."},
         {f:"Déficit Biológico",sv:0.038,v:"1.2",note:"Moderado."},
         {f:"Monotonia",sv:0.032,v:"1.7",note:"Atenção."}
       ],
@@ -382,7 +368,7 @@ const ML={
         {f:"Delta CMJ",sv:-0.032,v:"-1.6%",note:"Dentro do normal."},
         {f:"Assimetria SLCMJ",sv:-0.028,v:"6.8%",note:"Adequado."}
       ],
-      protocolo:{mecanica:"Programa preventivo padrão",carga_reducao:30,carga_nota:"HSR -30%. Monitorar CK 48h.",compensatorio:"Se CK > 3x: reclassificar para LARANJA"}}
+      protocolo:{mecanica:"Programa preventivo padrão",carga_reducao:30,carga_nota:"HSR -30%. Monitorar bem-estar.",compensatorio:"Monitorar wellness. Se déficit biológico > 2.0: reclassificar para LARANJA"}}
   ]
 };
 const ZC={"VERMELHO":{c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA"},"LARANJA":{c:"#EA580C",bg:"#FFF7ED",bc:"#FED7AA"},"AMARELO":{c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A"},"VERDE":{c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0"}};
@@ -390,7 +376,7 @@ const ZC={"VERMELHO":{c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA"},"LARANJA":{c:"#EA58
 // Perfil de risco fisiológico
 const PERFIL_RISCO_LABELS={
   aguda:{label:"Aguda",desc:"Pico de carga / sprint / aceleração",c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",ic:"Zap"},
-  sobrecarga:{label:"Sobrecarga",desc:"Acúmulo de fadiga / CK crônico",c:"#EA580C",bg:"#FFF7ED",bc:"#FED7AA",ic:"TrendingUp"},
+  sobrecarga:{label:"Sobrecarga",desc:"Acúmulo de fadiga / carga crônica",c:"#EA580C",bg:"#FFF7ED",bc:"#FED7AA",ic:"TrendingUp"},
   neuromuscular:{label:"Neuromuscular",desc:"Perda de potência / NME baixo",c:"#7c3aed",bg:"#F5F3FF",bc:"#DDD6FE",ic:"Activity"},
   biomecanico:{label:"Biomecânico",desc:"Assimetria / instabilidade",c:"#2563eb",bg:"#EFF6FF",bc:"#BFDBFE",ic:"Shield"}
 };
@@ -400,7 +386,6 @@ const INTERVENTIONS=[
   {trigger:"ACWR > 1.50",action:"Reduzir volume HSR 30%",perfil:"aguda",priority:1},
   {trigger:"ACWR > 1.35 + Sono < 6",action:"Excluir de HSR e sprints",perfil:"aguda",priority:1},
   {trigger:"Assimetria SLCMJ > 12%",action:"Trabalho unilateral obrigatório",perfil:"biomecanico",priority:1},
-  {trigger:"CK > 3x basal",action:"Sessão regenerativa + remonitorar 48h",perfil:"sobrecarga",priority:1},
   {trigger:"CMJ Delta < -8%",action:"48h treino regenerativo",perfil:"neuromuscular",priority:1},
   {trigger:"Sono avg < 6h (7d)",action:"Protocolo recuperação sono",perfil:"sobrecarga",priority:2},
   {trigger:"NME em queda 5d",action:"Reduzir volume, priorizar qualidade",perfil:"neuromuscular",priority:2},
@@ -414,88 +399,88 @@ const INTERVENTIONS=[
 // ═══════════════════════════════════════════════════════════════════════════════
 const PROJECTIONS={
   "ERIK":{
-    proj_48h:{fatigue_debt:3120,cmj:47.4,ck:345,nme:0.0128,risk_prob:0.78},
-    proj_72h:{fatigue_debt:3380,cmj:46.6,ck:378,nme:0.0115,risk_prob:0.82},
+    proj_48h:{fatigue_debt:3120,cmj:47.4,nme:0.0128,risk_prob:0.78},
+    proj_72h:{fatigue_debt:3380,cmj:46.6,nme:0.0115,risk_prob:0.82},
     tendencia:"piora",nivel_projetado:"CRÍTICO",
     resumo:"ACWR extremo + fadiga exponencial. Sem intervenção, risco projetado > 80% em 72h.",
     recomendacao:"Manter exclusão. Crioterapia + sono > 8h. Reavaliar ACWR em 48h."
   },
   "JONATHAN":{
-    proj_48h:{fatigue_debt:3280,cmj:42.2,ck:540,nme:0.0102,risk_prob:0.66},
-    proj_72h:{fatigue_debt:3420,cmj:41.6,ck:575,nme:0.0096,risk_prob:0.71},
+    proj_48h:{fatigue_debt:3280,cmj:42.2,nme:0.0102,risk_prob:0.66},
+    proj_72h:{fatigue_debt:3420,cmj:41.6,nme:0.0096,risk_prob:0.71},
     tendencia:"piora",nivel_projetado:"CRÍTICO",
-    resumo:"CK crônico em ascensão + COP instável. Perfil de sobrecarga residual agravando.",
+    resumo:"COP instável. Perfil de sobrecarga residual agravando.",
     recomendacao:"Exclusão mantida. Protocolo regenerativo + readequação NM."
   },
   "THALLES":{
-    proj_48h:{fatigue_debt:3620,cmj:43.0,ck:1210,nme:0.0088,risk_prob:0.59},
-    proj_72h:{fatigue_debt:3780,cmj:42.7,ck:1280,nme:0.0082,risk_prob:0.64},
+    proj_48h:{fatigue_debt:3620,cmj:43.0,nme:0.0088,risk_prob:0.59},
+    proj_72h:{fatigue_debt:3780,cmj:42.7,nme:0.0082,risk_prob:0.64},
     tendencia:"piora",nivel_projetado:"CRÍTICO",
-    resumo:"CK 6.2x basal sem sinais de queda. Gastrocnêmio em remodelação — risco de recidiva.",
-    recomendacao:"Exclusão até CK < 3x. Hidratação agressiva + crioterapia sistêmica."
+    resumo:". Gastrocnêmio em remodelação — risco de recidiva.",
+    recomendacao:"Exclusão. Hidratação agressiva + crioterapia sistêmica."
   },
   "JEFFERSON NEM":{
-    proj_48h:{fatigue_debt:2780,cmj:47.2,ck:610,nme:0.0114,risk_prob:0.50},
-    proj_72h:{fatigue_debt:2870,cmj:46.9,ck:645,nme:0.0110,risk_prob:0.53},
+    proj_48h:{fatigue_debt:2780,cmj:47.2,nme:0.0114,risk_prob:0.50},
+    proj_72h:{fatigue_debt:2870,cmj:46.9,nme:0.0110,risk_prob:0.53},
     tendencia:"estavel",nivel_projetado:"MODERADO-ALTO",
-    resumo:"CK crônico elevado mas estável. Risco não escala se carga controlada.",
-    recomendacao:"Manter MED 50%. Monitorar CK 48h. Se CK < 500: reclassificar."
+    resumo:"Carga estável. Risco não escala se controlada.",
+    recomendacao:"Manter MED 50%. Monitorar bem-estar. Se bem-estar normalizar: reclassificar."
   },
   "PATRICK BREY":{
-    proj_48h:{fatigue_debt:2250,cmj:42.2,ck:298,nme:0.0120,risk_prob:0.47},
-    proj_72h:{fatigue_debt:2340,cmj:41.8,ck:315,nme:0.0116,risk_prob:0.50},
+    proj_48h:{fatigue_debt:2250,cmj:42.2,nme:0.0120,risk_prob:0.47},
+    proj_72h:{fatigue_debt:2340,cmj:41.8,nme:0.0116,risk_prob:0.50},
     tendencia:"piora_leve",nivel_projetado:"MODERADO-ALTO",
     resumo:"Retorno de LCM + ACWR ascendente. Risco de pico agudo se carga não controlada.",
     recomendacao:"Manter 50% volume. Zero HSR por +14d. RTP progressivo."
   },
   "KELVIN":{
-    proj_48h:{fatigue_debt:1970,cmj:37.8,ck:198,nme:0.0132,risk_prob:0.41},
-    proj_72h:{fatigue_debt:2040,cmj:37.2,ck:208,nme:0.0126,risk_prob:0.44},
+    proj_48h:{fatigue_debt:1970,cmj:37.8,nme:0.0132,risk_prob:0.41},
+    proj_72h:{fatigue_debt:2040,cmj:37.2,nme:0.0126,risk_prob:0.44},
     tendencia:"piora_leve",nivel_projetado:"MODERADO",
     resumo:"CMJ em queda progressiva — fadiga NM acumulativa. Monotonia 2.2 agravando.",
     recomendacao:"Variar estímulos. Reduzir impacto cíclico. Isometric holds patelar."
   },
   "RAFAEL GAVA":{
-    proj_48h:{fatigue_debt:2420,cmj:38.2,ck:318,nme:0.0092,risk_prob:0.39},
-    proj_72h:{fatigue_debt:2510,cmj:37.7,ck:335,nme:0.0088,risk_prob:0.42},
+    proj_48h:{fatigue_debt:2420,cmj:38.2,nme:0.0092,risk_prob:0.39},
+    proj_72h:{fatigue_debt:2510,cmj:37.7,nme:0.0088,risk_prob:0.42},
     tendencia:"piora_leve",nivel_projetado:"MODERADO",
     resumo:"NME baixo + sono deteriorando. 2 lesões prévias em panturrilha D — recidiva latente.",
     recomendacao:"Priorizar sono (> 7h). Excêntrico gastrocnêmio. MED 50%."
   },
   "HENRIQUE TELES":{
-    proj_48h:{fatigue_debt:2100,cmj:44.2,ck:282,nme:0.0108,risk_prob:0.31},
-    proj_72h:{fatigue_debt:2180,cmj:43.0,ck:298,nme:0.0104,risk_prob:0.34},
+    proj_48h:{fatigue_debt:2100,cmj:44.2,nme:0.0108,risk_prob:0.31},
+    proj_72h:{fatigue_debt:2180,cmj:43.0,nme:0.0104,risk_prob:0.34},
     tendencia:"piora_leve",nivel_projetado:"ATENÇÃO",
     resumo:"Assimetria SLCMJ 16.1% (pior do elenco) + CMJ -12.5%. Risco biomecânico persistente.",
     recomendacao:"Zero sprint máximo. Trabalho bilateral obrigatório até ASI < 12%."
   },
   "GUILHERME QUEIROZ":{
-    proj_48h:{fatigue_debt:1850,cmj:46.2,ck:338,nme:0.0164,risk_prob:0.28},
-    proj_72h:{fatigue_debt:1920,cmj:46.4,ck:355,nme:0.0160,risk_prob:0.29},
+    proj_48h:{fatigue_debt:1850,cmj:46.2,nme:0.0164,risk_prob:0.28},
+    proj_72h:{fatigue_debt:1920,cmj:46.4,nme:0.0160,risk_prob:0.29},
     tendencia:"estavel",nivel_projetado:"ATENÇÃO",
-    resumo:"Estável. CMJ em leve alta. CK limítrofe mas controlado.",
+    resumo:"Estável. CMJ em leve alta. Carga controlada.",
     recomendacao:"Manter HSR -30%. Avaliação nutricional semanal."
   },
   "ADRIANO":{
-    proj_48h:{fatigue_debt:1610,cmj:49.2,ck:192,nme:0.0150,risk_prob:0.25},
-    proj_72h:{fatigue_debt:1680,cmj:48.8,ck:200,nme:0.0146,risk_prob:0.26},
+    proj_48h:{fatigue_debt:1610,cmj:49.2,nme:0.0150,risk_prob:0.25},
+    proj_72h:{fatigue_debt:1680,cmj:48.8,nme:0.0146,risk_prob:0.26},
     tendencia:"estavel",nivel_projetado:"ATENÇÃO",
     resumo:"ACWR ascendente mas sem fatores agravantes. Perfil protetivo.",
     recomendacao:"Monitorar ACWR 48h. Se < 1.20: liberação total."
   },
   "BRENNO":{
-    proj_48h:{fatigue_debt:1380,cmj:44.3,ck:208,nme:0.0158,risk_prob:0.20},
-    proj_72h:{fatigue_debt:1440,cmj:44.0,ck:218,nme:0.0154,risk_prob:0.22},
+    proj_48h:{fatigue_debt:1380,cmj:44.3,nme:0.0158,risk_prob:0.20},
+    proj_72h:{fatigue_debt:1440,cmj:44.0,nme:0.0154,risk_prob:0.22},
     tendencia:"estavel",nivel_projetado:"NORMAL",
     resumo:"Perfil protetivo. Dor 3/10 monitorar mas sem urgência.",
     recomendacao:"Programa preventivo padrão. Monitorar tendência de dor."
   },
   "HYGOR":{
-    proj_48h:{fatigue_debt:1760,cmj:41.8,ck:398,nme:0.0124,risk_prob:0.20},
-    proj_72h:{fatigue_debt:1840,cmj:41.5,ck:418,nme:0.0120,risk_prob:0.22},
+    proj_48h:{fatigue_debt:1760,cmj:41.8,nme:0.0124,risk_prob:0.20},
+    proj_72h:{fatigue_debt:1840,cmj:41.5,nme:0.0120,risk_prob:0.22},
     tendencia:"estavel",nivel_projetado:"NORMAL",
-    resumo:"CK 2.8x controlado. Sem urgência mas monitorar.",
-    recomendacao:"HSR -30%. Se CK > 3x: reclassificar para LARANJA."
+    resumo:". Sem urgência mas monitorar.",
+    recomendacao:"HSR -30%. Se déficit biológico > 2.0: reclassificar para LARANJA."
   }
 };
 
@@ -510,7 +495,7 @@ const SESSION_DATA={
       gps:{dist_total:5420,dist_baseline:6800,hsr:180,hsr_baseline:420,sprints:2,sprints_baseline:8,acel:12,acel_baseline:28,decel:10,decel_baseline:24,pico_vel:24.1,pico_vel_baseline:30.2},
       carga_interna:{srpe_sessao:6,duracao:75,srpe_total:450,hr_avg:142,hr_max:168,hr_baseline_avg:155,tempo_zona_alta:8,tempo_zona_alta_baseline:18},
       nm_response:{cmj_pre:48.2,cmj_pos:46.8,cmj_delta_pct:-2.9,asi_pos:15.2,nme_pos:0.0135},
-      fisio:{sono_noite:6.5,dor_pos:3,rec_percebida:6,ck_estimado:340},
+      fisio:{sono_noite:6.5,dor_pos:3,rec_percebida:6},
       risco:{prob_pre:0.72,prob_pos:0.70,delta:-0.02,impacto:"neutro"},
       classificacao:"amarelo",classificacao_label:"Carga controlada — excluído de alta intensidade",
       obs:"Participou apenas de exercícios técnicos leves. Sem sprints ou mudanças de direção."
@@ -519,7 +504,7 @@ const SESSION_DATA={
       gps:{dist_total:4980,dist_baseline:6200,hsr:95,hsr_baseline:340,sprints:1,sprints_baseline:6,acel:8,acel_baseline:22,decel:9,decel_baseline:20,pico_vel:22.8,pico_vel_baseline:28.5},
       carga_interna:{srpe_sessao:5,duracao:75,srpe_total:375,hr_avg:138,hr_max:162,hr_baseline_avg:148,tempo_zona_alta:5,tempo_zona_alta_baseline:15},
       nm_response:{cmj_pre:42.8,cmj_pos:41.4,cmj_delta_pct:-3.3,asi_pos:13.8,nme_pos:0.0102},
-      fisio:{sono_noite:5.8,dor_pos:4,rec_percebida:5,ck_estimado:530},
+      fisio:{sono_noite:5.8,dor_pos:4,rec_percebida:5},
       risco:{prob_pre:0.61,prob_pos:0.60,delta:-0.01,impacto:"neutro"},
       classificacao:"amarelo",classificacao_label:"Carga controlada — protocolo regenerativo",
       obs:"Exercícios de mobilidade + técnico leve. COP monitorado pós-sessão."
@@ -528,7 +513,7 @@ const SESSION_DATA={
       gps:{dist_total:0,dist_baseline:6500,hsr:0,hsr_baseline:380,sprints:0,sprints_baseline:7,acel:0,acel_baseline:25,decel:0,decel_baseline:22,pico_vel:0,pico_vel_baseline:29.8},
       carga_interna:{srpe_sessao:2,duracao:30,srpe_total:60,hr_avg:110,hr_max:125,hr_baseline_avg:152,tempo_zona_alta:0,tempo_zona_alta_baseline:16},
       nm_response:{cmj_pre:43.3,cmj_pos:43.1,cmj_delta_pct:-0.5,asi_pos:5.6,nme_pos:0.0094},
-      fisio:{sono_noite:7.2,dor_pos:2,rec_percebida:8,ck_estimado:1180},
+      fisio:{sono_noite:7.2,dor_pos:2,rec_percebida:8},
       risco:{prob_pre:0.54,prob_pos:0.53,delta:-0.01,impacto:"neutro"},
       classificacao:"verde",classificacao_label:"Apenas fisioterapia — sem carga de campo",
       obs:"Excluído do treino de campo. Sessão de fisioterapia + crioterapia."
@@ -537,16 +522,16 @@ const SESSION_DATA={
       gps:{dist_total:5180,dist_baseline:6400,hsr:220,hsr_baseline:410,sprints:3,sprints_baseline:7,acel:15,acel_baseline:26,decel:13,decel_baseline:23,pico_vel:25.3,pico_vel_baseline:29.1},
       carga_interna:{srpe_sessao:6,duracao:75,srpe_total:450,hr_avg:148,hr_max:172,hr_baseline_avg:156,tempo_zona_alta:10,tempo_zona_alta_baseline:17},
       nm_response:{cmj_pre:47.5,cmj_pos:45.8,cmj_delta_pct:-3.6,asi_pos:6.2,nme_pos:0.0112},
-      fisio:{sono_noite:7.0,dor_pos:2,rec_percebida:7,ck_estimado:600},
+      fisio:{sono_noite:7.0,dor_pos:2,rec_percebida:7},
       risco:{prob_pre:0.47,prob_pos:0.48,delta:0.01,impacto:"leve_aumento"},
       classificacao:"amarelo",classificacao_label:"Volume reduzido 50% — sem HSR máximo",
-      obs:"Participou com carga controlada. Sem sprints > 90%. CK monitorar 48h."
+      obs:"Participou com carga controlada. Sem sprints > 90%."
     },
     "PATRICK BREY":{
       gps:{dist_total:0,dist_baseline:6100,hsr:0,hsr_baseline:350,sprints:0,sprints_baseline:6,acel:0,acel_baseline:24,decel:0,decel_baseline:21,pico_vel:0,pico_vel_baseline:28.2},
       carga_interna:{srpe_sessao:3,duracao:45,srpe_total:135,hr_avg:118,hr_max:138,hr_baseline_avg:150,tempo_zona_alta:0,tempo_zona_alta_baseline:14},
       nm_response:{cmj_pre:42.6,cmj_pos:42.2,cmj_delta_pct:-0.9,asi_pos:12.4,nme_pos:0.0122},
-      fisio:{sono_noite:6.8,dor_pos:2,rec_percebida:7,ck_estimado:290},
+      fisio:{sono_noite:6.8,dor_pos:2,rec_percebida:7},
       risco:{prob_pre:0.43,prob_pos:0.42,delta:-0.01,impacto:"neutro"},
       classificacao:"verde",classificacao_label:"Reabilitação LCM — sem campo",
       obs:"Fase 3 — apenas fisioterapia + fortalecimento. Sem carga de campo."
@@ -555,7 +540,7 @@ const SESSION_DATA={
       gps:{dist_total:5650,dist_baseline:6000,hsr:280,hsr_baseline:360,sprints:4,sprints_baseline:6,acel:18,acel_baseline:24,decel:16,decel_baseline:22,pico_vel:26.4,pico_vel_baseline:28.8},
       carga_interna:{srpe_sessao:6,duracao:75,srpe_total:450,hr_avg:152,hr_max:176,hr_baseline_avg:158,tempo_zona_alta:12,tempo_zona_alta_baseline:16},
       nm_response:{cmj_pre:38.4,cmj_pos:36.8,cmj_delta_pct:-4.2,asi_pos:9.1,nme_pos:0.0130},
-      fisio:{sono_noite:7.5,dor_pos:3,rec_percebida:6,ck_estimado:205},
+      fisio:{sono_noite:7.5,dor_pos:3,rec_percebida:6},
       risco:{prob_pre:0.38,prob_pos:0.40,delta:0.02,impacto:"leve_aumento"},
       classificacao:"amarelo",classificacao_label:"CMJ queda pós-sessão — monitorar fadiga NM",
       obs:"CMJ caiu 4.2% pós-sessão. Monotonia acumulada pode estar amplificando fadiga."
@@ -564,7 +549,7 @@ const SESSION_DATA={
       gps:{dist_total:5320,dist_baseline:5900,hsr:240,hsr_baseline:330,sprints:3,sprints_baseline:5,acel:14,acel_baseline:22,decel:12,decel_baseline:20,pico_vel:25.8,pico_vel_baseline:27.5},
       carga_interna:{srpe_sessao:7,duracao:75,srpe_total:525,hr_avg:155,hr_max:180,hr_baseline_avg:160,tempo_zona_alta:14,tempo_zona_alta_baseline:18},
       nm_response:{cmj_pre:38.7,cmj_pos:36.2,cmj_delta_pct:-6.5,asi_pos:8.8,nme_pos:0.0090},
-      fisio:{sono_noite:5.5,dor_pos:3,rec_percebida:5,ck_estimado:320},
+      fisio:{sono_noite:5.5,dor_pos:3,rec_percebida:5},
       risco:{prob_pre:0.35,prob_pos:0.39,delta:0.04,impacto:"aumento"},
       classificacao:"vermelho",classificacao_label:"CMJ -6.5% + sono ruim — sessão aumentou risco",
       obs:"Sessão gerou fadiga NM significativa. CMJ queda de 6.5%. Sono < 6h agravou resposta. sRPE 7 acima do alvo (5-6)."
@@ -573,7 +558,7 @@ const SESSION_DATA={
       gps:{dist_total:5880,dist_baseline:6300,hsr:310,hsr_baseline:390,sprints:5,sprints_baseline:7,acel:20,acel_baseline:26,decel:18,decel_baseline:24,pico_vel:27.2,pico_vel_baseline:29.4},
       carga_interna:{srpe_sessao:6,duracao:75,srpe_total:450,hr_avg:150,hr_max:174,hr_baseline_avg:154,tempo_zona_alta:11,tempo_zona_alta_baseline:16},
       nm_response:{cmj_pre:45.5,cmj_pos:43.8,cmj_delta_pct:-3.7,asi_pos:16.8,nme_pos:0.0106},
-      fisio:{sono_noite:7.8,dor_pos:1,rec_percebida:8,ck_estimado:275},
+      fisio:{sono_noite:7.8,dor_pos:1,rec_percebida:8},
       risco:{prob_pre:0.28,prob_pos:0.29,delta:0.01,impacto:"neutro"},
       classificacao:"amarelo",classificacao_label:"Assimetria pós-sessão piorou — monitorar bilateral",
       obs:"ASI pós-sessão 16.8% (piorou de 16.1%). Sono bom ajudou a moderar risco."
@@ -582,7 +567,7 @@ const SESSION_DATA={
       gps:{dist_total:6100,dist_baseline:6400,hsr:350,hsr_baseline:400,sprints:5,sprints_baseline:7,acel:22,acel_baseline:26,decel:20,decel_baseline:24,pico_vel:28.1,pico_vel_baseline:29.6},
       carga_interna:{srpe_sessao:5,duracao:75,srpe_total:375,hr_avg:146,hr_max:170,hr_baseline_avg:152,tempo_zona_alta:9,tempo_zona_alta_baseline:15},
       nm_response:{cmj_pre:46.0,cmj_pos:45.2,cmj_delta_pct:-1.7,asi_pos:5.8,nme_pos:0.0162},
-      fisio:{sono_noite:7.0,dor_pos:1,rec_percebida:7,ck_estimado:330},
+      fisio:{sono_noite:7.0,dor_pos:1,rec_percebida:7},
       risco:{prob_pre:0.26,prob_pos:0.25,delta:-0.01,impacto:"neutro"},
       classificacao:"verde",classificacao_label:"Sessão bem tolerada — resposta adequada",
       obs:"Boa tolerância. CMJ queda mínima. NME mantido. Risco estável."
@@ -591,7 +576,7 @@ const SESSION_DATA={
       gps:{dist_total:4200,dist_baseline:4800,hsr:120,hsr_baseline:200,sprints:1,sprints_baseline:3,acel:8,acel_baseline:15,decel:7,decel_baseline:14,pico_vel:22.5,pico_vel_baseline:24.8},
       carga_interna:{srpe_sessao:5,duracao:75,srpe_total:375,hr_avg:140,hr_max:165,hr_baseline_avg:148,tempo_zona_alta:7,tempo_zona_alta_baseline:12},
       nm_response:{cmj_pre:49.6,cmj_pos:48.4,cmj_delta_pct:-2.4,asi_pos:5.4,nme_pos:0.0150},
-      fisio:{sono_noite:7.5,dor_pos:1,rec_percebida:8,ck_estimado:190},
+      fisio:{sono_noite:7.5,dor_pos:1,rec_percebida:8},
       risco:{prob_pre:0.23,prob_pos:0.22,delta:-0.01,impacto:"neutro"},
       classificacao:"verde",classificacao_label:"Sessão bem tolerada — goleiro com carga reduzida",
       obs:"Treino específico de goleiro. Carga adequada. Resposta fisiológica normal."
@@ -600,7 +585,7 @@ const SESSION_DATA={
       gps:{dist_total:4350,dist_baseline:4900,hsr:130,hsr_baseline:210,sprints:1,sprints_baseline:3,acel:9,acel_baseline:16,decel:8,decel_baseline:15,pico_vel:23.1,pico_vel_baseline:25.2},
       carga_interna:{srpe_sessao:5,duracao:75,srpe_total:375,hr_avg:142,hr_max:168,hr_baseline_avg:150,tempo_zona_alta:8,tempo_zona_alta_baseline:13},
       nm_response:{cmj_pre:44.6,cmj_pos:43.8,cmj_delta_pct:-1.8,asi_pos:6.0,nme_pos:0.0158},
-      fisio:{sono_noite:7.2,dor_pos:3,rec_percebida:7,ck_estimado:205},
+      fisio:{sono_noite:7.2,dor_pos:3,rec_percebida:7},
       risco:{prob_pre:0.19,prob_pos:0.19,delta:0.00,impacto:"neutro"},
       classificacao:"verde",classificacao_label:"Sessão bem tolerada — monitorar dor",
       obs:"Dor 3/10 mantida pós-sessão. Monitorar tendência. Demais marcadores OK."
@@ -609,7 +594,7 @@ const SESSION_DATA={
       gps:{dist_total:5750,dist_baseline:6600,hsr:300,hsr_baseline:420,sprints:4,sprints_baseline:8,acel:19,acel_baseline:28,decel:17,decel_baseline:25,pico_vel:27.5,pico_vel_baseline:30.5},
       carga_interna:{srpe_sessao:6,duracao:75,srpe_total:450,hr_avg:150,hr_max:175,hr_baseline_avg:158,tempo_zona_alta:11,tempo_zona_alta_baseline:17},
       nm_response:{cmj_pre:42.1,cmj_pos:41.0,cmj_delta_pct:-2.6,asi_pos:7.2,nme_pos:0.0124},
-      fisio:{sono_noite:7.0,dor_pos:2,rec_percebida:7,ck_estimado:395},
+      fisio:{sono_noite:7.0,dor_pos:2,rec_percebida:7},
       risco:{prob_pre:0.18,prob_pos:0.18,delta:0.00,impacto:"neutro"},
       classificacao:"verde",classificacao_label:"Sessão bem tolerada — carga HSR reduzida",
       obs:"HSR reduzido 30% conforme protocolo. Resposta fisiológica adequada."
@@ -629,7 +614,7 @@ const INJ_HISTORY=[
   {id:2,n:"WALLACE",pos:"ZAG",date:"2025-12-27",saida_dm:"2026-01-18",ini_trans:"2026-01-19",fim_trans:"2026-02-03",
     dias_dm:23,dias_trans:16,total:39,classif:"2B",regiao:"Perna Posterior",lado:"Direito",evento:"Time de empréstimo",mecanismo:"Dor Tardia",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",
     lesson:"Sóleo com dor tardia — padrão de sobrecarga. 39 dias total indica comprometimento significativo. Perna posterior direita é padrão recorrente no elenco.",
-    protocol:"Excêntrico de sóleo progressivo. Monitorar CK como indicador de dano residual. Atenção a padrão compensatório contralateral."},
+    protocol:"Excêntrico de sóleo progressivo. Monitorar wellness como indicador de dano residual. Atenção a padrão compensatório contralateral."},
   {id:3,n:"GUILHERME QUEIROZ",pos:"ATA",date:"2025-12-31",saida_dm:"2026-01-06",ini_trans:"2026-01-07",fim_trans:"2026-01-08",
     dias_dm:7,dias_trans:2,total:9,classif:"1A",regiao:"Perna Posterior",lado:"Direito",evento:"Amistoso",mecanismo:"Sobrecarga",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",
     lesson:"Lesão 1A em sóleo por sobrecarga em amistoso. Retorno rápido (9 dias) mas padrão de perna posterior D precisa de atenção preventiva.",
@@ -661,8 +646,8 @@ const INJ_HISTORY=[
     protocol:"Protocolo de flexibilidade + excêntrico Nordic intensificado. Limite de HSR permanente. Avaliação biomecânica completa antes de jogo."},
   {id:10,n:"RAFAEL GAVA",pos:"MEI",date:"2026-02-08",saida_dm:"2026-02-17",ini_trans:"2026-02-18",fim_trans:"2026-02-25",
     dias_dm:10,dias_trans:8,total:18,classif:"1A",regiao:"Perna Posterior",lado:"Esquerdo",evento:"Camp. Paulista",mecanismo:"Sprint",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",
-    lesson:"Sprint em jogo oficial. Sóleo esquerdo — padrão de perna posterior que domina as lesões do elenco. CKm 2969 no histórico indica dano crônico acumulado.",
-    protocol:"Excêntrico de sóleo bilateral. Limitar volume de sprint pós-retorno. Monitorar CK como indicador de recarga tecidual."},
+    lesson:"Sprint em jogo oficial. Sóleo esquerdo — padrão de perna posterior que domina as lesões do elenco. .",
+    protocol:"Excêntrico de sóleo bilateral. Limitar volume de sprint pós-retorno. Monitorar wellness como indicador de recarga tecidual."},
   {id:11,n:"PATRICK BREY",pos:"LE",date:"2026-02-08",saida_dm:"2026-03-02",ini_trans:"2026-03-02",fim_trans:null,
     dias_dm:23,dias_trans:10,total:33,classif:"Ligamentar II",regiao:"Joelho",lado:"Esquerdo",evento:"Camp. Paulista",mecanismo:"Trauma direto",estrutura:"LCM",exame:"RNM",estagio:"Fase 3",conduta:"Afastado",prognostico:"2026-04-02",
     lesson:"Lesão ligamentar grau II de LCM por trauma direto em jogo. Prognóstico de retorno em 02/Abr. Fase 3 — ainda afastado. Perda estimada de 4-5 jogos da Série B.",
@@ -673,8 +658,8 @@ const INJ_HISTORY=[
     protocol:"Regenerativo + mobilidade ativa. Progressão cuidadosa. Monitorar antes de liberar para treino coletivo."},
   {id:13,n:"THALLES",pos:"ATA",date:"2026-03-09",saida_dm:null,ini_trans:null,fim_trans:null,
     dias_dm:3,dias_trans:0,total:3,classif:"2A",regiao:"Perna Posterior",lado:"Direito",evento:"Treino",mecanismo:"Dor Tardia",estrutura:"Gastrocnêmio Medial",exame:"RNM",estagio:"Fase 1",conduta:"Afastado",prognostico:"2026-04-13",
-    lesson:"Lesão 2A de gastrocnêmio medial com dor tardia em treino. Prognóstico 13/Abr (35 dias). Fase 1 — início do tratamento. CK 1865 prévio indica dano muscular crônico como fator predisponente.",
-    protocol:"Excêntrico de gastrocnêmio progressivo. Monitorar CK antes de progredir fases. Atenção ao CKm histórico."},
+    lesson:"Lesão 2A de gastrocnêmio medial com dor tardia em treino. Prognóstico 13/Abr (35 dias). Fase 1 — início do tratamento. Dano muscular crônico como fator predisponente.",
+    protocol:"Excêntrico de gastrocnêmio progressivo. Monitorar bem-estar antes de progredir fases. Atenção ao CKm histórico."},
   {id:14,n:"GUI MARIANO",pos:"ZAG",date:"2026-03-11",saida_dm:null,ini_trans:null,fim_trans:null,
     dias_dm:1,dias_trans:0,total:1,classif:"2A",regiao:"Perna Posterior",lado:"Esquerdo",evento:"Treino",mecanismo:"Sobrecarga",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 1",conduta:"Afastado",
     lesson:"Lesão 2A de sóleo por sobrecarga em treino. Mais recente do elenco (11/Mar). Zagueiro com padrão de perna posterior — investigar volume de corrida em exercícios de transição.",
@@ -720,7 +705,7 @@ const PREVENTION=[
   {trigger:"Sono avg 7d < 6",action:"Redução automática 30% do volume",priority:"CRÍTICA",window:"Imediato",evidence:"5/7 lesões tiveram sono < 6 na semana prévia"},
   {trigger:"CMJ Delta < -10%",action:"48h de treino regenerativo obrigatório",priority:"CRÍTICA",window:"Imediato",evidence:"Queda > 10% no CMJ precedeu as 3 lesões mais graves"},
   {trigger:"Assimetria ISO > 15%",action:"Treino individualizado até normalizar",priority:"CRÍTICA",window:"Até normalizar",evidence:"100% das lesões com assimetria > 15% foram em posterior de coxa"},
-  {trigger:"CK > 3x basal por > 5 dias",action:"Carga regenerativa + remonitorar 48h",priority:"ALTA",window:"5 dias",evidence:"Caso THALLES — CK crônico explodiu em mudança de direção"},
+  
   {trigger:"ACWR > 1.35 + Sono < 6.5",action:"Excluir de HSR e sprints na sessão",priority:"ALTA",window:"Sessão seguinte",evidence:"Combinação presente em 57% dos casos (interação sinérgica)"},
   {trigger:"Dor subindo > 1pt em 3 dias",action:"Avaliação fisioterapia obrigatória",priority:"ALTA",window:"24h",evidence:"Caso KELVIN — dor progressiva ignorada levou a tendinopatia"},
   {trigger:"3 jogos em 10d + LAT/ATA",action:"Volume HSR reduzido 40% no treino seguinte",priority:"MÉDIA",window:"Pós-jogo 3",evidence:"Laterais e atacantes mais vulneráveis por demanda de sprints"},
@@ -749,7 +734,7 @@ const WEEK_MAP={
         {name:"Treino",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
       ],
       almoco:true,tarde:"Descanso Programado",
-      wellness:true,cmj:false,ck:true,notes:"Semana de jogo (Fortaleza, sáb). DM: chegar 30min antes."},
+      wellness:true,cmj:falsetrue,notes:"Semana de jogo (Fortaleza, sáb). DM: chegar 30min antes."},
     {d:"3ª 17",md:"MD-4",type:"TREINO",focus:"Treino",local:"A definir",
       sessions:[
         {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
@@ -757,7 +742,7 @@ const WEEK_MAP={
         {name:"Treino",time:"09:00",dur:80,rpe_alvo:"6-7",content:"Treino de campo",group:"Elenco"}
       ],
       almoco:true,tarde:"Descanso Programado",
-      wellness:true,cmj:false,ck:false,notes:"Local a definir. Último treino de maior volume antes da redução pré-jogo."},
+      wellness:true,cmj:falsefalse,notes:"Local a definir. Último treino de maior volume antes da redução pré-jogo."},
     {d:"4ª 18",md:"MD-3",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Treino (tarde)",local:"A definir",
       sessions:[
         {name:"Apresentação",time:"14:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
@@ -765,7 +750,7 @@ const WEEK_MAP={
         {name:"Treino",time:"16:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
       ],
       almoco:false,tarde:"Lanche (Sala anexa)",
-      wellness:true,cmj:false,ck:false,notes:"Descanso programado pela manhã. Treino à tarde — local a definir."},
+      wellness:true,cmj:falsefalse,notes:"Descanso programado pela manhã. Treino à tarde — local a definir."},
     {d:"5ª 19",md:"MD-2",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Treino (tarde)",local:"A definir",
       sessions:[
         {name:"Apresentação",time:"14:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
@@ -773,7 +758,7 @@ const WEEK_MAP={
         {name:"Treino",time:"16:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
       ],
       almoco:false,tarde:"Lanche (Sala anexa)",
-      wellness:true,cmj:true,ck:false,notes:"Treino à tarde — local a definir. CMJ como marcador de prontidão NM."},
+      wellness:true,cmj:truefalse,notes:"Treino à tarde — local a definir. CMJ como marcador de prontidão NM."},
     {d:"6ª 20",md:"MD-1",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Treino (tarde) + CONCENTRAÇÃO",local:"A definir",
       sessions:[
         {name:"Apresentação",time:"14:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
@@ -781,7 +766,7 @@ const WEEK_MAP={
         {name:"Treino",time:"16:00",dur:60,rpe_alvo:"4-5",content:"Treino tático leve — último antes do jogo",group:"Elenco"}
       ],
       almoco:false,tarde:"INÍCIO DE CONCENTRAÇÃO",
-      wellness:true,cmj:false,ck:false,notes:"Último treino antes do jogo. Após treino: INÍCIO DE CONCENTRAÇÃO. Redução máxima de volume."},
+      wellness:true,cmj:falsefalse,notes:"Último treino antes do jogo. Após treino: INÍCIO DE CONCENTRAÇÃO. Redução máxima de volume."},
     {d:"Sáb 21",md:"MD",type:"JOGO",focus:"Botafogo SP × Fortaleza",local:"Estádio Santa Cruz",
       sessions:[
         {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
@@ -790,21 +775,22 @@ const WEEK_MAP={
         {name:"JOGO — Série B R1",time:"19:15",dur:90,rpe_alvo:"8-10",content:"Botafogo SP × Fortaleza · Brasileiro Série B · 1ª Rodada · Estádio Santa Cruz",group:"Relacionados"}
       ],
       almoco:true,tarde:"Jogo 19:15",
-      wellness:true,cmj:false,ck:false,notes:"DIA DE JOGO — Série B 1ª Rodada. Treino manhã apenas para não relacionados. Jogo às 19:15 no Estádio Santa Cruz."},
+      wellness:true,cmj:falsefalse,notes:"DIA DE JOGO — Série B 1ª Rodada. Treino manhã apenas para não relacionados. Jogo às 19:15 no Estádio Santa Cruz."},
     {d:"Dom 22",md:"MD+1",type:"FOLGA",focus:"Descanso Programado",local:"-",
       sessions:[],
       almoco:false,tarde:"Descanso Programado",
-      wellness:false,cmj:false,ck:false,notes:"Descanso programado pós-jogo. Recuperação total."}
+      wellness:false,cmj:falsefalse,notes:"Descanso programado pós-jogo. Recuperação total."}
   ]
 };
 
 // Mapa de readiness por atleta para a semana
-const WEEK_READINESS=(players)=>{
+const WEEK_READINESS=(players,alerts)=>{
   const groups={
     full:[],limited:[],excluded:[],physio:[]
   };
+  const alertList = alerts || ML.alerts;
   players.forEach(p=>{
-    const alert=ML.alerts.find(a=>a.n===p.n);
+    const alert=alertList.find(a=>a.n===p.n);
     if(alert){
       if(alert.zone==="VERMELHO") groups.excluded.push({...p,zone:alert.zone,dose:alert.dose,prob:alert.prob});
       else if(alert.zone==="LARANJA") groups.limited.push({...p,zone:alert.zone,dose:alert.dose,prob:alert.prob});
@@ -821,7 +807,6 @@ const score=(p)=>{
   if(p.ai>1.45){s+=30;reasons.push("ACWR "+p.ai.toFixed(2));}else if(p.ai>1.3){s+=15;reasons.push("ACWR "+p.ai.toFixed(2));}else if(p.ai&&p.ai<.8){s+=20;reasons.push("Subcarga "+p.ai.toFixed(2));}
   if(p.d>=4){s+=20;reasons.push("Dor "+p.d+"/10");}else if(p.d>=2){s+=8;reasons.push("Dor "+p.d+"/10");}
   if(p.rp<=5){s+=18;reasons.push("RecP "+p.rp+"/10");}else if(p.rp<=6){s+=8;}
-  if(p.ck&&p.ck>1000){s+=25;reasons.push("CK "+Math.round(p.ck));}else if(p.ck&&p.ck>600){s+=12;reasons.push("CK "+Math.round(p.ck));}
   if(p.da>=2.5){s+=10;reasons.push("Dor avg "+p.da);}
   if(p.sa&&p.sa<6){s+=8;reasons.push("Sono avg "+p.sa);}
   if(p.rpa&&p.rpa<6){s+=6;}
@@ -923,7 +908,6 @@ export default function Dashboard(){
         if(live.fisio?.dor_pos>0) merged.d=live.fisio.dor_pos;
         if(live.fisio?.sono_noite>0) merged.sq=live.fisio.sono_noite;
         if(live.fisio?.rec_percebida>0) merged.rg=live.fisio.rec_percebida;
-        if(live.fisio?.ck_estimado>0) merged.ck=live.fisio.ck_estimado;
         if(live.carga_interna?.srpe_sessao>0) merged.pse=live.carga_interna.srpe_sessao;
         if(live.carga_interna?.srpe_total>0) merged.sra=live.carga_interna.srpe_total;
         if(live.carga_interna?.duracao>0) merged.duracao=live.carga_interna.duracao;
@@ -941,6 +925,48 @@ export default function Dashboard(){
       return {...merged,riskScore:s.score,risk:s.level,reasons:s.reasons};
     }).sort((a,b)=>b.riskScore-a.riskScore);
   },[sheetData]);
+  // Merge ML.alerts com dados live — atualizar ACWR, CMJ, Sono, Bio dinamicamente
+  const liveAlerts = useMemo(() => {
+    const liveAtletas = sheetData?.sessionAtletas || {};
+    return ML.alerts.map(a => {
+      const live = liveAtletas[a.n];
+      const p = players.find(pl => pl.n === a.n);
+      if (!live && !p) return a;
+      const merged = { ...a };
+      // ACWR do GPS live
+      if (live?.gps?.hsr_baseline > 0 && live?.gps?.hsr > 0) {
+        merged.acwr = Math.round((live.gps.hsr / live.gps.hsr_baseline) * 100) / 100;
+      } else if (p?.ai) {
+        merged.acwr = p.ai;
+      }
+      // CMJ delta do live (comparar com baseline do ct array)
+      if (live?.nm_response?.cmj_pre > 0 && p?.ct?.length > 1) {
+        const baseline = p.ct.slice(0, -1).reduce((s, v) => s + v, 0) / (p.ct.length - 1);
+        merged.cmj = Math.round((live.nm_response.cmj_pre - baseline) / baseline * 1000) / 10;
+      }
+      // Sono do live
+      if (live?.fisio?.sono_noite > 0) merged.sono = live.fisio.sono_noite;
+      else if (p?.sq) merged.sono = p.sq;
+      // Déficit biológico recalculado (sono + dor + rec invertidos)
+      const sono = merged.sono || a.sono;
+      const dor = live?.fisio?.dor_pos || p?.d || 0;
+      const rec = live?.fisio?.rec_percebida || p?.rg || 7;
+      merged.bio = Math.round(((10 - sono) * 0.4 + dor * 0.3 + (10 - rec) * 0.3) * 10) / 10;
+      // Prob recalculada: base + ajustes por dados live
+      const acwrFactor = merged.acwr > 1.45 ? 0.15 : merged.acwr > 1.3 ? 0.08 : merged.acwr < 0.8 ? 0.05 : 0;
+      const sonoFactor = sono < 6 ? 0.08 : sono < 7 ? 0.03 : 0;
+      const dorFactor = dor > 5 ? 0.10 : dor > 3 ? 0.05 : 0;
+      const bioFactor = merged.bio > 2.0 ? 0.08 : merged.bio > 1.5 ? 0.04 : 0;
+      // Usar lesão prévia como base forte (do alert original) + fatores dinâmicos
+      const injBase = a.shap_pos?.find(s => s.f.includes("Lesão Prévia"))?.sv || 0;
+      const baseProb = Math.max(0.05, injBase * 2);
+      merged.prob = Math.min(0.95, Math.max(0.05, baseProb + acwrFactor + sonoFactor + dorFactor + bioFactor));
+      // Atualizar zona de risco
+      merged.zone = merged.prob > 0.50 ? "VERMELHO" : merged.prob > 0.30 ? "LARANJA" : merged.prob > 0.15 ? "AMARELO" : "VERDE";
+      return merged;
+    });
+  }, [sheetData, players]);
+
   const sp=sel?players.find(p=>p.n===sel):null;
   const tabs=[{id:"squad",l:"Squad Overview",ic:Users},{id:"alerts",l:"Alertas",ic:AlertTriangle},{id:"carga",l:"Carga & ACWR",ic:TrendingUp},{id:"neuro",l:"Neuromuscular",ic:Zap},{id:"fisio",l:"Fisiológico",ic:Heart},{id:"temporal",l:"Temporal",ic:Activity},{id:"fisioterapia",l:"Fisioterapia",ic:Shield},{id:"mapa",l:"Mapa Semanal",ic:Calendar},{id:"player",l:"Individual",ic:Eye},{id:"sessao",l:"Sessão de Treino",ic:Activity},{id:"model",l:"Modelo Preditivo",ic:Brain},{id:"retro",l:"Retrospectiva",ic:Target}];
 
@@ -1056,10 +1082,10 @@ export default function Dashboard(){
                   </div>
                 </div>
                 <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                  {[{l:"Crítico",r:">60%",c:"#DC2626",n:ML.alerts.filter(a=>a.prob>0.60).length},
-                    {l:"Moderado",r:"35–60%",c:"#EA580C",n:ML.alerts.filter(a=>a.prob>0.35&&a.prob<=0.60).length},
-                    {l:"Atenção",r:"20–35%",c:"#CA8A04",n:ML.alerts.filter(a=>a.prob>0.20&&a.prob<=0.35).length},
-                    {l:"Normal",r:"<20%",c:"#16A34A",n:ML.alerts.filter(a=>a.prob<=0.20).length}
+                  {[{l:"Crítico",r:">60%",c:"#DC2626",n:liveAlerts.filter(a=>a.prob>0.60).length},
+                    {l:"Moderado",r:"35–60%",c:"#EA580C",n:liveAlerts.filter(a=>a.prob>0.35&&a.prob<=0.60).length},
+                    {l:"Atenção",r:"20–35%",c:"#CA8A04",n:liveAlerts.filter(a=>a.prob>0.20&&a.prob<=0.35).length},
+                    {l:"Normal",r:"<20%",c:"#16A34A",n:liveAlerts.filter(a=>a.prob<=0.20).length}
                   ].map((z,i)=><div key={i} style={{padding:"5px 10px",borderRadius:8,background:`${z.c}${dark?"20":"10"}`,border:`1px solid ${z.c}${dark?"40":"25"}`,textAlign:"center",minWidth:56}}>
                     <div style={{fontFamily:"'JetBrains Mono'",fontSize:16,fontWeight:800,color:z.c,lineHeight:1}}>{z.n}</div>
                     <div style={{fontSize:8,color:z.c,fontWeight:600,marginTop:2,opacity:.8}}>{z.l} <span style={{opacity:.6}}>({z.r})</span></div>
@@ -1077,7 +1103,7 @@ export default function Dashboard(){
                 </tr>
               </thead>
               <tbody>
-                {ML.alerts.map((a,i)=>{
+                {liveAlerts.map((a,i)=>{
                   const zs=ZC[a.zone];
                   const pr=PERFIL_RISCO_LABELS[a.perfil_risco]||PERFIL_RISCO_LABELS.sobrecarga;
                   const statusLabel=a.prob>0.60?"Crítico":a.prob>0.35?"Moderado":a.prob>0.20?"Atenção":"Normal";
@@ -1150,16 +1176,16 @@ export default function Dashboard(){
               </ResponsiveContainer>
             </div>
             <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>CK Seriado</div>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Wellness Score — Elenco</div>
               <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={players.filter(p=>p.ck).sort((a,b)=>b.ck-a.ck)} margin={{bottom:45}}>
+                <BarChart data={players.filter(p=>p.rpa).sort((a,b)=>a.rpa-b.rpa).slice(0,25)} margin={{bottom:45}}>
                   <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
                   <XAxis dataKey="n" tick={{fontSize:7,fill:t.textFaint}} angle={-50} textAnchor="end" interval={0}/>
-                  <YAxis tick={{fontSize:9,fill:t.textFaint}}/>
+                  <YAxis tick={{fontSize:9,fill:t.textFaint}} domain={[0,10]}/>
                   <Tooltip content={<Tip theme={t}/>}/>
-                  <ReferenceLine y={800} stroke="#DC2626" strokeDasharray="4 4"/>
-                  <Bar dataKey="ck" name="CK (U/L)" radius={[3,3,0,0]}>
-                    {players.filter(p=>p.ck).sort((a,b)=>b.ck-a.ck).map((p,i)=><Cell key={i} fill={p.ck>800?"#DC2626":p.ck>500?"#EA580C":"#16A34A"}/>)}
+                  <ReferenceLine y={6.5} stroke="#CA8A04" strokeDasharray="4 4" label={{value:"6.5",fill:"#CA8A04",fontSize:9}}/>
+                  <Bar dataKey="rpa" name="Wellness" radius={[3,3,0,0]}>
+                    {players.filter(p=>p.rpa).sort((a,b)=>a.rpa-b.rpa).slice(0,25).map((p,i)=><Cell key={i} fill={p.rpa<6?"#DC2626":p.rpa<7?"#CA8A04":"#16A34A"}/>)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -1196,9 +1222,9 @@ export default function Dashboard(){
           {players.filter(p=>p.riskScore>=8).map((p,i)=>{
             const lv=LV[p.risk];
             const rx=p.risk==="CRITICAL"?
-              (p.ai>1.45?"Reduzir volume 30% por 3 dias. sRPE alvo < 300.":p.ck>1000?"Remonitorar CK em 48h. Se >800, carga reduzida.":p.d>=4?"Fisioterapia preventiva imediata. Avaliar cadeia posterior.":"Monitoramento diário reforçado."):
+              (p.ai>1.45?"Reduzir volume 30% por 3 dias. sRPE alvo < 300.":p.d>=4?"Fisioterapia preventiva imediata. Avaliar cadeia posterior.":"Monitoramento diário reforçado."):
               p.risk==="HIGH"?
-              (p.ai>1.3?"Atenção à progressão de carga. Evitar picos de sprint.":p.ck>600?"CK elevado — evitar treino excêntrico pesado.":"Manter monitoramento. Cruzar GPS pós-treino."):
+              (p.ai>1.3?"Atenção à progressão de carga. Evitar picos de sprint.":"Manter monitoramento. Cruzar GPS pós-treino."):
               "Manter rotina de monitoramento.";
             return <div key={i} style={{background:t.bgCard,borderRadius:12,border:`1px solid ${lv.bc}`,padding:16,marginBottom:10,boxShadow:`0 1px 3px ${t.shadow}`}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
@@ -1350,13 +1376,13 @@ export default function Dashboard(){
         {tab==="fisio"&&<div>
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri,marginBottom:4}}>Painel Fisiológico</div>
-            <div style={{fontSize:11,color:t.textMuted}}>Monitoramento de sono, HRV, CK e wellness composto do elenco</div>
+            <div style={{fontSize:11,color:t.textMuted}}>Monitoramento de sono, HRV e wellness composto do elenco</div>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12,marginBottom:16}}>
             {[{l:"Sono Médio",v:(players.reduce((s,p)=>s+(p.sq||0),0)/players.length).toFixed(1),u:"/10",c:"#2563eb"},
               {l:"Sono < 6",v:players.filter(p=>(p.sq||10)<6).length,u:"atletas",c:"#DC2626"},
               {l:"HRV Médio",v:"62.4",u:"ms (RMSSD)",c:"#16A34A"},
-              {l:"CK > 2.5x Basal",v:players.filter(p=>{const pp=P.find(x=>x.n===p.n);return pp?.ck&&pp?.ckb&&(pp.ck/pp.ckb)>2.5;}).length||2,u:"atletas",c:"#EA580C"}
+              {l:"Dor > 3",v:players.filter(p=>(p.d||0)>3).length,u:"atletas",c:"#EA580C"}
             ].map((m,i)=><div key={i} style={{background:t.bgCard,borderRadius:10,border:`1px solid ${t.border}`,padding:14,textAlign:"center"}}>
               <div style={{fontSize:10,color:t.textFaint,fontWeight:600,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{m.l}</div>
               <div style={{fontFamily:"'JetBrains Mono'",fontSize:22,fontWeight:700,color:m.c}}>{m.v}</div>
@@ -1391,9 +1417,9 @@ export default function Dashboard(){
               </ResponsiveContainer>:<div style={{textAlign:"center",padding:40,color:t.textFaint,fontSize:12}}>Selecione um atleta na sidebar</div>}
             </div>
           </div>
-          {/* CK / Sleep ranking table */}
+          {/* Sleep / Wellness ranking table */}
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Ranking Fisiológico — Sono × CK × Wellness</div>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Ranking Fisiológico — Sono × Wellness</div>
             <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
               <thead><tr style={{borderBottom:`2px solid ${t.border}`}}>
                 {["Atleta","Pos","Sono","Rec Geral","Rec Pernas","Dor","Humor","Energia","Status"].map((h,i)=><th key={i} style={{padding:"6px 4px",textAlign:"left",fontSize:9,color:t.textFaint,fontWeight:700,textTransform:"uppercase"}}>{h}</th>)}
@@ -1456,7 +1482,7 @@ export default function Dashboard(){
                 {[{l:"sRPE z-score",v:"7d / 14d",d:"Sobrecarga relativa"},
                   {l:"CMJ z-score",v:"7d / 14d",d:"Fadiga neuromuscular"},
                   {l:"HRV z-score",v:"7d / 14d",d:"Estresse autonômico"},
-                  {l:"CK z-score",v:"7d / 14d",d:"Dano muscular relativo"}
+                  {l:"Wellness z-score",v:"7d / 14d",d:"Bem-estar composto"}
                 ].map((item,i)=><div key={i} style={{padding:"6px 8px",background:i<2?"#FEF2F2":t.bgMuted,borderRadius:6}}>
                   <div style={{fontSize:9,color:t.textFaint,fontWeight:600}}>{item.l} ({item.v})</div>
                   <div style={{fontSize:10,fontWeight:600,color:pri}}>{item.d}</div>
@@ -1493,15 +1519,15 @@ export default function Dashboard(){
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Estrutura de Features Temporais (110 engenheiradas)</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
-              {[{cat:"Lag Features",n:24,desc:"sRPE, CMJ, HRV, CK, sono, dor × [1,3,5,7]d",c:"#0891b2"},
-                {cat:"Rolling Mean",n:8,desc:"sRPE, CMJ, HRV, CK × [7d, 14d]",c:"#2563eb"},
-                {cat:"Rolling Std",n:8,desc:"sRPE, CMJ, HRV, CK × [7d, 14d]",c:"#7c3aed"},
-                {cat:"Rolling Z-Score",n:8,desc:"sRPE, CMJ, HRV, CK × [7d, 14d]",c:"#DC2626"},
-                {cat:"Trend Slopes",n:6,desc:"CMJ 3d/5d, Sleep 7d, sRPE 5d, HRV 7d, CK 48h",c:"#EA580C"},
+              {[{cat:"Lag Features",n:24,desc:"sRPE, CMJ, HRV, sono, dor × [1,3,5,7]d",c:"#0891b2"},
+                {cat:"Rolling Mean",n:8,desc:"sRPE, CMJ, HRV × [7d, 14d]",c:"#2563eb"},
+                {cat:"Rolling Std",n:8,desc:"sRPE, CMJ, HRV × [7d, 14d]",c:"#7c3aed"},
+                {cat:"Rolling Z-Score",n:8,desc:"sRPE, CMJ, HRV × [7d, 14d]",c:"#DC2626"},
+                {cat:"Trend Slopes",n:6,desc:"CMJ 3d/5d, Sleep 7d, sRPE 5d, HRV 7d",c:"#EA580C"},
                 {cat:"ACWR (EWMA)",n:5,desc:"HSR, Sprints, Decels, sRPE, Combinado",c:"#CA8A04"},
                 {cat:"Fatigue / Load",n:7,desc:"Debt, Monotonia, Strain, EWMA 7d/28d, Cum 7d/28d",c:"#16A34A"},
                 {cat:"Neuromuscular",n:6,desc:"CMJ Δ%, ISO asym, ISO Δ%, SLCMJ, NME, flag",c:"#7c3aed"},
-                {cat:"Interações",n:4,desc:"ACWR×sono, CK×asym, HRV×load, fadiga×asym",c:"#DC2626"}
+                {cat:"Interações",n:4,desc:"ACWR×sono, HRV×load, fadiga×asym",c:"#DC2626"}
               ].map((item,i)=><div key={i} style={{padding:"10px",background:t.bgMuted,borderRadius:8,borderLeft:`3px solid ${item.c}`}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
                   <span style={{fontSize:11,fontWeight:700,color:pri}}>{item.cat}</span>
@@ -1661,7 +1687,7 @@ export default function Dashboard(){
                 <div style={{fontSize:12,color:t.textFaint,marginTop:2}}>{WEEK_MAP.week} · Próximo Jogo: {WEEK_MAP.next_match.opponent} ({WEEK_MAP.next_match.date} — {WEEK_MAP.next_match.time}) · Série B Rodada {WEEK_MAP.next_match.rod}</div>
               </div>
               <div style={{display:"flex",gap:8}}>
-                {["Wellness","CMJ","CK"].map((t,i)=><span key={i} style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:t.bgMuted,color:t.textMuted,border:`1px solid ${t.border}`}}>{t}</span>)}
+                {["Wellness","CMJ","GPS"].map((t,i)=><span key={i} style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:t.bgMuted,color:t.textMuted,border:`1px solid ${t.border}`}}>{t}</span>)}
               </div>
             </div>
           </div>
@@ -1698,7 +1724,7 @@ export default function Dashboard(){
                 <div style={{padding:"4px 8px",borderTop:"1px solid #f1f5f9",display:"flex",justifyContent:"center",gap:4}}>
                   {day.wellness&&<span style={{width:6,height:6,borderRadius:"50%",background:"#16A34A"}} title="Wellness"/>}
                   {day.cmj&&<span style={{width:6,height:6,borderRadius:"50%",background:"#2563eb"}} title="CMJ"/>}
-                  {day.ck&&<span style={{width:6,height:6,borderRadius:"50%",background:"#DC2626"}} title="CK"/>}
+                  {day.gps&&<span style={{width:6,height:6,borderRadius:"50%",background:"#DC2626"}} title="GPS"/>}
                 </div>
                 {/* Notes */}
                 <div style={{padding:"6px 8px",background:"#FEFCE8",borderTop:"1px solid #FEF08A",fontSize:8,color:"#854D0E",lineHeight:1.3}}>
@@ -1778,7 +1804,7 @@ export default function Dashboard(){
 
           {/* Player Readiness Map */}
           {(()=>{
-            const gr=WEEK_READINESS(players);
+            const gr=WEEK_READINESS(players,liveAlerts);
             return <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
               {/* Excluded */}
               <div style={{background:t.bgCard,borderRadius:12,border:"1px solid #FECACA",overflow:"hidden"}}>
@@ -1863,8 +1889,8 @@ export default function Dashboard(){
                 {sp.reasons.length>0&&<div style={{display:"flex",gap:6,marginTop:6,flexWrap:"wrap"}}>
                   {sp.reasons.map((r,i)=><span key={i} style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:LV[sp.risk].bg,color:LV[sp.risk].c,border:`1px solid ${LV[sp.risk].bc}`}}>{r}</span>)}
                 </div>}
-                <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:12,marginTop:12}}>
-                  {[{l:"ACWR Int",v:sp.ai?.toFixed(2)||"-"},{l:"PSE",v:sp.pse},{l:"sRPE avg",v:sp.sra},{l:"CK",v:sp.ck?Math.round(sp.ck):"-"},{l:"CMJ",v:sp.cmj||"-"},{l:"Humor",v:humorL[sp.h]},{l:"Energia",v:sp.e<=2?"Baixa":"OK"}].map((m,i)=>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:12,marginTop:12}}>
+                  {[{l:"ACWR Int",v:sp.ai?.toFixed(2)||"-"},{l:"PSE",v:sp.pse},{l:"sRPE avg",v:sp.sra},{l:"CMJ",v:sp.cmj||"-"},{l:"Humor",v:humorL[sp.h]},{l:"Energia",v:sp.e<=2?"Baixa":"OK"}].map((m,i)=>
                     <div key={i} style={{textAlign:"center"}}><div style={{fontSize:9,color:t.textFaint,fontWeight:500}}>{m.l}</div><div style={{fontFamily:"'JetBrains Mono'",fontSize:15,fontWeight:700,color:pri,marginTop:1}}>{m.v}</div></div>)}
                 </div>
               </div>
@@ -1873,7 +1899,7 @@ export default function Dashboard(){
 
           {/* Risco de Lesão + DM + Histórico */}
           {(()=>{
-            const mlAlert=ML.alerts.find(a=>a.n===sp.n);
+            const mlAlert=liveAlerts.find(a=>a.n===sp.n);
             const dmStatus=DM_ATUAL.find(d=>d.n===sp.n);
             const playerInj=INJ_HISTORY.filter(h=>h.n===sp.n);
             const prob=mlAlert?mlAlert.prob:null;
@@ -1902,10 +1928,9 @@ export default function Dashboard(){
                       </div>
                     </div>
                   </div>
-                  <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6}}>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6}}>
                     {[
                       {l:"ACWR",v:mlAlert.acwr,c:mlAlert.acwr>1.3?"#DC2626":"#16A34A"},
-                      {l:"CK/Bas",v:mlAlert.ck+"x",c:mlAlert.ck>3?"#DC2626":"#EA580C"},
                       {l:"CMJ Δ",v:mlAlert.cmj+"%",c:mlAlert.cmj<-8?"#DC2626":"#EA580C"},
                       {l:"Sono",v:mlAlert.sono,c:mlAlert.sono<6?"#DC2626":"#16A34A"},
                       {l:"Bio Def",v:mlAlert.bio,c:mlAlert.bio>1.5?"#DC2626":"#CA8A04"}
@@ -2022,13 +2047,13 @@ export default function Dashboard(){
             </div>}
           </div>
 
-          {/* ═══ CAMADA 4: TENDÊNCIA TEMPORAL — Fatigue Debt, CK, sRPE, CMJ ═══ */}
+          {/* ═══ CAMADA 4: TENDÊNCIA TEMPORAL — Fatigue Debt, sRPE, CMJ ═══ */}
           {(()=>{
-            const mlAlert=ML.alerts.find(a=>a.n===sp.n);
+            const mlAlert=liveAlerts.find(a=>a.n===sp.n);
             if(!mlAlert||!mlAlert.trends) return null;
             const tr=mlAlert.trends;
             const days=["D-7","D-6","D-5","D-4","D-3","D-2","D-1"];
-            const trendData=days.map((d,i)=>({d,fatigue_debt:tr.fatigue_debt[i],ck:tr.ck[i],srpe:tr.srpe[i],cmj:tr.cmj[i]}));
+            const trendData=days.map((d,i)=>({d,fatigue_debt:tr.fatigue_debt[i],srpe:tr.srpe[i],cmj:tr.cmj[i],wellness:tr.wellness?tr.wellness[i]:(mlAlert.sono||7)}));
             const pr=PERFIL_RISCO_LABELS[mlAlert.perfil_risco]||PERFIL_RISCO_LABELS.sobrecarga;
             return <div style={{marginBottom:16}}>
               {/* Physiological Risk Profile */}
@@ -2072,11 +2097,11 @@ export default function Dashboard(){
                   </ResponsiveContainer>
                 </div>
                 <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>CK Seriado — 7 Dias</div>
-                  <div style={{fontSize:10,color:t.textFaint,marginBottom:6}}>Tendência de dano muscular (U/L)</div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Wellness Score — 7 Dias</div>
+                  <div style={{fontSize:10,color:t.textFaint,marginBottom:6}}>Score composto de bem-estar (sono + rec + dor inv.)</div>
                   <ResponsiveContainer width="100%" height={160}>
-                    <AreaChart data={trendData}><CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/><XAxis dataKey="d" tick={{fontSize:9,fill:t.textFaint}}/><YAxis tick={{fontSize:9,fill:t.textFaint}}/><Tooltip content={<Tip theme={t}/>}/>
-                      <Area type="monotone" dataKey="ck" name="CK (U/L)" stroke="#DC2626" fill="#DC2626" fillOpacity={.08} strokeWidth={2.5}/>
+                    <AreaChart data={trendData}><CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/><XAxis dataKey="d" tick={{fontSize:9,fill:t.textFaint}}/><YAxis tick={{fontSize:9,fill:t.textFaint}} domain={[0,10]}/><Tooltip content={<Tip theme={t}/>}/>
+                      <Area type="monotone" dataKey="wellness" name="Wellness" stroke="#16A34A" fill="#16A34A" fillOpacity={.08} strokeWidth={2.5}/>
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -2106,15 +2131,15 @@ export default function Dashboard(){
           {(()=>{
             const proj=PROJECTIONS[sp.n];
             if(!proj) return null;
-            const mlAlert=ML.alerts.find(a=>a.n===sp.n);
+            const mlAlert=liveAlerts.find(a=>a.n===sp.n);
             if(!mlAlert) return null;
             const tendC=proj.tendencia==="piora"?"#DC2626":proj.tendencia==="piora_leve"?"#EA580C":proj.tendencia==="estavel"?"#CA8A04":"#16A34A";
             const tendL=proj.tendencia==="piora"?"PIORA":proj.tendencia==="piora_leve"?"PIORA LEVE":proj.tendencia==="estavel"?"ESTÁVEL":"MELHORA";
             const nivelC=proj.nivel_projetado==="CRÍTICO"?"#DC2626":proj.nivel_projetado.includes("MODERADO")?"#EA580C":proj.nivel_projetado==="ATENÇÃO"?"#CA8A04":"#16A34A";
             const projData=[
-              {d:"Atual",fatigue_debt:mlAlert.trends.fatigue_debt[6],cmj:mlAlert.trends.cmj[6],ck:mlAlert.trends.ck[6]},
-              {d:"+48h",fatigue_debt:proj.proj_48h.fatigue_debt,cmj:proj.proj_48h.cmj,ck:proj.proj_48h.ck},
-              {d:"+72h",fatigue_debt:proj.proj_72h.fatigue_debt,cmj:proj.proj_72h.cmj,ck:proj.proj_72h.ck}
+              {d:"Atual",fatigue_debt:mlAlert.trends.fatigue_debt[6],cmj:mlAlert.trends.cmj[6]},
+              {d:"+48h",fatigue_debt:proj.proj_48h.fatigue_debt,cmj:proj.proj_48h.cmj},
+              {d:"+72h",fatigue_debt:proj.proj_72h.fatigue_debt,cmj:proj.proj_72h.cmj}
             ];
             return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${tendC}33`,padding:18,marginBottom:16}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
@@ -2147,8 +2172,7 @@ export default function Dashboard(){
                     <div style={{display:"flex",flexDirection:"column",gap:4}}>
                       {[
                         {l:"Fatigue Debt",v:col.d.fatigue_debt,c:col.d.fatigue_debt>3000?"#DC2626":col.d.fatigue_debt>2500?"#EA580C":"#16A34A"},
-                        {l:"CMJ (cm)",v:col.d.cmj?.toFixed(1),c:"#7c3aed"},
-                        {l:"CK (U/L)",v:col.d.ck,c:col.d.ck>400?"#DC2626":col.d.ck>250?"#EA580C":"#16A34A"}
+                        {l:"CMJ (cm)",v:col.d.cmj?.toFixed(1),c:"#7c3aed"}
                       ].map((m,mi)=>
                         <div key={mi} style={{display:"flex",justifyContent:"space-between",padding:"3px 6px",background:t.bgCard,borderRadius:4}}>
                           <span style={{fontSize:9,color:t.textFaint}}>{m.l}</span>
@@ -2161,8 +2185,7 @@ export default function Dashboard(){
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
                 {[
                   {label:"Fatigue Debt",key:"fatigue_debt",c:"#EA580C"},
-                  {label:"CMJ (cm)",key:"cmj",c:"#7c3aed"},
-                  {label:"CK (U/L)",key:"ck",c:"#DC2626"}
+                  {label:"CMJ (cm)",key:"cmj",c:"#7c3aed"}
                 ].map((ch,ci)=>
                   <div key={ci} style={{background:t.bgMuted,borderRadius:8,padding:12}}>
                     <div style={{fontSize:10,fontWeight:600,color:pri,marginBottom:6}}>{ch.label}</div>
@@ -2237,7 +2260,7 @@ export default function Dashboard(){
                   </tr>
                 </thead>
                 <tbody>
-                  {ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map((alert,idx)=>{
+                  {liveAlerts.filter(a=>LIVE_SESSION.atletas[a.n]).map((alert,idx)=>{
                     const sess=LIVE_SESSION.atletas[alert.n];
                     const g=sess.gps;
                     const ci=sess.carga_interna;
@@ -2275,7 +2298,7 @@ export default function Dashboard(){
                 </tbody>
                 {/* Médias do time */}
                 {(()=>{
-                  const sessAtletas=ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map(a=>LIVE_SESSION.atletas[a.n]);
+                  const sessAtletas=liveAlerts.filter(a=>LIVE_SESSION.atletas[a.n]).map(a=>LIVE_SESSION.atletas[a.n]);
                   if(!sessAtletas.length) return null;
                   const avg=(arr,fn)=>{const vals=arr.map(fn).filter(v=>v>0);return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;};
                   return <tfoot><tr style={{borderTop:`2px solid ${pri}`,fontWeight:800}}>
@@ -2301,7 +2324,7 @@ export default function Dashboard(){
           </div>
 
           {/* Individual Session Cards */}
-          {ML.alerts.map(alert=>{
+          {liveAlerts.map(alert=>{
             const sess=LIVE_SESSION.atletas[alert.n];
             if(!sess) return null;
             const classC=sess.classificacao==="vermelho"?"#DC2626":sess.classificacao==="amarelo"?"#CA8A04":"#16A34A";
@@ -2410,8 +2433,7 @@ export default function Dashboard(){
                     {[
                       {l:"Sono (noite anterior)",v:fi.sono_noite+"h",c:fi.sono_noite<6?"#DC2626":fi.sono_noite<7?"#CA8A04":"#16A34A"},
                       {l:"Dor Pós-Sessão",v:fi.dor_pos+"/10",c:fi.dor_pos>=4?"#DC2626":fi.dor_pos>=2?"#CA8A04":"#16A34A"},
-                      {l:"Recuperação Percebida",v:fi.rec_percebida+"/10",c:fi.rec_percebida<=5?"#DC2626":fi.rec_percebida<=7?"#CA8A04":"#16A34A"},
-                      {l:"CK Estimado",v:fi.ck_estimado+" U/L",c:fi.ck_estimado>500?"#DC2626":fi.ck_estimado>300?"#EA580C":"#16A34A"}
+                      {l:"Recuperação Percebida",v:fi.rec_percebida+"/10",c:fi.rec_percebida<=5?"#DC2626":fi.rec_percebida<=7?"#CA8A04":"#16A34A"}
                     ].map((m,j)=>
                       <div key={j} style={{textAlign:"center",padding:"6px 4px",background:t.bgMuted,borderRadius:6}}>
                         <div style={{fontSize:8,color:t.textFaint,fontWeight:600}}>{m.l}</div>
@@ -2455,7 +2477,7 @@ export default function Dashboard(){
               <div>
                 <div style={{fontSize:10,fontWeight:600,color:t.textMuted,marginBottom:6}}>Carga GPS (% do Baseline)</div>
                 <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map(a=>{const s=LIVE_SESSION.atletas[a.n];return {n:a.n.split(" ")[0],dist:s.gps.dist_baseline?Math.round((s.gps.dist_total/s.gps.dist_baseline)*100):0,hsr:s.gps.hsr_baseline?Math.round((s.gps.hsr/s.gps.hsr_baseline)*100):0};})} margin={{left:-10}}>
+                  <BarChart data={liveAlerts.filter(a=>LIVE_SESSION.atletas[a.n]).map(a=>{const s=LIVE_SESSION.atletas[a.n];return {n:a.n.split(" ")[0],dist:s.gps.dist_baseline?Math.round((s.gps.dist_total/s.gps.dist_baseline)*100):0,hsr:s.gps.hsr_baseline?Math.round((s.gps.hsr/s.gps.hsr_baseline)*100):0};})} margin={{left:-10}}>
                     <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
                     <XAxis dataKey="n" tick={{fontSize:8,fill:t.textFaint}} interval={0} angle={-30} textAnchor="end" height={40}/>
                     <YAxis tick={{fontSize:8,fill:t.textFaint}} domain={[0,120]}/>
@@ -2470,14 +2492,14 @@ export default function Dashboard(){
               <div>
                 <div style={{fontSize:10,fontWeight:600,color:t.textMuted,marginBottom:6}}>CMJ Δ Pós-Sessão (%)</div>
                 <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map(a=>{const s=LIVE_SESSION.atletas[a.n];return {n:a.n.split(" ")[0],delta:s.nm_response.cmj_delta_pct};})} margin={{left:-10}}>
+                  <BarChart data={liveAlerts.filter(a=>LIVE_SESSION.atletas[a.n]).map(a=>{const s=LIVE_SESSION.atletas[a.n];return {n:a.n.split(" ")[0],delta:s.nm_response.cmj_delta_pct};})} margin={{left:-10}}>
                     <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
                     <XAxis dataKey="n" tick={{fontSize:8,fill:t.textFaint}} interval={0} angle={-30} textAnchor="end" height={40}/>
                     <YAxis tick={{fontSize:8,fill:t.textFaint}} domain={[-8,1]}/>
                     <Tooltip content={<Tip theme={t}/>}/>
                     <ReferenceLine y={-5} stroke="#DC2626" strokeDasharray="3 3" label={{value:"-5%",fontSize:8,fill:"#DC2626"}}/>
                     <Bar dataKey="delta" name="CMJ Δ %" radius={[2,2,0,0]}>
-                      {ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map((a,i)=>{const d=LIVE_SESSION.atletas[a.n].nm_response.cmj_delta_pct;return <Cell key={i} fill={d<-5?"#DC2626":d<-3?"#EA580C":"#16A34A"}/>;
+                      {liveAlerts.filter(a=>LIVE_SESSION.atletas[a.n]).map((a,i)=>{const d=LIVE_SESSION.atletas[a.n].nm_response.cmj_delta_pct;return <Cell key={i} fill={d<-5?"#DC2626":d<-3?"#EA580C":"#16A34A"}/>;
                       })}
                     </Bar>
                   </BarChart>
@@ -2487,14 +2509,14 @@ export default function Dashboard(){
               <div>
                 <div style={{fontSize:10,fontWeight:600,color:t.textMuted,marginBottom:6}}>Δ Risco de Lesão (%)</div>
                 <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map(a=>{const s=LIVE_SESSION.atletas[a.n];return {n:a.n.split(" ")[0],delta:Number((s.risco.delta*100).toFixed(1))};})} margin={{left:-10}}>
+                  <BarChart data={liveAlerts.filter(a=>LIVE_SESSION.atletas[a.n]).map(a=>{const s=LIVE_SESSION.atletas[a.n];return {n:a.n.split(" ")[0],delta:Number((s.risco.delta*100).toFixed(1))};})} margin={{left:-10}}>
                     <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
                     <XAxis dataKey="n" tick={{fontSize:8,fill:t.textFaint}} interval={0} angle={-30} textAnchor="end" height={40}/>
                     <YAxis tick={{fontSize:8,fill:t.textFaint}} domain={[-3,5]}/>
                     <Tooltip content={<Tip theme={t}/>}/>
                     <ReferenceLine y={0} stroke={t.textFaint}/>
                     <Bar dataKey="delta" name="Δ Risco %" radius={[2,2,0,0]}>
-                      {ML.alerts.filter(a=>LIVE_SESSION.atletas[a.n]).map((a,i)=>{const d=LIVE_SESSION.atletas[a.n].risco.delta;return <Cell key={i} fill={d>0.02?"#DC2626":d>0?"#EA580C":d<-0.01?"#16A34A":t.textMuted}/>;
+                      {liveAlerts.filter(a=>LIVE_SESSION.atletas[a.n]).map((a,i)=>{const d=LIVE_SESSION.atletas[a.n].risco.delta;return <Cell key={i} fill={d>0.02?"#DC2626":d>0?"#EA580C":d<-0.01?"#16A34A":t.textMuted}/>;
                       })}
                     </Bar>
                   </BarChart>
@@ -2550,7 +2572,7 @@ export default function Dashboard(){
               <strong>SMOTE obrigatório:</strong> Sem SMOTE o modelo apresenta acurácia de 91% ilusória com recall de apenas 14%. Com SMOTE + calibração: recall 79% (+65pp).
             </div>
             <div style={{marginTop:6,padding:"8px 12px",background:"#F0FDF4",borderRadius:6,border:"1px solid #BBF7D0",fontSize:10,color:"#166534"}}>
-              <strong>v3.0:</strong> +7 features temporais (Fatigue Debt, NME, CMJ/CK/sRPE/Sleep trends). Calibração Isotônica + Threshold Tuning automático. scale_pos_weight=4. AUC 0.847→0.878.
+              <strong>v3.0:</strong> +7 features temporais (Fatigue Debt, NME, CMJ/sRPE/Sleep trends). Calibração Isotônica + Threshold Tuning automático. scale_pos_weight=4. AUC 0.847→0.878.
             </div>
             {/* LASSO vs XGBoost comparison */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginTop:10}}>
@@ -2644,16 +2666,16 @@ export default function Dashboard(){
                 <div style={{fontSize:11,color:t.textFaint}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · Explicabilidade por atleta: quais variáveis geraram cada alerta</div>
               </div>
               <div style={{display:"flex",gap:8}}>
-                {[{l:"Vermelho",c:"#DC2626",n:ML.alerts.filter(a=>a.zone==="VERMELHO").length},
-                  {l:"Laranja",c:"#EA580C",n:ML.alerts.filter(a=>a.zone==="LARANJA").length},
-                  {l:"Amarelo",c:"#CA8A04",n:ML.alerts.filter(a=>a.zone==="AMARELO").length}
+                {[{l:"Vermelho",c:"#DC2626",n:liveAlerts.filter(a=>a.zone==="VERMELHO").length},
+                  {l:"Laranja",c:"#EA580C",n:liveAlerts.filter(a=>a.zone==="LARANJA").length},
+                  {l:"Amarelo",c:"#CA8A04",n:liveAlerts.filter(a=>a.zone==="AMARELO").length}
                 ].map((z,i)=><span key={i} style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,background:`${z.c}12`,color:z.c,border:`1px solid ${z.c}33`}}>{z.n} {z.l}</span>)}
               </div>
             </div>
 
             {/* Clinical Cards */}
             <div style={{display:"flex",flexDirection:"column",gap:12}}>
-              {ML.alerts.map((a,i)=>{
+              {liveAlerts.map((a,i)=>{
                 const zs=ZC[a.zone];
                 const ext=PLAYER_EXT[a.n];
                 return <div key={i} style={{borderRadius:10,border:`1px solid ${zs.bc}`,overflow:"hidden"}}>
@@ -2669,7 +2691,7 @@ export default function Dashboard(){
                       {a.perfil_risco&&(()=>{const pr=PERFIL_RISCO_LABELS[a.perfil_risco];return <span style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:700,background:pr.bg,color:pr.c,border:`1px solid ${pr.bc}`}}>{pr.label}</span>;})()}
                     </div>
                     <div style={{display:"flex",gap:6,flexShrink:0}}>
-                      {[{l:"ACWR",v:a.acwr,c:a.acwr>1.3?"#DC2626":pri},{l:"CK/B",v:a.ck+"x",c:a.ck>3?"#DC2626":a.ck>2?"#EA580C":pri},{l:"CMJ",v:(a.cmj>0?"+":"")+a.cmj+"%",c:a.cmj<-8?"#DC2626":a.cmj<-5?"#EA580C":"#16A34A"},{l:"Sono",v:a.sono,c:a.sono<6?"#DC2626":a.sono<7?"#CA8A04":"#16A34A"}].map((m,j)=>
+                      {[{l:"ACWR",v:a.acwr,c:a.acwr>1.3?"#DC2626":pri},{l:"CMJ",v:(a.cmj>0?"+":"")+a.cmj+"%",c:a.cmj<-8?"#DC2626":a.cmj<-5?"#EA580C":"#16A34A"},{l:"Sono",v:a.sono,c:a.sono<6?"#DC2626":a.sono<7?"#CA8A04":"#16A34A"}].map((m,j)=>
                         <div key={j} style={{textAlign:"center",padding:"2px 6px"}}>
                           <div style={{fontSize:8,color:t.textFaint}}>{m.l}</div>
                           <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:m.c}}>{m.v}</div>
