@@ -148,7 +148,7 @@ const ML={
       classif:"Alto",
       perfil_risco:"aguda",
       fatigue_debt:2840,nme:0.0142,cmj_trend_3d:-1.82,srpe_trend_5d:48.3,sleep_trend_7d:-0.31,
-      trends:{fatigue_debt:[1620,1780,1950,2110,2340,2580,2840][148,165,198,224,268,290,315],srpe:[280,310,350,420,480,520,560],cmj:[53.2,52.8,52.1,51.4,50.8,49.6,48.2]},
+      trends:{fatigue_debt:[1620,1780,1950,2110,2340,2580,2840],srpe:[280,310,350,420,480,520,560],cmj:[53.2,52.8,52.1,51.4,50.8,49.6,48.2]},
       diag_diff:{aguda:78,sobrecarga:22,base:"ACWR extremo (1.97) + assimetria SLCMJ 14.8% + H:Q 0.52 → perfil de lesão aguda muscular em sprint/aceleração (Rommers et al., 2020)"},
       shap_pos:[
         {f:"ACWR Combinado",sv:0.182,v:"1.97",note:"2.3x acima do limiar (0.85). Maior contribuição individual."},
@@ -168,7 +168,7 @@ const ML={
       classif:"Alto",
       perfil_risco:"sobrecarga",
       fatigue_debt:3120,nme:0.0108,cmj_trend_3d:-0.94,srpe_trend_5d:22.1,sleep_trend_7d:-0.42,
-      trends:{fatigue_debt:[2210,2380,2540,2690,2850,2980,3120][320,345,380,410,445,470,510],srpe:[310,330,340,355,370,380,395],cmj:[44.8,44.2,43.6,43.1,42.5,41.8,42.8]},
+      trends:{fatigue_debt:[2210,2380,2540,2690,2850,2980,3120],srpe:[310,330,340,355,370,380,395],cmj:[44.8,44.2,43.6,43.1,42.5,41.8,42.8]},
       diag_diff:{aguda:45,sobrecarga:55,base:"Lesão recente (dez/25, posterior coxa) + sono 5.9 + dor crônica (2.9 avg) → perfil misto com dominância de sobrecarga residual"},
       shap_pos:[
         {f:"Lesão Prévia (< 90d)",sv:0.198,v:"Posterior Coxa (dez/25)",note:"MAIOR PREDITOR. 21 dias fora, < 90 dias. RR = 3.4x (Kolodziej)."},
@@ -187,7 +187,7 @@ const ML={
       classif:"Alto",
       perfil_risco:"sobrecarga",
       fatigue_debt:3450,nme:0.0095,cmj_trend_3d:-0.62,srpe_trend_5d:35.7,sleep_trend_7d:0.08,
-      trends:{fatigue_debt:[2480,2650,2810,2980,3140,3290,3450][680,720,810,890,960,1120,1150],srpe:[340,360,380,395,410,425,440],cmj:[44.9,44.5,44.1,43.8,43.5,43.1,43.3]},
+      trends:{fatigue_debt:[2480,2650,2810,2980,3140,3290,3450],srpe:[340,360,380,395,410,425,440],cmj:[44.9,44.5,44.1,43.8,43.5,43.1,43.3]},
       diag_diff:{aguda:32,sobrecarga:68,base:""},
       shap_pos:[
         {f:"Lesão Prévia (< 90d)",sv:0.121,v:"Adutor E (jan/26)",note:"60 dias. Tecido em remodelação. Vulnerável."},
@@ -206,7 +206,7 @@ const ML={
       classif:"Moderado",
       perfil_risco:"sobrecarga",
       fatigue_debt:2680,nme:0.0118,cmj_trend_3d:-0.35,srpe_trend_5d:18.4,sleep_trend_7d:-0.12,
-      trends:{fatigue_debt:[2050,2180,2310,2420,2510,2590,2680][380,395,420,460,510,545,580],srpe:[350,365,380,390,400,415,430],cmj:[48.0,47.8,47.5,47.3,47.1,46.8,47.5]},
+      trends:{fatigue_debt:[2050,2180,2310,2420,2510,2590,2680],srpe:[350,365,380,390,400,415,430],cmj:[48.0,47.8,47.5,47.3,47.1,46.8,47.5]},
       diag_diff:{aguda:38,sobrecarga:62,base:"+ ) + histórico tornozelo → sobrecarga crônica com compensação biomecânica"},
       shap_pos:[
         {f:"Déficit Biológico",sv:0.054,v:"1.5",note:"Limiar de atenção."},
@@ -224,7 +224,7 @@ const ML={
       classif:"Moderado",
       perfil_risco:"aguda",
       fatigue_debt:2150,nme:0.0125,cmj_trend_3d:-0.78,srpe_trend_5d:31.2,sleep_trend_7d:-0.18,
-      trends:{fatigue_debt:[1580,1690,1790,1880,1960,2060,2150][180,195,210,225,240,260,280],srpe:[310,325,340,355,370,385,400],cmj:[43.8,43.2,42.8,42.3,41.8,42.0,42.6]},
+      trends:{fatigue_debt:[1580,1690,1790,1880,1960,2060,2150],srpe:[310,325,340,355,370,385,400],cmj:[43.8,43.2,42.8,42.3,41.8,42.0,42.6]},
       diag_diff:{aguda:61,sobrecarga:39,base:"Lesão recente reto femoral (fev/26) + ACWR 1.30 ascendente + SLCMJ ASI 11.9% + H:Q 0.51 → perfil agudo em construção"},
       shap_pos:[
         {f:"Lesão Prévia (< 90d)",sv:0.142,v:"Reto Femoral E (fev/26)",note:"36 dias. Tecido vulnerável."},
@@ -242,7 +242,7 @@ const ML={
       classif:"Moderado",
       perfil_risco:"neuromuscular",
       fatigue_debt:1890,nme:0.0138,cmj_trend_3d:-1.12,srpe_trend_5d:8.6,sleep_trend_7d:0.04,
-      trends:{fatigue_debt:[1420,1510,1580,1640,1710,1800,1890][145,150,158,165,172,180,190],srpe:[240,248,255,262,270,278,290],cmj:[42.3,41.8,41.2,40.8,40.3,39.8,38.4]},
+      trends:{fatigue_debt:[1420,1510,1580,1640,1710,1800,1890],srpe:[240,248,255,262,270,278,290],cmj:[42.3,41.8,41.2,40.8,40.3,39.8,38.4]},
       diag_diff:{aguda:28,sobrecarga:72,base:"Monotonia 2.2 (maior do elenco) + histórico tendinopatia patelar + dor avg 3.0 → perfil de sobrecarga tendínea por repetição"},
       shap_pos:[
         {f:"Monotonia",sv:0.092,v:"2.2",note:"Maior do elenco. Tendão reage a carga monotônica (caso retrospectivo)."},
@@ -260,7 +260,7 @@ const ML={
       classif:"Moderado",
       perfil_risco:"neuromuscular",
       fatigue_debt:2320,nme:0.0098,cmj_trend_3d:-1.45,srpe_trend_5d:14.8,sleep_trend_7d:-0.38,
-      trends:{fatigue_debt:[1780,1890,1980,2060,2140,2230,2320][210,225,240,258,270,285,300],srpe:[300,310,320,335,350,360,375],cmj:[39.2,38.8,38.2,37.6,37.1,36.4,38.7]},
+      trends:{fatigue_debt:[1780,1890,1980,2060,2140,2230,2320],srpe:[300,310,320,335,350,360,375],cmj:[39.2,38.8,38.2,37.6,37.1,36.4,38.7]},
       diag_diff:{aguda:54,sobrecarga:46,base:"2 lesões prévias no mesmo segmento (panturrilha D) + CMJ -7.2% + + sono 5.8 → recidiva muscular por fadiga NM crônica"},
       shap_pos:[
         {f:"Lesão Prévia (recidiva)",sv:0.134,v:"2 lesões panturrilha D",note:"Recidiva ipsilateral. Máximo peso (Kolodziej). Tecido comprometido."},
@@ -279,7 +279,7 @@ const ML={
       classif:"Moderado",
       perfil_risco:"biomecanico",
       fatigue_debt:2010,nme:0.0112,cmj_trend_3d:-2.15,srpe_trend_5d:12.4,sleep_trend_7d:0.14,
-      trends:{fatigue_debt:[1520,1610,1700,1780,1850,1930,2010][190,200,215,228,240,255,268],srpe:[340,350,360,375,390,400,415],cmj:[55.1,53.8,52.4,50.8,49.1,47.2,45.5]},
+      trends:{fatigue_debt:[1520,1610,1700,1780,1850,1930,2010],srpe:[340,350,360,375,390,400,415],cmj:[55.1,53.8,52.4,50.8,49.1,47.2,45.5]},
       diag_diff:{aguda:67,sobrecarga:33,base:"Lesão recente posterior coxa E (fev/26) + SLCMJ ASI 16.1% (pior do elenco) + CMJ -12.5% + H:Q 0.49 → alto risco agudo mesmo com prob moderada"},
       shap_pos:[
         {f:"Assimetria SLCMJ",sv:0.148,v:"16.1%",note:"PIOR DO ELENCO. Acima de 15% = flag crítico. Risco posterior coxa."},
@@ -300,7 +300,7 @@ const ML={
       classif:"Baixo-Moderado",
       perfil_risco:"sobrecarga",
       fatigue_debt:1780,nme:0.0168,cmj_trend_3d:0.22,srpe_trend_5d:10.2,sleep_trend_7d:-0.08,
-      trends:{fatigue_debt:[1380,1440,1510,1580,1640,1710,1780][220,235,250,268,285,300,320],srpe:[300,310,320,330,340,350,370],cmj:[44.7,45.0,45.2,45.5,45.8,46.0,46.0]},
+      trends:{fatigue_debt:[1380,1440,1510,1580,1640,1710,1780],srpe:[300,310,320,330,340,350,370],cmj:[44.7,45.0,45.2,45.5,45.8,46.0,46.0]},
       diag_diff:{aguda:25,sobrecarga:75,base:"Lesão lombar recente (jan/26) + Delta BF% elevado → perfil de desregulação sistêmica (caso atípico da retrospectiva)"},
       shap_pos:[
         {f:"Lesão Prévia",sv:0.082,v:"Lombar D (jan/26)",note:"45 dias. Região vulnerável."},
@@ -319,7 +319,7 @@ const ML={
       classif:"Baixo",
       perfil_risco:"aguda",
       fatigue_debt:1540,nme:0.0155,cmj_trend_3d:-0.48,srpe_trend_5d:15.8,sleep_trend_7d:0.06,
-      trends:{fatigue_debt:[1180,1240,1300,1360,1410,1470,1540][145,150,155,162,170,178,185],srpe:[280,290,300,310,320,330,340],cmj:[52.2,51.8,51.4,51.0,50.6,50.2,49.6]},
+      trends:{fatigue_debt:[1180,1240,1300,1360,1410,1470,1540],srpe:[280,290,300,310,320,330,340],cmj:[52.2,51.8,51.4,51.0,50.6,50.2,49.6]},
       diag_diff:{aguda:52,sobrecarga:48,base:"Sem histórico + ACWR 1.24 moderado + métricas NM boas → risco residual por carga, sem vulnerabilidade estrutural"},
       shap_pos:[
         {f:"ACWR Combinado",sv:0.058,v:"1.24",note:"Zona de atenção (> 1.20). Tendência ascendente."},
@@ -338,7 +338,7 @@ const ML={
       classif:"Baixo",
       perfil_risco:"sobrecarga",
       fatigue_debt:1320,nme:0.0162,cmj_trend_3d:-0.38,srpe_trend_5d:6.4,sleep_trend_7d:-0.05,
-      trends:{fatigue_debt:[1020,1060,1110,1160,1210,1260,1320][155,162,170,178,185,192,200],srpe:[260,268,275,282,290,298,310],cmj:[46.2,45.8,45.5,45.2,44.8,44.5,44.6]},
+      trends:{fatigue_debt:[1020,1060,1110,1160,1210,1260,1320],srpe:[260,268,275,282,290,298,310],cmj:[46.2,45.8,45.5,45.2,44.8,44.5,44.6]},
       diag_diff:{aguda:40,sobrecarga:60,base:"Sem histórico + goleiro (menor HSR) + dor 3/10 incipiente → atenção por dor, mas perfil protetivo"},
       shap_pos:[
         {f:"Tendência Dor 3d",sv:0.042,v:"↑ 3.0",note:"Dor ascendente. Monitorar."},
@@ -356,7 +356,7 @@ const ML={
       classif:"Baixo",
       perfil_risco:"sobrecarga",
       fatigue_debt:1680,nme:0.0128,cmj_trend_3d:-0.28,srpe_trend_5d:9.2,sleep_trend_7d:-0.10,
-      trends:{fatigue_debt:[1280,1340,1400,1460,1520,1600,1680][280,295,310,328,345,360,380],srpe:[320,330,340,350,360,370,390],cmj:[41.9,41.6,41.4,41.2,41.0,40.8,42.1]},
+      trends:{fatigue_debt:[1280,1340,1400,1460,1520,1600,1680],srpe:[320,330,340,350,360,370,390],cmj:[41.9,41.6,41.4,41.2,41.0,40.8,42.1]},
       diag_diff:{aguda:42,sobrecarga:58,base:"Histórico coxa D (set/25) > 90d + monotonia 1.7 → risco residual por carga e bioquímica, sem urgência"},
       shap_pos:[
         {f:"Déficit Biológico",sv:0.038,v:"1.2",note:"Moderado."},
