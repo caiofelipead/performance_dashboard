@@ -670,15 +670,39 @@ const INJ_HISTORY=[
     protocol:"Pré-op: manter condicionamento cardiovascular e força de MMSS. Pós-artroscopia: protocolo acelerado — carga parcial D+1, bicicleta D+7, corrida D+14-21, retorno ao treino coletivo 4-6 semanas."}
 ];
 
-// Status atual do DM — 13/Mar/2026
-const DM_ATUAL=[
-  {n:"ERIK",pos:"VOL",classif:"4C",regiao:"Coxa Medial E — Adutor Longo",dias:47,estagio:"Fase 3",conduta:"Em transição",prognostico:"Indefinido",desde:"24/Jan"},
-  {n:"PATRICK BREY",pos:"LE",classif:"Lig. II",regiao:"Joelho E — LCM",dias:33,estagio:"Fase 3",conduta:"Afastado",prognostico:"02/Abr",desde:"08/Fev"},
-  {n:"GABRIEL INOCENCIO",pos:"LAT",classif:"Contratura",regiao:"Perna Post. E — Sóleo",dias:6,estagio:"Fase 1",conduta:"Afastado",prognostico:"Em avaliação",desde:"06/Mar"},
-  {n:"THALLES",pos:"ATA",classif:"2A",regiao:"Perna Post. D — Gastrocnêmio Med.",dias:3,estagio:"Fase 1",conduta:"Afastado",prognostico:"13/Abr",desde:"09/Mar"},
-  {n:"GUI MARIANO",pos:"ZAG",classif:"2A",regiao:"Perna Post. E — Sóleo",dias:1,estagio:"Fase 1",conduta:"Afastado",prognostico:"Em avaliação",desde:"11/Mar"},
-  {n:"ERICSON",pos:"ZAG",classif:"Cirurgia",regiao:"Joelho D — Menisco (artroscopia)",dias:0,estagio:"Pré-op",conduta:"Cirurgia programada",prognostico:"4-6 semanas",desde:"13/Mar"}
-];
+// Status atual do DM — calculado dinamicamente a partir de INJ_HISTORY
+function getDmAtual() {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  return INJ_HISTORY
+    .filter(inj => {
+      // Lesão ativa = sem fim_trans OU fim_trans é no futuro
+      if (!inj.fim_trans) return true;
+      const fim = new Date(inj.fim_trans);
+      return fim >= today;
+    })
+    .map(inj => {
+      const dtLesao = new Date(inj.date);
+      const dias = Math.round((today - dtLesao) / 86400000);
+      const progStr = inj.prognostico || (inj.fim_trans ? new Date(inj.fim_trans).toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}) : "Em avaliação");
+      // Estágio estimado pelo tempo
+      let estagio = inj.estagio;
+      if (!inj.fim_trans) {
+        if (dias > 30) estagio = "Fase 3";
+        else if (dias > 14) estagio = "Fase 2";
+        else estagio = "Fase 1";
+      }
+      return {
+        n: inj.n, pos: inj.pos, classif: inj.classif,
+        regiao: `${inj.regiao} ${inj.lado?inj.lado[0]:""} — ${inj.estrutura}`,
+        dias, estagio, conduta: inj.conduta,
+        prognostico: progStr,
+        desde: dtLesao.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})
+      };
+    })
+    .sort((a,b) => b.dias - a.dias);
+}
+const DM_ATUAL = getDmAtual();
 
 // Correlação epidemiológica — padrões reais do elenco (14 lesões documentadas)
 const INJ_PATTERNS=[
@@ -921,6 +945,17 @@ export default function Dashboard(){
         if(live.classificacao) merged._liveClassif=live.classificacao;
         merged._fromSheet=true;
       }
+      // Recalcular wellness avg (rpa) a partir dos dados live do questionário
+      const questEntries = sheetData?.questionarios?.[p.n];
+      if(questEntries?.length) {
+        const recent = questEntries.slice(-7);
+        const rpVals = recent.map(q => q.recuperacao_pernas).filter(v => v > 0);
+        if(rpVals.length) merged.rpa = Math.round(rpVals.reduce((a,b)=>a+b,0)/rpVals.length*10)/10;
+        const sqVals = recent.map(q => q.sono_qualidade).filter(v => v > 0);
+        if(sqVals.length) merged.sa = Math.round(sqVals.reduce((a,b)=>a+b,0)/sqVals.length*10)/10;
+        const dVals = recent.map(q => q.dor).filter(v => v >= 0);
+        if(dVals.length) merged.da = Math.round(dVals.reduce((a,b)=>a+b,0)/dVals.length*10)/10;
+      }
       const s=score(merged);
       return {...merged,riskScore:s.score,risk:s.level,reasons:s.reasons};
     }).sort((a,b)=>b.riskScore-a.riskScore);
@@ -957,12 +992,32 @@ export default function Dashboard(){
       const sonoFactor = sono < 6 ? 0.08 : sono < 7 ? 0.03 : 0;
       const dorFactor = dor > 5 ? 0.10 : dor > 3 ? 0.05 : 0;
       const bioFactor = merged.bio > 2.0 ? 0.08 : merged.bio > 1.5 ? 0.04 : 0;
-      // Usar lesão prévia como base forte (do alert original) + fatores dinâmicos
-      const injBase = a.shap_pos?.find(s => s.f.includes("Lesão Prévia"))?.sv || 0;
-      const baseProb = Math.max(0.05, injBase * 2);
+      // Lesão prévia dinâmica: calcular a partir de INJ_HISTORY em vez de SHAP hardcoded
+      const today = new Date(); today.setHours(0,0,0,0);
+      const playerInj = INJ_HISTORY.filter(inj => inj.n === a.n);
+      const recentInj = playerInj.filter(inj => {
+        const d = new Date(inj.date);
+        return (today - d) / 86400000 < 90;
+      });
+      const injBase = recentInj.length > 0
+        ? Math.min(0.25, recentInj.reduce((max, inj) => {
+            const daysSince = (today - new Date(inj.date)) / 86400000;
+            const severity = daysSince < 30 ? 0.20 : daysSince < 60 ? 0.15 : 0.10;
+            const recidiva = playerInj.filter(j => j.regiao === inj.regiao).length > 1 ? 0.05 : 0;
+            return Math.max(max, severity + recidiva);
+          }, 0))
+        : (a.shap_pos?.find(s => s.f.includes("Lesão Prévia"))?.sv || 0);
+      const baseProb = Math.max(0.05, injBase);
       merged.prob = Math.min(0.95, Math.max(0.05, baseProb + acwrFactor + sonoFactor + dorFactor + bioFactor));
       // Atualizar zona de risco
       merged.zone = merged.prob > 0.50 ? "VERMELHO" : merged.prob > 0.30 ? "LARANJA" : merged.prob > 0.15 ? "AMARELO" : "VERDE";
+      // Dose dinâmica baseada na prob recalculada
+      if (merged.prob > 0.50) merged.dose = "EXCLUIR da sessão. Fisioterapia + regenerativo.";
+      else if (merged.prob > 0.30) merged.dose = "MED: 50% volume. Sem HSR.";
+      else if (merged.prob > 0.15) merged.dose = "Reduzir HSR 30%. Monitorar PSE.";
+      else merged.dose = "Liberado. Programa preventivo padrão.";
+      // Fatigue debt dinâmico: usar sRPE acumulado do live se disponível
+      if (p?.sra > 0) merged.fatigue_debt = Math.round(p.sra * (merged.acwr || 1) * 2.5);
       return merged;
     });
   }, [sheetData, players]);
@@ -1176,7 +1231,8 @@ export default function Dashboard(){
               </ResponsiveContainer>
             </div>
             <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Wellness Score — Elenco</div>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:4}}>Wellness Score — Elenco</div>
+              <div style={{fontSize:9,color:t.textFaint,marginBottom:8,lineHeight:1.4}}>Média ponderada de Rec. Pernas, Sono, Dor e Rec. Geral (últimos 7 dias). Linha tracejada = limiar de atenção (6.5/10).</div>
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={players.filter(p=>p.rpa).sort((a,b)=>a.rpa-b.rpa).slice(0,25)} margin={{bottom:45}}>
                   <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
@@ -1747,7 +1803,7 @@ export default function Dashboard(){
               </div>
               <div style={{padding:12}}>
                 {DM_ATUAL.map((p,i)=>{
-                  const ec=p.estagio==="Fase 1"?"#DC2626":p.estagio==="Fase 3"?"#EA580C":"#CA8A04";
+                  const ec=p.estagio==="Fase 1"||p.estagio==="Pré-op"?"#DC2626":p.estagio==="Fase 2"?"#EA580C":p.estagio==="Fase 3"?"#CA8A04":"#16A34A";
                   return <div key={i} style={{padding:"10px 12px",background:i%2===0?"#FEF2F2":t.bgCard,borderRadius:8,marginBottom:6,border:"1px solid #FECACA44"}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
                       <div style={{display:"flex",alignItems:"center",gap:8}}>
@@ -1882,7 +1938,7 @@ export default function Dashboard(){
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
                 <PlayerPhoto theme={t} name={sp.n} sz={80}/>
                 <ScoreRing theme={t} v={sp.riskScore} sz={48} th={4}/>
-                <div style={{fontSize:8,color:t.textFaint,textAlign:"center"}}>Wellness Score</div>
+                <div style={{fontSize:8,color:t.textFaint,textAlign:"center"}}>Risk Score</div>
               </div>
               <div style={{flex:1}}>
                 <div style={{fontFamily:"'Inter Tight'",fontSize:20,fontWeight:900,color:pri}}>{sp.n} <Badge level={sp.risk}/> <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:t.textFaint,fontWeight:400,marginLeft:6}}>{sp.pos} · {sp.id} anos · {sp.nc} sessões</span></div>
