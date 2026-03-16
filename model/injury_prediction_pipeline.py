@@ -1069,15 +1069,14 @@ def engineer_features(df):
         g["nme"] = g["nme"].fillna(g["nme"].median())
 
         # =================================================================
-        # BIOLOGICAL — CK só relevante em semana de jogo para quem joga
-        # (reunião: CK longitudinal sem contexto de jogo causa ruído)
+        # BIOLOGICAL — CK só relevante PÓS-JOGO (até 72h após a partida)
+        # Sem jogo recente → CK é neutro (1.0), não entra no modelo
         # =================================================================
         g["ck_ratio_raw"] = g["ck_today"] / g["ck_basal"].replace(0, np.nan)
-        # Flag: semana tem pelo menos 1 jogo (rolling 7 dias)
-        g["match_week"] = g["is_match"].rolling(window=7, min_periods=1).sum().clip(upper=1)
-        # CK só entra quando é semana de jogo — zera fora
-        g["ck_ratio"] = g["ck_ratio_raw"] * g["match_week"]
-        g["ck_ratio"] = g["ck_ratio"].replace(0, 1.0)  # neutro fora de semana de jogo
+        # Flag: houve jogo nos últimos 3 dias (janela pós-jogo de 72h)
+        g["post_match_72h"] = g["is_match"].rolling(window=4, min_periods=1).sum().clip(upper=1)
+        # CK só entra pós-jogo — neutro (1.0) fora dessa janela
+        g["ck_ratio"] = np.where(g["post_match_72h"] == 1, g["ck_ratio_raw"], 1.0)
         g["biological_deficit"] = g["ck_ratio"] * (10 - g["sleep_quality"]) / 10
 
         # Sleep debt (cumulative deficit below 7h)
