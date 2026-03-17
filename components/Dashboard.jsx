@@ -2234,22 +2234,29 @@ export default function Dashboard(){
           {(()=>{
             const liveAth=LIVE_SESSION.atletas[sp.n];
             const gpsRaw=sheetData?.gps?.[sp.n];
-            const lastGps=liveAth?.gps||(gpsRaw?.length?gpsRaw[gpsRaw.length-1].gps:null);
+            const lastGpsEntry=gpsRaw?.length?gpsRaw[gpsRaw.length-1]:null;
+            const lastGps=liveAth?.gps||(lastGpsEntry?.gps||null);
             if(!lastGps)return null;
-            const norm=(v,base)=>base>0?Math.min(Math.round((v/base)*100),100):0;
+            // Data da sessão referenciada
+            const sessDate=liveAth?._sessionDate||lastGpsEntry?.date||null;
+            const sessDateFmt=sessDate?(() => {try{const d=new Date(sessDate);return isNaN(d)?sessDate:d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"})}catch(e){return sessDate}})():null;
+            const sessTitle=lastGpsEntry?.sessionTitle||"";
+            const pct=(v,base)=>base>0?Math.round((v/base)*100):0;
             const gpsRadarData=[
-              {s:"Distância",v:norm(lastGps.dist_total,lastGps.dist_baseline),raw:`${(lastGps.dist_total||0).toFixed(0)}m`},
-              {s:"HSR",v:norm(lastGps.hsr,lastGps.hsr_baseline),raw:`${(lastGps.hsr||0).toFixed(0)}m`},
-              {s:"Sprints",v:norm(lastGps.sprints,lastGps.sprints_baseline),raw:`${lastGps.sprints||0}`},
-              {s:"Acelerações",v:norm(lastGps.acel,lastGps.acel_baseline),raw:`${lastGps.acel||0}`},
-              {s:"Desacelerações",v:norm(lastGps.decel,lastGps.decel_baseline),raw:`${lastGps.decel||0}`},
-              {s:"Pico Vel.",v:norm(lastGps.pico_vel,lastGps.pico_vel_baseline),raw:`${(lastGps.pico_vel||0).toFixed(1)} km/h`},
+              {s:"Distância",v:pct(lastGps.dist_total,lastGps.dist_baseline),raw:`${(lastGps.dist_total||0).toFixed(0)}m`},
+              {s:"HSR",v:pct(lastGps.hsr,lastGps.hsr_baseline),raw:`${(lastGps.hsr||0).toFixed(0)}m`},
+              {s:"Sprints",v:pct(lastGps.sprints,lastGps.sprints_baseline),raw:`${lastGps.sprints||0}`},
+              {s:"Acelerações",v:pct(lastGps.acel,lastGps.acel_baseline),raw:`${lastGps.acel||0}`},
+              {s:"Desacelerações",v:pct(lastGps.decel,lastGps.decel_baseline),raw:`${lastGps.decel||0}`},
+              {s:"Pico Vel.",v:pct(lastGps.pico_vel,lastGps.pico_vel_baseline),raw:`${(lastGps.pico_vel||0).toFixed(1)} km/h`},
             ];
+            const maxPct=Math.max(...gpsRadarData.map(d=>d.v),100);
+            const radarDomain=Math.ceil(maxPct/25)*25;
             const gpsColor=gpsRadarData.some(d=>d.v>130)?"#DC2626":gpsRadarData.some(d=>d.v>100)?"#EA580C":"#2563eb";
             return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
                 <div>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Radar GPS — Último Treino</div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Radar GPS — Último Treino {sessDateFmt?<span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:t.textMuted,marginLeft:8}}>{sessDateFmt}</span>:""}{sessTitle?<span style={{fontSize:10,color:t.textFaint,marginLeft:6}}>· {sessTitle}</span>:""}</div>
                   <div style={{fontSize:10,color:t.textFaint}}>Valências vs. baseline (100% = média das sessões anteriores)</div>
                 </div>
                 <span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,background:gpsColor+"15",color:gpsColor,border:`1px solid ${gpsColor}33`}}>
@@ -2261,7 +2268,7 @@ export default function Dashboard(){
                   <RadarChart data={gpsRadarData}>
                     <PolarGrid stroke={t.border}/>
                     <PolarAngleAxis dataKey="s" tick={{fontSize:9,fill:t.textMuted}}/>
-                    <PolarRadiusAxis tick={false} domain={[0,150]}/>
+                    <PolarRadiusAxis tick={false} domain={[0,radarDomain]}/>
                     <Radar name="% vs Baseline" dataKey="v" stroke={gpsColor} fill={gpsColor} fillOpacity={.12} strokeWidth={2}/>
                   </RadarChart>
                 </ResponsiveContainer>
