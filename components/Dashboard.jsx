@@ -2230,6 +2230,55 @@ export default function Dashboard(){
             </div>
           </div>
 
+          {/* ═══ RADAR GPS — Valências do Último Treino ═══ */}
+          {(()=>{
+            const liveAth=LIVE_SESSION.atletas[sp.n];
+            const gpsRaw=sheetData?.gps?.[sp.n];
+            const lastGps=liveAth?.gps||(gpsRaw?.length?gpsRaw[gpsRaw.length-1].gps:null);
+            if(!lastGps)return null;
+            const norm=(v,base)=>base>0?Math.min(Math.round((v/base)*100),100):0;
+            const gpsRadarData=[
+              {s:"Distância",v:norm(lastGps.dist_total,lastGps.dist_baseline),raw:`${(lastGps.dist_total||0).toFixed(0)}m`},
+              {s:"HSR",v:norm(lastGps.hsr,lastGps.hsr_baseline),raw:`${(lastGps.hsr||0).toFixed(0)}m`},
+              {s:"Sprints",v:norm(lastGps.sprints,lastGps.sprints_baseline),raw:`${lastGps.sprints||0}`},
+              {s:"Acelerações",v:norm(lastGps.acel,lastGps.acel_baseline),raw:`${lastGps.acel||0}`},
+              {s:"Desacelerações",v:norm(lastGps.decel,lastGps.decel_baseline),raw:`${lastGps.decel||0}`},
+              {s:"Pico Vel.",v:norm(lastGps.pico_vel,lastGps.pico_vel_baseline),raw:`${(lastGps.pico_vel||0).toFixed(1)} km/h`},
+            ];
+            const gpsColor=gpsRadarData.some(d=>d.v>130)?"#DC2626":gpsRadarData.some(d=>d.v>100)?"#EA580C":"#2563eb";
+            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+                <div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Radar GPS — Último Treino</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>Valências vs. baseline (100% = média das sessões anteriores)</div>
+                </div>
+                <span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,background:gpsColor+"15",color:gpsColor,border:`1px solid ${gpsColor}33`}}>
+                  {gpsRadarData.some(d=>d.v>130)?"ACIMA DO ESPERADO":gpsRadarData.some(d=>d.v>100)?"CARGA ELEVADA":"CARGA CONTROLADA"}
+                </span>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginTop:8}}>
+                <ResponsiveContainer width="100%" height={240}>
+                  <RadarChart data={gpsRadarData}>
+                    <PolarGrid stroke={t.border}/>
+                    <PolarAngleAxis dataKey="s" tick={{fontSize:9,fill:t.textMuted}}/>
+                    <PolarRadiusAxis tick={false} domain={[0,150]}/>
+                    <Radar name="% vs Baseline" dataKey="v" stroke={gpsColor} fill={gpsColor} fillOpacity={.12} strokeWidth={2}/>
+                  </RadarChart>
+                </ResponsiveContainer>
+                <div style={{display:"flex",flexDirection:"column",justifyContent:"center",gap:6}}>
+                  {gpsRadarData.map((d,i)=>{
+                    const c=d.v>130?"#DC2626":d.v>100?"#EA580C":d.v>80?"#16A34A":"#2563eb";
+                    return <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",background:i%2===0?t.bgMuted:"transparent",borderRadius:6}}>
+                      <div style={{flex:1,fontSize:11,fontWeight:600,color:t.text}}>{d.s}</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:c}}>{d.v}%</div>
+                      <div style={{fontSize:10,color:t.textFaint,minWidth:60,textAlign:"right"}}>{d.raw}</div>
+                    </div>;
+                  })}
+                </div>
+              </div>
+            </div>;
+          })()}
+
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
             <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Radar Bem-estar</div>
