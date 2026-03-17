@@ -222,8 +222,11 @@ function parseCSV(text) {
 // Desacelerações B1-3 (>1), Desacelerações B2-3 (>3),
 // Ações>30Km/h, RHIE, Tempo de Jogo, Tags, Dia da Semana, Semana, Grupo, DPJ
 function processGPS(rows) {
-  // Agrupar por atleta + data + sessão (somar splits)
-  const sessions = {};
+  // Agrupar por atleta + data + sessão
+  // IMPORTANTE: A planilha GPS tem múltiplos splits por sessão (Total, 1st Half, 2nd Half, etc.)
+  // Se existir um split "Total" ou genérico, usar apenas ele (já é a soma).
+  // Caso contrário, somar os splits individuais.
+  const sessionRows = {};
   for (const row of rows) {
     const athlete = row.atleta || row.athlete || "";
     const date = row.date || row.data || "";
@@ -231,63 +234,63 @@ function processGPS(rows) {
     if (!athlete) continue;
 
     const key = `${athlete}||${date}||${sessionTitle}`;
-    if (!sessions[key]) {
-      sessions[key] = {
-        athlete,
-        dashName: resolveName(athlete),
-        date,
-        sessionTitle,
-        tags: row.tags || "",
-        grupo: row.grupo || "",
-        dpj: row.dpj || "",
-        // Acumuladores
-        dist_km: 0,
-        hsr_20_m: 0,
-        sprints_20: 0,
-        player_load: 0,
-        top_speed: 0,
-        hsr_25_km: 0,
-        sprints_25: 0,
-        acel_b1: 0,
-        acel_b2: 0,
-        decel_b1: 0,
-        decel_b2: 0,
-        acoes_30: 0,
-        rhie: 0,
-        dist_per_min: 0,
-        hr_avg: 0,
-        hr_max: 0,
-        hr_exertion: 0,
-        time_z4: 0,
-        time_z5: 0,
-        splits: 0,
-        time_total_sec: 0
-      };
+    if (!sessionRows[key]) sessionRows[key] = { athlete, date, sessionTitle, tags: row.tags || "", grupo: row.grupo || "", dpj: row.dpj || "", rows: [] };
+    sessionRows[key].rows.push(row);
+  }
+
+  const sessions = {};
+  for (const [key, sr] of Object.entries(sessionRows)) {
+    const splitName = (r) => (r.split_name || r.split || "").toString().toLowerCase().trim();
+
+    // Se há um split "total" ou sessão inteira, usar apenas esse
+    let useRows = sr.rows;
+    const totalRow = sr.rows.find(r => {
+      const sn = splitName(r);
+      return sn === "" || sn === "total" || sn === "session" || sn === "match" || sn === "sessão" || sn === "sessao" || sn === "jogo";
+    });
+    if (totalRow && sr.rows.length > 1) {
+      // Existe uma linha "Total" + splits individuais → usar só o Total
+      useRows = [totalRow];
     }
+
+    sessions[key] = {
+      athlete: sr.athlete,
+      dashName: resolveName(sr.athlete),
+      date: sr.date,
+      sessionTitle: sr.sessionTitle,
+      tags: sr.tags,
+      grupo: sr.grupo,
+      dpj: sr.dpj,
+      dist_km: 0, hsr_20_m: 0, sprints_20: 0, player_load: 0, top_speed: 0,
+      hsr_25_km: 0, sprints_25: 0, acel_b1: 0, acel_b2: 0, decel_b1: 0, decel_b2: 0,
+      acoes_30: 0, rhie: 0, dist_per_min: 0, hr_avg: 0, hr_max: 0, hr_exertion: 0,
+      time_z4: 0, time_z5: 0, splits: 0, time_total_sec: 0
+    };
     const s = sessions[key];
-    s.dist_km += toNum(row.distance__km_) || toNum(row.distance_km) || 0;
-    s.hsr_20_m += toNum(row.sprint_distance_20km_h__m_) || toNum(row.sprint_distance_20km_h_m) || 0;
-    s.sprints_20 += toNum(row.sprints_20km_h) || 0;
-    s.player_load += toNum(row.player_load) || 0;
-    const spd = toNum(row.top_speed__km_h_) || toNum(row.top_speed_km_h) || 0;
-    if (spd > s.top_speed) s.top_speed = spd;
-    s.hsr_25_km += toNum(row.sprint_distance_25km_h__km_) || toNum(row.sprint_distance_25km_h_km) || 0;
-    s.sprints_25 += toNum(row.sprints_25km_h) || 0;
-    s.acel_b1 += toNum(row.aceleracoes_b1_3__1_) || toNum(row.aceleracoes_b1_3_1) || 0;
-    s.acel_b2 += toNum(row.aceleracoes_b2_3__3_) || toNum(row.aceleracoes_b2_3_3) || 0;
-    s.decel_b1 += toNum(row.desaceleracoes_b1_3__1_) || toNum(row.desaceleracoes_b1_3_1) || 0;
-    s.decel_b2 += toNum(row.desaceleracoes_b2_3__3_) || toNum(row.desaceleracoes_b2_3_3) || 0;
-    s.acoes_30 += toNum(row.acoes_30km_h) || 0;
-    s.rhie += toNum(row.rhie) || 0;
-    // FC — colunas comuns do Catapult/STATSports/Polar
-    const hrAvg = toNum(row.average_heart_rate_bpm) || toNum(row.average_heart_rate__bpm_) || toNum(row.hr_avg) || toNum(row.fc_media) || toNum(row.fc_med) || 0;
-    const hrMax = toNum(row.max_heart_rate_bpm) || toNum(row.max_heart_rate__bpm_) || toNum(row.hr_max) || toNum(row.fc_maxima) || toNum(row.fc_max) || 0;
-    if (hrAvg > s.hr_avg) s.hr_avg = hrAvg;
-    if (hrMax > s.hr_max) s.hr_max = hrMax;
-    s.hr_exertion += toNum(row.heart_rate_exertion) || toNum(row.hr_exertion) || 0;
-    s.time_z4 += toNum(row.time_in_hr_zone_4) || toNum(row.time_in_hr_zone_4__min_) || toNum(row.tempo_zona_4) || toNum(row.tempo_z4) || 0;
-    s.time_z5 += toNum(row.time_in_hr_zone_5) || toNum(row.time_in_hr_zone_5__min_) || toNum(row.tempo_zona_5) || toNum(row.tempo_z5) || 0;
-    s.splits++;
+    for (const row of useRows) {
+      s.dist_km += toNum(row.distance__km_) || toNum(row.distance_km) || 0;
+      s.hsr_20_m += toNum(row.sprint_distance_20km_h__m_) || toNum(row.sprint_distance_20km_h_m) || 0;
+      s.sprints_20 += toNum(row.sprints_20km_h) || 0;
+      s.player_load += toNum(row.player_load) || 0;
+      const spd = toNum(row.top_speed__km_h_) || toNum(row.top_speed_km_h) || 0;
+      if (spd > s.top_speed) s.top_speed = spd;
+      s.hsr_25_km += toNum(row.sprint_distance_25km_h__km_) || toNum(row.sprint_distance_25km_h_km) || 0;
+      s.sprints_25 += toNum(row.sprints_25km_h) || 0;
+      s.acel_b1 += toNum(row.aceleracoes_b1_3__1_) || toNum(row.aceleracoes_b1_3_1) || 0;
+      s.acel_b2 += toNum(row.aceleracoes_b2_3__3_) || toNum(row.aceleracoes_b2_3_3) || 0;
+      s.decel_b1 += toNum(row.desaceleracoes_b1_3__1_) || toNum(row.desaceleracoes_b1_3_1) || 0;
+      s.decel_b2 += toNum(row.desaceleracoes_b2_3__3_) || toNum(row.desaceleracoes_b2_3_3) || 0;
+      s.acoes_30 += toNum(row.acoes_30km_h) || 0;
+      s.rhie += toNum(row.rhie) || 0;
+      const hrAvg = toNum(row.average_heart_rate_bpm) || toNum(row.average_heart_rate__bpm_) || toNum(row.hr_avg) || toNum(row.fc_media) || toNum(row.fc_med) || 0;
+      const hrMax = toNum(row.max_heart_rate_bpm) || toNum(row.max_heart_rate__bpm_) || toNum(row.hr_max) || toNum(row.fc_maxima) || toNum(row.fc_max) || 0;
+      if (hrAvg > s.hr_avg) s.hr_avg = hrAvg;
+      if (hrMax > s.hr_max) s.hr_max = hrMax;
+      s.hr_exertion += toNum(row.heart_rate_exertion) || toNum(row.hr_exertion) || 0;
+      s.time_z4 += toNum(row.time_in_hr_zone_4) || toNum(row.time_in_hr_zone_4__min_) || toNum(row.tempo_zona_4) || toNum(row.tempo_z4) || 0;
+      s.time_z5 += toNum(row.time_in_hr_zone_5) || toNum(row.time_in_hr_zone_5__min_) || toNum(row.tempo_zona_5) || toNum(row.tempo_z5) || 0;
+      s.splits++;
+    }
   }
 
   // Converter para formato do dashboard
@@ -307,8 +310,10 @@ function processGPS(rows) {
         sprints: Math.round(s.sprints_20),
         player_load: Math.round(s.player_load * 100) / 100,
         pico_vel: Math.round(s.top_speed * 10) / 10,
-        acel: Math.round(s.acel_b2),  // B2-3 (>3 m/s²) = mais relevante
-        decel: Math.round(s.decel_b2),
+        acel: Math.round(s.acel_b1),  // B1 (>2 m/s²) = Acel>2 da planilha
+        acel_3: Math.round(s.acel_b2),  // B2 (>3 m/s²)
+        decel: Math.round(s.decel_b1),  // B1 (>2 m/s²) = Decel>2 da planilha
+        decel_3: Math.round(s.decel_b2),  // B2 (>3 m/s²)
         hsr_25: Math.round(s.hsr_25_km * 1000),
         sprints_25: Math.round(s.sprints_25),
         acoes_30: Math.round(s.acoes_30),
