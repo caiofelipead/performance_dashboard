@@ -2230,7 +2230,7 @@ export default function Dashboard(){
             </div>
           </div>
 
-          {/* ═══ RADAR GPS — Valências do Último Treino ═══ */}
+          {/* ═══ RADAR GPS — Valências do Último Treino vs Média da Posição ═══ */}
           {(()=>{
             const liveAth=LIVE_SESSION.atletas[sp.n];
             const gpsRaw=sheetData?.gps?.[sp.n];
@@ -2239,16 +2239,31 @@ export default function Dashboard(){
             if(!lastGps)return null;
             // Data da sessão referenciada
             const sessDate=liveAth?._sessionDate||lastGpsEntry?.date||null;
-            const sessDateFmt=sessDate?(() => {try{const d=new Date(sessDate);return isNaN(d)?sessDate:d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"})}catch(e){return sessDate}})():null;
+            const sessDateFmt=sessDate?(()=>{try{const d=new Date(sessDate);return isNaN(d)?sessDate:d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"})}catch(e){return sessDate}})():null;
             const sessTitle=lastGpsEntry?.sessionTitle||"";
-            const pct=(v,base)=>base>0?Math.round((v/base)*100):0;
+            // Mapeamento de posição para grupo do relatório
+            const posGroup=(pos)=>{const m={GOL:"Goleiro",ZAG:"Zagueiro",VOL:"Volante",MEI:"Meia",LAT:"Lateral",LE:"Lateral",LD:"Lateral",EXT:"Extremo",ATA:"Atacante"};return m[pos]||pos;};
+            const myGroup=posGroup(sp.pos);
+            // Calcular média da posição a partir dos dados da sessão atual
+            const allSessAtletas=LIVE_SESSION.atletas;
+            const posAtletas=Object.entries(allSessAtletas).filter(([name])=>{const pl=players.find(p=>p.n===name);return pl&&posGroup(pl.pos)===myGroup&&allSessAtletas[name]?.gps;});
+            const posAvg=(key)=>{const vals=posAtletas.map(([,a])=>a.gps[key]||0).filter(v=>v>0);return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;};
+            const avgDist=posAvg("dist_total");
+            const avgHsr=posAvg("hsr");
+            const avgSprints=posAvg("sprints");
+            const avgAcel=posAvg("acel");
+            const avgDecel=posAvg("decel");
+            const avgPicoVel=posAvg("pico_vel");
+            const avgPlayerLoad=posAvg("player_load");
+            const pct=(v,avg)=>avg>0?Math.round((v/avg)*100):0;
             const gpsRadarData=[
-              {s:"Distância",v:pct(lastGps.dist_total,lastGps.dist_baseline),raw:`${(lastGps.dist_total||0).toFixed(0)}m`},
-              {s:"HSR",v:pct(lastGps.hsr,lastGps.hsr_baseline),raw:`${(lastGps.hsr||0).toFixed(0)}m`},
-              {s:"Sprints",v:pct(lastGps.sprints,lastGps.sprints_baseline),raw:`${lastGps.sprints||0}`},
-              {s:"Acelerações",v:pct(lastGps.acel,lastGps.acel_baseline),raw:`${lastGps.acel||0}`},
-              {s:"Desacelerações",v:pct(lastGps.decel,lastGps.decel_baseline),raw:`${lastGps.decel||0}`},
-              {s:"Pico Vel.",v:pct(lastGps.pico_vel,lastGps.pico_vel_baseline),raw:`${(lastGps.pico_vel||0).toFixed(1)} km/h`},
+              {s:"Distância",v:pct(lastGps.dist_total,avgDist),raw:`${(lastGps.dist_total||0).toFixed(0)}m`,avg:`${Math.round(avgDist)}m`},
+              {s:"Dist >20km/h",v:pct(lastGps.hsr,avgHsr),raw:`${(lastGps.hsr||0).toFixed(0)}m`,avg:`${Math.round(avgHsr)}m`},
+              {s:"Sprints",v:pct(lastGps.sprints,avgSprints),raw:`${lastGps.sprints||0}`,avg:`${Math.round(avgSprints)}`},
+              {s:"Acel >2m/s²",v:pct(lastGps.acel,avgAcel),raw:`${lastGps.acel||0}`,avg:`${Math.round(avgAcel)}`},
+              {s:"Desacel >2m/s²",v:pct(lastGps.decel,avgDecel),raw:`${lastGps.decel||0}`,avg:`${Math.round(avgDecel)}`},
+              {s:"Player Load",v:pct(lastGps.player_load,avgPlayerLoad),raw:`${(lastGps.player_load||0).toFixed(0)}`,avg:`${Math.round(avgPlayerLoad)}`},
+              {s:"Pico Vel.",v:pct(lastGps.pico_vel,avgPicoVel),raw:`${(lastGps.pico_vel||0).toFixed(1)} km/h`,avg:`${avgPicoVel.toFixed(1)}`},
             ];
             const maxPct=Math.max(...gpsRadarData.map(d=>d.v),100);
             const radarDomain=Math.ceil(maxPct/25)*25;
@@ -2256,29 +2271,36 @@ export default function Dashboard(){
             return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
                 <div>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Radar GPS — Último Treino {sessDateFmt?<span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:t.textMuted,marginLeft:8}}>{sessDateFmt}</span>:""}{sessTitle?<span style={{fontSize:10,color:t.textFaint,marginLeft:6}}>· {sessTitle}</span>:""}</div>
-                  <div style={{fontSize:10,color:t.textFaint}}>Valências vs. baseline (100% = média das sessões anteriores)</div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Radar GPS — Sessão {sessDateFmt?<span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:t.textMuted,marginLeft:6}}>{sessDateFmt}</span>:""}{sessTitle?<span style={{fontSize:10,color:t.textFaint,marginLeft:6}}>· {sessTitle}</span>:""}</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>% vs. média da posição ({myGroup}) na sessão · 100% = média do grupo</div>
                 </div>
                 <span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,background:gpsColor+"15",color:gpsColor,border:`1px solid ${gpsColor}33`}}>
-                  {gpsRadarData.some(d=>d.v>130)?"ACIMA DO ESPERADO":gpsRadarData.some(d=>d.v>100)?"CARGA ELEVADA":"CARGA CONTROLADA"}
+                  {myGroup.toUpperCase()} ({posAtletas.length} atl.)
                 </span>
               </div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginTop:8}}>
-                <ResponsiveContainer width="100%" height={240}>
+                <ResponsiveContainer width="100%" height={260}>
                   <RadarChart data={gpsRadarData}>
                     <PolarGrid stroke={t.border}/>
-                    <PolarAngleAxis dataKey="s" tick={{fontSize:9,fill:t.textMuted}}/>
+                    <PolarAngleAxis dataKey="s" tick={{fontSize:8,fill:t.textMuted}}/>
                     <PolarRadiusAxis tick={false} domain={[0,radarDomain]}/>
-                    <Radar name="% vs Baseline" dataKey="v" stroke={gpsColor} fill={gpsColor} fillOpacity={.12} strokeWidth={2}/>
+                    <Radar name="% vs Posição" dataKey="v" stroke={gpsColor} fill={gpsColor} fillOpacity={.12} strokeWidth={2}/>
                   </RadarChart>
                 </ResponsiveContainer>
-                <div style={{display:"flex",flexDirection:"column",justifyContent:"center",gap:6}}>
+                <div style={{display:"flex",flexDirection:"column",justifyContent:"center",gap:5}}>
+                  <div style={{display:"flex",alignItems:"center",gap:4,padding:"4px 10px",marginBottom:2}}>
+                    <div style={{flex:1,fontSize:9,color:t.textFaint,fontWeight:700,textTransform:"uppercase"}}>Métrica</div>
+                    <div style={{fontSize:9,color:t.textFaint,fontWeight:700,minWidth:38,textAlign:"right"}}>Atleta</div>
+                    <div style={{fontSize:9,color:t.textFaint,fontWeight:700,minWidth:38,textAlign:"right"}}>Média</div>
+                    <div style={{fontSize:9,color:t.textFaint,fontWeight:700,minWidth:36,textAlign:"right"}}>%</div>
+                  </div>
                   {gpsRadarData.map((d,i)=>{
                     const c=d.v>130?"#DC2626":d.v>100?"#EA580C":d.v>80?"#16A34A":"#2563eb";
-                    return <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",background:i%2===0?t.bgMuted:"transparent",borderRadius:6}}>
-                      <div style={{flex:1,fontSize:11,fontWeight:600,color:t.text}}>{d.s}</div>
-                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:c}}>{d.v}%</div>
-                      <div style={{fontSize:10,color:t.textFaint,minWidth:60,textAlign:"right"}}>{d.raw}</div>
+                    return <div key={i} style={{display:"flex",alignItems:"center",gap:4,padding:"5px 10px",background:i%2===0?t.bgMuted:"transparent",borderRadius:6}}>
+                      <div style={{flex:1,fontSize:10,fontWeight:600,color:t.text}}>{d.s}</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:pri,minWidth:38,textAlign:"right"}}>{d.raw}</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textFaint,minWidth:38,textAlign:"right"}}>{d.avg}</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:800,color:c,minWidth:36,textAlign:"right"}}>{d.v}%</div>
                     </div>;
                   })}
                 </div>
