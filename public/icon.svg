@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <clipPath id="shield">
+      <path d="M256 10 C256 10 60 10 60 10 Q50 10 50 20 L50 300 Q50 420 256 502 Q462 420 462 300 L462 20 Q462 10 452 10 Z"/>
+    </clipPath>
+  </defs>
+  <!-- Shield outline -->
+  <path d="M256 10 C256 10 60 10 60 10 Q50 10 50 20 L50 300 Q50 420 256 502 Q462 420 462 300 L462 20 Q462 10 452 10 Z" fill="white" stroke="#1A1A1A" stroke-width="18"/>
+  <!-- Top notch -->
+  <path d="M175 10 Q195 45 256 45 Q317 45 337 10" fill="white" stroke="#1A1A1A" stroke-width="18" stroke-linejoin="round"/>
+  <!-- Vertical stripes clipped to shield -->
+  <g clip-path="url(#shield)">
+    <!-- Black stripe left -->
+    <rect x="100" y="10" width="72" height="500" fill="#1A1A1A"/>
+    <!-- White stripe -->
+    <rect x="172" y="10" width="56" height="500" fill="white"/>
+    <!-- Red stripe -->
+    <rect x="228" y="10" width="56" height="500" fill="#DC2626"/>
+    <!-- White stripe -->
+    <rect x="284" y="10" width="56" height="500" fill="white"/>
+    <!-- Black stripe right -->
+    <rect x="340" y="10" width="72" height="500" fill="#1A1A1A"/>
+  </g>
+  <!-- Re-draw shield border on top -->
+  <path d="M256 10 C256 10 60 10 60 10 Q50 10 50 20 L50 300 Q50 420 256 502 Q462 420 462 300 L462 20 Q462 10 452 10 Z" fill="none" stroke="#1A1A1A" stroke-width="18"/>
+  <path d="M175 10 Q195 45 256 45 Q317 45 337 10" fill="none" stroke="#1A1A1A" stroke-width="18" stroke-linejoin="round"/>
+  <!-- Text B.F.C. -->
+  <text x="256" y="130" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="72" fill="#1A1A1A">B.F.C.</text>
+</svg>
