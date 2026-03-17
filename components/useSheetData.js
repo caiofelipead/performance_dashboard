@@ -95,27 +95,39 @@ function buildSessionData(result) {
   const saltosData = result.saltos || {};
   const questData = result.questionarios || {};
 
+  const parseDate = (d) => {
+    if (!d) return 0;
+    const s = String(d).trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s).getTime();
+    const parts = s.split(/[\/\-\.]/);
+    if (parts.length >= 3) {
+      const [a, b, c] = parts.map(Number);
+      if (a > 31) return new Date(a, b - 1, c).getTime();
+      if (c > 31) return new Date(c, b - 1, a).getTime();
+      return new Date(c, a - 1, b).getTime();
+    }
+    return new Date(s).getTime() || 0;
+  };
+
+  // Encontrar a data da última sessão GLOBAL (mais recente entre todos)
+  let latestGlobalDate = 0;
+  for (const entries of Object.values(gpsData)) {
+    for (const e of entries) {
+      const d = parseDate(e.date);
+      if (d > latestGlobalDate) latestGlobalDate = d;
+    }
+  }
+
   const atletas = {};
 
   for (const [name, entries] of Object.entries(gpsData)) {
     if (!entries.length) continue;
 
-    // Última sessão do atleta (sort por data real, não string)
-    const parseDate = (d) => {
-      if (!d) return 0;
-      const s = String(d).trim();
-      if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s).getTime();
-      const parts = s.split(/[\/\-\.]/);
-      if (parts.length >= 3) {
-        const [a, b, c] = parts.map(Number);
-        if (a > 31) return new Date(a, b - 1, c).getTime();
-        if (c > 31) return new Date(c, b - 1, a).getTime();
-        return new Date(c, a - 1, b).getTime();
-      }
-      return new Date(s).getTime() || 0;
-    };
-    const sorted = [...entries].sort((a, b) => parseDate(a.date) - parseDate(b.date));
-    const latest = sorted[sorted.length - 1];
+    // Filtrar apenas entradas da última sessão global
+    const latestEntries = entries.filter(e => parseDate(e.date) === latestGlobalDate);
+    if (!latestEntries.length) continue;
+
+    const latest = latestEntries[latestEntries.length - 1];
     const g = latest.gps;
 
     // Dados do diário para o mesmo atleta (última entrada)
