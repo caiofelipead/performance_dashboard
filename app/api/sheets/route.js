@@ -444,24 +444,67 @@ function processSaltos(rows) {
 }
 
 // Questionários: wellness (sono, dor, recuperação)
+// Helper: busca valor por substring no nome da coluna (headers já normalizados)
+function findCol(row, ...substrings) {
+  for (const sub of substrings) {
+    // Busca exata primeiro
+    if (row[sub] !== undefined && row[sub] !== "") return row[sub];
+  }
+  // Busca por substring nas chaves
+  const keys = Object.keys(row);
+  for (const sub of substrings) {
+    const found = keys.find(k => k.includes(sub));
+    if (found && row[found] !== undefined && row[found] !== "") return row[found];
+  }
+  return "";
+}
+
 function processQuestionarios(rows) {
   const result = {};
   for (const row of rows) {
-    const athlete = row.nome || row.nome_ || "";
+    const athlete = findCol(row, "nome_", "nome") || "";
     if (!athlete) continue;
     const name = resolveName(athlete);
     if (!name) continue;
 
     if (!result[name]) result[name] = [];
+
+    // Recuperação geral: "sua recuperação" ou "recuperacao_geral"
+    const recGeral = toNum(findCol(row, "sua_recuperacao", "recuperacao_geral", "como_esta_sua_recuperacao"));
+    // Recuperação pernas: "recuperação nas pernas" ou similar
+    const recPernas = toNum(findCol(row, "recuperacao_nas_pernas", "pernas"));
+    // Dor: "presença de dor" ou similar
+    const dor = toNum(findCol(row, "presenca_de_dor", "presenca_de_d", "dor"));
+    // Sono qualidade: "qualidade do sono" ou "sono" ou "como dormiu"
+    const sonoQual = toNum(findCol(row, "qualidade_subjetiva_do_sono", "qualidade_do_sono", "como_dormiu", "sono"));
+    // Sono horas
+    const sonoHoras = toNum(findCol(row, "horas_de_sono", "quantas_horas"));
+    // Peso
+    const peso = toNum(findCol(row, "seu_peso_hoje", "peso_hoje", "peso"));
+    // Estado geral: "como se sente hoje"
+    const estado = findCol(row, "como_se_sente_hoje", "como_voce_se_sente_hoje") || "";
+    // Humor / disposição: "você se sente" (pode haver 2 colunas)
+    const humor = findCol(row, "voce_se_sente");
+    // Dores regionais (braços, costas, quadris, coxa)
+    const dorBracos = toNum(findCol(row, "bracos_e_omb", "bracos"));
+    const dorCostas = toNum(findCol(row, "costas_e_colu", "costas"));
+    const dorQuadris = toNum(findCol(row, "quadris_glut", "quadris"));
+    const dorCoxa = toNum(findCol(row, "coxa_ant", "coxa"));
+
     result[name].push({
-      date: row.data || row.data_ || "",
-      peso: toNum(row["1__seu_peso_hoje_"]) || toNum(row.peso) || 0,
-      estado: row.como_se_sente_hoje || "",
-      recuperacao_geral: toNum(row.como_esta_sua_recuperacao_geral) || 0,
-      recuperacao_pernas: toNum(row.recuperacao_nas_pernas) || 0,
-      dor: toNum(row.presenca_de_dor) || 0,
-      sono_qualidade: toNum(row.qualidade_subjetiva_do_sono) || 0,
-      sono_horas: toNum(row.horas_de_sono) || 0
+      date: findCol(row, "data_", "data") || "",
+      peso,
+      estado,
+      humor: humor || "",
+      recuperacao_geral: recGeral || 0,
+      recuperacao_pernas: recPernas || 0,
+      dor: dor || 0,
+      dor_bracos: dorBracos || 0,
+      dor_costas: dorCostas || 0,
+      dor_quadris: dorQuadris || 0,
+      dor_coxa: dorCoxa || 0,
+      sono_qualidade: sonoQual || 0,
+      sono_horas: sonoHoras || 0
     });
   }
   return result;
@@ -749,7 +792,7 @@ export async function GET(request) {
       if (questCSV.status === "fulfilled") {
         const { rows, headers } = parseCSV(questCSV.value);
         result.questionarios = processQuestionarios(rows);
-        result._debug.questionarios = { rows: rows.length, athletes: Object.keys(result.questionarios).length };
+        result._debug.questionarios = { rows: rows.length, headers: headers, athletes: Object.keys(result.questionarios).length };
       } else {
         result._debug.questionarios = { error: questCSV.reason?.message || "failed" };
       }
