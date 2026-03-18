@@ -139,17 +139,14 @@ function resolveName(sheetName) {
   for (const [k, v] of Object.entries(NAME_MAP)) {
     if (norm(k) === lower) return v;
   }
-  // Busca por primeiro nome: "Jonathan Ferreira" → match "Jonathan F" → "JONATHAN"
+  // Fallback: usa o primeiro nome em maiúsculas (sem acentos)
+  // Isso garante que "Jonathan Ferreira" → "JONATHAN" (match com P array)
   const firstName = trimmed.split(/\s+/)[0];
-  if (firstName) {
-    const firstNorm = norm(firstName);
-    // Verificar se o primeiro nome bate com o início de alguma chave do NAME_MAP
-    for (const [k, v] of Object.entries(NAME_MAP)) {
-      const kFirst = norm(k.split(/\s+/)[0]);
-      if (kFirst === firstNorm) return v;
-    }
-  }
-  // Fallback: usa o nome como está, em maiúsculas (sem acentos)
+  const normalized = (firstName || trimmed).toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  // Verificar se esse primeiro nome existe como valor no NAME_MAP (é um nome válido do P array)
+  const isKnown = Object.values(NAME_MAP).includes(normalized);
+  if (isKnown) return normalized;
+  // Se não é conhecido, retornar nome completo maiúsculo para evitar conflitos
   return trimmed.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
@@ -858,7 +855,10 @@ export async function GET(request) {
       if (antropCSV.status === "fulfilled") {
         const { rows, headers } = parseCSV(antropCSV.value);
         result.antropometria = processAntropometria(rows);
-        result._debug.antropometria = { rows: rows.length, headers: headers, athletes: Object.keys(result.antropometria).length };
+        // Sample: primeiro atleta com dados para debug
+        const sampleAthlete = Object.keys(result.antropometria)[0];
+        const sampleData = sampleAthlete ? result.antropometria[sampleAthlete]?.[0] : null;
+        result._debug.antropometria = { rows: rows.length, headers: headers, athletes: Object.keys(result.antropometria).length, sampleRaw: rows[0], sampleProcessed: sampleData };
       } else {
         result._debug.antropometria = { error: antropCSV.reason?.message || "failed" };
       }
