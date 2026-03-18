@@ -228,7 +228,9 @@ function buildSessionData(result) {
       obs: `Dados em tempo real — ${latest.sessionTitle || latest.date}`,
       _fromSheet: true,
       _sessionDate: latest.date,
-      _tags: latest.tags
+      _sessionTitle: latest.sessionTitle || "",
+      _tags: latest.tags,
+      _grupo: latest.grupo || ""
     };
   }
 
