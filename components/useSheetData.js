@@ -186,8 +186,10 @@ function buildSessionData(result) {
         sprints_baseline: g.sprints_baseline || 0,
         acel: g.acel || 0,
         acel_baseline: g.acel_baseline || 0,
+        acel_3: g.acel_3 || 0,
         decel: g.decel || 0,
         decel_baseline: g.decel_baseline || 0,
+        decel_3: g.decel_3 || 0,
         pico_vel: g.pico_vel || 0,
         pico_vel_baseline: g.pico_vel_baseline || 0,
         player_load: g.player_load || 0
