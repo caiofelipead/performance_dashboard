@@ -576,6 +576,10 @@ function processFisioterapia(rows) {
 // Antropometria: composição corporal (peso, % gordura, massa muscular)
 function processAntropometria(rows) {
   const result = {};
+  if (rows.length > 0) {
+    result._colDebug = Object.keys(rows[0]);
+    result._sampleRow = rows[0];
+  }
   for (const row of rows) {
     const athlete = findCol(row, "nome", "atleta", "atletas", "jogador") || "";
     if (!athlete) continue;
@@ -586,9 +590,9 @@ function processAntropometria(rows) {
       date: findCol(row, "data", "data_", "carimbo") || "",
       peso: toNum(findCol(row, "peso", "peso_kg", "massa_corporal")),
       gordura: toNum(findCol(row, "gordura", "percentual_de_gordura", "bf", "gordura_corporal", "gordura_%")),
-      massa_muscular: toNum(findCol(row, "massa_muscular", "massa_magra", "mm", "musculo")),
+      massa_muscular: toNum(findCol(row, "massa_muscular", "massa_magra", "musculo")),
       imc: toNum(findCol(row, "imc", "indice_de_massa")),
-      altura: toNum(findCol(row, "altura", "estatura", "alt")),
+      altura: toNum(findCol(row, "altura", "estatura")),
       perimetros: findCol(row, "perimetros", "observacoes") || ""
     });
   }
@@ -869,10 +873,13 @@ export async function GET(request) {
       if (antropCSV.status === "fulfilled") {
         const { rows, headers } = parseCSV(antropCSV.value);
         result.antropometria = processAntropometria(rows);
-        // Sample: primeiro atleta com dados para debug
+        const colDebug = result.antropometria._colDebug;
+        const sampleRow = result.antropometria._sampleRow;
+        delete result.antropometria._colDebug;
+        delete result.antropometria._sampleRow;
         const sampleAthlete = Object.keys(result.antropometria)[0];
         const sampleData = sampleAthlete ? result.antropometria[sampleAthlete]?.[0] : null;
-        result._debug.antropometria = { rows: rows.length, headers: headers, athletes: Object.keys(result.antropometria).length, sampleRaw: rows[0], sampleProcessed: sampleData };
+        result._debug.antropometria = { rows: rows.length, headers: headers, columns: colDebug, sampleRawRow: sampleRow, athletes: Object.keys(result.antropometria).length, sampleProcessed: sampleData };
       } else {
         result._debug.antropometria = { error: antropCSV.reason?.message || "failed" };
       }
