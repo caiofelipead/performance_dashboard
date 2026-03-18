@@ -939,9 +939,18 @@ export default function Dashboard(){
         if(live.classificacao) merged._liveClassif=live.classificacao;
         merged._fromSheet=true;
       }
-      // Recalcular wellness avg (rpa) a partir dos dados live do questionário
+      // Sempre puxar dados do questionário diretamente (independente de ter GPS)
       const questEntries = sheetData?.questionarios?.[p.n];
       if(questEntries?.length) {
+        const lastQ = questEntries[questEntries.length-1];
+        // Dados pontuais do último questionário (sobrescrevem hardcoded E live)
+        if(lastQ.sono_qualidade>0) merged.sq=lastQ.sono_qualidade;
+        if(lastQ.recuperacao_geral>0) merged.rg=lastQ.recuperacao_geral;
+        if(lastQ.recuperacao_pernas>0) merged.rp=lastQ.recuperacao_pernas;
+        if(lastQ.dor>0) merged.d=lastQ.dor;
+        if(lastQ.sono_horas>0) merged.sh=lastQ.sono_horas;
+        merged._questDate=lastQ.date||"";
+        // Averages dos últimos 7
         const recent = questEntries.slice(-7);
         const rpVals = recent.map(q => q.recuperacao_pernas).filter(v => v > 0);
         if(rpVals.length) merged.rpa = Math.round(rpVals.reduce((a,b)=>a+b,0)/rpVals.length*10)/10;
@@ -949,6 +958,8 @@ export default function Dashboard(){
         if(sqVals.length) merged.sa = Math.round(sqVals.reduce((a,b)=>a+b,0)/sqVals.length*10)/10;
         const dVals = recent.map(q => q.dor).filter(v => v >= 0);
         if(dVals.length) merged.da = Math.round(dVals.reduce((a,b)=>a+b,0)/dVals.length*10)/10;
+        const rgVals = recent.map(q => q.recuperacao_geral).filter(v => v > 0);
+        if(rgVals.length) merged.rga = Math.round(rgVals.reduce((a,b)=>a+b,0)/rgVals.length*10)/10;
       }
       // Monotonia e Strain dinâmicos a partir do diário (últimos 7 dias de sRPE)
       const diarioEntries = sheetData?.diario?.[p.n];
