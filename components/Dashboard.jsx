@@ -921,6 +921,8 @@ export default function Dashboard(){
   const [tab,setTab]=useState("squad");
   const [riskSort,setRiskSort]=useState({col:"riskScore",dir:"desc"});
   const [sessSort,setSessSort]=useState({col:"classif",dir:"asc"});
+  const [excludedAthletes,setExcludedAthletes]=useState(new Set());
+  const [showAthleteFilter,setShowAthleteFilter]=useState(false);
   const [dark,setDark]=useState(()=>{if(typeof window!=="undefined"){const s=localStorage.getItem("theme");if(s)return s==="dark";return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches||false;}return false;});
   const t=THEMES[dark?"dark":"light"];
   const pri=dark?"#f1f5f9":"#1A1A1A";
@@ -2244,24 +2246,34 @@ export default function Dashboard(){
             // Mapeamento de posição para grupo do relatório
             const posGroup=(pos)=>{const m={GOL:"Goleiro",ZAG:"Zagueiro",VOL:"Volante",MEI:"Meia",LAT:"Lateral",LE:"Lateral",LD:"Lateral",EXT:"Extremo",ATA:"Atacante"};return m[pos]||pos;};
             const myGroup=posGroup(sp.pos);
-            // Calcular média da posição a partir dos dados da sessão atual
+            // Calcular média da posição a partir dos dados da sessão atual (com filtro de atletas)
             const allSessAtletas=LIVE_SESSION.atletas;
-            const posAtletas=Object.entries(allSessAtletas).filter(([name])=>{const pl=players.find(p=>p.n===name);return pl&&posGroup(pl.pos)===myGroup&&allSessAtletas[name]?.gps;});
+            const posAtletas=Object.entries(allSessAtletas).filter(([name])=>{const pl=players.find(p=>p.n===name);return pl&&posGroup(pl.pos)===myGroup&&allSessAtletas[name]?.gps&&!excludedAthletes.has(name);});
+            // Todos os atletas da posição (para o filtro UI)
+            const allPosAtletas=Object.entries(allSessAtletas).filter(([name])=>{const pl=players.find(p=>p.n===name);return pl&&posGroup(pl.pos)===myGroup&&allSessAtletas[name]?.gps;});
             const posAvg=(key)=>{const vals=posAtletas.map(([,a])=>a.gps[key]||0).filter(v=>v>0);return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;};
             const avgDist=posAvg("dist_total");
             const avgHsr=posAvg("hsr");
             const avgSprints=posAvg("sprints");
-            const avgAcel=posAvg("acel");
-            const avgDecel=posAvg("decel");
+            // Usar acel_3/decel_3 (>3m/s²) quando disponível, senão fallback para acel/decel (>2m/s²)
+            const hasAcel3=posAtletas.some(([,a])=>(a.gps.acel_3||0)>0)||(lastGps.acel_3||0)>0;
+            const acelKey=hasAcel3?"acel_3":"acel";
+            const decelKey=hasAcel3?"decel_3":"decel";
+            const acelLabel=hasAcel3?"Acel >3m/s²":"Acel >2m/s²";
+            const decelLabel=hasAcel3?"Desacel >3m/s²":"Desacel >2m/s²";
+            const avgAcel=posAvg(acelKey);
+            const avgDecel=posAvg(decelKey);
             const avgPicoVel=posAvg("pico_vel");
             const avgPlayerLoad=posAvg("player_load");
             const pct=(v,avg)=>avg>0?Math.round((v/avg)*100):0;
+            const athleteAcel=lastGps[acelKey]||lastGps.acel||0;
+            const athleteDecel=lastGps[decelKey]||lastGps.decel||0;
             const gpsRadarData=[
               {s:"Distância",v:pct(lastGps.dist_total,avgDist),raw:`${(lastGps.dist_total||0).toFixed(0)}m`,avg:`${Math.round(avgDist)}m`},
               {s:"Dist >20km/h",v:pct(lastGps.hsr,avgHsr),raw:`${(lastGps.hsr||0).toFixed(0)}m`,avg:`${Math.round(avgHsr)}m`},
               {s:"Sprints",v:pct(lastGps.sprints,avgSprints),raw:`${lastGps.sprints||0}`,avg:`${Math.round(avgSprints)}`},
-              {s:"Acel >2m/s²",v:pct(lastGps.acel,avgAcel),raw:`${lastGps.acel||0}`,avg:`${Math.round(avgAcel)}`},
-              {s:"Desacel >2m/s²",v:pct(lastGps.decel,avgDecel),raw:`${lastGps.decel||0}`,avg:`${Math.round(avgDecel)}`},
+              {s:acelLabel,v:pct(athleteAcel,avgAcel),raw:`${athleteAcel}`,avg:`${Math.round(avgAcel)}`},
+              {s:decelLabel,v:pct(athleteDecel,avgDecel),raw:`${athleteDecel}`,avg:`${Math.round(avgDecel)}`},
               {s:"Player Load",v:pct(lastGps.player_load,avgPlayerLoad),raw:`${(lastGps.player_load||0).toFixed(0)}`,avg:`${Math.round(avgPlayerLoad)}`},
               {s:"Pico Vel.",v:pct(lastGps.pico_vel,avgPicoVel),raw:`${(lastGps.pico_vel||0).toFixed(1)} km/h`,avg:`${avgPicoVel.toFixed(1)}`},
             ];
@@ -2274,10 +2286,29 @@ export default function Dashboard(){
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Radar GPS — Sessão {sessDateFmt?<span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:t.textMuted,marginLeft:6}}>{sessDateFmt}</span>:""}{sessTitle?<span style={{fontSize:10,color:t.textFaint,marginLeft:6}}>· {sessTitle}</span>:""}</div>
                   <div style={{fontSize:10,color:t.textFaint}}>% vs. média da posição ({myGroup}) na sessão · 100% = média do grupo</div>
                 </div>
-                <span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,background:gpsColor+"15",color:gpsColor,border:`1px solid ${gpsColor}33`}}>
-                  {myGroup.toUpperCase()} ({posAtletas.length} atl.)
-                </span>
+                <div style={{display:"flex",alignItems:"center",gap:6}}>
+                  <button onClick={()=>setShowAthleteFilter(!showAthleteFilter)} style={{padding:"3px 8px",borderRadius:6,fontSize:9,fontWeight:600,background:showAthleteFilter?pri+"15":"transparent",color:t.textMuted,border:`1px solid ${t.border}`,cursor:"pointer",display:"flex",alignItems:"center",gap:3}} title="Filtrar atletas da média">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+                    Filtro
+                  </button>
+                  <span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,background:gpsColor+"15",color:gpsColor,border:`1px solid ${gpsColor}33`}}>
+                    {myGroup.toUpperCase()} ({posAtletas.length} atl.)
+                  </span>
+                </div>
               </div>
+              {/* Filtro de atletas */}
+              {showAthleteFilter&&<div style={{display:"flex",flexWrap:"wrap",gap:4,padding:"8px 0",borderBottom:`1px solid ${t.border}`,marginBottom:8}}>
+                {allPosAtletas.map(([name])=>{
+                  const isExcluded=excludedAthletes.has(name);
+                  const isCurrent=name===sp.n;
+                  return <button key={name} onClick={()=>{if(isCurrent)return;setExcludedAthletes(prev=>{const next=new Set(prev);if(next.has(name))next.delete(name);else next.add(name);return next;});}} style={{padding:"3px 8px",borderRadius:5,fontSize:9,fontWeight:600,background:isExcluded?"transparent":isCurrent?pri+"20":"#16A34A15",color:isExcluded?t.textFaint:isCurrent?pri:"#16A34A",border:`1px solid ${isExcluded?t.border:isCurrent?pri+"40":"#16A34A40"}`,cursor:isCurrent?"default":"pointer",opacity:isExcluded?.5:1,textDecoration:isExcluded?"line-through":"none"}}>
+                    {name}{isCurrent?" ★":""}
+                  </button>;
+                })}
+                <button onClick={()=>setExcludedAthletes(new Set())} style={{padding:"3px 8px",borderRadius:5,fontSize:8,fontWeight:500,background:"transparent",color:t.textFaint,border:`1px solid ${t.border}`,cursor:"pointer"}}>
+                  Resetar
+                </button>
+              </div>}
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginTop:8}}>
                 <ResponsiveContainer width="100%" height={260}>
                   <RadarChart data={gpsRadarData}>
