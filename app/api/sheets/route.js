@@ -239,11 +239,15 @@ function processGPS(rows) {
   // Se existir um split "Total" ou genérico, usar apenas ele (já é a soma).
   // Caso contrário, somar os splits individuais.
   const sessionRows = {};
+  const _gpsRawNames = new Set();
+  const _gpsResolvedMap = {};
   for (const row of rows) {
     const athlete = row.atleta || row.athlete || "";
     const date = row.date || row.data || "";
     const sessionTitle = row.session_title || "";
     if (!athlete) continue;
+    _gpsRawNames.add(athlete);
+    _gpsResolvedMap[athlete] = resolveName(athlete);
 
     const key = `${athlete}||${date}||${sessionTitle}`;
     if (!sessionRows[key]) sessionRows[key] = { athlete, date, sessionTitle, tags: row.tags || "", grupo: row.grupo || "", dpj: row.dpj || "", rows: [] };
@@ -382,6 +386,7 @@ function processGPS(rows) {
     last.gps.tempo_zona_alta_baseline = avgF(baseline, "tempo_zona_alta");
   }
 
+  result._nameDebug = { rawNames: [..._gpsRawNames], resolvedMap: _gpsResolvedMap };
   return result;
 }
 
@@ -473,11 +478,15 @@ function findCol(row, ...substrings) {
 
 function processQuestionarios(rows) {
   const result = {};
+  const _rawNames = new Set();
+  const _resolvedMap = {};
   for (const row of rows) {
     const athlete = findCol(row, "nome_", "nome") || "";
     if (!athlete) continue;
+    _rawNames.add(athlete);
     const name = resolveName(athlete);
     if (!name) continue;
+    _resolvedMap[athlete] = name;
 
     if (!result[name]) result[name] = [];
 
@@ -519,6 +528,7 @@ function processQuestionarios(rows) {
       sono_horas: sonoHoras || 0
     });
   }
+  result._nameDebug = { rawNames: [..._rawNames], resolvedMap: _resolvedMap };
   return result;
 }
 
@@ -806,7 +816,9 @@ export async function GET(request) {
       if (gpsCSV.status === "fulfilled") {
         const { rows, headers } = parseCSV(gpsCSV.value);
         result.gps = processGPS(rows);
-        result._debug.gps = { rows: rows.length, headers: headers?.slice(0, 10), athletes: Object.keys(result.gps).length };
+        const gpsNameDebug = result.gps._nameDebug;
+        delete result.gps._nameDebug;
+        result._debug.gps = { rows: rows.length, headers: headers?.slice(0, 10), athletes: Object.keys(result.gps).length, nameResolution: gpsNameDebug };
       } else {
         result._debug.gps = { error: gpsCSV.reason?.message || "failed" };
       }
@@ -827,7 +839,9 @@ export async function GET(request) {
       if (questCSV.status === "fulfilled") {
         const { rows, headers } = parseCSV(questCSV.value);
         result.questionarios = processQuestionarios(rows);
-        result._debug.questionarios = { rows: rows.length, headers: headers, athletes: Object.keys(result.questionarios).length };
+        const qNameDebug = result.questionarios._nameDebug;
+        delete result.questionarios._nameDebug;
+        result._debug.questionarios = { rows: rows.length, headers: headers, athletes: Object.keys(result.questionarios).length, nameResolution: qNameDebug };
       } else {
         result._debug.questionarios = { error: questCSV.reason?.message || "failed" };
       }

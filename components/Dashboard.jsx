@@ -959,6 +959,9 @@ export default function Dashboard(){
       }
       // Sempre puxar dados do questionário diretamente (independente de ter GPS)
       const questEntries = sheetData?.questionarios?.[p.n] || findByName(sheetData?.questionarios, p.n);
+      if(questEntries?.length && !sheetData?.questionarios?.[p.n]) {
+        console.warn(`[MERGE] ${p.n}: questionário não encontrado por chave exata, fuzzy encontrou`, Object.keys(sheetData?.questionarios||{}).filter(k=>k.toLowerCase().includes(p.n.toLowerCase().slice(0,4))));
+      }
       if(questEntries?.length) {
         const lastQ = questEntries[questEntries.length-1];
         // Dados pontuais do último questionário (sobrescrevem hardcoded E live)
