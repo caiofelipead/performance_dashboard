@@ -139,6 +139,16 @@ function resolveName(sheetName) {
   for (const [k, v] of Object.entries(NAME_MAP)) {
     if (norm(k) === lower) return v;
   }
+  // Busca por primeiro nome: "Jonathan Ferreira" → match "Jonathan F" → "JONATHAN"
+  const firstName = trimmed.split(/\s+/)[0];
+  if (firstName) {
+    const firstNorm = norm(firstName);
+    // Verificar se o primeiro nome bate com o início de alguma chave do NAME_MAP
+    for (const [k, v] of Object.entries(NAME_MAP)) {
+      const kFirst = norm(k.split(/\s+/)[0]);
+      if (kFirst === firstNorm) return v;
+    }
+  }
   // Fallback: usa o nome como está, em maiúsculas (sem acentos)
   return trimmed.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
