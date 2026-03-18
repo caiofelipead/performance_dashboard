@@ -2142,12 +2142,15 @@ export default function Dashboard(){
             const liveAth=LIVE_SESSION.atletas[sp.n];
             const gpsRaw=sheetData?.gps?.[sp.n];
             const lastGpsEntry=gpsRaw?.length?gpsRaw[gpsRaw.length-1]:null;
+            // Verificar se o atleta participou da última sessão global
+            const isInLatestSession=!!liveAth;
+            // Se participou, usar dados da sessão live; senão usar última entry GPS disponível
             const lastGps=liveAth?.gps||(lastGpsEntry?.gps||null);
             if(!lastGps)return null;
             // Data da sessão referenciada
             const sessDate=liveAth?._sessionDate||lastGpsEntry?.date||null;
             const sessDateFmt=sessDate?(()=>{try{const d=new Date(sessDate);return isNaN(d)?sessDate:d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"})}catch(e){return sessDate}})():null;
-            const sessTitle=lastGpsEntry?.sessionTitle||"";
+            const sessTitle=liveAth?._sessionTitle||lastGpsEntry?.sessionTitle||"";
             // Mapeamento de posição para grupo do relatório
             const posGroup=(pos)=>{const m={GOL:"Goleiro",ZAG:"Zagueiro",VOL:"Volante",MEI:"Meia",LAT:"Lateral",LE:"Lateral",LD:"Lateral",EXT:"Extremo",ATA:"Atacante"};return m[pos]||pos;};
             const myGroup=posGroup(sp.pos);
@@ -2197,10 +2200,13 @@ export default function Dashboard(){
             const maxPct=Math.max(...gpsRadarData.map(d=>d.v),100);
             const radarDomain=Math.ceil(maxPct/25)*25;
             const gpsColor=gpsRadarData.some(d=>d.v>130)?"#DC2626":gpsRadarData.some(d=>d.v>100)?"#EA580C":"#2563eb";
-            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${isInLatestSession?t.border:"#CA8A0466"}`,padding:18,marginBottom:16}}>
+              {!isInLatestSession&&<div style={{background:"#FEFCE8",border:"1px solid #FEF08A",borderRadius:8,padding:"8px 12px",marginBottom:10,fontSize:10,color:"#92400E",fontWeight:600}}>
+                Este atleta não participou da última sessão. Dados GPS referentes à sessão anterior ({sessDateFmt||"—"}). A comparação abaixo usa a média da posição da sessão atual.
+              </div>}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
                 <div>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Radar GPS — Sessão {sessDateFmt?<span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:t.textMuted,marginLeft:6}}>{sessDateFmt}</span>:""}{sessTitle?<span style={{fontSize:10,color:t.textFaint,marginLeft:6}}>· {sessTitle}</span>:""}</div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Radar GPS — {isInLatestSession?"Última Sessão":"Sessão Anterior"} {sessDateFmt?<span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:t.textMuted,marginLeft:6}}>{sessDateFmt}</span>:""}{sessTitle?<span style={{fontSize:10,color:t.textFaint,marginLeft:6}}>· {sessTitle}</span>:""}</div>
                   <div style={{fontSize:10,color:t.textFaint}}>% vs. média da posição ({myGroup}) na sessão · 100% = média do grupo{nAutoExcluded>0?<span style={{color:"#CA8A04"}}> · {nAutoExcluded} excl. auto (parcial)</span>:""}</div>
                 </div>
                 <div style={{display:"flex",alignItems:"center",gap:6}}>
