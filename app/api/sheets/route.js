@@ -119,8 +119,12 @@ const NAME_MAP = {
   "PEDRINHO": "PEDRINHO",
   "MORELLI": "MORELLI",
   "WESLEY": "WESLEY",
+  "WESLEY PINHEIRO": "WESLEY",
+  "Wesley Pinheiro": "WESLEY",
   "YURI": "YURI",
   "LUIZAO": "LUIZAO",
+  "LUIZÃO": "LUIZAO",
+  "Luizão": "LUIZAO",
   "DARLAN": "DARLAN"
 };
 
@@ -129,13 +133,14 @@ function resolveName(sheetName) {
   const trimmed = sheetName.trim();
   // Busca direta
   if (NAME_MAP[trimmed]) return NAME_MAP[trimmed];
-  // Busca case-insensitive
-  const lower = trimmed.toLowerCase();
+  // Normalizar acentos para comparação
+  const norm = (s) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const lower = norm(trimmed);
   for (const [k, v] of Object.entries(NAME_MAP)) {
-    if (k.toLowerCase() === lower) return v;
+    if (norm(k) === lower) return v;
   }
-  // Fallback: usa o nome como está, em maiúsculas
-  return trimmed.toUpperCase();
+  // Fallback: usa o nome como está, em maiúsculas (sem acentos)
+  return trimmed.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -492,7 +497,7 @@ function processQuestionarios(rows) {
     const dorCoxa = toNum(findCol(row, "coxa_ant", "coxa"));
 
     result[name].push({
-      date: findCol(row, "data_", "data") || "",
+      date: findCol(row, "data_", "data", "carimbo", "timestamp", "data_hora") || "",
       peso,
       estado,
       humor: humor || "",
@@ -539,7 +544,7 @@ function processFisioterapia(rows) {
     const saida = findVal(row, "horario_de_saida", "horario_saida", "saida", "hora_saida");
 
     result[name].push({
-      date: findVal(row, "data", "data_"),
+      date: findVal(row, "data", "data_", "carimbo", "timestamp"),
       periodo: findVal(row, "periodo", "periodo_"),
       chegada: String(chegada).slice(0, 5),
       saida: String(saida).slice(0, 5),
