@@ -2158,14 +2158,24 @@ export default function Dashboard(){
             const allSessAtletas=LIVE_SESSION.atletas;
             const allPosAtletas=Object.entries(allSessAtletas).filter(([name])=>{const pl=players.find(p=>p.n===name);return pl&&posGroup(pl.pos)===myGroup&&allSessAtletas[name]?.gps;});
             // Auto-filtro: detectar atletas com participação completa vs parcial/transição
-            // Calcula mediana de distância do grupo para identificar outliers baixos
-            const allDists=allPosAtletas.map(([,a])=>a.gps.dist_total||0).filter(v=>v>0).sort((a,b)=>a-b);
+            // 1) Atletas em reabilitação (fisioterapia "campo") = excluídos
+            // 2) Atletas com dist < 60% da mediana do grupo = participação parcial
+            const autoExcluded=new Set();
+            const autoExcludedReasons={};
+            allPosAtletas.forEach(([name,a])=>{
+              if(name===sp.n) return;
+              // Fisioterapia campo = reabilitação, não treino principal
+              if(a._fisioSessao?.isCampoRehab){autoExcluded.add(name);autoExcludedReasons[name]="reab";return;}
+            });
+            // Calcular mediana excluindo os já marcados como reab
+            const validForMedian=allPosAtletas.filter(([name])=>!autoExcluded.has(name));
+            const allDists=validForMedian.map(([,a])=>a.gps.dist_total||0).filter(v=>v>0).sort((a,b)=>a-b);
             const medianDist=allDists.length?allDists[Math.floor(allDists.length/2)]:0;
             const minDistThreshold=medianDist*0.6; // <60% da mediana = participação parcial
-            const autoExcluded=new Set();
             allPosAtletas.forEach(([name,a])=>{
+              if(name===sp.n||autoExcluded.has(name)) return;
               const dist=a.gps.dist_total||0;
-              if(dist<minDistThreshold&&name!==sp.n) autoExcluded.add(name);
+              if(dist<minDistThreshold){autoExcluded.add(name);autoExcludedReasons[name]="parcial";}
             });
             // Combinar auto-filtro com filtro manual (excludedAthletes override do auto)
             const effectiveExcluded=new Set([...autoExcluded,...excludedAthletes]);
@@ -2201,9 +2211,16 @@ export default function Dashboard(){
             const radarDomain=Math.ceil(maxPct/25)*25;
             const gpsColor=gpsRadarData.some(d=>d.v>130)?"#DC2626":gpsRadarData.some(d=>d.v>100)?"#EA580C":"#2563eb";
             return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${isInLatestSession?t.border:"#CA8A0466"}`,padding:18,marginBottom:16}}>
-              {!isInLatestSession&&<div style={{background:"#FEFCE8",border:"1px solid #FEF08A",borderRadius:8,padding:"8px 12px",marginBottom:10,fontSize:10,color:"#92400E",fontWeight:600}}>
-                Este atleta não participou da última sessão. Dados GPS referentes à sessão anterior ({sessDateFmt||"—"}). A comparação abaixo usa a média da posição da sessão atual.
-              </div>}
+              {!isInLatestSession&&(()=>{
+                // Buscar info de fisioterapia para contexto
+                const fisioEntries=sheetData?.fisioterapia?.[sp.n]||[];
+                const latestFisio=fisioEntries.filter(f=>f.date).slice(-3);
+                const fisioProcs=latestFisio.map(f=>f.procedimento).filter(Boolean);
+                return <div style={{background:"#FEFCE8",border:"1px solid #FEF08A",borderRadius:8,padding:"8px 12px",marginBottom:10,fontSize:10,color:"#92400E",fontWeight:600}}>
+                  Este atleta não participou da última sessão. Dados GPS referentes à sessão anterior ({sessDateFmt||"—"}).
+                  {fisioProcs.length>0&&<span style={{fontWeight:500}}> Fisioterapia recente: {fisioProcs.join(", ")}.</span>}
+                </div>;
+              })()}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
                 <div>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Radar GPS — {isInLatestSession?"Última Sessão":"Sessão Anterior"} {sessDateFmt?<span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:t.textMuted,marginLeft:6}}>{sessDateFmt}</span>:""}{sessTitle?<span style={{fontSize:10,color:t.textFaint,marginLeft:6}}>· {sessTitle}</span>:""}</div>
@@ -2229,14 +2246,14 @@ export default function Dashboard(){
                   const isCurrent=name===sp.n;
                   const athDist=athData.gps.dist_total||0;
                   return <button key={name} onClick={()=>{if(isCurrent)return;if(isAutoExcluded&&!isManualExcluded){setExcludedAthletes(prev=>{const next=new Set(prev);next.delete(name);return next;});autoExcluded.delete(name);return;}setExcludedAthletes(prev=>{const next=new Set(prev);if(next.has(name))next.delete(name);else next.add(name);return next;});}} style={{padding:"3px 8px",borderRadius:5,fontSize:9,fontWeight:600,background:isExcluded?"transparent":isCurrent?pri+"20":"#16A34A15",color:isExcluded?t.textFaint:isCurrent?pri:"#16A34A",border:`1px solid ${isExcluded?t.border:isCurrent?pri+"40":"#16A34A40"}`,cursor:isCurrent?"default":"pointer",opacity:isExcluded?.5:1,textDecoration:isExcluded?"line-through":"none"}}>
-                    {name}{isCurrent?" ★":""} <span style={{fontFamily:"'JetBrains Mono'",fontSize:7,opacity:.7}}>{athDist}m</span>{isAutoExcluded&&!isManualExcluded?<span style={{fontSize:7,color:"#CA8A04",marginLeft:2}}>auto</span>:""}
+                    {name}{isCurrent?" ★":""} <span style={{fontFamily:"'JetBrains Mono'",fontSize:7,opacity:.7}}>{athDist}m</span>{isAutoExcluded&&!isManualExcluded?<span style={{fontSize:7,color:"#CA8A04",marginLeft:2}}>{autoExcludedReasons[name]==="reab"?"reab":"parcial"}</span>:""}
                   </button>;
                 })}
                 <button onClick={()=>{setExcludedAthletes(new Set());}} style={{padding:"3px 8px",borderRadius:5,fontSize:8,fontWeight:500,background:"transparent",color:t.textFaint,border:`1px solid ${t.border}`,cursor:"pointer"}}>
                   Resetar
                 </button>
                 </div>
-                {nAutoExcluded>0&&<div style={{fontSize:8,color:"#CA8A04",marginTop:4}}>Atletas com dist &lt; 60% da mediana ({Math.round(minDistThreshold)}m) excluídos automaticamente. Clique para incluir.</div>}
+                {nAutoExcluded>0&&<div style={{fontSize:8,color:"#CA8A04",marginTop:4}}>Excluídos auto: reab = fisioterapia campo · parcial = dist &lt; 60% da mediana ({Math.round(minDistThreshold)}m). Clique para incluir.</div>}
               </div>}
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginTop:8}}>
                 <ResponsiveContainer width="100%" height={260}>

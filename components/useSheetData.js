@@ -94,6 +94,7 @@ function buildSessionData(result) {
   const diarioData = result.diario || {};
   const saltosData = result.saltos || {};
   const questData = result.questionarios || {};
+  const fisioData = result.fisioterapia || {};
 
   const parseDate = (d) => {
     if (!d) return 0;
@@ -230,8 +231,40 @@ function buildSessionData(result) {
       _sessionDate: latest.date,
       _sessionTitle: latest.sessionTitle || "",
       _tags: latest.tags,
-      _grupo: latest.grupo || ""
+      _grupo: latest.grupo || "",
+      _fisioSessao: null // preenchido abaixo
     };
+  }
+
+  // Cruzar com fisioterapia: marcar atletas que estavam em reabilitação na data da sessão
+  const latestDateStr = latestGlobalDate;
+  for (const [name, atl] of Object.entries(atletas)) {
+    const fisioEntries = fisioData[name];
+    if (!fisioEntries?.length) continue;
+    // Encontrar entradas de fisioterapia na mesma data da sessão GPS
+    const sessEntries = fisioEntries.filter(f => {
+      const fd = parseDate(f.date);
+      return fd === latestDateStr;
+    });
+    if (sessEntries.length) {
+      const procedimentos = sessEntries.map(f => f.procedimento).filter(Boolean);
+      // "campo" = reabilitação em campo (tem GPS mas não é treino principal)
+      // outros procedimentos clínicos = fisioterapia pura
+      const isCampoRehab = procedimentos.some(p => p.toLowerCase().includes("campo"));
+      const isClinico = procedimentos.some(p => {
+        const pl = p.toLowerCase();
+        return pl.includes("clinico") || pl.includes("clínico") || pl.includes("tecar") ||
+               pl.includes("laser") || pl.includes("crioterapia") || pl.includes("bandagem") ||
+               pl.includes("eletro") || pl.includes("liberacao") || pl.includes("liberação") ||
+               pl.includes("bota") || pl.includes("usg");
+      });
+      atl._fisioSessao = {
+        procedimentos,
+        isCampoRehab,
+        isClinico,
+        isRehabOnly: !isCampoRehab && isClinico // só fez procedimento clínico, sem campo
+      };
+    }
   }
 
   return atletas;
