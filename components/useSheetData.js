@@ -238,6 +238,8 @@ function buildSessionData(result) {
       _sessionTitle: latest.sessionTitle || "",
       _tags: latest.tags,
       _grupo: latest.grupo || "",
+      _isTransicao: latest.isTransicao || false,
+      _splitPrincipal: latest.splitPrincipal || "",
       _fisioSessao: null // preenchido abaixo
     };
   }
