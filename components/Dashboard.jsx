@@ -939,9 +939,31 @@ export default function Dashboard(){
         if(live.classificacao) merged._liveClassif=live.classificacao;
         merged._fromSheet=true;
       }
-      // Recalcular wellness avg (rpa) a partir dos dados live do questionário
+      // Sempre puxar dados do questionário diretamente (independente de ter GPS)
       const questEntries = sheetData?.questionarios?.[p.n];
       if(questEntries?.length) {
+        const lastQ = questEntries[questEntries.length-1];
+        // Dados pontuais do último questionário (sobrescrevem hardcoded E live)
+        if(lastQ.sono_qualidade>0) merged.sq=lastQ.sono_qualidade;
+        if(lastQ.recuperacao_geral>0) merged.rg=lastQ.recuperacao_geral;
+        if(lastQ.recuperacao_pernas>0) merged.rp=lastQ.recuperacao_pernas;
+        if(lastQ.dor>=0) merged.d=lastQ.dor;
+        if(lastQ.sono_horas>0) merged.sh=lastQ.sono_horas;
+        // Peso atualizado do questionário (composição corporal)
+        if(lastQ.peso>0) { merged.w=lastQ.peso; merged.imc=merged.alt>0?Math.round(lastQ.peso/((merged.alt/100)**2)*10)/10:merged.imc; }
+        // Humor do questionário
+        if(lastQ.humor) {
+          const hMap={"muito bem":5,"bem":4,"normal":3,"tranquilo":4,"motivado":5,"cansado":2,"mal":1,"muito mal":1,"ansioso":2,"irritado":2,"estressado":2};
+          const hv=hMap[lastQ.humor.toLowerCase()];
+          if(hv) merged.h=hv;
+        }
+        if(lastQ.estado) {
+          const eMap={"otimo":5,"ótimo":5,"muito bem":5,"bem":4,"normal":3,"regular":3,"cansado":2,"mal":1,"muito cansado":1};
+          const ev=eMap[lastQ.estado.toLowerCase()];
+          if(ev) merged.e=ev;
+        }
+        merged._questDate=lastQ.date||"";
+        // Averages dos últimos 7
         const recent = questEntries.slice(-7);
         const rpVals = recent.map(q => q.recuperacao_pernas).filter(v => v > 0);
         if(rpVals.length) merged.rpa = Math.round(rpVals.reduce((a,b)=>a+b,0)/rpVals.length*10)/10;
@@ -949,6 +971,42 @@ export default function Dashboard(){
         if(sqVals.length) merged.sa = Math.round(sqVals.reduce((a,b)=>a+b,0)/sqVals.length*10)/10;
         const dVals = recent.map(q => q.dor).filter(v => v >= 0);
         if(dVals.length) merged.da = Math.round(dVals.reduce((a,b)=>a+b,0)/dVals.length*10)/10;
+        const rgVals = recent.map(q => q.recuperacao_geral).filter(v => v > 0);
+        if(rgVals.length) merged.rga = Math.round(rgVals.reduce((a,b)=>a+b,0)/rgVals.length*10)/10;
+        // Tendência 7 Dias dinâmica (substitui wt hardcoded)
+        if(recent.length>=1) {
+          const fmtDate=(d)=>{if(!d)return"?";const s=String(d);const parts=s.split(/[\/\-\.]/);if(parts.length>=2){const day=parts[0].length<=2?parts[0]:parts[2];const mon=parts[0].length<=2?parts[1]:parts[1];const mNames=["","Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];return (mNames[Number(mon)]||mon)+"/"+day;}return s.slice(-5);};
+          merged.wt={
+            dt:recent.map(q=>fmtDate(q.date)),
+            s:recent.map(q=>q.sono_qualidade||0),
+            r:recent.map(q=>q.recuperacao_pernas||q.recuperacao_geral||0),
+            dr:recent.map(q=>q.dor||0)
+          };
+          merged._wtLive=true;
+        }
+      }
+      // Antropometria: composição corporal atualizada (prioridade sobre questionário)
+      const antropEntries = sheetData?.antropometria?.[p.n];
+      if(antropEntries?.length) {
+        const lastA = antropEntries[antropEntries.length-1];
+        if(lastA.peso>0) { merged.w=lastA.peso; }
+        if(lastA.gordura>0) merged.bf=lastA.gordura;
+        if(lastA.massa_muscular>0) merged.mm=lastA.massa_muscular;
+        if(lastA.altura>0) merged.alt=lastA.altura;
+        if(lastA.imc>0) merged.imc=lastA.imc;
+        else if(merged.w>0 && merged.alt>0) merged.imc=Math.round(merged.w/((merged.alt/100)**2)*10)/10;
+      }
+      // CMJ trend dinâmico a partir dos saltos da planilha
+      const saltosEntries = sheetData?.saltos?.[p.n];
+      const cmjExtEntries = sheetData?.cmj_externo?.[p.n];
+      if(cmjExtEntries?.length) {
+        merged.ct=cmjExtEntries.map(e=>e.cmj||Math.max(e.cmj_1||0,e.cmj_2||0,e.cmj_3||0));
+        merged._ctDates=cmjExtEntries.map(e=>e.date||"");
+        merged._ctLive=true;
+      } else if(saltosEntries?.length) {
+        merged.ct=saltosEntries.map(e=>Math.max(e.cmj_1||0,e.cmj_2||0,e.cmj_3||0)).filter(v=>v>0);
+        merged._ctDates=saltosEntries.map(e=>e.date||"");
+        merged._ctLive=true;
       }
       // Monotonia e Strain dinâmicos a partir do diário (últimos 7 dias de sRPE)
       const diarioEntries = sheetData?.diario?.[p.n];
@@ -1037,15 +1095,22 @@ export default function Dashboard(){
   const tabs=[{id:"squad",l:"Squad Overview",ic:Users},{id:"alerts",l:"Alertas",ic:AlertTriangle},{id:"carga",l:"Carga & ACWR",ic:TrendingUp},{id:"neuro",l:"Neuromuscular",ic:Zap},{id:"fisio",l:"Fisiológico",ic:Heart},{id:"temporal",l:"Temporal",ic:Activity},{id:"fisioterapia",l:"Fisioterapia",ic:Shield},{id:"mapa",l:"Mapa Semanal",ic:Calendar},{id:"player",l:"Individual",ic:Eye},{id:"sessao",l:"Sessão de Treino",ic:Activity},{id:"model",l:"Modelo Preditivo",ic:Brain},{id:"retro",l:"Retrospectiva",ic:Target}];
 
   const radarData=sp?[{s:"Sono",v:sp.sq||0},{s:"Rec Geral",v:sp.rg||0},{s:"Rec Pernas",v:sp.rp||0},{s:"Dor (inv)",v:10-(sp.d||0)},{s:"Humor",v:(sp.h||3)*2},{s:"Energia",v:(sp.e||3)*2.5}]:[];
-  const wtData=sp?.wt?sp.wt.dt.map((d,i)=>({d:"Mar/"+d,sono:sp.wt.s[i],rec:sp.wt.r[i],dor:sp.wt.dr[i]})):[];
+  const wtData=sp?.wt?sp.wt.dt.map((d,i)=>({d:sp._wtLive?d:("Mar/"+d),sono:sp.wt.s[i],rec:sp.wt.r[i],dor:sp.wt.dr[i]})):[];
   const cmjData=useMemo(()=>{
-    // Prioridade: CMJ externo da planilha, senão ct do P array
+    // Prioridade: CMJ externo da planilha
     const ext = liveCmjExterno[sp?.n];
     if (ext?.length) {
       return ext.map((e,i) => ({ i:i+1, v: e.cmj || Math.max(e.cmj_1||0, e.cmj_2||0, e.cmj_3||0), date: e.date, nordico: e.nordico||0 }));
     }
-    return sp?.ct ? sp.ct.map((v,i) => ({ i:i+1, v })) : [];
-  }, [sp, liveCmjExterno]);
+    // Saltos da planilha principal
+    const saltos = sheetData?.saltos?.[sp?.n];
+    if (saltos?.length) {
+      const vals = saltos.map(e => ({ v: Math.max(e.cmj_1||0, e.cmj_2||0, e.cmj_3||0), date: e.date })).filter(e => e.v > 0);
+      if (vals.length) return vals.map((e,i) => ({ i:i+1, v: e.v, date: e.date }));
+    }
+    // Fallback: ct do P array (hardcoded) - só se não houver dados live
+    return sp?.ct ? sp.ct.map((v,i) => ({ i:i+1, v, date: sp._ctDates?.[i]||"" })) : [];
+  }, [sp, liveCmjExterno, sheetData]);
 
   return <div style={{minHeight:"100vh",background:t.bg,fontFamily:"'Inter',system-ui,sans-serif",fontSize:13,color:t.text,transition:"background .3s,color .3s"}}>
     <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap');
