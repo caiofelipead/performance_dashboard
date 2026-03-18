@@ -239,11 +239,15 @@ function processGPS(rows) {
   // Se existir um split "Total" ou genérico, usar apenas ele (já é a soma).
   // Caso contrário, somar os splits individuais.
   const sessionRows = {};
+  const _gpsRawNames = new Set();
+  const _gpsResolvedMap = {};
   for (const row of rows) {
     const athlete = row.atleta || row.athlete || "";
     const date = row.date || row.data || "";
     const sessionTitle = row.session_title || "";
     if (!athlete) continue;
+    _gpsRawNames.add(athlete);
+    _gpsResolvedMap[athlete] = resolveName(athlete);
 
     const key = `${athlete}||${date}||${sessionTitle}`;
     if (!sessionRows[key]) sessionRows[key] = { athlete, date, sessionTitle, tags: row.tags || "", grupo: row.grupo || "", dpj: row.dpj || "", rows: [] };
@@ -382,6 +386,7 @@ function processGPS(rows) {
     last.gps.tempo_zona_alta_baseline = avgF(baseline, "tempo_zona_alta");
   }
 
+  result._nameDebug = { rawNames: [..._gpsRawNames], resolvedMap: _gpsResolvedMap };
   return result;
 }
 
@@ -473,11 +478,15 @@ function findCol(row, ...substrings) {
 
 function processQuestionarios(rows) {
   const result = {};
+  const _rawNames = new Set();
+  const _resolvedMap = {};
   for (const row of rows) {
     const athlete = findCol(row, "nome_", "nome") || "";
     if (!athlete) continue;
+    _rawNames.add(athlete);
     const name = resolveName(athlete);
     if (!name) continue;
+    _resolvedMap[athlete] = name;
 
     if (!result[name]) result[name] = [];
 
@@ -519,6 +528,7 @@ function processQuestionarios(rows) {
       sono_horas: sonoHoras || 0
     });
   }
+  result._nameDebug = { rawNames: [..._rawNames], resolvedMap: _resolvedMap };
   return result;
 }
 
@@ -566,6 +576,10 @@ function processFisioterapia(rows) {
 // Antropometria: composição corporal (peso, % gordura, massa muscular)
 function processAntropometria(rows) {
   const result = {};
+  if (rows.length > 0) {
+    result._colDebug = Object.keys(rows[0]);
+    result._sampleRow = rows[0];
+  }
   for (const row of rows) {
     const athlete = findCol(row, "nome", "atleta", "atletas", "jogador") || "";
     if (!athlete) continue;
@@ -576,9 +590,9 @@ function processAntropometria(rows) {
       date: findCol(row, "data", "data_", "carimbo") || "",
       peso: toNum(findCol(row, "peso", "peso_kg", "massa_corporal")),
       gordura: toNum(findCol(row, "gordura", "percentual_de_gordura", "bf", "gordura_corporal", "gordura_%")),
-      massa_muscular: toNum(findCol(row, "massa_muscular", "massa_magra", "mm", "musculo")),
+      massa_muscular: toNum(findCol(row, "massa_muscular", "massa_magra", "musculo")),
       imc: toNum(findCol(row, "imc", "indice_de_massa")),
-      altura: toNum(findCol(row, "altura", "estatura", "alt")),
+      altura: toNum(findCol(row, "altura", "estatura")),
       perimetros: findCol(row, "perimetros", "observacoes") || ""
     });
   }
@@ -806,7 +820,9 @@ export async function GET(request) {
       if (gpsCSV.status === "fulfilled") {
         const { rows, headers } = parseCSV(gpsCSV.value);
         result.gps = processGPS(rows);
-        result._debug.gps = { rows: rows.length, headers: headers?.slice(0, 10), athletes: Object.keys(result.gps).length };
+        const gpsNameDebug = result.gps._nameDebug;
+        delete result.gps._nameDebug;
+        result._debug.gps = { rows: rows.length, headers: headers?.slice(0, 10), athletes: Object.keys(result.gps).length, nameResolution: gpsNameDebug };
       } else {
         result._debug.gps = { error: gpsCSV.reason?.message || "failed" };
       }
@@ -827,7 +843,9 @@ export async function GET(request) {
       if (questCSV.status === "fulfilled") {
         const { rows, headers } = parseCSV(questCSV.value);
         result.questionarios = processQuestionarios(rows);
-        result._debug.questionarios = { rows: rows.length, headers: headers, athletes: Object.keys(result.questionarios).length };
+        const qNameDebug = result.questionarios._nameDebug;
+        delete result.questionarios._nameDebug;
+        result._debug.questionarios = { rows: rows.length, headers: headers, athletes: Object.keys(result.questionarios).length, nameResolution: qNameDebug };
       } else {
         result._debug.questionarios = { error: questCSV.reason?.message || "failed" };
       }
@@ -855,10 +873,13 @@ export async function GET(request) {
       if (antropCSV.status === "fulfilled") {
         const { rows, headers } = parseCSV(antropCSV.value);
         result.antropometria = processAntropometria(rows);
-        // Sample: primeiro atleta com dados para debug
+        const colDebug = result.antropometria._colDebug;
+        const sampleRow = result.antropometria._sampleRow;
+        delete result.antropometria._colDebug;
+        delete result.antropometria._sampleRow;
         const sampleAthlete = Object.keys(result.antropometria)[0];
         const sampleData = sampleAthlete ? result.antropometria[sampleAthlete]?.[0] : null;
-        result._debug.antropometria = { rows: rows.length, headers: headers, athletes: Object.keys(result.antropometria).length, sampleRaw: rows[0], sampleProcessed: sampleData };
+        result._debug.antropometria = { rows: rows.length, headers: headers, columns: colDebug, sampleRawRow: sampleRow, athletes: Object.keys(result.antropometria).length, sampleProcessed: sampleData };
       } else {
         result._debug.antropometria = { error: antropCSV.reason?.message || "failed" };
       }
