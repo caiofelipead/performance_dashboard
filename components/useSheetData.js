@@ -55,6 +55,7 @@ export function useSheetData({ interval = DEFAULT_INTERVAL, enabled = true } = {
         fisioterapia: result.fisioterapia || {},
         lesoes: result.lesoes || [],
         cmj_externo: result.cmj_externo || {},
+        antropometria: result.antropometria || {},
         sessionAtletas,
         timestamp: result.timestamp
       });

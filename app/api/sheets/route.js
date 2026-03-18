@@ -556,6 +556,28 @@ function processFisioterapia(rows) {
   return result;
 }
 
+// Antropometria: composição corporal (peso, % gordura, massa muscular)
+function processAntropometria(rows) {
+  const result = {};
+  for (const row of rows) {
+    const athlete = findCol(row, "nome", "atleta", "atletas", "jogador") || "";
+    if (!athlete) continue;
+    const name = resolveName(athlete);
+    if (!name) continue;
+    if (!result[name]) result[name] = [];
+    result[name].push({
+      date: findCol(row, "data", "data_", "carimbo") || "",
+      peso: toNum(findCol(row, "peso", "peso_kg", "massa_corporal")),
+      gordura: toNum(findCol(row, "gordura", "percentual_de_gordura", "bf", "gordura_corporal", "gordura_%")),
+      massa_muscular: toNum(findCol(row, "massa_muscular", "massa_magra", "mm", "musculo")),
+      imc: toNum(findCol(row, "imc", "indice_de_massa")),
+      altura: toNum(findCol(row, "altura", "estatura", "alt")),
+      perimetros: findCol(row, "perimetros", "observacoes") || ""
+    });
+  }
+  return result;
+}
+
 // Lesões: Histórico de lesões do elenco (planilha externa)
 function processLesoes(rows) {
   const result = [];
@@ -761,14 +783,15 @@ export async function GET(request) {
 
     if (tab === "all") {
       // Buscar todas as abas em paralelo
-      const [gpsCSV, diarioCSV, saltosCSV, questCSV, fisioCSV, lesoesCSV, cmjExtCSV] = await Promise.allSettled([
+      const [gpsCSV, diarioCSV, saltosCSV, questCSV, fisioCSV, lesoesCSV, cmjExtCSV, antropCSV] = await Promise.allSettled([
         fetchSheetCSV(SHEETS_CONFIG.tabs.gps),
         fetchSheetCSV(SHEETS_CONFIG.tabs.diario),
         fetchSheetCSV(SHEETS_CONFIG.tabs.saltos),
         fetchSheetCSV(SHEETS_CONFIG.tabs.questionarios),
         fetchSheetCSV(SHEETS_CONFIG.tabs.fisioterapia),
         fetchExternalCSV(SHEETS_CONFIG.external.lesoes),
-        fetchExternalCSV(SHEETS_CONFIG.external.cmj)
+        fetchExternalCSV(SHEETS_CONFIG.external.cmj),
+        fetchSheetCSV(SHEETS_CONFIG.tabs.antropometria)
       ]);
 
       const result = { ok: true, timestamp: new Date().toISOString(), _debug: {} };
@@ -822,6 +845,13 @@ export async function GET(request) {
       } else {
         result._debug.cmj_externo = { error: cmjExtCSV.reason?.message || "failed" };
       }
+      if (antropCSV.status === "fulfilled") {
+        const { rows, headers } = parseCSV(antropCSV.value);
+        result.antropometria = processAntropometria(rows);
+        result._debug.antropometria = { rows: rows.length, headers: headers, athletes: Object.keys(result.antropometria).length };
+      } else {
+        result._debug.antropometria = { error: antropCSV.reason?.message || "failed" };
+      }
 
       return Response.json(result, {
         headers: {
@@ -854,6 +884,7 @@ export async function GET(request) {
       case "saltos": processed = processSaltos(rows); break;
       case "questionarios": processed = processQuestionarios(rows); break;
       case "fisioterapia": processed = processFisioterapia(rows); break;
+      case "antropometria": processed = processAntropometria(rows); break;
       default: processed = rows;
     }
 

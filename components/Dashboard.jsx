@@ -974,7 +974,7 @@ export default function Dashboard(){
         const rgVals = recent.map(q => q.recuperacao_geral).filter(v => v > 0);
         if(rgVals.length) merged.rga = Math.round(rgVals.reduce((a,b)=>a+b,0)/rgVals.length*10)/10;
         // Tendência 7 Dias dinâmica (substitui wt hardcoded)
-        if(recent.length>=3) {
+        if(recent.length>=1) {
           const fmtDate=(d)=>{if(!d)return"?";const s=String(d);const parts=s.split(/[\/\-\.]/);if(parts.length>=2){const day=parts[0].length<=2?parts[0]:parts[2];const mon=parts[0].length<=2?parts[1]:parts[1];const mNames=["","Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];return (mNames[Number(mon)]||mon)+"/"+day;}return s.slice(-5);};
           merged.wt={
             dt:recent.map(q=>fmtDate(q.date)),
@@ -984,6 +984,17 @@ export default function Dashboard(){
           };
           merged._wtLive=true;
         }
+      }
+      // Antropometria: composição corporal atualizada (prioridade sobre questionário)
+      const antropEntries = sheetData?.antropometria?.[p.n];
+      if(antropEntries?.length) {
+        const lastA = antropEntries[antropEntries.length-1];
+        if(lastA.peso>0) { merged.w=lastA.peso; }
+        if(lastA.gordura>0) merged.bf=lastA.gordura;
+        if(lastA.massa_muscular>0) merged.mm=lastA.massa_muscular;
+        if(lastA.altura>0) merged.alt=lastA.altura;
+        if(lastA.imc>0) merged.imc=lastA.imc;
+        else if(merged.w>0 && merged.alt>0) merged.imc=Math.round(merged.w/((merged.alt/100)**2)*10)/10;
       }
       // CMJ trend dinâmico a partir dos saltos da planilha
       const saltosEntries = sheetData?.saltos?.[p.n];
