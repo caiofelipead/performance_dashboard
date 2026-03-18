@@ -908,15 +908,31 @@ export default function Dashboard(){
     return merged;
   }, [sheetData]);
 
+  // Helper: busca dados por nome exato ou por primeiro nome (fuzzy)
+  const findByName = (dataObj, name) => {
+    if(!dataObj || !name) return undefined;
+    if(dataObj[name]) return dataObj[name];
+    // Fuzzy: "JONATHAN" matches "JONATHAN FERREIRA", "JONATHAN F", etc.
+    const norm = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+    const target = norm(name);
+    for(const [k,v] of Object.entries(dataObj)) {
+      if(norm(k) === target) return v;
+      // Primeiro nome match
+      const kFirst = norm(k.split(/\s+/)[0]);
+      if(kFirst === target || norm(k).startsWith(target+" ")) return v;
+    }
+    return undefined;
+  };
+
   // Merge P com dados live do Google Sheets e recalcular scores
   const players=useMemo(()=>{
     const liveAtletas = sheetData?.sessionAtletas || {};
     const gpsData = sheetData?.gps || {};
     return P.map(p=>{
-      const live = liveAtletas[p.n];
+      const live = liveAtletas[p.n] || findByName(liveAtletas, p.n);
       const merged = {...p};
       // Nº de sessões do GPS real (contagem de sessões distintas)
-      const gpsEntries = gpsData[p.n];
+      const gpsEntries = gpsData[p.n] || findByName(gpsData, p.n);
       if(gpsEntries?.length) {
         const uniqueSessions = new Set(gpsEntries.map(e => e.date + "||" + (e.sessionTitle || "")));
         merged.nc = uniqueSessions.size;
@@ -940,7 +956,7 @@ export default function Dashboard(){
         merged._fromSheet=true;
       }
       // Sempre puxar dados do questionário diretamente (independente de ter GPS)
-      const questEntries = sheetData?.questionarios?.[p.n];
+      const questEntries = sheetData?.questionarios?.[p.n] || findByName(sheetData?.questionarios, p.n);
       if(questEntries?.length) {
         const lastQ = questEntries[questEntries.length-1];
         // Dados pontuais do último questionário (sobrescrevem hardcoded E live)
@@ -986,7 +1002,7 @@ export default function Dashboard(){
         }
       }
       // Antropometria: composição corporal atualizada (prioridade sobre questionário)
-      const antropEntries = sheetData?.antropometria?.[p.n];
+      const antropEntries = sheetData?.antropometria?.[p.n] || findByName(sheetData?.antropometria, p.n);
       if(antropEntries?.length) {
         const lastA = antropEntries[antropEntries.length-1];
         if(lastA.peso>0) { merged.w=lastA.peso; }
@@ -997,8 +1013,8 @@ export default function Dashboard(){
         else if(merged.w>0 && merged.alt>0) merged.imc=Math.round(merged.w/((merged.alt/100)**2)*10)/10;
       }
       // CMJ trend dinâmico a partir dos saltos da planilha
-      const saltosEntries = sheetData?.saltos?.[p.n];
-      const cmjExtEntries = sheetData?.cmj_externo?.[p.n];
+      const saltosEntries = sheetData?.saltos?.[p.n] || findByName(sheetData?.saltos, p.n);
+      const cmjExtEntries = sheetData?.cmj_externo?.[p.n] || findByName(sheetData?.cmj_externo, p.n);
       if(cmjExtEntries?.length) {
         merged.ct=cmjExtEntries.map(e=>e.cmj||Math.max(e.cmj_1||0,e.cmj_2||0,e.cmj_3||0));
         merged._ctDates=cmjExtEntries.map(e=>e.date||"");
@@ -1098,12 +1114,12 @@ export default function Dashboard(){
   const wtData=sp?.wt?sp.wt.dt.map((d,i)=>({d:sp._wtLive?d:("Mar/"+d),sono:sp.wt.s[i],rec:sp.wt.r[i],dor:sp.wt.dr[i]})):[];
   const cmjData=useMemo(()=>{
     // Prioridade: CMJ externo da planilha
-    const ext = liveCmjExterno[sp?.n];
+    const ext = liveCmjExterno[sp?.n] || findByName(liveCmjExterno, sp?.n);
     if (ext?.length) {
       return ext.map((e,i) => ({ i:i+1, v: e.cmj || Math.max(e.cmj_1||0, e.cmj_2||0, e.cmj_3||0), date: e.date, nordico: e.nordico||0 }));
     }
     // Saltos da planilha principal
-    const saltos = sheetData?.saltos?.[sp?.n];
+    const saltos = sheetData?.saltos?.[sp?.n] || findByName(sheetData?.saltos, sp?.n);
     if (saltos?.length) {
       const vals = saltos.map(e => ({ v: Math.max(e.cmj_1||0, e.cmj_2||0, e.cmj_3||0), date: e.date })).filter(e => e.v > 0);
       if (vals.length) return vals.map((e,i) => ({ i:i+1, v: e.v, date: e.date }));
