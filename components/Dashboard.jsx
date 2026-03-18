@@ -811,6 +811,8 @@ export default function Dashboard(){
   const [excludedAthletes,setExcludedAthletes]=useState(new Set());
   const [showAthleteFilter,setShowAthleteFilter]=useState(false);
   const [dark,setDark]=useState(()=>{if(typeof window!=="undefined"){const s=localStorage.getItem("theme");if(s)return s==="dark";return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches||false;}return false;});
+  const [todayStr]=useState(()=>{try{return todayStr;}catch{return"";}});
+  const [todayFull]=useState(()=>{try{return todayFull;}catch{return"";}});
   const t=THEMES[dark?"dark":"light"];
   const pri=dark?"#f1f5f9":"#1A1A1A";
   useEffect(()=>{localStorage.setItem("theme",dark?"dark":"light");},[dark]);
@@ -929,10 +931,10 @@ export default function Dashboard(){
     const liveAtletas = sheetData?.sessionAtletas || {};
     const gpsData = sheetData?.gps || {};
     return P.map(p=>{
-      const live = liveAtletas[p.n] || findByName(liveAtletas, p.n);
+      const live = liveAtletas[p.n];
       const merged = {...p};
       // Nº de sessões do GPS real (contagem de sessões distintas)
-      const gpsEntries = gpsData[p.n] || findByName(gpsData, p.n);
+      const gpsEntries = gpsData[p.n];
       if(gpsEntries?.length) {
         const uniqueSessions = new Set(gpsEntries.map(e => e.date + "||" + (e.sessionTitle || "")));
         merged.nc = uniqueSessions.size;
@@ -1005,12 +1007,21 @@ export default function Dashboard(){
       const antropEntries = sheetData?.antropometria?.[p.n] || findByName(sheetData?.antropometria, p.n);
       if(antropEntries?.length) {
         const lastA = antropEntries[antropEntries.length-1];
-        if(lastA.peso>0) { merged.w=lastA.peso; }
-        if(lastA.gordura>0) merged.bf=lastA.gordura;
-        if(lastA.massa_muscular>0) merged.mm=lastA.massa_muscular;
-        if(lastA.altura>0) merged.alt=lastA.altura;
-        if(lastA.imc>0) merged.imc=lastA.imc;
-        else if(merged.w>0 && merged.alt>0) merged.imc=Math.round(merged.w/((merged.alt/100)**2)*10)/10;
+        // Peso: validar faixa razoável (40-150kg)
+        if(lastA.peso>30 && lastA.peso<160) merged.w=lastA.peso;
+        // Gordura: validar faixa (1-50%)
+        if(lastA.gordura>0 && lastA.gordura<50) merged.bf=lastA.gordura;
+        // Massa muscular: validar faixa razoável (20-70kg)
+        if(lastA.massa_muscular>15 && lastA.massa_muscular<80) merged.mm=lastA.massa_muscular;
+        // Altura: converter metros→cm se necessário, validar faixa
+        if(lastA.altura>0) {
+          const altCm = lastA.altura<3 ? Math.round(lastA.altura*100) : lastA.altura;
+          if(altCm>140 && altCm<220) merged.alt=altCm;
+        }
+        // IMC: usar se razoável, senão recalcular
+        if(lastA.imc>15 && lastA.imc<45) merged.imc=lastA.imc;
+        // Recalcular IMC com dados validados
+        if(merged.w>0 && merged.alt>100) merged.imc=Math.round(merged.w/((merged.alt/100)**2)*10)/10;
       }
       // CMJ trend dinâmico a partir dos saltos da planilha
       const saltosEntries = sheetData?.saltos?.[p.n] || findByName(sheetData?.saltos, p.n);
@@ -1163,7 +1174,7 @@ export default function Dashboard(){
             {dark?<Sun size={13} color="#fbbf24"/>:<Moon size={13} color="rgba(255,255,255,.6)"/>}
             <span style={{fontSize:9,color:"rgba(255,255,255,.5)",fontWeight:600}}>{dark?"Claro":"Escuro"}</span>
           </button>
-          <span style={{width:7,height:7,borderRadius:"50%",background:"#16A34A",display:"inline-block"}}/>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · {players.length} atletas
+          <span style={{width:7,height:7,borderRadius:"50%",background:"#16A34A",display:"inline-block"}}/>{todayStr} · {players.length} atletas
         </div>
       </div>
     </header>
@@ -1243,7 +1254,7 @@ export default function Dashboard(){
                   </div>
                   <div>
                     <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:t.text,letterSpacing:-.3}}>Risk Board — Prontidão para Sessão</div>
-                    <div style={{fontSize:10,color:t.textFaint,marginTop:1}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"})} · Decisão operacional: quem pode treinar normalmente hoje?</div>
+                    <div style={{fontSize:10,color:t.textFaint,marginTop:1}}>{todayFull} · Decisão operacional: quem pode treinar normalmente hoje?</div>
                   </div>
                 </div>
                 <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
@@ -1391,7 +1402,7 @@ export default function Dashboard(){
 
         {tab==="alerts"&&<div>
           <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri,marginBottom:4}}>Alertas Ativos</div>
-          <div style={{fontSize:12,color:t.textFaint,marginBottom:16}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · Score de criticidade composto (ACWR + Bem-estar + CMJ + Dor)</div>
+          <div style={{fontSize:12,color:t.textFaint,marginBottom:16}}>{todayStr} · Score de criticidade composto (ACWR + Bem-estar + CMJ + Dor)</div>
           {players.filter(p=>p.riskScore>=20).map((p,i)=>{
             const lv=LV[p.risk];
             const rx=p.risk==="CRITICAL"?
@@ -1718,7 +1729,7 @@ export default function Dashboard(){
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
               <div>
                 <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Fisioterapia — Atendimentos</div>
-                <div style={{fontSize:12,color:t.textFaint}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · Registro de procedimentos e acompanhamento</div>
+                <div style={{fontSize:12,color:t.textFaint}}>{todayStr} · Registro de procedimentos e acompanhamento</div>
               </div>
               {isLive&&<span style={{padding:"4px 10px",borderRadius:6,fontSize:10,fontWeight:700,background:"#F0FDF4",color:"#16A34A",border:"1px solid #BBF7D0"}}>LIVE</span>}
             </div>
@@ -1914,7 +1925,7 @@ export default function Dashboard(){
               <div style={{padding:"12px 16px",background:"#FEF2F2",borderBottom:"1px solid #FECACA",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:"#DC2626"}}>Departamento Médico — Atual</div>
-                  <div style={{fontSize:10,color:t.textFaint}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · {liveDmData.afastados.length} afastados · {liveDmData.retornados.length} em manutenção</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>{todayStr} · {liveDmData.afastados.length} afastados · {liveDmData.retornados.length} em manutenção</div>
                 </div>
                 <div style={{fontFamily:"'JetBrains Mono'",fontSize:20,fontWeight:800,color:"#DC2626"}}>{liveDmData.afastados.length}</div>
               </div>
@@ -3059,7 +3070,7 @@ export default function Dashboard(){
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
               <div>
                 <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Saída Clínica SHAP — Prontidão Próxima Sessão</div>
-                <div style={{fontSize:11,color:t.textFaint}}>{new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})} · Explicabilidade por atleta: quais variáveis geraram cada alerta</div>
+                <div style={{fontSize:11,color:t.textFaint}}>{todayStr} · Explicabilidade por atleta: quais variáveis geraram cada alerta</div>
               </div>
               <div style={{display:"flex",gap:8}}>
                 {[{l:"Vermelho",c:"#DC2626",n:liveAlerts.filter(a=>a.zone==="VERMELHO").length},
