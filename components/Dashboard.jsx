@@ -485,122 +485,9 @@ const PROJECTIONS={
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SESSÃO DE TREINO — Dados de monitoramento pós-sessão (13/Mar/2026 · MD-8)
-// Responde: (1) carga recebida (2) resposta fisiológica (3) impacto no risco
+// SESSÃO DE TREINO — Estrutura vazia (dados vêm 100% da planilha Google Sheets)
 // ═══════════════════════════════════════════════════════════════════════════════
-const SESSION_DATA={
-  meta:{date:"13/03/2026",tipo:"Treino Técnico-Tático",duracao:75,local:"Campo Auxiliar",md:"MD-8",condicao:"Sol · 28°C · UR 62%",rpe_alvo:"5-6"},
-  atletas:{
-    "ERIK":{
-      gps:{dist_total:5420,dist_baseline:6800,hsr:180,hsr_baseline:420,sprints:2,sprints_baseline:8,acel:12,acel_baseline:28,decel:10,decel_baseline:24,pico_vel:24.1,pico_vel_baseline:30.2},
-      carga_interna:{srpe_sessao:6,duracao:75,srpe_total:450,hr_avg:142,hr_max:168,hr_baseline_avg:155,tempo_zona_alta:8,tempo_zona_alta_baseline:18},
-      nm_response:{cmj_pre:48.2,cmj_pos:46.8,cmj_delta_pct:-2.9,asi_pos:15.2,nme_pos:0.0135},
-      fisio:{sono_noite:6.5,dor_pos:3,rec_percebida:6},
-      risco:{prob_pre:0.72,prob_pos:0.70,delta:-0.02,impacto:"neutro"},
-      classificacao:"amarelo",classificacao_label:"Carga controlada — excluído de alta intensidade",
-      obs:"Participou apenas de exercícios técnicos leves. Sem sprints ou mudanças de direção."
-    },
-    "JONATHAN":{
-      gps:{dist_total:4980,dist_baseline:6200,hsr:95,hsr_baseline:340,sprints:1,sprints_baseline:6,acel:8,acel_baseline:22,decel:9,decel_baseline:20,pico_vel:22.8,pico_vel_baseline:28.5},
-      carga_interna:{srpe_sessao:5,duracao:75,srpe_total:375,hr_avg:138,hr_max:162,hr_baseline_avg:148,tempo_zona_alta:5,tempo_zona_alta_baseline:15},
-      nm_response:{cmj_pre:42.8,cmj_pos:41.4,cmj_delta_pct:-3.3,asi_pos:13.8,nme_pos:0.0102},
-      fisio:{sono_noite:5.8,dor_pos:4,rec_percebida:5},
-      risco:{prob_pre:0.61,prob_pos:0.60,delta:-0.01,impacto:"neutro"},
-      classificacao:"amarelo",classificacao_label:"Carga controlada — protocolo regenerativo",
-      obs:"Exercícios de mobilidade + técnico leve. COP monitorado pós-sessão."
-    },
-    "THALLES":{
-      gps:{dist_total:0,dist_baseline:6500,hsr:0,hsr_baseline:380,sprints:0,sprints_baseline:7,acel:0,acel_baseline:25,decel:0,decel_baseline:22,pico_vel:0,pico_vel_baseline:29.8},
-      carga_interna:{srpe_sessao:2,duracao:30,srpe_total:60,hr_avg:110,hr_max:125,hr_baseline_avg:152,tempo_zona_alta:0,tempo_zona_alta_baseline:16},
-      nm_response:{cmj_pre:43.3,cmj_pos:43.1,cmj_delta_pct:-0.5,asi_pos:5.6,nme_pos:0.0094},
-      fisio:{sono_noite:7.2,dor_pos:2,rec_percebida:8},
-      risco:{prob_pre:0.54,prob_pos:0.53,delta:-0.01,impacto:"neutro"},
-      classificacao:"verde",classificacao_label:"Apenas fisioterapia — sem carga de campo",
-      obs:"Excluído do treino de campo. Sessão de fisioterapia + crioterapia."
-    },
-    "JEFFERSON NEM":{
-      gps:{dist_total:5180,dist_baseline:6400,hsr:220,hsr_baseline:410,sprints:3,sprints_baseline:7,acel:15,acel_baseline:26,decel:13,decel_baseline:23,pico_vel:25.3,pico_vel_baseline:29.1},
-      carga_interna:{srpe_sessao:6,duracao:75,srpe_total:450,hr_avg:148,hr_max:172,hr_baseline_avg:156,tempo_zona_alta:10,tempo_zona_alta_baseline:17},
-      nm_response:{cmj_pre:47.5,cmj_pos:45.8,cmj_delta_pct:-3.6,asi_pos:6.2,nme_pos:0.0112},
-      fisio:{sono_noite:7.0,dor_pos:2,rec_percebida:7},
-      risco:{prob_pre:0.47,prob_pos:0.48,delta:0.01,impacto:"leve_aumento"},
-      classificacao:"amarelo",classificacao_label:"Volume reduzido 50% — sem HSR máximo",
-      obs:"Participou com carga controlada. Sem sprints > 90%."
-    },
-    "PATRICK BREY":{
-      gps:{dist_total:0,dist_baseline:6100,hsr:0,hsr_baseline:350,sprints:0,sprints_baseline:6,acel:0,acel_baseline:24,decel:0,decel_baseline:21,pico_vel:0,pico_vel_baseline:28.2},
-      carga_interna:{srpe_sessao:3,duracao:45,srpe_total:135,hr_avg:118,hr_max:138,hr_baseline_avg:150,tempo_zona_alta:0,tempo_zona_alta_baseline:14},
-      nm_response:{cmj_pre:42.6,cmj_pos:42.2,cmj_delta_pct:-0.9,asi_pos:12.4,nme_pos:0.0122},
-      fisio:{sono_noite:6.8,dor_pos:2,rec_percebida:7},
-      risco:{prob_pre:0.43,prob_pos:0.42,delta:-0.01,impacto:"neutro"},
-      classificacao:"verde",classificacao_label:"Reabilitação LCM — sem campo",
-      obs:"Fase 3 — apenas fisioterapia + fortalecimento. Sem carga de campo."
-    },
-    "KELVIN":{
-      gps:{dist_total:5650,dist_baseline:6000,hsr:280,hsr_baseline:360,sprints:4,sprints_baseline:6,acel:18,acel_baseline:24,decel:16,decel_baseline:22,pico_vel:26.4,pico_vel_baseline:28.8},
-      carga_interna:{srpe_sessao:6,duracao:75,srpe_total:450,hr_avg:152,hr_max:176,hr_baseline_avg:158,tempo_zona_alta:12,tempo_zona_alta_baseline:16},
-      nm_response:{cmj_pre:38.4,cmj_pos:36.8,cmj_delta_pct:-4.2,asi_pos:9.1,nme_pos:0.0130},
-      fisio:{sono_noite:7.5,dor_pos:3,rec_percebida:6},
-      risco:{prob_pre:0.38,prob_pos:0.40,delta:0.02,impacto:"leve_aumento"},
-      classificacao:"amarelo",classificacao_label:"CMJ queda pós-sessão — monitorar fadiga NM",
-      obs:"CMJ caiu 4.2% pós-sessão. Monotonia acumulada pode estar amplificando fadiga."
-    },
-    "RAFAEL GAVA":{
-      gps:{dist_total:5320,dist_baseline:5900,hsr:240,hsr_baseline:330,sprints:3,sprints_baseline:5,acel:14,acel_baseline:22,decel:12,decel_baseline:20,pico_vel:25.8,pico_vel_baseline:27.5},
-      carga_interna:{srpe_sessao:7,duracao:75,srpe_total:525,hr_avg:155,hr_max:180,hr_baseline_avg:160,tempo_zona_alta:14,tempo_zona_alta_baseline:18},
-      nm_response:{cmj_pre:38.7,cmj_pos:36.2,cmj_delta_pct:-6.5,asi_pos:8.8,nme_pos:0.0090},
-      fisio:{sono_noite:5.5,dor_pos:3,rec_percebida:5},
-      risco:{prob_pre:0.35,prob_pos:0.39,delta:0.04,impacto:"aumento"},
-      classificacao:"vermelho",classificacao_label:"CMJ -6.5% + sono ruim — sessão aumentou risco",
-      obs:"Sessão gerou fadiga NM significativa. CMJ queda de 6.5%. Sono < 6h agravou resposta. sRPE 7 acima do alvo (5-6)."
-    },
-    "HENRIQUE TELES":{
-      gps:{dist_total:5880,dist_baseline:6300,hsr:310,hsr_baseline:390,sprints:5,sprints_baseline:7,acel:20,acel_baseline:26,decel:18,decel_baseline:24,pico_vel:27.2,pico_vel_baseline:29.4},
-      carga_interna:{srpe_sessao:6,duracao:75,srpe_total:450,hr_avg:150,hr_max:174,hr_baseline_avg:154,tempo_zona_alta:11,tempo_zona_alta_baseline:16},
-      nm_response:{cmj_pre:45.5,cmj_pos:43.8,cmj_delta_pct:-3.7,asi_pos:16.8,nme_pos:0.0106},
-      fisio:{sono_noite:7.8,dor_pos:1,rec_percebida:8},
-      risco:{prob_pre:0.28,prob_pos:0.29,delta:0.01,impacto:"neutro"},
-      classificacao:"amarelo",classificacao_label:"Assimetria pós-sessão piorou — monitorar bilateral",
-      obs:"ASI pós-sessão 16.8% (piorou de 16.1%). Sono bom ajudou a moderar risco."
-    },
-    "GUILHERME QUEIROZ":{
-      gps:{dist_total:6100,dist_baseline:6400,hsr:350,hsr_baseline:400,sprints:5,sprints_baseline:7,acel:22,acel_baseline:26,decel:20,decel_baseline:24,pico_vel:28.1,pico_vel_baseline:29.6},
-      carga_interna:{srpe_sessao:5,duracao:75,srpe_total:375,hr_avg:146,hr_max:170,hr_baseline_avg:152,tempo_zona_alta:9,tempo_zona_alta_baseline:15},
-      nm_response:{cmj_pre:46.0,cmj_pos:45.2,cmj_delta_pct:-1.7,asi_pos:5.8,nme_pos:0.0162},
-      fisio:{sono_noite:7.0,dor_pos:1,rec_percebida:7},
-      risco:{prob_pre:0.26,prob_pos:0.25,delta:-0.01,impacto:"neutro"},
-      classificacao:"verde",classificacao_label:"Sessão bem tolerada — resposta adequada",
-      obs:"Boa tolerância. CMJ queda mínima. NME mantido. Risco estável."
-    },
-    "ADRIANO":{
-      gps:{dist_total:4200,dist_baseline:4800,hsr:120,hsr_baseline:200,sprints:1,sprints_baseline:3,acel:8,acel_baseline:15,decel:7,decel_baseline:14,pico_vel:22.5,pico_vel_baseline:24.8},
-      carga_interna:{srpe_sessao:5,duracao:75,srpe_total:375,hr_avg:140,hr_max:165,hr_baseline_avg:148,tempo_zona_alta:7,tempo_zona_alta_baseline:12},
-      nm_response:{cmj_pre:49.6,cmj_pos:48.4,cmj_delta_pct:-2.4,asi_pos:5.4,nme_pos:0.0150},
-      fisio:{sono_noite:7.5,dor_pos:1,rec_percebida:8},
-      risco:{prob_pre:0.23,prob_pos:0.22,delta:-0.01,impacto:"neutro"},
-      classificacao:"verde",classificacao_label:"Sessão bem tolerada — goleiro com carga reduzida",
-      obs:"Treino específico de goleiro. Carga adequada. Resposta fisiológica normal."
-    },
-    "BRENNO":{
-      gps:{dist_total:4350,dist_baseline:4900,hsr:130,hsr_baseline:210,sprints:1,sprints_baseline:3,acel:9,acel_baseline:16,decel:8,decel_baseline:15,pico_vel:23.1,pico_vel_baseline:25.2},
-      carga_interna:{srpe_sessao:5,duracao:75,srpe_total:375,hr_avg:142,hr_max:168,hr_baseline_avg:150,tempo_zona_alta:8,tempo_zona_alta_baseline:13},
-      nm_response:{cmj_pre:44.6,cmj_pos:43.8,cmj_delta_pct:-1.8,asi_pos:6.0,nme_pos:0.0158},
-      fisio:{sono_noite:7.2,dor_pos:3,rec_percebida:7},
-      risco:{prob_pre:0.19,prob_pos:0.19,delta:0.00,impacto:"neutro"},
-      classificacao:"verde",classificacao_label:"Sessão bem tolerada — monitorar dor",
-      obs:"Dor 3/10 mantida pós-sessão. Monitorar tendência. Demais marcadores OK."
-    },
-    "HYGOR":{
-      gps:{dist_total:5750,dist_baseline:6600,hsr:300,hsr_baseline:420,sprints:4,sprints_baseline:8,acel:19,acel_baseline:28,decel:17,decel_baseline:25,pico_vel:27.5,pico_vel_baseline:30.5},
-      carga_interna:{srpe_sessao:6,duracao:75,srpe_total:450,hr_avg:150,hr_max:175,hr_baseline_avg:158,tempo_zona_alta:11,tempo_zona_alta_baseline:17},
-      nm_response:{cmj_pre:42.1,cmj_pos:41.0,cmj_delta_pct:-2.6,asi_pos:7.2,nme_pos:0.0124},
-      fisio:{sono_noite:7.0,dor_pos:2,rec_percebida:7},
-      risco:{prob_pre:0.18,prob_pos:0.18,delta:0.00,impacto:"neutro"},
-      classificacao:"verde",classificacao_label:"Sessão bem tolerada — carga HSR reduzida",
-      obs:"HSR reduzido 30% conforme protocolo. Resposta fisiológica adequada."
-    }
-  }
-};
+const SESSION_DATA_EMPTY={meta:{date:"",tipo:"",duracao:0,local:"",md:"",condicao:"",rpe_alvo:""},atletas:{}};
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // LESÕES REAIS — Fonte: Planilha Botafogo FSA - Dados Performance-2.xlsx (aba lesoes)
@@ -990,15 +877,33 @@ export default function Dashboard(){
   // Merge: SESSION_DATA com dados live da planilha (live tem prioridade)
   const LIVE_SESSION = useMemo(() => {
     const hasLive = sheetData?.sessionAtletas && Object.keys(sheetData.sessionAtletas).length > 0;
-    if (!hasLive) return SESSION_DATA;
-    // Quando há dados live, usar APENAS atletas da planilha (não mesclar com hardcoded)
-    const merged = { meta: { ...SESSION_DATA.meta }, atletas: {} };
+    if (!hasLive) return SESSION_DATA_EMPTY;
+    // 100% dinâmico — dados vêm da planilha
+    const merged = { meta: { ...SESSION_DATA_EMPTY.meta }, atletas: {} };
+    // Extrair metadata da sessão a partir dos dados GPS (sessionTitle, date)
+    const firstAth = Object.values(sheetData.sessionAtletas)[0];
+    if (firstAth?._sessionDate) {
+      try {
+        const d = new Date(firstAth._sessionDate);
+        merged.meta._liveDate = isNaN(d) ? firstAth._sessionDate : d.toLocaleDateString("pt-BR");
+      } catch(e) { merged.meta._liveDate = firstAth._sessionDate; }
+    }
+    // Calcular duração média e tipo a partir dos dados dos atletas
+    const duracoes = Object.values(sheetData.sessionAtletas).map(a => a.carga_interna?.duracao || 0).filter(d => d > 0);
+    if (duracoes.length) merged.meta.duracao = Math.round(duracoes.reduce((a,b) => a+b, 0) / duracoes.length);
+    // Tipo da sessão a partir do sessionTitle mais comum
+    const titles = Object.values(sheetData.sessionAtletas).map(a => a.obs || "").filter(Boolean);
+    if (titles.length) {
+      const t0 = titles[0];
+      const match = t0.match(/— (.+)$/);
+      if (match) merged.meta.tipo = match[1];
+    }
     for (const [name, data] of Object.entries(sheetData.sessionAtletas)) {
       merged.atletas[name] = { ...data, _fromSheet: true };
     }
     if (sheetData.timestamp) {
       const d = new Date(sheetData.timestamp);
-      merged.meta = { ...merged.meta, _liveDate: d.toLocaleDateString("pt-BR"), _liveTime: d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) };
+      merged.meta = { ...merged.meta, _liveDate: merged.meta._liveDate || d.toLocaleDateString("pt-BR"), _liveTime: d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) };
     }
     return merged;
   }, [sheetData]);
@@ -2246,11 +2151,23 @@ export default function Dashboard(){
             // Mapeamento de posição para grupo do relatório
             const posGroup=(pos)=>{const m={GOL:"Goleiro",ZAG:"Zagueiro",VOL:"Volante",MEI:"Meia",LAT:"Lateral",LE:"Lateral",LD:"Lateral",EXT:"Extremo",ATA:"Atacante"};return m[pos]||pos;};
             const myGroup=posGroup(sp.pos);
-            // Calcular média da posição a partir dos dados da sessão atual (com filtro de atletas)
+            // Todos os atletas da posição na sessão (para filtro UI)
             const allSessAtletas=LIVE_SESSION.atletas;
-            const posAtletas=Object.entries(allSessAtletas).filter(([name])=>{const pl=players.find(p=>p.n===name);return pl&&posGroup(pl.pos)===myGroup&&allSessAtletas[name]?.gps&&!excludedAthletes.has(name);});
-            // Todos os atletas da posição (para o filtro UI)
             const allPosAtletas=Object.entries(allSessAtletas).filter(([name])=>{const pl=players.find(p=>p.n===name);return pl&&posGroup(pl.pos)===myGroup&&allSessAtletas[name]?.gps;});
+            // Auto-filtro: detectar atletas com participação completa vs parcial/transição
+            // Calcula mediana de distância do grupo para identificar outliers baixos
+            const allDists=allPosAtletas.map(([,a])=>a.gps.dist_total||0).filter(v=>v>0).sort((a,b)=>a-b);
+            const medianDist=allDists.length?allDists[Math.floor(allDists.length/2)]:0;
+            const minDistThreshold=medianDist*0.6; // <60% da mediana = participação parcial
+            const autoExcluded=new Set();
+            allPosAtletas.forEach(([name,a])=>{
+              const dist=a.gps.dist_total||0;
+              if(dist<minDistThreshold&&name!==sp.n) autoExcluded.add(name);
+            });
+            // Combinar auto-filtro com filtro manual (excludedAthletes override do auto)
+            const effectiveExcluded=new Set([...autoExcluded,...excludedAthletes]);
+            const posAtletas=allPosAtletas.filter(([name])=>!effectiveExcluded.has(name));
+            const nAutoExcluded=allPosAtletas.filter(([name])=>autoExcluded.has(name)&&!excludedAthletes.has(name)).length;
             const posAvg=(key)=>{const vals=posAtletas.map(([,a])=>a.gps[key]||0).filter(v=>v>0);return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;};
             const avgDist=posAvg("dist_total");
             const avgHsr=posAvg("hsr");
@@ -2284,7 +2201,7 @@ export default function Dashboard(){
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
                 <div>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Radar GPS — Sessão {sessDateFmt?<span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:t.textMuted,marginLeft:6}}>{sessDateFmt}</span>:""}{sessTitle?<span style={{fontSize:10,color:t.textFaint,marginLeft:6}}>· {sessTitle}</span>:""}</div>
-                  <div style={{fontSize:10,color:t.textFaint}}>% vs. média da posição ({myGroup}) na sessão · 100% = média do grupo</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>% vs. média da posição ({myGroup}) na sessão · 100% = média do grupo{nAutoExcluded>0?<span style={{color:"#CA8A04"}}> · {nAutoExcluded} excl. auto (parcial)</span>:""}</div>
                 </div>
                 <div style={{display:"flex",alignItems:"center",gap:6}}>
                   <button onClick={()=>setShowAthleteFilter(!showAthleteFilter)} style={{padding:"3px 8px",borderRadius:6,fontSize:9,fontWeight:600,background:showAthleteFilter?pri+"15":"transparent",color:t.textMuted,border:`1px solid ${t.border}`,cursor:"pointer",display:"flex",alignItems:"center",gap:3}} title="Filtrar atletas da média">
@@ -2296,18 +2213,24 @@ export default function Dashboard(){
                   </span>
                 </div>
               </div>
-              {/* Filtro de atletas */}
-              {showAthleteFilter&&<div style={{display:"flex",flexWrap:"wrap",gap:4,padding:"8px 0",borderBottom:`1px solid ${t.border}`,marginBottom:8}}>
-                {allPosAtletas.map(([name])=>{
-                  const isExcluded=excludedAthletes.has(name);
+              {/* Filtro de atletas — mostra dist de cada um + indicador de auto-exclusão */}
+              {showAthleteFilter&&<div style={{padding:"8px 0",borderBottom:`1px solid ${t.border}`,marginBottom:8}}>
+                <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                {allPosAtletas.map(([name,athData])=>{
+                  const isAutoExcluded=autoExcluded.has(name);
+                  const isManualExcluded=excludedAthletes.has(name);
+                  const isExcluded=effectiveExcluded.has(name);
                   const isCurrent=name===sp.n;
-                  return <button key={name} onClick={()=>{if(isCurrent)return;setExcludedAthletes(prev=>{const next=new Set(prev);if(next.has(name))next.delete(name);else next.add(name);return next;});}} style={{padding:"3px 8px",borderRadius:5,fontSize:9,fontWeight:600,background:isExcluded?"transparent":isCurrent?pri+"20":"#16A34A15",color:isExcluded?t.textFaint:isCurrent?pri:"#16A34A",border:`1px solid ${isExcluded?t.border:isCurrent?pri+"40":"#16A34A40"}`,cursor:isCurrent?"default":"pointer",opacity:isExcluded?.5:1,textDecoration:isExcluded?"line-through":"none"}}>
-                    {name}{isCurrent?" ★":""}
+                  const athDist=athData.gps.dist_total||0;
+                  return <button key={name} onClick={()=>{if(isCurrent)return;if(isAutoExcluded&&!isManualExcluded){setExcludedAthletes(prev=>{const next=new Set(prev);next.delete(name);return next;});autoExcluded.delete(name);return;}setExcludedAthletes(prev=>{const next=new Set(prev);if(next.has(name))next.delete(name);else next.add(name);return next;});}} style={{padding:"3px 8px",borderRadius:5,fontSize:9,fontWeight:600,background:isExcluded?"transparent":isCurrent?pri+"20":"#16A34A15",color:isExcluded?t.textFaint:isCurrent?pri:"#16A34A",border:`1px solid ${isExcluded?t.border:isCurrent?pri+"40":"#16A34A40"}`,cursor:isCurrent?"default":"pointer",opacity:isExcluded?.5:1,textDecoration:isExcluded?"line-through":"none"}}>
+                    {name}{isCurrent?" ★":""} <span style={{fontFamily:"'JetBrains Mono'",fontSize:7,opacity:.7}}>{athDist}m</span>{isAutoExcluded&&!isManualExcluded?<span style={{fontSize:7,color:"#CA8A04",marginLeft:2}}>auto</span>:""}
                   </button>;
                 })}
-                <button onClick={()=>setExcludedAthletes(new Set())} style={{padding:"3px 8px",borderRadius:5,fontSize:8,fontWeight:500,background:"transparent",color:t.textFaint,border:`1px solid ${t.border}`,cursor:"pointer"}}>
+                <button onClick={()=>{setExcludedAthletes(new Set());}} style={{padding:"3px 8px",borderRadius:5,fontSize:8,fontWeight:500,background:"transparent",color:t.textFaint,border:`1px solid ${t.border}`,cursor:"pointer"}}>
                   Resetar
                 </button>
+                </div>
+                {nAutoExcluded>0&&<div style={{fontSize:8,color:"#CA8A04",marginTop:4}}>Atletas com dist &lt; 60% da mediana ({Math.round(minDistThreshold)}m) excluídos automaticamente. Clique para incluir.</div>}
               </div>}
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginTop:8}}>
                 <ResponsiveContainer width="100%" height={260}>
@@ -2575,15 +2498,19 @@ export default function Dashboard(){
         {/* SESSÃO DE TREINO — Monitoramento pós-sessão                        */}
         {/* ═══════════════════════════════════════════════════════════════════ */}
         {tab==="sessao"&&<div>
+          {Object.keys(LIVE_SESSION.atletas).length===0?<div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:40,textAlign:"center",color:t.textFaint}}>
+            <Activity size={32} style={{marginBottom:12,opacity:.4}}/><div style={{fontSize:14,fontWeight:600}}>Aguardando dados da sessão</div><div style={{fontSize:11,marginTop:4}}>Os dados serão carregados automaticamente da planilha GPS.</div>
+          </div>:<></>}
+          {Object.keys(LIVE_SESSION.atletas).length>0&&<>
           {/* Session Header */}
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <div>
                 <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Monitoramento da Sessão de Treino</div>
-                <div style={{fontSize:12,color:t.textFaint,marginTop:2}}>{LIVE_SESSION.meta._liveDate||LIVE_SESSION.meta.date} · {LIVE_SESSION.meta.tipo} · {LIVE_SESSION.meta.local} · {LIVE_SESSION.meta.md}{isLive&&<span style={{marginLeft:8,fontSize:10,color:"#16A34A",fontWeight:600}}>LIVE {LIVE_SESSION.meta._liveTime||""}</span>}</div>
+                <div style={{fontSize:12,color:t.textFaint,marginTop:2}}>{LIVE_SESSION.meta._liveDate||LIVE_SESSION.meta.date}{LIVE_SESSION.meta.tipo?` · ${LIVE_SESSION.meta.tipo}`:""}{LIVE_SESSION.meta.local?` · ${LIVE_SESSION.meta.local}`:""}{LIVE_SESSION.meta.md?` · ${LIVE_SESSION.meta.md}`:""}{isLive&&<span style={{marginLeft:8,fontSize:10,color:"#16A34A",fontWeight:600}}>LIVE {LIVE_SESSION.meta._liveTime||""}</span>}</div>
               </div>
               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {[{l:"Duração",v:LIVE_SESSION.meta.duracao+"min"},{l:"PSE Alvo",v:LIVE_SESSION.meta.rpe_alvo},{l:"Condição",v:LIVE_SESSION.meta.condicao}].map((b,i)=>
+                {[{l:"Duração",v:(LIVE_SESSION.meta.duracao||"—")+"min"},{l:"Atletas",v:Object.keys(LIVE_SESSION.atletas).length}].filter(b=>b.v&&b.v!=="0min"&&b.v!=="—min").map((b,i)=>
                   <span key={i} style={{padding:"4px 12px",borderRadius:6,fontSize:10,fontWeight:600,background:t.bgMuted,color:t.textMuted,border:`1px solid ${t.border}`}}>{b.l}: <strong style={{color:pri}}>{b.v}</strong></span>
                 )}
               </div>
@@ -2888,6 +2815,7 @@ export default function Dashboard(){
               </div>
             </div>
           </div>
+        </>}
         </div>}
 
         {tab==="model"&&<div>
