@@ -269,6 +269,12 @@ function processGPS(rows) {
       useRows = [totalRow];
     }
 
+    // Detectar se atleta está em transição (split contém "transição" / "transicao")
+    const allSplitNames = sr.rows.map(r => splitName(r)).filter(Boolean);
+    const isTransicao = allSplitNames.some(sn => sn.includes("transi"));
+    // Detectar split principal para exibição
+    const splitPrincipal = allSplitNames.length ? allSplitNames[0] : "";
+
     sessions[key] = {
       athlete: sr.athlete,
       dashName: resolveName(sr.athlete),
@@ -277,6 +283,8 @@ function processGPS(rows) {
       tags: sr.tags,
       grupo: sr.grupo,
       dpj: sr.dpj,
+      isTransicao,
+      splitPrincipal,
       dist_km: 0, hsr_20_m: 0, sprints_20: 0, player_load: 0, top_speed: 0,
       hsr_25_km: 0, sprints_25: 0, acel_b1: 0, acel_b2: 0, decel_b1: 0, decel_b2: 0,
       acoes_30: 0, rhie: 0, dist_per_min: 0, hr_avg: 0, hr_max: 0, hr_exertion: 0,
@@ -320,6 +328,8 @@ function processGPS(rows) {
       tags: s.tags,
       grupo: s.grupo,
       dpj: s.dpj,
+      isTransicao: s.isTransicao || false,
+      splitPrincipal: s.splitPrincipal || "",
       gps: {
         dist_total: Math.round(s.dist_km * 1000), // km → m
         hsr: Math.round(s.hsr_20_m),
