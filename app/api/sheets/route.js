@@ -269,14 +269,13 @@ function processGPS(rows) {
       useRows = [totalRow];
     }
 
-    // Detectar se atleta está em transição (split contém "transição" / "transicao")
-    // Porém, se existe um split "total" ou o atleta tem múltiplos splits de transição
-    // indicando que participou de várias partes (rotação), não marcar como transição.
+    // Detectar se atleta está em transição REAL
+    // Splits como "3-Analit Transição" são exercícios do treino (têm número na frente) — NÃO é transição
+    // Splits como "Transição T2" (sem número na frente) = transição real, atleta não fez sessão inteira
     const allSplitNames = sr.rows.map(r => splitName(r)).filter(Boolean);
-    const hasTransitionSplit = allSplitNames.some(sn => sn.includes("transi"));
-    // Se há um totalRow, o atleta fez a sessão completa (rotação != transição real)
-    // Se não há totalRow mas há múltiplos splits, somar distância depois p/ decidir no front
-    const isTransicao = hasTransitionSplit && !totalRow;
+    const hasRealTransition = allSplitNames.some(sn => sn.includes("transi") && !/^\d+[-.]/.test(sn.trim()));
+    // Se há um totalRow, o atleta fez a sessão completa
+    const isTransicao = hasRealTransition && !totalRow;
     // Detectar split principal para exibição
     const splitPrincipal = allSplitNames.length ? allSplitNames[0] : "";
 
