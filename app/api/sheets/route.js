@@ -270,8 +270,13 @@ function processGPS(rows) {
     }
 
     // Detectar se atleta está em transição (split contém "transição" / "transicao")
+    // Porém, se existe um split "total" ou o atleta tem múltiplos splits de transição
+    // indicando que participou de várias partes (rotação), não marcar como transição.
     const allSplitNames = sr.rows.map(r => splitName(r)).filter(Boolean);
-    const isTransicao = allSplitNames.some(sn => sn.includes("transi"));
+    const hasTransitionSplit = allSplitNames.some(sn => sn.includes("transi"));
+    // Se há um totalRow, o atleta fez a sessão completa (rotação != transição real)
+    // Se não há totalRow mas há múltiplos splits, somar distância depois p/ decidir no front
+    const isTransicao = hasTransitionSplit && !totalRow;
     // Detectar split principal para exibição
     const splitPrincipal = allSplitNames.length ? allSplitNames[0] : "";
 

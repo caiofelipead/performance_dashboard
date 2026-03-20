@@ -2240,8 +2240,6 @@ export default function Dashboard(){
             const autoExcludedReasons={};
             allPosAtletas.forEach(([name,a])=>{
               if(name===sp.n) return;
-              // Atletas em transição = não fizeram sessão inteira, excluir da média
-              if(a._isTransicao){autoExcluded.add(name);autoExcludedReasons[name]="transicao";return;}
               // Fisioterapia campo = reabilitação, não treino principal
               if(a._fisioSessao?.isCampoRehab){autoExcluded.add(name);autoExcludedReasons[name]="reab";return;}
             });
@@ -2253,7 +2251,11 @@ export default function Dashboard(){
             allPosAtletas.forEach(([name,a])=>{
               if(name===sp.n||autoExcluded.has(name)) return;
               const dist=a.gps.dist_total||0;
-              if(dist<minDistThreshold){autoExcluded.add(name);autoExcludedReasons[name]="parcial";}
+              if(dist<minDistThreshold){
+                // Atleta com transição E dist baixa = transição real; dist baixa sem transição = parcial
+                autoExcluded.add(name);
+                autoExcludedReasons[name]=a._isTransicao?"transicao":"parcial";
+              }
             });
             // Combinar auto-filtro com filtro manual (excludedAthletes override do auto)
             const effectiveExcluded=new Set([...autoExcluded,...excludedAthletes]);
@@ -2299,13 +2301,13 @@ export default function Dashboard(){
                   {fisioProcs.length>0&&<span style={{fontWeight:500}}> Fisioterapia recente: {fisioProcs.join(", ")}.</span>}
                 </div>;
               })()}
-              {liveAth?._isTransicao&&<div style={{background:"#EFF6FF",border:"1px solid #BFDBFE",borderRadius:8,padding:"8px 12px",marginBottom:10,fontSize:10,color:"#1E40AF",fontWeight:600}}>
+              {liveAth?._isTransicao&&(lastGps.dist_total||0)<minDistThreshold&&<div style={{background:"#EFF6FF",border:"1px solid #BFDBFE",borderRadius:8,padding:"8px 12px",marginBottom:10,fontSize:10,color:"#1E40AF",fontWeight:600}}>
                 Atleta em transição ({liveAth._splitPrincipal||"transição"}) — não participou da sessão inteira. Dados individuais exibidos, mas não incluído na média da posição.
               </div>}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
                 <div>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Radar GPS — {isInLatestSession?"Última Sessão":"Sessão Anterior"} {sessDateFmt?<span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:t.textMuted,marginLeft:6}}>{sessDateFmt}</span>:""}{sessTitle?<span style={{fontSize:10,color:t.textFaint,marginLeft:6}}>· {sessTitle}</span>:""}</div>
-                  <div style={{fontSize:10,color:t.textFaint}}>{liveAth?._isTransicao?"Dados individuais (transição — não comparado à média da posição)":<>% vs. média da posição ({myGroup}) na sessão · 100% = média do grupo{nAutoExcluded>0?<span style={{color:"#CA8A04"}}> · {nAutoExcluded} excl. auto ({allPosAtletas.some(([n,a])=>autoExcluded.has(n)&&autoExcludedReasons[n]==="transicao")?"transição/parcial":"parcial"})</span>:""}</>}</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>{liveAth?._isTransicao&&(lastGps.dist_total||0)<minDistThreshold?"Dados individuais (transição — não comparado à média da posição)":<>% vs. média da posição ({myGroup}) na sessão · 100% = média do grupo{nAutoExcluded>0?<span style={{color:"#CA8A04"}}> · {nAutoExcluded} excl. auto ({allPosAtletas.some(([n,a])=>autoExcluded.has(n)&&autoExcludedReasons[n]==="transicao")?"transição/parcial":"parcial"})</span>:""}</>}</div>
                 </div>
                 <div style={{display:"flex",alignItems:"center",gap:6}}>
                   <button onClick={()=>setShowAthleteFilter(!showAthleteFilter)} style={{padding:"3px 8px",borderRadius:6,fontSize:9,fontWeight:600,background:showAthleteFilter?pri+"15":"transparent",color:t.textMuted,border:`1px solid ${t.border}`,cursor:"pointer",display:"flex",alignItems:"center",gap:3}} title="Filtrar atletas da média">
