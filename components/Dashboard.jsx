@@ -660,65 +660,64 @@ const SERIE_B=[
   {rod:5,date:"20/04/2026",time:"A confirmar",home:"Botafogo SP",away:"Atlético-GO",local:"casa",score:null,result:null,played:false}
 ];
 
-// Mapa Semanal — Quadro de Trabalho 16/03 a 22/03/2026
+// Mapa Semanal — Quadro de Trabalho 23/03 a 29/03/2026
 // Fonte: Departamento de Futebol Profissional — Sérgio do Prado / Fillipe Soutto / André Leite
 const WEEK_MAP={
-  week:"16/03 a 22/03/2026",
-  next_match:{rod:1,opponent:"Fortaleza",date:"21/03",time:"19:15",local:"casa",days_to:5},
+  week:"23/03 a 29/03/2026",
+  next_match:{rod:2,opponent:"América-MG",date:"02/04",time:"A confirmar",local:"fora",days_to:10},
   days:[
-    {d:"2ª 16",md:"MD-5",type:"TREINO",focus:"Treino",local:"Campo Auxiliar",
+    {d:"2ª 23",md:"MD+2",type:"FOLGA",focus:"Descanso Programado",local:"-",
+      sessions:[],
+      almoco:false,tarde:"Descanso Programado",
+      wellness:false,cmj:false,notes:"Descanso programado pós-jogo (Fortaleza R1). Recuperação. DM: chegar 30min antes."},
+    {d:"3ª 24",md:"MD+3",type:"TREINO",focus:"Treino",local:"Campo Auxiliar",
       sessions:[
         {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
         {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
         {name:"Treino",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
       ],
       almoco:true,tarde:"Descanso Programado",
-      wellness:true,cmj:false,notes:"Semana de jogo (Fortaleza, sáb). DM: chegar 30min antes."},
-    {d:"3ª 17",md:"MD-4",type:"TREINO",focus:"Treino",local:"A definir",
+      wellness:true,cmj:false,notes:"Retorno aos treinos pós-jogo. Campo Auxiliar. Almoço obrigatório."},
+    {d:"4ª 25",md:"MD+4",type:"TREINO",focus:"Treino + Confraternização",local:"Campo Auxiliar",
       sessions:[
         {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
         {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
-        {name:"Treino",time:"09:00",dur:80,rpe_alvo:"6-7",content:"Treino de campo",group:"Elenco"}
+        {name:"Treino",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
       ],
-      almoco:true,tarde:"Descanso Programado",
-      wellness:true,cmj:false,notes:"Local a definir. Último treino de maior volume antes da redução pré-jogo."},
-    {d:"4ª 18",md:"MD-3",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Treino (tarde)",local:"A definir",
+      almoco:false,tarde:"Descanso Programado",
+      wellness:true,cmj:false,notes:"Campo Auxiliar. Após treino: Confraternização no CT."},
+    {d:"5ª 26",md:"MD-7",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Treino (tarde)",local:"Estádio Santa Cruz",
       sessions:[
         {name:"Apresentação",time:"14:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
         {name:"Pré Treino",time:"15:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
         {name:"Treino",time:"16:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
       ],
       almoco:false,tarde:"Lanche (Sala anexa)",
-      wellness:true,cmj:false,notes:"Descanso programado pela manhã. Treino à tarde — local a definir."},
-    {d:"5ª 19",md:"MD-2",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Treino (tarde)",local:"A definir",
+      wellness:true,cmj:false,notes:"Descanso programado pela manhã. Treino à tarde no Estádio Santa Cruz."},
+    {d:"6ª 27",md:"MD-6",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Treino (tarde)",local:"Estádio Santa Cruz",
       sessions:[
         {name:"Apresentação",time:"14:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
         {name:"Pré Treino",time:"15:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
         {name:"Treino",time:"16:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
       ],
       almoco:false,tarde:"Lanche (Sala anexa)",
-      wellness:true,cmj:true,notes:"Treino à tarde — local a definir. CMJ como marcador de prontidão NM."},
-    {d:"6ª 20",md:"MD-1",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Treino (tarde) + CONCENTRAÇÃO",local:"A definir",
-      sessions:[
-        {name:"Apresentação",time:"14:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
-        {name:"Pré Treino",time:"15:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
-        {name:"Treino",time:"16:00",dur:60,rpe_alvo:"4-5",content:"Treino tático leve — último antes do jogo",group:"Elenco"}
-      ],
-      almoco:false,tarde:"INÍCIO DE CONCENTRAÇÃO",
-      wellness:true,cmj:false,notes:"Último treino antes do jogo. Após treino: INÍCIO DE CONCENTRAÇÃO. Redução máxima de volume."},
-    {d:"Sáb 21",md:"MD",type:"JOGO",focus:"Botafogo SP × Fortaleza",local:"Estádio Santa Cruz",
+      wellness:true,cmj:false,notes:"Descanso programado pela manhã. Treino à tarde no Estádio Santa Cruz."},
+    {d:"Sáb 28",md:"MD-5",type:"TREINO",focus:"Treino",local:"CT Botafogo Academy",
       sessions:[
         {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
-        {name:"Pré Treino",time:"08:30",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação (não relacionados)",group:"Não Relacionados"},
-        {name:"Treino Não Relacionados",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo — não relacionados",group:"Não Relacionados"},
-        {name:"JOGO — Série B R1",time:"19:15",dur:90,rpe_alvo:"8-10",content:"Botafogo SP × Fortaleza · Brasileiro Série B · 1ª Rodada · Estádio Santa Cruz",group:"Relacionados"}
+        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
+        {name:"Treino",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
       ],
-      almoco:true,tarde:"Jogo 19:15",
-      wellness:true,cmj:false,notes:"DIA DE JOGO — Série B 1ª Rodada. Treino manhã apenas para não relacionados. Jogo às 19:15 no Estádio Santa Cruz."},
-    {d:"Dom 22",md:"MD+1",type:"FOLGA",focus:"Descanso Programado",local:"-",
-      sessions:[],
-      almoco:false,tarde:"Descanso Programado",
-      wellness:false,cmj:false,notes:"Descanso programado pós-jogo. Recuperação total."}
+      almoco:true,tarde:"Descanso Programado",
+      wellness:true,cmj:false,notes:"CT Botafogo Academy. Almoço obrigatório. Descanso programado à tarde."},
+    {d:"Dom 29",md:"MD-4",type:"TREINO",focus:"Treino",local:"Campo Auxiliar",
+      sessions:[
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
+        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
+        {name:"Treino",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
+      ],
+      almoco:true,tarde:"Descanso Programado",
+      wellness:true,cmj:false,notes:"Campo Auxiliar. Almoço obrigatório. Descanso programado à tarde."}
   ]
 };
 
