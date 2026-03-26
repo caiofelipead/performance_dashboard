@@ -290,6 +290,7 @@ function processGPS(rows) {
       dpj: sr.dpj,
       isTransicao,
       splitPrincipal,
+      allSplits: allSplitNames,
       dist_km: 0, hsr_20_m: 0, sprints_20: 0, player_load: 0, top_speed: 0,
       hsr_25_km: 0, sprints_25: 0, acel_b1: 0, acel_b2: 0, decel_b1: 0, decel_b2: 0,
       acoes_30: 0, rhie: 0, dist_per_min: 0, hr_avg: 0, hr_max: 0, hr_exertion: 0,
@@ -335,6 +336,7 @@ function processGPS(rows) {
       dpj: s.dpj,
       isTransicao: s.isTransicao || false,
       splitPrincipal: s.splitPrincipal || "",
+      allSplits: s.allSplits || [],
       gps: {
         dist_total: Math.round(s.dist_km * 1000), // km → m
         hsr: Math.round(s.hsr_20_m),
