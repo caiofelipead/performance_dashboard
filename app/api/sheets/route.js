@@ -731,10 +731,22 @@ function processCalendario(rows) {
     const adversario = findField(row, "adversario", "adversário", "opponent", "oponente", "adv");
     const escudo = findField(row, "escudo", "logo", "badge", "img", "imagem", "shield");
     const local = findField(row, "local", "mando", "home_away", "casa_fora", "venue");
+    const resultado = findField(row, "res", "resultado", "result", "score");
+    const placarRaw = findField(row, "placar", "score_full", "gols");
+
+    // Parse placar "X:Y" or "XxY" format
+    let gols_pro = "", gols_contra = "";
+    if (placarRaw) {
+      const parts = String(placarRaw).split(/[:xX×]/);
+      if (parts.length === 2) {
+        gols_pro = parts[0].trim();
+        gols_contra = parts[1].trim();
+      }
+    }
 
     if (!adversario && !data) continue;
 
-    result.push({ comp, rodada, data, adversario, escudo, local });
+    result.push({ comp, rodada, data, adversario, escudo, local, resultado, gols_pro, gols_contra });
   }
   return result;
 }
