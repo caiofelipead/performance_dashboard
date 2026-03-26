@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { BarChart, Bar, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, AreaChart, Cell, ReferenceLine, LineChart, Line } from "recharts";
-import { Activity, TrendingUp, AlertTriangle, CheckCircle2, ChevronRight, Heart, Zap, Shield, Users, Eye, Brain, Target, Calendar, RefreshCw, Wifi, WifiOff, Moon, Sun, Trophy } from "lucide-react";
+import { Activity, TrendingUp, AlertTriangle, CheckCircle2, ChevronRight, ChevronDown, Heart, Zap, Shield, Users, Eye, Brain, Target, Calendar, RefreshCw, Wifi, WifiOff, Moon, Sun, Trophy } from "lucide-react";
 import { useSheetData } from "./useSheetData";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -808,6 +808,7 @@ export default function Dashboard(){
   const [riskSort,setRiskSort]=useState({col:"riskScore",dir:"desc"});
   const [sessSort,setSessSort]=useState({col:"classif",dir:"asc"});
   const [excludedAthletes,setExcludedAthletes]=useState(new Set());
+  const [expandedGames,setExpandedGames]=useState(new Set());
   const [showAthleteFilter,setShowAthleteFilter]=useState(false);
   const [dark,setDark]=useState(()=>{if(typeof window!=="undefined"){const s=localStorage.getItem("theme");if(s)return s==="dark";return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches||false;}return false;});
   const [todayStr]=useState(()=>{try{return todayStr;}catch{return"";}});
@@ -1851,20 +1852,207 @@ export default function Dashboard(){
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <div>
                 <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Calendário de Jogos</div>
-                <div style={{fontSize:12,color:t.textFaint,marginTop:2}}>Dados da aba Calendário — competições e adversários</div>
+                <div style={{fontSize:12,color:t.textFaint,marginTop:2}}>Dados da aba Calendário — clique no jogo para ver dados dos atletas</div>
               </div>
               <div style={{display:"flex",gap:8}}>
-                {["Todos","Paulistão","Série B"].map((f,i)=>{
+                {(()=>{
                   const jogosCalendario = sheetData?.calendario || [];
-                  const filterVal = f==="Todos"?null:f==="Paulistão"?"Paulistão":"Série B";
-                  const count = filterVal ? jogosCalendario.filter(g=>(g.comp||"").toLowerCase().includes(filterVal.toLowerCase())).length : jogosCalendario.length;
-                  return <span key={i} style={{padding:"4px 12px",borderRadius:6,fontSize:10,fontWeight:600,background:t.bgMuted,color:t.textMuted,border:`1px solid ${t.border}`,cursor:"default"}}>{f} ({count})</span>;
-                })}
+                  return ["Todos","Paulistão","Série B"].map((f,i)=>{
+                    const filterVal = f==="Todos"?null:f==="Paulistão"?"Paulistão":"Série B";
+                    const count = filterVal ? jogosCalendario.filter(g=>(g.comp||"").toLowerCase().includes(filterVal.toLowerCase())).length : jogosCalendario.length;
+                    return <span key={i} style={{padding:"4px 12px",borderRadius:6,fontSize:10,fontWeight:600,background:t.bgMuted,color:t.textMuted,border:`1px solid ${t.border}`,cursor:"default"}}>{f} ({count})</span>;
+                  });
+                })()}
               </div>
             </div>
           </div>
 
-          {/* Jogos Table */}
+          {/* Insights Panel — Performance vs Resultado */}
+          {(()=>{
+            const jogosCalendario = sheetData?.calendario || [];
+            const gpsData=sheetData?.gps||{};
+            const diarioData=sheetData?.diario||{};
+            const questData=sheetData?.questionarios||{};
+
+            const parseGameDate2=(d)=>{
+              if(!d)return null;
+              const s=String(d).trim();
+              if(/^\d{4}-\d{2}-\d{2}/.test(s))return new Date(s);
+              const parts=s.split(/[\/\-\.]/);
+              if(parts.length>=3){const[a,b,c]=parts.map(Number);if(c>100)return new Date(c,b-1,a);if(a>100)return new Date(a,b-1,c);return new Date(2026,b-1,a);}
+              return null;
+            };
+            const normDate2=(d)=>{if(!d)return 0;const dt=new Date(d);dt.setHours(0,0,0,0);return dt.getTime();};
+            const parseDateStr2=(d)=>{
+              if(!d)return 0;const s=String(d).trim();
+              if(/^\d{4}-\d{2}-\d{2}/.test(s))return normDate2(new Date(s));
+              const parts=s.split(/[\/\-\.]/);
+              if(parts.length>=3){const[a,b,c]=parts.map(Number);if(a>31)return normDate2(new Date(a,b-1,c));if(c>31)return normDate2(new Date(c,b-1,a));return normDate2(new Date(c,a-1,b));}
+              return new Date(s).getTime()||0;
+            };
+
+            const classifyResult=(g)=>{
+              const r=(g.resultado||"").toUpperCase().trim();
+              if(r==="V"||r==="VITÓRIA"||r==="VITORIA"||r==="W"||r==="WIN")return"V";
+              if(r==="E"||r==="EMPATE"||r==="D"&&false||r==="DRAW")return"E";
+              if(r==="D"||r==="DERROTA"||r==="L"||r==="LOSS")return"D";
+              const gp=Number(g.gols_pro)||0;const gc=Number(g.gols_contra)||0;
+              if(gp>0||gc>0){if(gp>gc)return"V";if(gp===gc)return"E";return"D";}
+              return null;
+            };
+
+            const gamesWithResult=jogosCalendario.map(g=>({...g,_result:classifyResult(g)})).filter(g=>g._result);
+            if(gamesWithResult.length<2)return null;
+
+            const getTeamAvgsForDate=(gameDate)=>{
+              if(!gameDate)return null;
+              const gDateTs=normDate2(gameDate);
+              const allNames=new Set([...Object.keys(gpsData),...Object.keys(diarioData)]);
+              let distArr=[],hsrArr=[],sprintArr=[],pseArr=[],sonoArr=[],dorArr=[],recArr=[];
+              for(const name of allNames){
+                const gpsEntries=(gpsData[name]||[]).filter(e=>parseDateStr2(e.date)===gDateTs);
+                const diarioEntries=(diarioData[name]||[]).filter(e=>parseDateStr2(e.date)===gDateTs);
+                const questEntries=(questData[name]||[]).filter(e=>parseDateStr2(e.date)===gDateTs);
+                const gps=gpsEntries.length?gpsEntries[gpsEntries.length-1].gps||gpsEntries[gpsEntries.length-1]:null;
+                const diario=diarioEntries.length?diarioEntries[diarioEntries.length-1]:null;
+                const quest=questEntries.length?questEntries[questEntries.length-1]:null;
+                if(gps?.dist_total>0)distArr.push(gps.dist_total);
+                if(gps?.hsr>0)hsrArr.push(gps.hsr);
+                if(gps?.sprints>0)sprintArr.push(gps.sprints);
+                if(diario?.pse>0)pseArr.push(diario.pse);
+                if(quest?.sono_qualidade>0)sonoArr.push(quest.sono_qualidade);
+                if(quest?.dor>0)dorArr.push(quest.dor);
+                if(quest?.recuperacao_geral>0)recArr.push(quest.recuperacao_geral);
+              }
+              const avg=arr=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;
+              return{dist:avg(distArr),hsr:avg(hsrArr),sprints:avg(sprintArr),pse:avg(pseArr),sono:avg(sonoArr),dor:avg(dorArr),rec:avg(recArr),n:Math.max(distArr.length,diarioData.length||0,1)};
+            };
+
+            const grouped={V:[],E:[],D:[]};
+            gamesWithResult.forEach(g=>{
+              const gDate=parseGameDate2(g.data);
+              const avgs=getTeamAvgsForDate(gDate);
+              if(avgs&&(avgs.dist>0||avgs.pse>0))grouped[g._result].push({...g,avgs});
+            });
+
+            const avgGroup=(arr,fn)=>{const vals=arr.map(fn).filter(v=>v>0);return vals.length?(vals.reduce((a,b)=>a+b,0)/vals.length):0;};
+            const categories=[
+              {key:"V",label:"Vitórias",color:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",games:grouped.V},
+              {key:"E",label:"Empates",color:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",games:grouped.E},
+              {key:"D",label:"Derrotas",color:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",games:grouped.D}
+            ];
+
+            const hasData=categories.some(c=>c.games.length>0);
+            if(!hasData)return null;
+
+            const metrics=[
+              {label:"Dist. Média",fn:g=>g.avgs.dist,unit:"m",fmt:v=>Math.round(v)},
+              {label:"HSR Média",fn:g=>g.avgs.hsr,unit:"m",fmt:v=>Math.round(v)},
+              {label:"Sprints Méd.",fn:g=>g.avgs.sprints,unit:"",fmt:v=>v.toFixed(1)},
+              {label:"PSE Média",fn:g=>g.avgs.pse,unit:"",fmt:v=>v.toFixed(1)},
+              {label:"Sono Médio",fn:g=>g.avgs.sono,unit:"",fmt:v=>v.toFixed(1)},
+              {label:"Dor Média",fn:g=>g.avgs.dor,unit:"",fmt:v=>v.toFixed(1)},
+              {label:"Recup. Média",fn:g=>g.avgs.rec,unit:"",fmt:v=>v.toFixed(1)}
+            ];
+
+            // Generate insights
+            const insights=[];
+            categories.forEach(cat=>{
+              if(!cat.games.length)return;
+              const avgDist=avgGroup(cat.games,g=>g.avgs.dist);
+              const avgPse=avgGroup(cat.games,g=>g.avgs.pse);
+              const avgSono=avgGroup(cat.games,g=>g.avgs.sono);
+              const avgDor=avgGroup(cat.games,g=>g.avgs.dor);
+              const avgRec=avgGroup(cat.games,g=>g.avgs.rec);
+              cat._avgDist=avgDist;cat._avgPse=avgPse;cat._avgSono=avgSono;cat._avgDor=avgDor;cat._avgRec=avgRec;
+            });
+
+            const vCat=categories[0],eCat=categories[1],dCat=categories[2];
+            if(vCat.games.length&&dCat.games.length){
+              if(vCat._avgSono>0&&dCat._avgSono>0&&vCat._avgSono>dCat._avgSono+0.3)
+                insights.push({icon:"😴",text:`Qualidade de sono nas vitórias (${vCat._avgSono.toFixed(1)}) é superior às derrotas (${dCat._avgSono.toFixed(1)})`,type:"positive"});
+              if(vCat._avgDor>0&&dCat._avgDor>0&&dCat._avgDor>vCat._avgDor+0.3)
+                insights.push({icon:"🤕",text:`Nível de dor pré-jogo nas derrotas (${dCat._avgDor.toFixed(1)}) é mais alto que nas vitórias (${vCat._avgDor.toFixed(1)})`,type:"negative"});
+              if(vCat._avgRec>0&&dCat._avgRec>0&&vCat._avgRec>dCat._avgRec+0.3)
+                insights.push({icon:"💪",text:`Percepção de recuperação nas vitórias (${vCat._avgRec.toFixed(1)}) é melhor que nas derrotas (${dCat._avgRec.toFixed(1)})`,type:"positive"});
+              if(vCat._avgPse>0&&dCat._avgPse>0&&Math.abs(vCat._avgPse-dCat._avgPse)>0.5)
+                insights.push({icon:"📊",text:`PSE média nas vitórias: ${vCat._avgPse.toFixed(1)} vs derrotas: ${dCat._avgPse.toFixed(1)}`,type:"info"});
+              if(vCat._avgDist>0&&dCat._avgDist>0){
+                const diff=((vCat._avgDist-dCat._avgDist)/dCat._avgDist*100).toFixed(0);
+                if(Math.abs(diff)>3)
+                  insights.push({icon:"🏃",text:`Time percorre ${Math.abs(diff)}% ${Number(diff)>0?"mais":"menos"} distância em vitórias vs derrotas`,type:Number(diff)>0?"positive":"info"});
+              }
+            }
+            if(vCat.games.length&&eCat.games.length&&eCat._avgDist>0&&vCat._avgDist>0){
+              if(eCat._avgPse>0&&vCat._avgPse>0&&eCat._avgPse>vCat._avgPse+0.3)
+                insights.push({icon:"⚠️",text:`Em empates, PSE média (${eCat._avgPse.toFixed(1)}) é maior que em vitórias (${vCat._avgPse.toFixed(1)}) — possível fadiga`,type:"warning"});
+            }
+
+            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:15,color:pri,marginBottom:4}}>Análise por Resultado</div>
+              <div style={{fontSize:11,color:t.textFaint,marginBottom:14}}>Correlação entre métricas de performance dos atletas e resultado dos jogos</div>
+
+              {/* Result summary cards */}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:16}}>
+                {categories.map((cat,ci)=>
+                  <div key={ci} style={{background:cat.bg,borderRadius:10,border:`1px solid ${cat.bc}`,padding:14,textAlign:"center"}}>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:28,fontWeight:900,color:cat.color}}>{cat.games.length}</div>
+                    <div style={{fontSize:11,fontWeight:700,color:cat.color}}>{cat.label}</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Metrics comparison table */}
+              {categories.some(c=>c.games.length>0)&&<div style={{overflowX:"auto",marginBottom:16}}>
+                <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+                  <thead>
+                    <tr style={{background:t.bgMuted}}>
+                      <th style={{padding:"8px 10px",textAlign:"left",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase"}}>Métrica</th>
+                      {categories.map((cat,ci)=><th key={ci} style={{padding:"8px 10px",textAlign:"center",fontSize:9,fontWeight:700,color:cat.color,textTransform:"uppercase"}}>{cat.label} ({cat.games.length})</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {metrics.map((m,mi)=>{
+                      const vals=categories.map(cat=>avgGroup(cat.games,m.fn));
+                      const validVals=vals.filter(v=>v>0);
+                      if(!validVals.length)return null;
+                      const maxV=Math.max(...validVals);
+                      const minV=Math.min(...validVals);
+                      return <tr key={mi} style={{borderBottom:`1px solid ${t.borderLight}`}}>
+                        <td style={{padding:"8px 10px",fontWeight:600,color:pri}}>{m.label}</td>
+                        {categories.map((cat,ci)=>{
+                          const v=vals[ci];
+                          const isBest=m.label.includes("Dor")?v===minV&&v>0:v===maxV&&v>0;
+                          const isWorst=m.label.includes("Dor")?v===maxV&&v>0:v===minV&&v>0;
+                          return <td key={ci} style={{padding:"8px 10px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:isBest?800:600,color:v>0?(isBest?"#16A34A":isWorst?"#DC2626":pri):t.textFaint}}>
+                            {v>0?m.fmt(v)+(m.unit?" "+m.unit:""):"—"}
+                          </td>;
+                        })}
+                      </tr>;
+                    })}
+                  </tbody>
+                </table>
+              </div>}
+
+              {/* Insights */}
+              {insights.length>0&&<div>
+                <div style={{fontSize:11,fontWeight:700,color:pri,marginBottom:8}}>Insights Identificados</div>
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {insights.map((ins,ii)=>{
+                    const insColor=ins.type==="positive"?"#16A34A":ins.type==="negative"?"#DC2626":ins.type==="warning"?"#CA8A04":"#2563eb";
+                    const insBg=ins.type==="positive"?"#F0FDF4":ins.type==="negative"?"#FEF2F2":ins.type==="warning"?"#FEFCE8":"#EFF6FF";
+                    const insBc=ins.type==="positive"?"#BBF7D0":ins.type==="negative"?"#FECACA":ins.type==="warning"?"#FEF08A":"#BFDBFE";
+                    return <div key={ii} style={{padding:"8px 12px",background:insBg,borderRadius:8,border:`1px solid ${insBc}`,display:"flex",alignItems:"center",gap:8}}>
+                      <span style={{fontSize:14}}>{ins.icon}</span>
+                      <span style={{fontSize:11,color:insColor,fontWeight:500,lineHeight:1.4}}>{ins.text}</span>
+                    </div>;
+                  })}
+                </div>
+              </div>}
+            </div>;
+          })()}
+
+          {/* Jogos Table with expandable athlete data */}
           {(()=>{
             const jogosCalendario = sheetData?.calendario || [];
             if (!jogosCalendario.length) return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:40,textAlign:"center"}}>
@@ -1885,8 +2073,50 @@ export default function Dashboard(){
               }
               return null;
             };
+            const normDate=(d)=>{if(!d)return 0;const dt=new Date(d);dt.setHours(0,0,0,0);return dt.getTime();};
+            const parseDateStr=(d)=>{
+              if(!d)return 0;
+              const s=String(d).trim();
+              if(/^\d{4}-\d{2}-\d{2}/.test(s))return normDate(new Date(s));
+              const parts=s.split(/[\/\-\.]/);
+              if(parts.length>=3){
+                const[a,b,c]=parts.map(Number);
+                if(a>31)return normDate(new Date(a,b-1,c));
+                if(c>31)return normDate(new Date(c,b-1,a));
+                return normDate(new Date(c,a-1,b));
+              }
+              return new Date(s).getTime()||0;
+            };
             const today=new Date();
             today.setHours(0,0,0,0);
+
+            const gpsData=sheetData?.gps||{};
+            const diarioData=sheetData?.diario||{};
+            const saltosData=sheetData?.saltos||{};
+            const questData=sheetData?.questionarios||{};
+
+            const getAthletesForDate=(gameDate)=>{
+              if(!gameDate)return[];
+              const gDateTs=normDate(gameDate);
+              const results=[];
+              const allNames=new Set([...Object.keys(gpsData),...Object.keys(diarioData)]);
+              for(const name of allNames){
+                const gpsEntries=(gpsData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
+                const diarioEntries=(diarioData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
+                const saltosEntries=(saltosData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
+                const questEntries=(questData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
+                if(!gpsEntries.length&&!diarioEntries.length)continue;
+                const gps=gpsEntries.length?gpsEntries[gpsEntries.length-1].gps||gpsEntries[gpsEntries.length-1]:{};
+                const diario=diarioEntries.length?diarioEntries[diarioEntries.length-1]:{};
+                const saltos=saltosEntries.length?saltosEntries[saltosEntries.length-1]:{};
+                const quest=questEntries.length?questEntries[questEntries.length-1]:{};
+                const cmjBest=Math.max(saltos.cmj_1||0,saltos.cmj_2||0,saltos.cmj_3||0);
+                const pInfo=P.find(p=>p.n===name);
+                results.push({name,pos:pInfo?.pos||diario.pos||"",gps,diario,quest,cmj:cmjBest,pInfo});
+              }
+              results.sort((a,b)=>{const posOrder={GOL:0,ZAG:1,LAT:2,VOL:3,MEI:4,EXT:5,ATA:6};return(posOrder[a.pos]??9)-(posOrder[b.pos]??9);});
+              return results;
+            };
 
             const compGroups={};
             jogosCalendario.forEach(g=>{
@@ -1903,62 +2133,150 @@ export default function Dashboard(){
                   <span style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:15,color:pri}}>{comp}</span>
                   <span style={{padding:"2px 8px",borderRadius:6,fontSize:10,fontWeight:600,background:`${compColor}15`,color:compColor,border:`1px solid ${compColor}33`}}>{games.length} jogos</span>
                 </div>
-                <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,overflow:"hidden"}}>
-                  <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
-                    <thead>
-                      <tr style={{background:t.bgMuted}}>
-                        <th style={{padding:"10px 12px",textAlign:"left",fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Rodada</th>
-                        <th style={{padding:"10px 12px",textAlign:"left",fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Data</th>
-                        <th style={{padding:"10px 12px",textAlign:"left",fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Adversário</th>
-                        <th style={{padding:"10px 12px",textAlign:"center",fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Local</th>
-                        <th style={{padding:"10px 12px",textAlign:"center",fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {games.map((g,i)=>{
-                        const gDate=parseGameDate(g.data);
-                        const isPast=gDate&&gDate<today;
-                        const isToday=gDate&&gDate.getTime()===today.getTime();
-                        const isNext=!isPast&&!isToday;
-                        let nextIdx=-1;
-                        for(let x=0;x<games.length;x++){const gd=parseGameDate(games[x].data);if(gd&&gd>=today){nextIdx=x;break;}}
-                        const isNextGame=isNext&&i===nextIdx;
-                        const localLabel=(g.local||"").toUpperCase()==="C"?"Casa":(g.local||"").toUpperCase()==="F"?"Fora":g.local||"";
-                        const localColor=(g.local||"").toUpperCase()==="C"?"#16A34A":"#DC2626";
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {games.map((g,i)=>{
+                    const gameKey=`${comp}-${i}`;
+                    const isExpanded=expandedGames.has(gameKey);
+                    const gDate=parseGameDate(g.data);
+                    const isPast=gDate&&gDate<today;
+                    const isToday=gDate&&gDate.getTime()===today.getTime();
+                    const isNext=!isPast&&!isToday;
+                    let nextIdx=-1;
+                    for(let x=0;x<games.length;x++){const gd=parseGameDate(games[x].data);if(gd&&gd>=today){nextIdx=x;break;}}
+                    const isNextGame=isNext&&i===nextIdx;
+                    const localLabel=(g.local||"").toUpperCase()==="C"?"Casa":(g.local||"").toUpperCase()==="F"?"Fora":g.local||"";
+                    const localColor=(g.local||"").toUpperCase()==="C"?"#16A34A":"#DC2626";
+                    const borderColor=isToday?acc:isNextGame?compColor:t.border;
+                    const escudoUrl=g.escudo||"";
+                    const hasEscudo=escudoUrl&&(escudoUrl.startsWith("http")||escudoUrl.startsWith("/"));
+                    const athleteData=isExpanded?getAthletesForDate(gDate):[];
+                    // Classify game result
+                    const resStr=(g.resultado||"").toUpperCase().trim();
+                    const gameResult=resStr==="V"||resStr==="VITÓRIA"||resStr==="VITORIA"?"V":resStr==="E"||resStr==="EMPATE"?"E":resStr==="D"||resStr==="DERROTA"?"D":(()=>{const gp=Number(g.gols_pro)||0;const gc=Number(g.gols_contra)||0;if(gp>0||gc>0){if(gp>gc)return"V";if(gp===gc)return"E";return"D";}return null;})();
+                    const resColor=gameResult==="V"?"#16A34A":gameResult==="E"?"#CA8A04":gameResult==="D"?"#DC2626":null;
+                    const resLabel=gameResult==="V"?"V":gameResult==="E"?"E":gameResult==="D"?"D":null;
+                    const placar=(g.gols_pro||g.gols_contra)?`${g.gols_pro||0}×${g.gols_contra||0}`:"";
 
-                        const rowBg=isToday?`${acc}08`:isNextGame?`${compColor}06`:isPast?'transparent':i%2===0?'transparent':t.bgMuted;
-                        const rowBorder=isToday?`2px solid ${acc}`:isNextGame?`2px solid ${compColor}`:'none';
+                    return <div key={i} style={{background:t.bgCard,borderRadius:12,border:`1px solid ${borderColor}`,overflow:"hidden",opacity:isPast&&!isExpanded?.6:1,transition:"all .2s"}}>
+                      {/* Game row - clickable */}
+                      <div style={{display:"flex",alignItems:"center",padding:"12px 16px",cursor:"pointer",gap:12,background:isExpanded?`${compColor}06`:"transparent"}} onClick={()=>{setExpandedGames(prev=>{const n=new Set(prev);n.has(gameKey)?n.delete(gameKey):n.add(gameKey);return n;});}}>
+                        <div style={{flexShrink:0,transition:"transform .2s",transform:isExpanded?"rotate(90deg)":"rotate(0deg)"}}>
+                          <ChevronRight size={14} color={compColor}/>
+                        </div>
+                        <span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:700,background:`${compColor}12`,color:compColor,border:`1px solid ${compColor}33`,flexShrink:0}}>{g.rodada}</span>
+                        <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:pri,minWidth:80,flexShrink:0}}>{g.data}</div>
+                        <div style={{display:"flex",alignItems:"center",gap:8,flex:1}}>
+                          {hasEscudo&&<img src={escudoUrl} alt={g.adversario} style={{width:22,height:22,objectFit:"contain",borderRadius:4}} onError={(e)=>{e.target.style.display="none"}}/>}
+                          <span style={{fontWeight:700,color:pri,fontSize:13}}>{g.adversario}</span>
+                        </div>
+                        {/* Resultado */}
+                        {resColor&&<div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
+                          {placar&&<span style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:800,color:pri}}>{placar}</span>}
+                          <span style={{width:22,height:22,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,background:`${resColor}18`,color:resColor,border:`1px solid ${resColor}44`}}>{resLabel}</span>
+                        </div>}
+                        <span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:600,background:`${localColor}12`,color:localColor,border:`1px solid ${localColor}33`,flexShrink:0}}>{localLabel}</span>
+                        <div style={{minWidth:60,textAlign:"right",flexShrink:0}}>
+                          {isPast&&!resColor&&<span style={{fontSize:10,color:t.textFaint}}>Realizado</span>}
+                          {isToday&&<span style={{fontSize:10,fontWeight:700,color:acc}}>HOJE</span>}
+                          {isNextGame&&<span style={{fontSize:10,fontWeight:700,color:compColor}}>Próximo</span>}
+                          {isNext&&!isNextGame&&<span style={{fontSize:10,color:t.textMuted}}>Agendado</span>}
+                        </div>
+                      </div>
 
-                        const escudoUrl=g.escudo||"";
-                        const hasEscudo=escudoUrl&&(escudoUrl.startsWith("http")||escudoUrl.startsWith("/"));
-
-                        return <tr key={i} style={{background:rowBg,borderLeft:rowBorder,borderBottom:`1px solid ${t.borderLight}`,opacity:isPast?.55:1,transition:"background .15s"}}>
-                          <td style={{padding:"10px 12px"}}>
-                            <span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:700,background:`${compColor}12`,color:compColor,border:`1px solid ${compColor}33`}}>{g.rodada}</span>
-                          </td>
-                          <td style={{padding:"10px 12px"}}>
-                            <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:pri}}>{g.data}</div>
-                            {isToday&&<span style={{fontSize:8,fontWeight:700,color:acc,textTransform:"uppercase"}}>Hoje</span>}
-                          </td>
-                          <td style={{padding:"10px 12px"}}>
-                            <div style={{display:"flex",alignItems:"center",gap:8}}>
-                              {hasEscudo&&<img src={escudoUrl} alt={g.adversario} style={{width:24,height:24,objectFit:"contain",borderRadius:4}} onError={(e)=>{e.target.style.display="none"}}/>}
-                              <span style={{fontWeight:600,color:pri,fontSize:12}}>{g.adversario}</span>
+                      {/* Expanded athlete data */}
+                      {isExpanded&&<div style={{borderTop:`1px solid ${t.border}`,padding:0}}>
+                        {athleteData.length===0?
+                          <div style={{padding:20,textAlign:"center",color:t.textFaint,fontSize:11}}>Nenhum dado de atletas encontrado para esta data</div>:
+                          <div style={{overflowX:"auto"}}>
+                            {/* Summary badges */}
+                            <div style={{padding:"10px 16px",display:"flex",gap:8,flexWrap:"wrap",borderBottom:`1px solid ${t.borderLight}`}}>
+                              <span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:t.bgMuted,color:pri,border:`1px solid ${t.border}`}}>{athleteData.length} atletas</span>
+                              {(()=>{
+                                const avgDist=athleteData.filter(a=>a.gps?.dist_total>0);
+                                const avgHsr=athleteData.filter(a=>a.gps?.hsr>0);
+                                const avgSprints=athleteData.filter(a=>a.gps?.sprints>0);
+                                return<>
+                                  {avgDist.length>0&&<span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#EFF6FF",color:"#2563eb",border:"1px solid #BFDBFE"}}>Dist. Média: {Math.round(avgDist.reduce((s,a)=>s+(a.gps.dist_total||0),0)/avgDist.length)}m</span>}
+                                  {avgHsr.length>0&&<span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#FEF3C7",color:"#92400E",border:"1px solid #FDE68A"}}>HSR Média: {Math.round(avgHsr.reduce((s,a)=>s+(a.gps.hsr||0),0)/avgHsr.length)}m</span>}
+                                  {avgSprints.length>0&&<span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#FEE2E2",color:"#991B1B",border:"1px solid #FECACA"}}>Sprints Média: {(avgSprints.reduce((s,a)=>s+(a.gps.sprints||0),0)/avgSprints.length).toFixed(1)}</span>}
+                                </>;
+                              })()}
                             </div>
-                          </td>
-                          <td style={{padding:"10px 12px",textAlign:"center"}}>
-                            <span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:600,background:`${localColor}12`,color:localColor,border:`1px solid ${localColor}33`}}>{localLabel}</span>
-                          </td>
-                          <td style={{padding:"10px 12px",textAlign:"center"}}>
-                            {isPast&&<span style={{fontSize:10,color:t.textFaint}}>Realizado</span>}
-                            {isToday&&<span style={{fontSize:10,fontWeight:700,color:acc}}>HOJE</span>}
-                            {isNextGame&&<span style={{fontSize:10,fontWeight:700,color:compColor}}>Próximo</span>}
-                            {isNext&&!isNextGame&&<span style={{fontSize:10,color:t.textMuted}}>Agendado</span>}
-                          </td>
-                        </tr>;
-                      })}
-                    </tbody>
-                  </table>
+                            <table style={{width:"100%",borderCollapse:"collapse",fontSize:10}}>
+                              <thead>
+                                <tr style={{background:t.bgMuted}}>
+                                  <th style={{padding:"8px 10px",textAlign:"left",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Atleta</th>
+                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Pos</th>
+                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Dist (m)</th>
+                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>HSR (m)</th>
+                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Sprints</th>
+                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Vel. Pico</th>
+                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>PL</th>
+                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>PSE</th>
+                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>sRPE</th>
+                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Sono</th>
+                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Dor</th>
+                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Recup.</th>
+                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>CMJ</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {athleteData.map((a,ai)=>{
+                                  const gps=a.gps||{};
+                                  const pse=a.diario?.pse||0;
+                                  const duracao=a.diario?.duracao||0;
+                                  const srpe=a.diario?.spe||(pse*duracao)||0;
+                                  const sono=a.quest?.sono_qualidade||0;
+                                  const dor=a.quest?.dor||0;
+                                  const rec=a.quest?.recuperacao_geral||0;
+                                  return <tr key={ai} style={{borderBottom:`1px solid ${t.borderLight}`,background:ai%2===0?"transparent":t.bgMuted+"44",cursor:"pointer"}} onClick={()=>{setSel(a.name);setTab("player");}}>
+                                    <td style={{padding:"8px 10px",fontWeight:700,color:pri,whiteSpace:"nowrap"}}>
+                                      <div style={{display:"flex",alignItems:"center",gap:6}}>
+                                        <PlayerPhoto theme={t} name={a.name} sz={22}/>
+                                        {a.name}
+                                      </div>
+                                    </td>
+                                    <td style={{padding:"8px 6px",textAlign:"center"}}><span style={{fontSize:9,color:t.textMuted,fontWeight:600}}>{a.pos}</span></td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.dist_total||<span style={{color:t.textFaint}}>—</span>}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.hsr||<span style={{color:t.textFaint}}>—</span>}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.sprints||<span style={{color:t.textFaint}}>—</span>}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.pico_vel||<span style={{color:t.textFaint}}>—</span>}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.player_load?Math.round(gps.player_load):<span style={{color:t.textFaint}}>—</span>}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pse>7?"#DC2626":pse>5?"#CA8A04":"#16A34A"}}>{pse||<span style={{color:t.textFaint}}>—</span>}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{srpe||<span style={{color:t.textFaint}}>—</span>}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:sono>0&&sono<6?"#DC2626":sono<7?"#CA8A04":"#16A34A"}}>{sono||<span style={{color:t.textFaint}}>—</span>}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:dor>=4?"#DC2626":dor>=2?"#CA8A04":"#16A34A"}}>{dor||0}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:rec>0&&rec<=5?"#DC2626":rec<=7?"#CA8A04":"#16A34A"}}>{rec||<span style={{color:t.textFaint}}>—</span>}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:"#7c3aed"}}>{a.cmj>0?a.cmj.toFixed(1):<span style={{color:t.textFaint}}>—</span>}</td>
+                                  </tr>;
+                                })}
+                              </tbody>
+                              {/* Team average footer */}
+                              {athleteData.length>1&&<tfoot><tr style={{borderTop:`2px solid ${pri}`,fontWeight:800,background:t.bgMuted}}>
+                                <td style={{padding:"8px 10px",color:pri}} colSpan={2}>MÉDIA</td>
+                                {(()=>{
+                                  const avg=(arr,fn)=>{const vals=arr.map(fn).filter(v=>v>0);return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;};
+                                  const avgF=(arr,fn)=>{const vals=arr.map(fn).filter(v=>v>0);return vals.length?(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1):"—";};
+                                  return<>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(athleteData,a=>a.gps?.dist_total||0)||"—"}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(athleteData,a=>a.gps?.hsr||0)||"—"}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avgF(athleteData,a=>a.gps?.sprints||0)}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avgF(athleteData,a=>a.gps?.pico_vel||0)}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(athleteData,a=>a.gps?.player_load||0)||"—"}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avgF(athleteData,a=>a.diario?.pse||0)}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(athleteData,a=>a.diario?.spe||(a.diario?.pse||0)*(a.diario?.duracao||0))||"—"}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avgF(athleteData,a=>a.quest?.sono_qualidade||0)}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avgF(athleteData,a=>a.quest?.dor||0)}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avgF(athleteData,a=>a.quest?.recuperacao_geral||0)}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:"#7c3aed"}}>{avgF(athleteData,a=>a.cmj||0)}</td>
+                                  </>;
+                                })()}
+                              </tr></tfoot>}
+                            </table>
+                          </div>}
+                      </div>}
+                    </div>;
+                  })}
                 </div>
               </div>;
             });

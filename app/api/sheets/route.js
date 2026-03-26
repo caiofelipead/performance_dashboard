@@ -731,10 +731,13 @@ function processCalendario(rows) {
     const adversario = findField(row, "adversario", "adversário", "opponent", "oponente", "adv");
     const escudo = findField(row, "escudo", "logo", "badge", "img", "imagem", "shield");
     const local = findField(row, "local", "mando", "home_away", "casa_fora", "venue");
+    const resultado = findField(row, "resultado", "result", "placar", "score", "res");
+    const gols_pro = findField(row, "gols_pro", "gols_favor", "gf", "gols_marcados", "goals_for");
+    const gols_contra = findField(row, "gols_contra", "gols_sofridos", "gc", "goals_against", "ga");
 
     if (!adversario && !data) continue;
 
-    result.push({ comp, rodada, data, adversario, escudo, local });
+    result.push({ comp, rodada, data, adversario, escudo, local, resultado, gols_pro, gols_contra });
   }
   return result;
 }
