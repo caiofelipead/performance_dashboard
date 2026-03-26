@@ -23,7 +23,8 @@ const SHEETS_CONFIG = {
     antropometria: 461631273,
     questionarios: 1014986912,
     atletas: 1315104851,
-    fisioterapia: 1541953765
+    fisioterapia: 1541953765,
+    calendario: 460942009
   },
   // Planilhas externas (publicadas separadamente)
   external: {
@@ -705,6 +706,39 @@ function processCmjExterno(rows) {
   return result;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// Calendário de Jogos — processa aba "Calendário" com dados de jogos
+// Colunas: Comp, Rodada, Data, Adversário, escudo, Local
+// ═══════════════════════════════════════════════════════════════════════════════
+function processCalendario(rows) {
+  const result = [];
+  for (const row of rows) {
+    const findField = (row, ...keys) => {
+      for (const k of keys) {
+        if (row[k] !== undefined && row[k] !== "") return row[k];
+      }
+      const rowKeys = Object.keys(row);
+      for (const k of keys) {
+        const match = rowKeys.find(rk => rk.toLowerCase().includes(k.toLowerCase()));
+        if (match && row[match] !== undefined && row[match] !== "") return row[match];
+      }
+      return "";
+    };
+
+    const comp = findField(row, "comp", "competicao", "competição", "campeonato", "torneio");
+    const rodada = findField(row, "rodada", "rod", "round", "jornada");
+    const data = findField(row, "data", "date", "dia");
+    const adversario = findField(row, "adversario", "adversário", "opponent", "oponente", "adv");
+    const escudo = findField(row, "escudo", "logo", "badge", "img", "imagem", "shield");
+    const local = findField(row, "local", "mando", "home_away", "casa_fora", "venue");
+
+    if (!adversario && !data) continue;
+
+    result.push({ comp, rodada, data, adversario, escudo, local });
+  }
+  return result;
+}
+
 function toNum(v) {
   if (v === null || v === undefined || v === "") return 0;
   if (typeof v === "number") return v;
@@ -818,7 +852,7 @@ export async function GET(request) {
 
     if (tab === "all") {
       // Buscar todas as abas em paralelo
-      const [gpsCSV, diarioCSV, saltosCSV, questCSV, fisioCSV, lesoesCSV, cmjExtCSV, antropCSV] = await Promise.allSettled([
+      const [gpsCSV, diarioCSV, saltosCSV, questCSV, fisioCSV, lesoesCSV, cmjExtCSV, antropCSV, calendarioCSV] = await Promise.allSettled([
         fetchSheetCSV(SHEETS_CONFIG.tabs.gps),
         fetchSheetCSV(SHEETS_CONFIG.tabs.diario),
         fetchSheetCSV(SHEETS_CONFIG.tabs.saltos),
@@ -826,7 +860,8 @@ export async function GET(request) {
         fetchSheetCSV(SHEETS_CONFIG.tabs.fisioterapia),
         fetchExternalCSV(SHEETS_CONFIG.external.lesoes),
         fetchExternalCSV(SHEETS_CONFIG.external.cmj),
-        fetchSheetCSV(SHEETS_CONFIG.tabs.antropometria)
+        fetchSheetCSV(SHEETS_CONFIG.tabs.antropometria),
+        fetchSheetCSV(SHEETS_CONFIG.tabs.calendario)
       ]);
 
       const result = { ok: true, timestamp: new Date().toISOString(), _debug: {} };
@@ -898,6 +933,14 @@ export async function GET(request) {
         result._debug.antropometria = { error: antropCSV.reason?.message || "failed" };
       }
 
+      if (calendarioCSV.status === "fulfilled") {
+        const { rows, headers } = parseCSV(calendarioCSV.value);
+        result.calendario = processCalendario(rows);
+        result._debug.calendario = { rows: rows.length, headers: headers?.slice(0, 10), games: result.calendario.length };
+      } else {
+        result._debug.calendario = { error: calendarioCSV.reason?.message || "failed" };
+      }
+
       return Response.json(result, {
         headers: {
           "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
@@ -930,6 +973,7 @@ export async function GET(request) {
       case "questionarios": processed = processQuestionarios(rows); break;
       case "fisioterapia": processed = processFisioterapia(rows); break;
       case "antropometria": processed = processAntropometria(rows); break;
+      case "calendario": processed = processCalendario(rows); break;
       default: processed = rows;
     }
 

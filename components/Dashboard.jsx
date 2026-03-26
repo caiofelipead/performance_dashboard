@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { BarChart, Bar, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, AreaChart, Cell, ReferenceLine, LineChart, Line } from "recharts";
-import { Activity, TrendingUp, AlertTriangle, CheckCircle2, ChevronRight, Heart, Zap, Shield, Users, Eye, Brain, Target, Calendar, RefreshCw, Wifi, WifiOff, Moon, Sun } from "lucide-react";
+import { Activity, TrendingUp, AlertTriangle, CheckCircle2, ChevronRight, Heart, Zap, Shield, Users, Eye, Brain, Target, Calendar, RefreshCw, Wifi, WifiOff, Moon, Sun, Trophy } from "lucide-react";
 import { useSheetData } from "./useSheetData";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1102,7 +1102,7 @@ export default function Dashboard(){
   }, [sheetData, players]);
 
   const sp=sel?players.find(p=>p.n===sel):null;
-  const tabs=[{id:"squad",l:"Squad Overview",ic:Users},{id:"alerts",l:"Alertas",ic:AlertTriangle},{id:"carga",l:"Carga & ACWR",ic:TrendingUp},{id:"neuro",l:"Neuromuscular",ic:Zap},{id:"fisio",l:"Fisiológico",ic:Heart},{id:"temporal",l:"Temporal",ic:Activity},{id:"fisioterapia",l:"Fisioterapia",ic:Shield},{id:"mapa",l:"Mapa Semanal",ic:Calendar},{id:"player",l:"Individual",ic:Eye},{id:"sessao",l:"Sessão de Treino",ic:Activity},{id:"model",l:"Modelo Preditivo",ic:Brain},{id:"retro",l:"Retrospectiva",ic:Target}];
+  const tabs=[{id:"squad",l:"Squad Overview",ic:Users},{id:"alerts",l:"Alertas",ic:AlertTriangle},{id:"carga",l:"Carga & ACWR",ic:TrendingUp},{id:"neuro",l:"Neuromuscular",ic:Zap},{id:"fisio",l:"Fisiológico",ic:Heart},{id:"temporal",l:"Temporal",ic:Activity},{id:"fisioterapia",l:"Fisioterapia",ic:Shield},{id:"jogos",l:"Jogos",ic:Trophy},{id:"mapa",l:"Mapa Semanal",ic:Calendar},{id:"player",l:"Individual",ic:Eye},{id:"sessao",l:"Sessão de Treino",ic:Activity},{id:"model",l:"Modelo Preditivo",ic:Brain},{id:"retro",l:"Retrospectiva",ic:Target}];
 
   const radarData=sp?[{s:"Sono",v:sp.sq||0},{s:"Rec Geral",v:sp.rg||0},{s:"Rec Pernas",v:sp.rp||0},{s:"Dor (inv)",v:10-(sp.d||0)},{s:"Humor",v:(sp.h||3)*2},{s:"Energia",v:(sp.e||3)*2.5}]:[];
   const wtData=sp?.wt?sp.wt.dt.map((d,i)=>({d:sp._wtLive?d:("Mar/"+d),sono:sp.wt.s[i],rec:sp.wt.r[i],dor:sp.wt.dr[i]})):[];
@@ -1843,6 +1843,126 @@ export default function Dashboard(){
               </>;
             })()}
           </div>
+        </div>}
+
+        {tab==="jogos"&&<div>
+          {/* Jogos Header */}
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Calendário de Jogos</div>
+                <div style={{fontSize:12,color:t.textFaint,marginTop:2}}>Dados da aba Calendário — competições e adversários</div>
+              </div>
+              <div style={{display:"flex",gap:8}}>
+                {["Todos","Paulistão","Série B"].map((f,i)=>{
+                  const jogosCalendario = sheetData?.calendario || [];
+                  const filterVal = f==="Todos"?null:f==="Paulistão"?"Paulistão":"Série B";
+                  const count = filterVal ? jogosCalendario.filter(g=>(g.comp||"").toLowerCase().includes(filterVal.toLowerCase())).length : jogosCalendario.length;
+                  return <span key={i} style={{padding:"4px 12px",borderRadius:6,fontSize:10,fontWeight:600,background:t.bgMuted,color:t.textMuted,border:`1px solid ${t.border}`,cursor:"default"}}>{f} ({count})</span>;
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Jogos Table */}
+          {(()=>{
+            const jogosCalendario = sheetData?.calendario || [];
+            if (!jogosCalendario.length) return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:40,textAlign:"center"}}>
+              <div style={{fontSize:14,color:t.textFaint}}>Nenhum jogo encontrado no calendário</div>
+              <div style={{fontSize:11,color:t.textFaintest,marginTop:4}}>Verifique se a aba "Calendário" está publicada na planilha</div>
+            </div>;
+
+            const parseGameDate=(d)=>{
+              if(!d)return null;
+              const s=String(d).trim();
+              if(/^\d{4}-\d{2}-\d{2}/.test(s))return new Date(s);
+              const parts=s.split(/[\/\-\.]/);
+              if(parts.length>=3){
+                const[a,b,c]=parts.map(Number);
+                if(c>100)return new Date(c,b-1,a);
+                if(a>100)return new Date(a,b-1,c);
+                return new Date(2026,b-1,a);
+              }
+              return null;
+            };
+            const today=new Date();
+            today.setHours(0,0,0,0);
+
+            const compGroups={};
+            jogosCalendario.forEach(g=>{
+              const comp=g.comp||"Outro";
+              if(!compGroups[comp])compGroups[comp]=[];
+              compGroups[comp].push(g);
+            });
+
+            return Object.entries(compGroups).map(([comp,games],ci)=>{
+              const compColor=comp.toLowerCase().includes("paul")?"#7c3aed":comp.toLowerCase().includes("rie")?"#2563eb":"#64748b";
+              return <div key={ci} style={{marginBottom:20}}>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+                  <div style={{width:4,height:20,borderRadius:2,background:compColor}}/>
+                  <span style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:15,color:pri}}>{comp}</span>
+                  <span style={{padding:"2px 8px",borderRadius:6,fontSize:10,fontWeight:600,background:`${compColor}15`,color:compColor,border:`1px solid ${compColor}33`}}>{games.length} jogos</span>
+                </div>
+                <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,overflow:"hidden"}}>
+                  <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+                    <thead>
+                      <tr style={{background:t.bgMuted}}>
+                        <th style={{padding:"10px 12px",textAlign:"left",fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Rodada</th>
+                        <th style={{padding:"10px 12px",textAlign:"left",fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Data</th>
+                        <th style={{padding:"10px 12px",textAlign:"left",fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Adversário</th>
+                        <th style={{padding:"10px 12px",textAlign:"center",fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Local</th>
+                        <th style={{padding:"10px 12px",textAlign:"center",fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {games.map((g,i)=>{
+                        const gDate=parseGameDate(g.data);
+                        const isPast=gDate&&gDate<today;
+                        const isToday=gDate&&gDate.getTime()===today.getTime();
+                        const isNext=!isPast&&!isToday;
+                        let nextIdx=-1;
+                        for(let x=0;x<games.length;x++){const gd=parseGameDate(games[x].data);if(gd&&gd>=today){nextIdx=x;break;}}
+                        const isNextGame=isNext&&i===nextIdx;
+                        const localLabel=(g.local||"").toUpperCase()==="C"?"Casa":(g.local||"").toUpperCase()==="F"?"Fora":g.local||"";
+                        const localColor=(g.local||"").toUpperCase()==="C"?"#16A34A":"#DC2626";
+
+                        const rowBg=isToday?`${acc}08`:isNextGame?`${compColor}06`:isPast?'transparent':i%2===0?'transparent':t.bgMuted;
+                        const rowBorder=isToday?`2px solid ${acc}`:isNextGame?`2px solid ${compColor}`:'none';
+
+                        const escudoUrl=g.escudo||"";
+                        const hasEscudo=escudoUrl&&(escudoUrl.startsWith("http")||escudoUrl.startsWith("/"));
+
+                        return <tr key={i} style={{background:rowBg,borderLeft:rowBorder,borderBottom:`1px solid ${t.borderLight}`,opacity:isPast?.55:1,transition:"background .15s"}}>
+                          <td style={{padding:"10px 12px"}}>
+                            <span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:700,background:`${compColor}12`,color:compColor,border:`1px solid ${compColor}33`}}>{g.rodada}</span>
+                          </td>
+                          <td style={{padding:"10px 12px"}}>
+                            <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:600,color:pri}}>{g.data}</div>
+                            {isToday&&<span style={{fontSize:8,fontWeight:700,color:acc,textTransform:"uppercase"}}>Hoje</span>}
+                          </td>
+                          <td style={{padding:"10px 12px"}}>
+                            <div style={{display:"flex",alignItems:"center",gap:8}}>
+                              {hasEscudo&&<img src={escudoUrl} alt={g.adversario} style={{width:24,height:24,objectFit:"contain",borderRadius:4}} onError={(e)=>{e.target.style.display="none"}}/>}
+                              <span style={{fontWeight:600,color:pri,fontSize:12}}>{g.adversario}</span>
+                            </div>
+                          </td>
+                          <td style={{padding:"10px 12px",textAlign:"center"}}>
+                            <span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:600,background:`${localColor}12`,color:localColor,border:`1px solid ${localColor}33`}}>{localLabel}</span>
+                          </td>
+                          <td style={{padding:"10px 12px",textAlign:"center"}}>
+                            {isPast&&<span style={{fontSize:10,color:t.textFaint}}>Realizado</span>}
+                            {isToday&&<span style={{fontSize:10,fontWeight:700,color:acc}}>HOJE</span>}
+                            {isNextGame&&<span style={{fontSize:10,fontWeight:700,color:compColor}}>Próximo</span>}
+                            {isNext&&!isNextGame&&<span style={{fontSize:10,color:t.textMuted}}>Agendado</span>}
+                          </td>
+                        </tr>;
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>;
+            });
+          })()}
         </div>}
 
         {tab==="mapa"&&<div>
