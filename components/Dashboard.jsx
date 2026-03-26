@@ -539,10 +539,10 @@ const INJ_HISTORY=[
     dias_dm:23,dias_trans:10,total:33,classif:"Ligamentar II",regiao:"Joelho",lado:"Esquerdo",evento:"Camp. Paulista",mecanismo:"Trauma direto",estrutura:"LCM",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",prognostico:"2026-04-02",
     lesson:"Lesão ligamentar grau II de LCM por trauma direto em jogo. Retornou aos treinos em 12/Mar (33 dias). Monitoramento de manutenção ativo.",
     protocol:"Reabilitação ligamentar progressiva. Fortalecimento de quadríceps + isquiotibiais bilateral. Propriocepção + agilidade antes de retorno."},
-  {id:12,n:"GABRIEL INOCENCIO",pos:"LD",date:"2026-03-06",saida_dm:"2026-03-12",ini_trans:"2026-03-13",fim_trans:null,
-    dias_dm:7,dias_trans:null,total:6,classif:"Contratura",regiao:"Perna Posterior",lado:"Esquerdo",evento:"Amistoso",mecanismo:"Dor Tardia",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 1",conduta:"Afastado",
-    lesson:"Contratura de sóleo com dor tardia pós-amistoso. Fase 1 em 13/Mar — início da reabilitação. Padrão de sóleo + perna posterior se repete no elenco.",
-    protocol:"Regenerativo + mobilidade ativa. Progressão cuidadosa. Monitorar antes de liberar para treino coletivo."},
+  {id:12,n:"GABRIEL INOCENCIO",pos:"LD",date:"2026-03-06",saida_dm:"2026-03-12",ini_trans:"2026-03-13",fim_trans:"2026-03-20",
+    dias_dm:7,dias_trans:7,total:14,classif:"Contratura",regiao:"Perna Posterior",lado:"Esquerdo",evento:"Amistoso",mecanismo:"Dor Tardia",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",
+    lesson:"Contratura de sóleo com dor tardia pós-amistoso. Retornou ao time em 20/Mar após 14 dias. Padrão de sóleo + perna posterior se repete no elenco.",
+    protocol:"Manutenção preventiva. Monitorar volume de corrida e HSR. Excêntrico de sóleo bilateral como rotina."},
   {id:13,n:"THALLES",pos:"ATA",date:"2026-03-09",saida_dm:null,ini_trans:null,fim_trans:null,
     dias_dm:3,dias_trans:0,total:3,classif:"2A",regiao:"Perna Posterior",lado:"Direito",evento:"Treino",mecanismo:"Dor Tardia",estrutura:"Gastrocnêmio Medial",exame:"RNM",estagio:"Fase 1",conduta:"Afastado",prognostico:"2026-04-13",
     lesson:"Lesão 2A de gastrocnêmio medial com dor tardia em treino. Prognóstico 13/Abr (35 dias). Fase 1 — início do tratamento. Dano muscular crônico como fator predisponente.",
@@ -1978,7 +1978,9 @@ export default function Dashboard(){
             };
 
             const grouped={V:[],E:[],D:[]};
+            const totalCount={V:0,E:0,D:0};
             gamesWithResult.forEach(g=>{
+              totalCount[g._result]++;
               const gDate=parseGameDate2(g.data);
               const avgs=getTeamAvgsForDate(gDate,g.adversario);
               if(avgs&&(avgs.dist>0||avgs.pse>0))grouped[g._result].push({...g,avgs});
@@ -1986,12 +1988,12 @@ export default function Dashboard(){
 
             const avgGroup=(arr,fn)=>{const vals=arr.map(fn).filter(v=>v>0);return vals.length?(vals.reduce((a,b)=>a+b,0)/vals.length):0;};
             const categories=[
-              {key:"V",label:"Vitórias",color:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",games:grouped.V},
-              {key:"E",label:"Empates",color:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",games:grouped.E},
-              {key:"D",label:"Derrotas",color:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",games:grouped.D}
+              {key:"V",label:"Vitórias",color:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",games:grouped.V,total:totalCount.V},
+              {key:"E",label:"Empates",color:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",games:grouped.E,total:totalCount.E},
+              {key:"D",label:"Derrotas",color:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",games:grouped.D,total:totalCount.D}
             ];
 
-            const hasData=categories.some(c=>c.games.length>0);
+            const hasData=categories.some(c=>c.total>0);
             if(!hasData)return null;
 
             const metrics=[
@@ -2045,7 +2047,7 @@ export default function Dashboard(){
               <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:16}}>
                 {categories.map((cat,ci)=>
                   <div key={ci} style={{background:cat.bg,borderRadius:10,border:`1px solid ${cat.bc}`,padding:14,textAlign:"center"}}>
-                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:28,fontWeight:900,color:cat.color}}>{cat.games.length}</div>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:28,fontWeight:900,color:cat.color}}>{cat.total}</div>
                     <div style={{fontSize:11,fontWeight:700,color:cat.color}}>{cat.label}</div>
                   </div>
                 )}
@@ -2057,7 +2059,7 @@ export default function Dashboard(){
                   <thead>
                     <tr style={{background:t.bgMuted}}>
                       <th style={{padding:"8px 10px",textAlign:"left",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase"}}>Métrica</th>
-                      {categories.map((cat,ci)=><th key={ci} style={{padding:"8px 10px",textAlign:"center",fontSize:9,fontWeight:700,color:cat.color,textTransform:"uppercase"}}>{cat.label} ({cat.games.length})</th>)}
+                      {categories.map((cat,ci)=><th key={ci} style={{padding:"8px 10px",textAlign:"center",fontSize:9,fontWeight:700,color:cat.color,textTransform:"uppercase"}}>{cat.label} ({cat.total})</th>)}
                     </tr>
                   </thead>
                   <tbody>
@@ -3164,6 +3166,83 @@ export default function Dashboard(){
                 </div>)}
             </div>
           </div>
+
+          {/* ═══ ÚLTIMO JOGO — Dados do atleta na última partida ═══ */}
+          {(()=>{
+            const calendario=sheetData?.calendario||[];
+            const gamesPlayed=calendario.filter(g=>{
+              const r=(g.resultado||"").toUpperCase().trim();
+              return r==="V"||r==="E"||r==="D";
+            }).sort((a,b)=>{
+              const pD=s=>{if(!s)return 0;const pts=String(s).split(/[\/\-\.]/);if(pts.length>=3){const[d,m,y]=pts.map(Number);if(d>31)return new Date(d,m-1,y).getTime();return new Date(y<100?y+2000:y,m-1,d).getTime();}return new Date(s).getTime()||0;};
+              return pD(b.data)-pD(a.data);
+            });
+            if(!gamesPlayed.length)return null;
+            const lastGame=gamesPlayed[0];
+            const resRaw=(lastGame.resultado||"").toUpperCase().trim();
+            const resLabel=resRaw==="V"?"VITÓRIA":resRaw==="D"?"DERROTA":"EMPATE";
+            const resColor=resRaw==="V"?"#16A34A":resRaw==="D"?"#DC2626":"#CA8A04";
+            const resBg=resRaw==="V"?"#F0FDF4":resRaw==="D"?"#FEF2F2":"#FEFCE8";
+            const resBc=resRaw==="V"?"#BBF7D0":resRaw==="D"?"#FECACA":"#FEF08A";
+            // Find player GPS data for the game date
+            const parseDateGame=s=>{if(!s)return 0;const pts=String(s).split(/[\/\-\.]/);if(pts.length>=3){const[d,m,y]=pts.map(Number);if(d>31)return new Date(d,m-1,y);return new Date(y<100?y+2000:y,m-1,d);}return new Date(s);};
+            const gameDate=parseDateGame(lastGame.data);
+            const gameDateTs=gameDate.getTime();
+            const DAY=86400000;
+            const gpsEntries=sheetData?.gps?.[sp.n]||[];
+            const questEntries=sheetData?.questionarios?.[sp.n]||[];
+            const diarioEntries=sheetData?.diario?.[sp.n]||[];
+            const dateMatch=e=>{const eD=parseDateGame(e.date).getTime();return Math.abs(eD-gameDateTs)<=DAY;};
+            const matchGps=gpsEntries.filter(dateMatch);
+            const matchQuest=questEntries.filter(dateMatch);
+            const matchDiario=diarioEntries.filter(dateMatch);
+            // Pick the best GPS entry (match session with highest dist)
+            const bestGps=matchGps.length?matchGps.reduce((b,e)=>(e.gps?.dist_total||0)>(b.gps?.dist_total||0)?e:b,matchGps[0]):null;
+            const gps=bestGps?.gps||null;
+            const quest=matchQuest.length?matchQuest[matchQuest.length-1]:null;
+            const diario=matchDiario.length?matchDiario[matchDiario.length-1]:null;
+            const gameDateFmt=gameDate instanceof Date&&!isNaN(gameDate)?gameDate.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"}):(lastGame.data||"—");
+            const placar=lastGame.gols_pro!=null&&lastGame.gols_contra!=null?`${lastGame.gols_pro} x ${lastGame.gols_contra}`:(lastGame.placar||"—");
+            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${resBc}`,padding:18,marginBottom:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+                <div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Último Jogo</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>{lastGame.comp||""} · {lastGame.rodada||""} · {gameDateFmt}</div>
+                </div>
+                <span style={{padding:"4px 14px",borderRadius:6,fontSize:12,fontWeight:800,background:resBg,color:resColor,border:`2px solid ${resBc}`}}>{resLabel}</span>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:14,padding:"12px 16px",background:resBg,borderRadius:10,border:`1px solid ${resBc}`,marginBottom:14}}>
+                {lastGame.escudo&&<img src={lastGame.escudo} alt="" style={{width:32,height:32,objectFit:"contain"}} onError={e=>{e.target.style.display="none"}}/>}
+                <div style={{flex:1}}>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:15,color:pri}}>{lastGame.adversario||"—"}</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>{lastGame.local==="C"?"Casa":"Fora"}</div>
+                </div>
+                <div style={{fontFamily:"'JetBrains Mono'",fontSize:24,fontWeight:900,color:resColor}}>{placar}</div>
+              </div>
+              {/* Player metrics in the match */}
+              {(gps||quest||diario)?<div>
+                <div style={{fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",marginBottom:8}}>Dados Individuais no Jogo</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
+                  {[
+                    gps?.dist_total?{l:"Distância",v:Math.round(gps.dist_total)+"m",c:pri}:null,
+                    gps?.hsr?{l:"HSR",v:Math.round(gps.hsr)+"m",c:"#2563eb"}:null,
+                    gps?.sprints?{l:"Sprints",v:gps.sprints,c:"#7c3aed"}:null,
+                    gps?.pico_vel?{l:"Pico Vel.",v:gps.pico_vel.toFixed(1)+" km/h",c:"#EA580C"}:null,
+                    gps?.player_load?{l:"Player Load",v:Math.round(gps.player_load),c:pri}:null,
+                    diario?.pse?{l:"PSE",v:diario.pse,c:diario.pse>=7?"#DC2626":diario.pse>=5?"#CA8A04":"#16A34A"}:null,
+                    quest?.sono_qualidade?{l:"Sono",v:quest.sono_qualidade,c:quest.sono_qualidade<6?"#DC2626":"#16A34A"}:null,
+                    quest?.dor!=null&&quest.dor>0?{l:"Dor",v:quest.dor,c:quest.dor>=5?"#DC2626":quest.dor>=3?"#CA8A04":"#16A34A"}:null,
+                    quest?.recuperacao_geral?{l:"Recuperação",v:quest.recuperacao_geral,c:quest.recuperacao_geral<6?"#DC2626":"#16A34A"}:null,
+                  ].filter(Boolean).map((m,i)=>
+                    <div key={i} style={{textAlign:"center",padding:"8px 6px",background:t.bgMuted,borderRadius:8}}>
+                      <div style={{fontSize:8,color:t.textFaint,fontWeight:600,textTransform:"uppercase"}}>{m.l}</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:700,color:m.c}}>{m.v}</div>
+                    </div>)}
+                </div>
+              </div>:
+              <div style={{textAlign:"center",padding:"12px 0",color:t.textFaint,fontSize:11}}>Sem dados individuais de GPS/wellness para esta partida</div>}
+            </div>;
+          })()}
 
           {/* ═══ RADAR GPS — Valências do Último Treino vs Média da Posição ═══ */}
           {(()=>{
