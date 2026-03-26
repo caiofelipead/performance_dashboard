@@ -1907,7 +1907,21 @@ export default function Dashboard(){
             const isMatchTitle2=(st)=>{const s=(st||"").toLowerCase().trim();return s.startsWith("j.")||s.startsWith("j ")||s.includes("jogo")||s.includes("match")||s.includes("partida");};
             const isComplementTitle2=(st)=>{const s=(st||"").toLowerCase().trim();return s.includes("compl")||s.includes("aquec")||s.includes("warmup")||s.startsWith("t-")||s.includes("recupera");};
             const hasMatchSplits2=(splits)=>{if(!splits?.length)return false;return splits.some(sp=>{const s=sp.toLowerCase();return s.includes("1t")||s.includes("2t")||s.includes("1st")||s.includes("2nd")||/\d+-\d+.*min.*[12]t/.test(s)||/\d+min/.test(s);});};
-            const getTeamAvgsForDate=(gameDate)=>{
+            const matchesOpponent2=(sessionTitle,adversario)=>{
+              if(!sessionTitle||!adversario)return false;
+              const st=sessionTitle.toUpperCase().replace(/\s+/g,"");
+              const adv=adversario.toUpperCase().replace(/\s+/g,"");
+              if(adv.length>=4&&st.includes(adv.substring(0,4)))return true;
+              const m=st.match(/J[.\s]*([A-Z]{2,})X([A-Z]{2,})/i);
+              if(m){
+                const t1=m[1],t2=m[2];
+                if(adv.startsWith(t1)||adv.startsWith(t2))return true;
+                if(t1.length>=3&&adv.substring(0,3)===t1.substring(0,3))return true;
+                if(t2.length>=3&&adv.substring(0,3)===t2.substring(0,3))return true;
+              }
+              return false;
+            };
+            const getTeamAvgsForDate=(gameDate,adversario)=>{
               if(!gameDate)return null;
               const gDateTs=normDate2(gameDate);
               const allNames=new Set([...Object.keys(gpsData),...Object.keys(diarioData)]);
@@ -1916,10 +1930,16 @@ export default function Dashboard(){
                 const gpsEntries=(gpsData[name]||[]).filter(e=>parseDateStr2(e.date)===gDateTs);
                 const diarioEntries=(diarioData[name]||[]).filter(e=>parseDateStr2(e.date)===gDateTs);
                 const questEntries=(questData[name]||[]).filter(e=>parseDateStr2(e.date)===gDateTs);
-                // Priorizar sessão de jogo (J.xxx)
+                // 1. Filtrar por adversário (session title match)
+                const opponentE=adversario?gpsEntries.filter(e=>matchesOpponent2(e.sessionTitle,adversario)):[];
                 const matchE=gpsEntries.filter(e=>isMatchTitle2(e.sessionTitle));
                 const nonCompE=gpsEntries.filter(e=>!isComplementTitle2(e.sessionTitle));
-                const pool=matchE.length?matchE:(nonCompE.length?nonCompE:gpsEntries);
+                const pool=opponentE.length?opponentE:(matchE.length?matchE:(nonCompE.length?nonCompE:gpsEntries));
+                // Se tem sessão de jogo mas nenhuma bate com este adversário → jogou outro jogo
+                if(adversario&&opponentE.length===0&&matchE.length>0){
+                  const anyMatch=matchE.some(e=>matchesOpponent2(e.sessionTitle,adversario));
+                  if(!anyMatch)continue;
+                }
                 let bestGps=null;
                 if(pool.length>1){bestGps=pool.reduce((b,e)=>(e.gps?.dist_total||0)>(b?.gps?.dist_total||0)?e:b,pool[0]);}
                 else if(pool.length===1){bestGps=pool[0];}
@@ -1930,7 +1950,6 @@ export default function Dashboard(){
                 const dist=gps?.dist_total||0;
                 const stIsMatch=isMatchTitle2(bestGps?.sessionTitle);
                 const hasSplits=hasMatchSplits2(allSplits);
-                // Mesmo critério de filtro: session title + splits + distância
                 const played=(stIsMatch&&hasSplits)||(stIsMatch&&dist>=3500)||(!isComplementTitle2(bestGps?.sessionTitle)&&dist>=4500);
                 if(!played)continue;
                 if(dist>0)distArr.push(dist);
@@ -1948,7 +1967,7 @@ export default function Dashboard(){
             const grouped={V:[],E:[],D:[]};
             gamesWithResult.forEach(g=>{
               const gDate=parseGameDate2(g.data);
-              const avgs=getTeamAvgsForDate(gDate);
+              const avgs=getTeamAvgsForDate(gDate,g.adversario);
               if(avgs&&(avgs.dist>0||avgs.pse>0))grouped[g._result].push({...g,avgs});
             });
 
@@ -2069,6 +2088,175 @@ export default function Dashboard(){
             </div>;
           })()}
 
+          {/* ═══ Análise Agregada: Decaimento de Performance entre Tempos (todos os jogos) ═══ */}
+          {(()=>{
+            const gpsData2=sheetData?.gps||{};
+            const calendario2=sheetData?.calendario||[];
+            const pastGames=calendario2.filter(g=>{
+              const gp=Number(g.gols_pro),gc=Number(g.gols_contra);
+              return !isNaN(gp)&&!isNaN(gc)&&(g.gols_pro!==""||g.gols_contra!=="");
+            });
+            if(pastGames.length<2)return null;
+
+            // Para cada jogo passado, coletar splitsDetail de todos os atletas
+            const isMatchT=(st)=>{const s=(st||"").toLowerCase().trim();return s.startsWith("j.")||s.startsWith("j ")||s.includes("jogo");};
+            const matchOpp=(sessionTitle,adversario)=>{
+              if(!sessionTitle||!adversario)return false;
+              const st=sessionTitle.toUpperCase().replace(/\s+/g,"");
+              const adv=adversario.toUpperCase().replace(/\s+/g,"");
+              if(adv.length>=4&&st.includes(adv.substring(0,4)))return true;
+              const m=st.match(/J[.\s]*([A-Z]{2,})X([A-Z]{2,})/i);
+              if(m){if(adv.startsWith(m[1])||adv.startsWith(m[2]))return true;if(m[1].length>=3&&adv.substring(0,3)===m[1].substring(0,3))return true;if(m[2].length>=3&&adv.substring(0,3)===m[2].substring(0,3))return true;}
+              return false;
+            };
+            const normD=(d)=>{if(!d)return 0;const s=String(d).trim();if(/^\d{4}-\d{2}-\d{2}/.test(s))return new Date(s).setHours(0,0,0,0);const p=s.split(/[\/\-\.]/);if(p.length>=3){const[a,b,c]=p.map(Number);if(c>100)return new Date(c,b-1,a).getTime();if(a>31)return new Date(a,b-1,c).getTime();return new Date(c,a-1,b).getTime();}return new Date(s).getTime()||0;};
+
+            const classifyPeriod=(splitName)=>{
+              const s=(splitName||"").toLowerCase().trim();
+              if(s.includes("aquec")||s.includes("compl")||s.includes("interv")||s.startsWith("t-"))return null;
+              const is2T=s.includes("2t")||s.includes("2nd");
+              if(!is2T&&!s.includes("1t")&&!s.includes("1st")&&!s.includes("min")&&!/\d+-\d+/.test(s))return null;
+              return is2T?"2T":"1T";
+            };
+
+            // Aggregate across all games
+            let agg1T={dist:[],hsr:[],sprints:[]},agg2T={dist:[],hsr:[],sprints:[]};
+            const perGameDecay=[];
+
+            pastGames.forEach(game=>{
+              const gDateTs=normD(game.data);
+              if(!gDateTs)return;
+              let g1T={dist:[],hsr:[],sprints:[]},g2T={dist:[],hsr:[],sprints:[]};
+
+              for(const[name,entries]of Object.entries(gpsData2)){
+                const dayEntries=entries.filter(e=>{const ed=normD(e.date);return ed===gDateTs;});
+                // Filter by opponent match
+                const oppEntries=game.adversario?dayEntries.filter(e=>matchOpp(e.sessionTitle,game.adversario)):[];
+                const matchEntries=dayEntries.filter(e=>isMatchT(e.sessionTitle));
+                const pool=oppEntries.length?oppEntries:(matchEntries.length?matchEntries:[]);
+                if(!pool.length)continue;
+                const best=pool.reduce((b,e)=>(e.gps?.dist_total||0)>(b.gps?.dist_total||0)?e:b,pool[0]);
+                const sd=best.splitsDetail||[];
+                sd.forEach(sp=>{
+                  const half=classifyPeriod(sp.split);
+                  if(!half)return;
+                  const target=half==="1T"?g1T:g2T;
+                  if(sp.dist>0)target.dist.push(sp.dist);
+                  if(sp.hsr>0)target.hsr.push(sp.hsr);
+                  if(sp.sprints>0)target.sprints.push(sp.sprints);
+                });
+              }
+
+              const avgArr=(arr)=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;
+              const d1=avgArr(g1T.dist),d2=avgArr(g2T.dist);
+              const h1=avgArr(g1T.hsr),h2=avgArr(g2T.hsr);
+              const s1=avgArr(g1T.sprints),s2=avgArr(g2T.sprints);
+
+              if(d1>0)agg1T.dist.push(d1);if(d2>0)agg2T.dist.push(d2);
+              if(h1>0)agg1T.hsr.push(h1);if(h2>0)agg2T.hsr.push(h2);
+              if(s1>0)agg1T.sprints.push(s1);if(s2>0)agg2T.sprints.push(s2);
+
+              if(d1>0&&d2>0){
+                const gp=Number(game.gols_pro),gc=Number(game.gols_contra);
+                const res=gp>gc?"V":gp===gc?"E":"D";
+                perGameDecay.push({game:`${game.adversario||"?"} (${game.data})`,res,distDelta:((d2-d1)/d1*100),hsrDelta:h1>0?((h2-h1)/h1*100):0,sprintDelta:s1>0?((s2-s1)/s1*100):0});
+              }
+            });
+
+            const avgArr2=(arr)=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;
+            const globalDist1=avgArr2(agg1T.dist),globalDist2=avgArr2(agg2T.dist);
+            const globalHsr1=avgArr2(agg1T.hsr),globalHsr2=avgArr2(agg2T.hsr);
+            const globalSprint1=avgArr2(agg1T.sprints),globalSprint2=avgArr2(agg2T.sprints);
+
+            if(globalDist1===0&&globalDist2===0)return null;
+
+            const globalDistDelta=globalDist1>0?((globalDist2-globalDist1)/globalDist1*100):0;
+            const globalHsrDelta=globalHsr1>0?((globalHsr2-globalHsr1)/globalHsr1*100):0;
+            const globalSprintDelta=globalSprint1>0?((globalSprint2-globalSprint1)/globalSprint1*100):0;
+
+            // Insights por resultado
+            const vGames=perGameDecay.filter(g=>g.res==="V"),dGames=perGameDecay.filter(g=>g.res==="D");
+            const avgDecayV=vGames.length?avgArr2(vGames.map(g=>g.distDelta)):null;
+            const avgDecayD=dGames.length?avgArr2(dGames.map(g=>g.distDelta)):null;
+
+            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:15,color:pri,marginBottom:4}}>Análise de Fadiga — 1T vs 2T (Agregado)</div>
+              <div style={{fontSize:11,color:t.textFaint,marginBottom:16}}>Média de performance por tempo em {perGameDecay.length} jogos analisados</div>
+
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16,marginBottom:16}}>
+                {[
+                  {label:"Distância/Período",v1:globalDist1,v2:globalDist2,delta:globalDistDelta,unit:"m",color1:"#2563eb",color2:"#7c3aed"},
+                  {label:"HSR/Período",v1:globalHsr1,v2:globalHsr2,delta:globalHsrDelta,unit:"m",color1:"#DC2626",color2:"#9333ea"},
+                  {label:"Sprints/Período",v1:globalSprint1,v2:globalSprint2,delta:globalSprintDelta,unit:"",color1:"#16A34A",color2:"#7c3aed"}
+                ].map((m,mi)=>{
+                  const deltaColor=m.delta<-10?"#DC2626":m.delta>5?"#16A34A":"#CA8A04";
+                  return <div key={mi} style={{background:t.bgMuted,borderRadius:10,padding:14,border:`1px solid ${t.borderLight}`,textAlign:"center"}}>
+                    <div style={{fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5,marginBottom:10}}>{m.label}</div>
+                    <div style={{display:"flex",justifyContent:"center",gap:16,alignItems:"center",marginBottom:8}}>
+                      <div>
+                        <div style={{fontSize:8,color:m.color1,fontWeight:600}}>1T</div>
+                        <div style={{fontFamily:"'JetBrains Mono'",fontSize:18,fontWeight:800,color:m.color1}}>{m.v1>100?Math.round(m.v1):m.v1.toFixed(1)}{m.unit&&<span style={{fontSize:10}}>{m.unit}</span>}</div>
+                      </div>
+                      <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
+                        <div style={{fontSize:9,color:t.textFaint}}>→</div>
+                        <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:800,color:deltaColor}}>{m.delta>0?"+":""}{m.delta.toFixed(0)}%</div>
+                      </div>
+                      <div>
+                        <div style={{fontSize:8,color:m.color2,fontWeight:600}}>2T</div>
+                        <div style={{fontFamily:"'JetBrains Mono'",fontSize:18,fontWeight:800,color:m.color2}}>{m.v2>100?Math.round(m.v2):m.v2.toFixed(1)}{m.unit&&<span style={{fontSize:10}}>{m.unit}</span>}</div>
+                      </div>
+                    </div>
+                    {/* Mini bar comparison */}
+                    <div style={{display:"flex",gap:4,alignItems:"center"}}>
+                      <div style={{flex:1,height:6,borderRadius:3,background:m.color1,opacity:.7}}/>
+                      <div style={{flex:m.v1>0?(m.v2/m.v1):1,height:6,borderRadius:3,background:m.color2,opacity:.7}}/>
+                    </div>
+                  </div>;
+                })}
+              </div>
+
+              {/* Por jogo */}
+              {perGameDecay.length>0&&<div style={{marginBottom:16}}>
+                <div style={{fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5,marginBottom:8}}>Decaimento por Jogo</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:8}}>
+                  {perGameDecay.map((g,gi)=>{
+                    const resColor=g.res==="V"?"#16A34A":g.res==="E"?"#CA8A04":"#DC2626";
+                    const decayColor=g.distDelta<-10?"#DC2626":g.distDelta>5?"#16A34A":"#CA8A04";
+                    return <div key={gi} style={{padding:"8px 10px",borderRadius:8,background:t.bgMuted,border:`1px solid ${t.borderLight}`,fontSize:10}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+                        <span style={{fontWeight:600,color:pri}}>{g.game}</span>
+                        <span style={{width:18,height:18,borderRadius:4,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:800,background:`${resColor}18`,color:resColor}}>{g.res}</span>
+                      </div>
+                      <div style={{display:"flex",gap:8}}>
+                        <span style={{fontFamily:"'JetBrains Mono'",fontWeight:700,color:decayColor}}>Dist: {g.distDelta>0?"+":""}{g.distDelta.toFixed(0)}%</span>
+                        {g.hsrDelta!==0&&<span style={{fontFamily:"'JetBrains Mono'",fontWeight:600,color:g.hsrDelta<-10?"#DC2626":"#64748b"}}>HSR: {g.hsrDelta>0?"+":""}{g.hsrDelta.toFixed(0)}%</span>}
+                      </div>
+                    </div>;
+                  })}
+                </div>
+              </div>}
+
+              {/* Insights correlação fadiga x resultado */}
+              {(()=>{
+                const fatigueInsights=[];
+                if(globalDistDelta<-10)fatigueInsights.push({icon:"📉",text:`O time perde em média ${Math.abs(globalDistDelta).toFixed(0)}% de distância do 1T para o 2T — investigar estratégia nutricional e protocolo de hidratação`,type:"negative"});
+                else if(globalDistDelta>-5)fatigueInsights.push({icon:"✅",text:`Boa manutenção de distância entre tempos (${globalDistDelta>0?"+":""}${globalDistDelta.toFixed(0)}%) — time consegue sustentar output físico`,type:"positive"});
+                if(globalHsrDelta<-15)fatigueInsights.push({icon:"🏃",text:`HSR cai ${Math.abs(globalHsrDelta).toFixed(0)}% no 2T — componente neuromuscular de alta intensidade é o mais afetado pela fadiga`,type:"negative"});
+                if(avgDecayV!==null&&avgDecayD!==null&&Math.abs(avgDecayV-avgDecayD)>5){
+                  if(avgDecayD<avgDecayV)fatigueInsights.push({icon:"🔍",text:`Nas derrotas a queda de distância é maior (${avgDecayD.toFixed(0)}%) que nas vitórias (${avgDecayV.toFixed(0)}%) — time que mantém ritmo no 2T vence mais`,type:"info"});
+                  else fatigueInsights.push({icon:"📊",text:`Queda no 2T similar entre vitórias (${avgDecayV.toFixed(0)}%) e derrotas (${avgDecayD.toFixed(0)}%)`,type:"info"});
+                }
+                if(!fatigueInsights.length)return null;
+                return <div style={{background:t.bgMuted,borderRadius:8,padding:12,border:`1px solid ${t.borderLight}`}}>
+                  <div style={{fontSize:10,fontWeight:700,color:pri,marginBottom:8,textTransform:"uppercase",letterSpacing:.5}}>Insights — Fadiga, Nutrição & Performance</div>
+                  {fatigueInsights.map((ins,ii)=><div key={ii} style={{padding:"6px 10px",marginBottom:4,borderRadius:6,fontSize:10,lineHeight:1.4,background:ins.type==="negative"?"#FEF2F2":ins.type==="positive"?"#F0FDF4":"#EFF6FF",color:ins.type==="negative"?"#991B1B":ins.type==="positive"?"#166534":"#1E40AF",border:`1px solid ${ins.type==="negative"?"#FECACA":ins.type==="positive"?"#BBF7D0":"#BFDBFE"}`}}>
+                    <span style={{marginRight:6}}>{ins.icon}</span>{ins.text}
+                  </div>)}
+                </div>;
+              })()}
+            </div>;
+          })()}
+
           {/* Jogos Table with expandable athlete data */}
           {(()=>{
             const jogosCalendario = sheetData?.calendario || [];
@@ -2112,31 +2300,45 @@ export default function Dashboard(){
             const saltosData=sheetData?.saltos||{};
             const questData=sheetData?.questionarios||{};
 
-            const getAthletesForDate=(gameDate)=>{
+            // Helpers para classificar session titles
+            const isMatchTitle=(st)=>{const s=(st||"").toLowerCase().trim();return s.startsWith("j.")||s.startsWith("j ")||s.includes("jogo")||s.includes("match")||s.includes("partida");};
+            const isComplementTitle=(st)=>{const s=(st||"").toLowerCase().trim();return s.includes("compl")||s.includes("aquec")||s.includes("warmup")||s.startsWith("t-")||s.includes("recupera");};
+            const hasMatchSplits=(splits)=>{
+              if(!splits?.length)return false;
+              return splits.some(sp=>{const s=sp.toLowerCase();
+                return s.includes("1t")||s.includes("2t")||s.includes("1st")||s.includes("2nd")||
+                  s.includes("half")||s.includes("tempo")||s.includes("et")||
+                  /\d+-\d+.*min.*[12]t/.test(s)||/\d+min/.test(s);
+              });
+            };
+            // Checa se um split é de aquecimento reserva (não jogou)
+            const isWarmupSplit=(sp)=>{const s=(sp||"").toLowerCase();return s.includes("aquec")||s.includes("warmup")||s.includes("warm-up");};
+
+            // Match adversário do calendário com session title do GPS
+            // Ex: adversário="Fortaleza" → session title "J.BOTxFOR" contém "FOR"
+            const matchesOpponent=(sessionTitle,adversario)=>{
+              if(!sessionTitle||!adversario)return false;
+              const st=sessionTitle.toUpperCase().replace(/\s+/g,"");
+              const adv=adversario.toUpperCase().replace(/\s+/g,"");
+              // Tentar match direto (nome completo no title)
+              if(st.includes(adv.substring(0,4)))return true;
+              // Extrair siglas do session title: "J.BOTxFOR" → ["BOT","FOR"]
+              const m=st.match(/J[.\s]*([A-Z]{2,})X([A-Z]{2,})/i);
+              if(m){
+                const t1=m[1],t2=m[2];
+                // Checar se alguma sigla bate com início do adversário
+                if(adv.startsWith(t1)||adv.startsWith(t2))return true;
+                if(t1.length>=3&&adv.substring(0,3)===t1.substring(0,3))return true;
+                if(t2.length>=3&&adv.substring(0,3)===t2.substring(0,3))return true;
+              }
+              return false;
+            };
+
+            const getAthletesForDate=(gameDate,adversario)=>{
               if(!gameDate)return[];
               const gDateTs=normDate(gameDate);
               const results=[];
               const allNames=new Set([...Object.keys(gpsData),...Object.keys(diarioData)]);
-
-              // Classificar session titles: "J." = jogo, "T-" = complemento, etc.
-              const isMatchTitle=(st)=>{
-                const s=(st||"").toLowerCase().trim();
-                return s.startsWith("j.")||s.startsWith("j ")||s.includes("jogo")||s.includes("match")||s.includes("partida");
-              };
-              const isComplementTitle=(st)=>{
-                const s=(st||"").toLowerCase().trim();
-                return s.includes("compl")||s.includes("aquec")||s.includes("warmup")||s.includes("warm-up")||s.startsWith("t-")||s.includes("recupera");
-              };
-              // Splits que indicam participação real no jogo (1T, 2T = tempos de jogo)
-              const hasMatchSplits=(splits)=>{
-                if(!splits||!splits.length)return false;
-                return splits.some(sp=>{
-                  const s=sp.toLowerCase();
-                  return s.includes("1t")||s.includes("2t")||s.includes("1st")||s.includes("2nd")||
-                         s.includes("half")||s.includes("tempo")||s.includes("et")||
-                         /\d+-\d+.*min.*[12]t/.test(s)||/\d+min/.test(s);
-                });
-              };
 
               for(const name of allNames){
                 const gpsEntries=(gpsData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
@@ -2145,17 +2347,21 @@ export default function Dashboard(){
                 const questEntries=(questData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
                 if(!gpsEntries.length&&!diarioEntries.length)continue;
 
-                // Prioridade: sessão de jogo (J.xxx) > maior distância > última
-                let bestGpsEntry=null;
+                // 1. Filtrar por session title que bate com o adversário do jogo
+                const opponentEntries=adversario?gpsEntries.filter(e=>matchesOpponent(e.sessionTitle,adversario)):[];
+                // 2. Fallback: sessões de jogo genéricas (J.xxx)
                 const matchEntries=gpsEntries.filter(e=>isMatchTitle(e.sessionTitle));
+                // 3. Excluir complemento
                 const nonComplEntries=gpsEntries.filter(e=>!isComplementTitle(e.sessionTitle));
-                const pool=matchEntries.length?matchEntries:(nonComplEntries.length?nonComplEntries:gpsEntries);
-                if(pool.length>1){
-                  bestGpsEntry=pool.reduce((best,e)=>{
-                    const d=(e.gps?.dist_total||0);const bD=(best.gps?.dist_total||0);return d>bD?e:best;
-                  },pool[0]);
-                }else{
-                  bestGpsEntry=pool[0]||null;
+                // Prioridade: opponent match > match genérico > não-complemento > tudo
+                const pool=opponentEntries.length?opponentEntries:(matchEntries.length?matchEntries:(nonComplEntries.length?nonComplEntries:gpsEntries));
+                let bestGpsEntry=pool.length>1?pool.reduce((b,e)=>(e.gps?.dist_total||0)>(b.gps?.dist_total||0)?e:b,pool[0]):pool[0]||null;
+
+                // Se o atleta só aparece em sessões que NÃO batem com o adversário, pular
+                if(adversario&&opponentEntries.length===0&&matchEntries.length>0){
+                  // Tem sessão de jogo mas nenhuma bate com este adversário → jogou outro jogo (ex: Sub-20)
+                  const anyMatchesOpp=matchEntries.some(e=>matchesOpponent(e.sessionTitle,adversario));
+                  if(!anyMatchesOpp)continue;
                 }
 
                 const gps=bestGpsEntry?bestGpsEntry.gps||bestGpsEntry:{};
@@ -2167,31 +2373,24 @@ export default function Dashboard(){
                 const sessionTitle=bestGpsEntry?.sessionTitle||"";
                 const tags=bestGpsEntry?.tags||diario?.tags||"";
                 const allSplits=bestGpsEntry?.allSplits||[];
-                results.push({name,pos:pInfo?.pos||diario.pos||"",gps,diario,quest,cmj:cmjBest,pInfo,sessionTitle,tags,allSplits});
+                const splitsDetail=bestGpsEntry?.splitsDetail||[];
+                results.push({name,pos:pInfo?.pos||diario.pos||"",gps,diario,quest,cmj:cmjBest,pInfo,sessionTitle,tags,allSplits,splitsDetail});
               }
 
-              // Filtrar: só quem jogou de fato
-              // Critério 1: session title é de jogo (J.xxx) E tem splits de tempo (1T/2T)
-              // Critério 2: session title é de jogo + distância significativa
-              // Critério 3: fallback por distância alta (sem info de session title)
+              // Filtrar: só quem jogou de fato (splits de tempo real, não aquecimento)
               const filtered=results.filter(a=>{
                 const dist=a.gps?.dist_total||0;
                 const stIsMatch=isMatchTitle(a.sessionTitle);
-                const stIsComplement=isComplementTitle(a.sessionTitle);
                 const hasSplits=hasMatchSplits(a.allSplits);
+                // Todos os splits são de aquecimento → não jogou
+                const allWarmup=a.allSplits.length>0&&a.allSplits.every(sp=>isWarmupSplit(sp));
+                if(allWarmup)return false;
                 const partida=(a.diario?.partida||"").toLowerCase();
                 const playedDiario=partida.includes("sim")||partida==="1"||partida==="s"||partida==="x";
-
-                // Se o diário marca como partida → jogou
                 if(playedDiario&&dist>500)return true;
-                // Se session title é de jogo E tem splits de 1T/2T → jogou
                 if(stIsMatch&&hasSplits)return true;
-                // Se session title é de jogo mas sem splits de tempo → usar distância
-                // GK que jogou: ~4000-7000m, jogador de linha: ~7000-13000m, sub 30min: ~3000-5000m
                 if(stIsMatch&&dist>=3500)return true;
-                // Se não é complemento e distância é alta → provavelmente jogou
-                if(!stIsComplement&&dist>=4500)return true;
-                // Senão → não jogou (aquecimento, complemento, ou banco)
+                if(dist>=4500)return true;
                 return false;
               });
 
@@ -2230,7 +2429,7 @@ export default function Dashboard(){
                     const borderColor=isToday?acc:isNextGame?compColor:t.border;
                     const escudoUrl=g.escudo||"";
                     const hasEscudo=escudoUrl&&(escudoUrl.startsWith("http")||escudoUrl.startsWith("/"));
-                    const athleteData=isExpanded?getAthletesForDate(gDate):[];
+                    const athleteData=isExpanded?getAthletesForDate(gDate,g.adversario):[];
                     // Classify game result
                     const resStr=(g.resultado||"").toUpperCase().trim();
                     const gameResult=resStr==="V"||resStr==="VITÓRIA"||resStr==="VITORIA"?"V":resStr==="E"||resStr==="EMPATE"?"E":resStr==="D"||resStr==="DERROTA"?"D":(()=>{const gp=Number(g.gols_pro);const gc=Number(g.gols_contra);if(!isNaN(gp)&&!isNaN(gc)&&(g.gols_pro!==""||g.gols_contra!=="")){if(gp>gc)return"V";if(gp===gc)return"E";return"D";}return null;})();
@@ -2354,6 +2553,187 @@ export default function Dashboard(){
                                 })()}
                               </tr></tfoot>}
                             </table>
+
+                            {/* ═══ Análise Temporal por Período do Jogo ═══ */}
+                            {(()=>{
+                              // Coletar splitsDetail de todos os atletas que jogaram
+                              const allSplits=athleteData.flatMap(a=>(a.splitsDetail||[]).map(s=>({...s,athlete:a.name})));
+                              if(allSplits.length===0)return null;
+
+                              // Classificar splits em períodos do jogo
+                              const parsePeriod=(splitName)=>{
+                                const s=(splitName||"").toLowerCase().trim();
+                                // Ignorar aquecimento, complemento, intervalo
+                                if(s.includes("aquec")||s.includes("warmup")||s.includes("warm-up"))return null;
+                                if(s.includes("compl")||s.includes("complement"))return null;
+                                if(s.includes("interv")||s.includes("halftime")||s.startsWith("t-"))return null;
+                                // Detectar tempo (1T/2T) e faixa de minutos
+                                const is2T=s.includes("2t")||s.includes("2nd")||s.includes("segundo");
+                                const is1T=s.includes("1t")||s.includes("1st")||s.includes("primeiro")||(!is2T&&(s.includes("min")||/\d+-\d+/.test(s)));
+                                // Extrair faixa de minutos: "0.10min", "10.20min", "20-30min", "40mais"
+                                const rangeMatch=s.match(/(\d+)[.\-](\d+)\s*min/);
+                                const maisMatch=s.match(/(\d+)\s*mais/);
+                                let minStart=0,minEnd=0,label="";
+                                if(rangeMatch){
+                                  minStart=parseInt(rangeMatch[1]);minEnd=parseInt(rangeMatch[2]);
+                                  label=`${minStart}-${minEnd}'`;
+                                }else if(maisMatch){
+                                  minStart=parseInt(maisMatch[1]);minEnd=minStart+15;
+                                  label=`${minStart}'+`;
+                                }else{
+                                  // Sem faixa específica - usar 1T/2T genérico
+                                  if(is1T)label="1T";
+                                  else if(is2T)label="2T";
+                                  else return null;
+                                }
+                                const half=is2T?"2T":"1T";
+                                const globalMin=is2T?minStart+45:minStart;
+                                return{half,minStart,minEnd,globalMin,label:label+(is2T&&rangeMatch?" 2T":is1T&&rangeMatch?" 1T":""),order:globalMin};
+                              };
+
+                              // Agrupar por período
+                              const periodMap={};
+                              allSplits.forEach(sp=>{
+                                const period=parsePeriod(sp.split);
+                                if(!period)return;
+                                const key=period.label;
+                                if(!periodMap[key]){periodMap[key]={...period,splits:[]};}
+                                periodMap[key].splits.push(sp);
+                              });
+
+                              const periods=Object.values(periodMap).sort((a,b)=>a.order-b.order);
+                              if(periods.length<2)return null;
+
+                              // Calcular médias por período
+                              const periodStats=periods.map(p=>{
+                                const n=p.splits.length;
+                                const avgVal=(fn)=>{const vals=p.splits.map(fn).filter(v=>v>0);return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;};
+                                return{
+                                  label:p.label,order:p.order,half:p.half,n,
+                                  dist:avgVal(s=>s.dist),hsr:avgVal(s=>s.hsr),sprints:avgVal(s=>s.sprints),
+                                  pl:avgVal(s=>s.pl),top_speed:avgVal(s=>s.top_speed),acel:avgVal(s=>s.acel),decel:avgVal(s=>s.decel),
+                                  hr_avg:avgVal(s=>s.hr_avg),hr_max:avgVal(s=>s.hr_max)
+                                };
+                              });
+
+                              // Calcular decaimento: comparar primeiro vs último período, 1T vs 2T
+                              const firstHalf=periodStats.filter(p=>p.half==="1T");
+                              const secondHalf=periodStats.filter(p=>p.half==="2T");
+                              const avg1T=(fn)=>{const v=firstHalf.map(fn).filter(x=>x>0);return v.length?v.reduce((a,b)=>a+b,0)/v.length:0;};
+                              const avg2T=(fn)=>{const v=secondHalf.map(fn).filter(x=>x>0);return v.length?v.reduce((a,b)=>a+b,0)/v.length:0;};
+
+                              const dist1T=avg1T(p=>p.dist),dist2T=avg2T(p=>p.dist);
+                              const hsr1T=avg1T(p=>p.hsr),hsr2T=avg2T(p=>p.hsr);
+                              const sprint1T=avg1T(p=>p.sprints),sprint2T=avg2T(p=>p.sprints);
+                              const distDelta=dist1T>0?((dist2T-dist1T)/dist1T*100):0;
+                              const hsrDelta=hsr1T>0?((hsr2T-hsr1T)/hsr1T*100):0;
+                              const sprintDelta=sprint1T>0?((sprint2T-sprint1T)/sprint1T*100):0;
+
+                              // Max values for bars
+                              const maxDist=Math.max(...periodStats.map(p=>p.dist),1);
+                              const maxHsr=Math.max(...periodStats.map(p=>p.hsr),1);
+                              const maxSprints=Math.max(...periodStats.map(p=>p.sprints),1);
+
+                              const decayInsights=[];
+                              if(dist1T>0&&dist2T>0){
+                                if(distDelta<-10)decayInsights.push({icon:"⚠️",text:`Queda de ${Math.abs(distDelta).toFixed(0)}% na distância do 2T vs 1T (${Math.round(dist1T)}m → ${Math.round(dist2T)}m/período)`,type:"negative"});
+                                else if(distDelta>5)decayInsights.push({icon:"💪",text:`Time manteve/aumentou distância no 2T (+${distDelta.toFixed(0)}%)`,type:"positive"});
+                                else decayInsights.push({icon:"✅",text:`Distância estável entre tempos (variação de ${distDelta.toFixed(0)}%)`,type:"neutral"});
+                              }
+                              if(hsr1T>0&&hsr2T>0){
+                                if(hsrDelta<-15)decayInsights.push({icon:"🏃",text:`HSR caiu ${Math.abs(hsrDelta).toFixed(0)}% no 2T — possível fadiga neuromuscular`,type:"negative"});
+                                else if(hsrDelta>10)decayInsights.push({icon:"🔥",text:`HSR aumentou ${hsrDelta.toFixed(0)}% no 2T — bom output de alta intensidade`,type:"positive"});
+                              }
+                              if(sprint1T>0&&sprint2T>0){
+                                if(sprintDelta<-20)decayInsights.push({icon:"⚡",text:`Sprints caíram ${Math.abs(sprintDelta).toFixed(0)}% no 2T — monitorar estratégia nutricional e hidratação`,type:"negative"});
+                              }
+                              // Analisar último período vs primeiro
+                              if(periodStats.length>=3){
+                                const first=periodStats[0],last=periodStats[periodStats.length-1];
+                                if(first.dist>0&&last.dist>0){
+                                  const endDelta=((last.dist-first.dist)/first.dist*100);
+                                  if(endDelta<-20)decayInsights.push({icon:"📉",text:`Queda de ${Math.abs(endDelta).toFixed(0)}% na distância entre início (${first.label}: ${Math.round(first.dist)}m) e fim (${last.label}: ${Math.round(last.dist)}m) do jogo`,type:"negative"});
+                                }
+                              }
+
+                              return <div style={{borderTop:`1px solid ${t.border}`,padding:16}}>
+                                <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:13,color:pri,marginBottom:12,display:"flex",alignItems:"center",gap:8}}>
+                                  Análise Temporal — Performance por Período
+                                  <span style={{fontSize:9,fontWeight:500,color:t.textFaint}}>({allSplits.length} registros de {athleteData.length} atletas)</span>
+                                </div>
+
+                                {/* Barras por período */}
+                                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16,marginBottom:16}}>
+                                  {/* Distância */}
+                                  <div style={{background:t.bgMuted,borderRadius:8,padding:12,border:`1px solid ${t.borderLight}`}}>
+                                    <div style={{fontSize:10,fontWeight:700,color:"#2563eb",marginBottom:8,textTransform:"uppercase",letterSpacing:.5}}>Distância (m)</div>
+                                    {periodStats.map((p,pi)=><div key={pi} style={{marginBottom:6}}>
+                                      <div style={{display:"flex",justifyContent:"space-between",fontSize:9,marginBottom:2}}>
+                                        <span style={{fontWeight:600,color:p.half==="2T"?"#7c3aed":pri}}>{p.label}</span>
+                                        <span style={{fontFamily:"'JetBrains Mono'",fontWeight:700,color:pri}}>{Math.round(p.dist)}</span>
+                                      </div>
+                                      <div style={{height:8,borderRadius:4,background:t.borderLight,overflow:"hidden"}}>
+                                        <div style={{height:"100%",borderRadius:4,width:`${(p.dist/maxDist*100)}%`,background:p.half==="2T"?"#7c3aed":"#2563eb",transition:"width .3s"}}/>
+                                      </div>
+                                    </div>)}
+                                  </div>
+                                  {/* HSR */}
+                                  <div style={{background:t.bgMuted,borderRadius:8,padding:12,border:`1px solid ${t.borderLight}`}}>
+                                    <div style={{fontSize:10,fontWeight:700,color:"#DC2626",marginBottom:8,textTransform:"uppercase",letterSpacing:.5}}>HSR (m)</div>
+                                    {periodStats.map((p,pi)=><div key={pi} style={{marginBottom:6}}>
+                                      <div style={{display:"flex",justifyContent:"space-between",fontSize:9,marginBottom:2}}>
+                                        <span style={{fontWeight:600,color:p.half==="2T"?"#7c3aed":pri}}>{p.label}</span>
+                                        <span style={{fontFamily:"'JetBrains Mono'",fontWeight:700,color:pri}}>{Math.round(p.hsr)}</span>
+                                      </div>
+                                      <div style={{height:8,borderRadius:4,background:t.borderLight,overflow:"hidden"}}>
+                                        <div style={{height:"100%",borderRadius:4,width:`${(p.hsr/maxHsr*100)}%`,background:p.half==="2T"?"#7c3aed":"#DC2626",transition:"width .3s"}}/>
+                                      </div>
+                                    </div>)}
+                                  </div>
+                                  {/* Sprints */}
+                                  <div style={{background:t.bgMuted,borderRadius:8,padding:12,border:`1px solid ${t.borderLight}`}}>
+                                    <div style={{fontSize:10,fontWeight:700,color:"#16A34A",marginBottom:8,textTransform:"uppercase",letterSpacing:.5}}>Sprints</div>
+                                    {periodStats.map((p,pi)=><div key={pi} style={{marginBottom:6}}>
+                                      <div style={{display:"flex",justifyContent:"space-between",fontSize:9,marginBottom:2}}>
+                                        <span style={{fontWeight:600,color:p.half==="2T"?"#7c3aed":pri}}>{p.label}</span>
+                                        <span style={{fontFamily:"'JetBrains Mono'",fontWeight:700,color:pri}}>{p.sprints.toFixed(1)}</span>
+                                      </div>
+                                      <div style={{height:8,borderRadius:4,background:t.borderLight,overflow:"hidden"}}>
+                                        <div style={{height:"100%",borderRadius:4,width:`${(p.sprints/maxSprints*100)}%`,background:p.half==="2T"?"#7c3aed":"#16A34A",transition:"width .3s"}}/>
+                                      </div>
+                                    </div>)}
+                                  </div>
+                                </div>
+
+                                {/* 1T vs 2T comparação */}
+                                {firstHalf.length>0&&secondHalf.length>0&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:16}}>
+                                  {[
+                                    {label:"Dist/Período",v1:dist1T,v2:dist2T,delta:distDelta,unit:"m",fmt:v=>Math.round(v)},
+                                    {label:"HSR/Período",v1:hsr1T,v2:hsr2T,delta:hsrDelta,unit:"m",fmt:v=>Math.round(v)},
+                                    {label:"Sprints/Período",v1:sprint1T,v2:sprint2T,delta:sprintDelta,unit:"",fmt:v=>v.toFixed(1)}
+                                  ].map((m,mi)=>{
+                                    const deltaColor=m.delta<-10?"#DC2626":m.delta>5?"#16A34A":"#CA8A04";
+                                    return <div key={mi} style={{background:t.bgCard,borderRadius:8,padding:10,border:`1px solid ${t.border}`,textAlign:"center"}}>
+                                      <div style={{fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5,marginBottom:6}}>{m.label}</div>
+                                      <div style={{display:"flex",justifyContent:"center",gap:12,alignItems:"center",marginBottom:4}}>
+                                        <div><div style={{fontSize:8,color:t.textFaint}}>1T</div><div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:800,color:pri}}>{m.fmt(m.v1)}{m.unit}</div></div>
+                                        <div style={{fontSize:11,fontWeight:800,color:deltaColor}}>{m.delta>0?"+":""}{m.delta.toFixed(0)}%</div>
+                                        <div><div style={{fontSize:8,color:"#7c3aed"}}>2T</div><div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:800,color:"#7c3aed"}}>{m.fmt(m.v2)}{m.unit}</div></div>
+                                      </div>
+                                    </div>;
+                                  })}
+                                </div>}
+
+                                {/* Insights de fadiga */}
+                                {decayInsights.length>0&&<div style={{background:t.bgMuted,borderRadius:8,padding:12,border:`1px solid ${t.borderLight}`}}>
+                                  <div style={{fontSize:10,fontWeight:700,color:pri,marginBottom:8,textTransform:"uppercase",letterSpacing:.5}}>Insights — Fadiga & Desempenho Final</div>
+                                  {decayInsights.map((ins,ii)=><div key={ii} style={{padding:"6px 10px",marginBottom:4,borderRadius:6,fontSize:10,lineHeight:1.4,background:ins.type==="negative"?"#FEF2F2":ins.type==="positive"?"#F0FDF4":"#F8FAFC",color:ins.type==="negative"?"#991B1B":ins.type==="positive"?"#166534":"#475569",border:`1px solid ${ins.type==="negative"?"#FECACA":ins.type==="positive"?"#BBF7D0":"#E2E8F0"}`}}>
+                                    <span style={{marginRight:6}}>{ins.icon}</span>{ins.text}
+                                  </div>)}
+                                </div>}
+                              </div>;
+                            })()}
+
                           </div>}
                       </div>}
                     </div>;
