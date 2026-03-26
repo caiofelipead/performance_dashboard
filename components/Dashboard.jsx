@@ -523,10 +523,10 @@ const INJ_HISTORY=[
     dias_dm:5,dias_trans:2,total:7,classif:"1B",regiao:"Coxa Posterior",lado:"Esquerdo",evento:"Camp. Paulista",mecanismo:"Passe",estrutura:"Cabeça Longa do Bíceps",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",
     lesson:"Morelli tem histórico de 3 lombalgias prévias (ago-set/2024) que podem ter gerado compensação na cadeia posterior. Lesão em passe sugere déficit de flexibilidade/força excêntrica.",
     protocol:"Avaliação de cadeia posterior completa. Protocolo Nordic + flexibilidade. Monitorar lombar como fator predisponente."},
-  {id:8,n:"ERIK",pos:"VOL",date:"2026-01-24",saida_dm:"2026-03-08",ini_trans:"2026-03-09",fim_trans:null,
-    dias_dm:44,dias_trans:3,total:47,classif:"4C",regiao:"Coxa Medial",lado:"Esquerdo",evento:"Treino",mecanismo:"Passe",estrutura:"Adutor Longo",exame:"RNM",estagio:"Fase 3",conduta:"Afastado",
-    lesson:"Lesão grau 4C em adutor longo — a mais grave do elenco (47 dias). Mecanismo de passe em treino sugere déficit de força adutora e/ou fadiga acumulada. Ainda em transição (Fase 3 em 13/Mar).",
-    protocol:"Copenhagen adutor progressivo. RTP completo (Fase 1-4) antes de retorno ao elenco. Monitorar assimetria de adução pré-retorno."},
+  {id:8,n:"ERIK",pos:"VOL",date:"2026-01-24",saida_dm:"2026-03-08",ini_trans:"2026-03-09",fim_trans:"2026-03-24",
+    dias_dm:44,dias_trans:16,total:60,classif:"4C",regiao:"Coxa Medial",lado:"Esquerdo",evento:"Treino",mecanismo:"Passe",estrutura:"Adutor Longo",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",
+    lesson:"Lesão grau 4C em adutor longo — a mais grave do elenco (60 dias). Mecanismo de passe em treino sugere déficit de força adutora e/ou fadiga acumulada. Retornou em 24/Mar.",
+    protocol:"Copenhagen adutor progressivo. Manutenção pós-retorno. Monitorar assimetria de adução."},
   {id:9,n:"JONATHAN",pos:"LD",date:"2026-02-08",saida_dm:"2026-02-17",ini_trans:"2026-02-18",fim_trans:"2026-02-25",
     dias_dm:10,dias_trans:8,total:18,classif:"2A",regiao:"Coxa Posterior",lado:"Esquerdo",evento:"Camp. Paulista",mecanismo:"Alongamento",estrutura:"Semitendíneo",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",
     lesson:"SEGUNDA lesão de semitendíneo (mesma estrutura da lesão de out/2025). Mecanismo de alongamento indica flexibilidade comprometida e/ou retorno incompleto. Lateral com histórico recorrente = alto risco.",
@@ -535,26 +535,39 @@ const INJ_HISTORY=[
     dias_dm:10,dias_trans:8,total:18,classif:"1A",regiao:"Perna Posterior",lado:"Esquerdo",evento:"Camp. Paulista",mecanismo:"Sprint",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",
     lesson:"Sprint em jogo oficial. Sóleo esquerdo — padrão de perna posterior que domina as lesões do elenco. .",
     protocol:"Excêntrico de sóleo bilateral. Limitar volume de sprint pós-retorno. Monitorar wellness como indicador de recarga tecidual."},
-  {id:11,n:"PATRICK BREY",pos:"LE",date:"2026-02-08",saida_dm:"2026-03-02",ini_trans:"2026-03-02",fim_trans:"2026-03-12",
-    dias_dm:23,dias_trans:10,total:33,classif:"Ligamentar II",regiao:"Joelho",lado:"Esquerdo",evento:"Camp. Paulista",mecanismo:"Trauma direto",estrutura:"LCM",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",prognostico:"2026-04-02",
-    lesson:"Lesão ligamentar grau II de LCM por trauma direto em jogo. Retornou aos treinos em 12/Mar (33 dias). Monitoramento de manutenção ativo.",
+  {id:11,n:"PATRICK BREY",pos:"LE",date:"2026-02-08",saida_dm:"2026-03-01",ini_trans:"2026-03-02",fim_trans:"2026-03-15",
+    dias_dm:22,dias_trans:14,total:36,classif:"Ligamentar II",regiao:"Joelho",lado:"Esquerdo",evento:"Camp. Paulista",mecanismo:"Trauma direto",estrutura:"LCM",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",prognostico:"2026-04-02",
+    lesson:"Lesão ligamentar grau II de LCM por trauma direto em jogo. Retornou aos treinos em 15/Mar (36 dias). Monitoramento de manutenção ativo.",
     protocol:"Reabilitação ligamentar progressiva. Fortalecimento de quadríceps + isquiotibiais bilateral. Propriocepção + agilidade antes de retorno."},
-  {id:12,n:"GABRIEL INOCENCIO",pos:"LD",date:"2026-03-06",saida_dm:"2026-03-12",ini_trans:"2026-03-13",fim_trans:null,
-    dias_dm:7,dias_trans:null,total:6,classif:"Contratura",regiao:"Perna Posterior",lado:"Esquerdo",evento:"Amistoso",mecanismo:"Dor Tardia",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 1",conduta:"Afastado",
-    lesson:"Contratura de sóleo com dor tardia pós-amistoso. Fase 1 em 13/Mar — início da reabilitação. Padrão de sóleo + perna posterior se repete no elenco.",
-    protocol:"Regenerativo + mobilidade ativa. Progressão cuidadosa. Monitorar antes de liberar para treino coletivo."},
-  {id:13,n:"THALLES",pos:"ATA",date:"2026-03-09",saida_dm:null,ini_trans:null,fim_trans:null,
-    dias_dm:3,dias_trans:0,total:3,classif:"2A",regiao:"Perna Posterior",lado:"Direito",evento:"Treino",mecanismo:"Dor Tardia",estrutura:"Gastrocnêmio Medial",exame:"RNM",estagio:"Fase 1",conduta:"Afastado",prognostico:"2026-04-13",
-    lesson:"Lesão 2A de gastrocnêmio medial com dor tardia em treino. Prognóstico 13/Abr (35 dias). Fase 1 — início do tratamento. Dano muscular crônico como fator predisponente.",
+  {id:12,n:"GABRIEL INOCENCIO",pos:"LD",date:"2026-03-06",saida_dm:"2026-03-12",ini_trans:"2026-03-13",fim_trans:"2026-03-15",
+    dias_dm:7,dias_trans:3,total:10,classif:"Contratura",regiao:"Perna Posterior",lado:"Esquerdo",evento:"Amistoso",mecanismo:"Dor Tardia",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",prognostico:"2026-03-16",
+    lesson:"Contratura de sóleo com dor tardia pós-amistoso. Retornou ao time em 15/Mar após 10 dias. Padrão de sóleo + perna posterior se repete no elenco.",
+    protocol:"Manutenção preventiva. Monitorar volume de corrida e HSR. Excêntrico de sóleo bilateral como rotina."},
+  {id:13,n:"THALLES",pos:"ATA",date:"2026-03-09",saida_dm:"2026-03-21",ini_trans:"2026-03-23",fim_trans:null,
+    dias_dm:13,dias_trans:3,total:16,classif:"2A",regiao:"Perna Posterior",lado:"Direito",evento:"Treino",mecanismo:"Dor Tardia",estrutura:"Gastrocnêmio Medial",exame:"RNM",estagio:"Fase 3",conduta:"Afastado",prognostico:"2026-04-13",
+    lesson:"Lesão 2A de gastrocnêmio medial com dor tardia em treino. Prognóstico 13/Abr (35 dias). Fase 3 — em transição. Dano muscular crônico como fator predisponente.",
     protocol:"Excêntrico de gastrocnêmio progressivo. Monitorar bem-estar antes de progredir fases. Atenção ao CKm histórico."},
-  {id:14,n:"GUI MARIANO",pos:"ZAG",date:"2026-03-11",saida_dm:null,ini_trans:null,fim_trans:null,
-    dias_dm:1,dias_trans:0,total:1,classif:"2A",regiao:"Perna Posterior",lado:"Esquerdo",evento:"Treino",mecanismo:"Sobrecarga",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 1",conduta:"Afastado",
-    lesson:"Lesão 2A de sóleo por sobrecarga em treino. Mais recente do elenco (11/Mar). Zagueiro com padrão de perna posterior — investigar volume de corrida em exercícios de transição.",
+  {id:14,n:"GUI MARIANO",pos:"ZAG",date:"2026-03-11",saida_dm:"2026-03-23",ini_trans:"2026-03-24",fim_trans:"2026-03-25",
+    dias_dm:13,dias_trans:2,total:15,classif:"2A",regiao:"Perna Posterior",lado:"Esquerdo",evento:"Treino",mecanismo:"Sobrecarga",estrutura:"Sóleo",exame:"RNM",estagio:"Fase 4",conduta:"Manutenção",prognostico:"2026-04-12",
+    lesson:"Lesão 2A de sóleo por sobrecarga em treino. Retornou em 25/Mar (15 dias). Zagueiro com padrão de perna posterior — recidivou no mesmo dia do retorno.",
     protocol:"Avaliação imediata + plano de reabilitação. Monitorar progressão diária."},
-  {id:15,n:"ERICSON",pos:"ZAG",date:"2026-03-13",saida_dm:null,ini_trans:null,fim_trans:null,
-    dias_dm:0,dias_trans:0,total:0,classif:"Cirurgia (leve)",regiao:"Joelho",lado:"Direito",evento:"Treino",mecanismo:"Lesão meniscal",estrutura:"Menisco (artroscopia)",exame:"RNM",estagio:"Pré-op",conduta:"Cirurgia programada",prognostico:"4-6 semanas",
-    lesson:"Artroscopia de menisco do joelho direito — procedimento minimamente invasivo. Afastamento estimado de 4-6 semanas. Zagueiro titular com 75 sessões na temporada.",
-    protocol:"Pré-op: manter condicionamento cardiovascular e força de MMSS. Pós-artroscopia: protocolo acelerado — carga parcial D+1, bicicleta D+7, corrida D+14-21, retorno ao treino coletivo 4-6 semanas."}
+  {id:15,n:"ERICSON",pos:"ZAG",date:"2026-03-05",saida_dm:null,ini_trans:null,fim_trans:null,
+    dias_dm:21,dias_trans:0,total:21,classif:"Articular",regiao:"Joelho",lado:"Esquerdo",evento:"Treino",mecanismo:"Dor Tardia",estrutura:"Menisco Medial",exame:"RNM",estagio:"Fase 1",conduta:"Afastado",prognostico:"2026-05-01",
+    cirurgia:"2026-03-17",
+    lesson:"Artroscopia de menisco medial do joelho esquerdo (cirurgia 17/Mar). Afastamento estimado até 01/Mai. Zagueiro titular em fase inicial de reabilitação.",
+    protocol:"Pós-artroscopia: protocolo acelerado — carga parcial D+1, bicicleta D+7, corrida D+14-21, retorno ao treino coletivo 4-6 semanas."},
+  {id:16,n:"WALLACE",pos:"ZAG",date:"2026-03-12",saida_dm:null,ini_trans:"2026-03-24",fim_trans:null,
+    dias_dm:14,dias_trans:2,total:16,classif:"2A",regiao:"Coxa Posterior",lado:"Esquerdo",evento:"Treino",mecanismo:"Sprint",estrutura:"Semitendíneo",exame:"RNM",estagio:"Fase 3",conduta:"Afastado",prognostico:"2026-04-15",
+    lesson:"RECIDIVA — Segunda lesão de posterior na temporada (1ª: sóleo D em dez/25). Agora coxa posterior E (semitendíneo) por sprint em treino. Padrão de compensação contralateral.",
+    protocol:"Protocolo Nordic Hamstring intensificado. Avaliar assimetria bilateral. Monitorar padrão compensatório."},
+  {id:17,n:"GUILHERME QUEIROZ",pos:"ATA",date:"2026-03-17",saida_dm:null,ini_trans:null,fim_trans:null,
+    dias_dm:9,dias_trans:0,total:9,classif:"3C",regiao:"Coxa Posterior",lado:"Esquerdo",evento:"Treino",mecanismo:"Desaceleração",estrutura:"Cabeça Longa do Bíceps",exame:"RNM",estagio:"Fase 2",conduta:"Afastado",prognostico:"2026-05-11",
+    lesson:"RECIDIVA — Segunda lesão na temporada (1ª: sóleo D em dez/25). Agora 3C em bíceps femoral E por desaceleração. Grau mais severo que a anterior. Prognóstico longo (55 dias).",
+    protocol:"Reabilitação completa com ênfase em excêntrico de bíceps femoral. Protocolo de desaceleração progressiva. RTP criterioso."},
+  {id:18,n:"GUI MARIANO",pos:"ZAG",date:"2026-03-25",saida_dm:null,ini_trans:null,fim_trans:null,
+    dias_dm:1,dias_trans:0,total:1,classif:"Recidiva",regiao:"Perna Posterior",lado:"Esquerdo",evento:"Treino",mecanismo:"Aceleração",estrutura:"Perna Posterior",exame:"Pendente",estagio:"Fase 1",conduta:"Afastado",
+    lesson:"RECIDIVA — Lesionou perna posterior E no mesmo dia do retorno da lesão anterior (25/Mar). Aceleração em treino. Padrão de retorno prematuro ou reabilitação incompleta.",
+    protocol:"Avaliação imediata completa. Investigar se retorno foi prematuro. Plano de reabilitação com critérios objetivos de progressão."}
 ];
 
 // Status atual do DM — calculado dinamicamente a partir de INJ_HISTORY
@@ -1978,7 +1991,9 @@ export default function Dashboard(){
             };
 
             const grouped={V:[],E:[],D:[]};
+            const totalCount={V:0,E:0,D:0};
             gamesWithResult.forEach(g=>{
+              totalCount[g._result]++;
               const gDate=parseGameDate2(g.data);
               const avgs=getTeamAvgsForDate(gDate,g.adversario);
               if(avgs&&(avgs.dist>0||avgs.pse>0))grouped[g._result].push({...g,avgs});
@@ -1986,12 +2001,12 @@ export default function Dashboard(){
 
             const avgGroup=(arr,fn)=>{const vals=arr.map(fn).filter(v=>v>0);return vals.length?(vals.reduce((a,b)=>a+b,0)/vals.length):0;};
             const categories=[
-              {key:"V",label:"Vitórias",color:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",games:grouped.V},
-              {key:"E",label:"Empates",color:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",games:grouped.E},
-              {key:"D",label:"Derrotas",color:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",games:grouped.D}
+              {key:"V",label:"Vitórias",color:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",games:grouped.V,total:totalCount.V},
+              {key:"E",label:"Empates",color:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",games:grouped.E,total:totalCount.E},
+              {key:"D",label:"Derrotas",color:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",games:grouped.D,total:totalCount.D}
             ];
 
-            const hasData=categories.some(c=>c.games.length>0);
+            const hasData=categories.some(c=>c.total>0);
             if(!hasData)return null;
 
             const metrics=[
@@ -2045,7 +2060,7 @@ export default function Dashboard(){
               <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:16}}>
                 {categories.map((cat,ci)=>
                   <div key={ci} style={{background:cat.bg,borderRadius:10,border:`1px solid ${cat.bc}`,padding:14,textAlign:"center"}}>
-                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:28,fontWeight:900,color:cat.color}}>{cat.games.length}</div>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:28,fontWeight:900,color:cat.color}}>{cat.total}</div>
                     <div style={{fontSize:11,fontWeight:700,color:cat.color}}>{cat.label}</div>
                   </div>
                 )}
@@ -2057,7 +2072,7 @@ export default function Dashboard(){
                   <thead>
                     <tr style={{background:t.bgMuted}}>
                       <th style={{padding:"8px 10px",textAlign:"left",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase"}}>Métrica</th>
-                      {categories.map((cat,ci)=><th key={ci} style={{padding:"8px 10px",textAlign:"center",fontSize:9,fontWeight:700,color:cat.color,textTransform:"uppercase"}}>{cat.label} ({cat.games.length})</th>)}
+                      {categories.map((cat,ci)=><th key={ci} style={{padding:"8px 10px",textAlign:"center",fontSize:9,fontWeight:700,color:cat.color,textTransform:"uppercase"}}>{cat.label} ({cat.total})</th>)}
                     </tr>
                   </thead>
                   <tbody>
@@ -3164,6 +3179,83 @@ export default function Dashboard(){
                 </div>)}
             </div>
           </div>
+
+          {/* ═══ ÚLTIMO JOGO — Dados do atleta na última partida ═══ */}
+          {(()=>{
+            const calendario=sheetData?.calendario||[];
+            const gamesPlayed=calendario.filter(g=>{
+              const r=(g.resultado||"").toUpperCase().trim();
+              return r==="V"||r==="E"||r==="D";
+            }).sort((a,b)=>{
+              const pD=s=>{if(!s)return 0;const pts=String(s).split(/[\/\-\.]/);if(pts.length>=3){const[d,m,y]=pts.map(Number);if(d>31)return new Date(d,m-1,y).getTime();return new Date(y<100?y+2000:y,m-1,d).getTime();}return new Date(s).getTime()||0;};
+              return pD(b.data)-pD(a.data);
+            });
+            if(!gamesPlayed.length)return null;
+            const lastGame=gamesPlayed[0];
+            const resRaw=(lastGame.resultado||"").toUpperCase().trim();
+            const resLabel=resRaw==="V"?"VITÓRIA":resRaw==="D"?"DERROTA":"EMPATE";
+            const resColor=resRaw==="V"?"#16A34A":resRaw==="D"?"#DC2626":"#CA8A04";
+            const resBg=resRaw==="V"?"#F0FDF4":resRaw==="D"?"#FEF2F2":"#FEFCE8";
+            const resBc=resRaw==="V"?"#BBF7D0":resRaw==="D"?"#FECACA":"#FEF08A";
+            // Find player GPS data for the game date
+            const parseDateGame=s=>{if(!s)return 0;const pts=String(s).split(/[\/\-\.]/);if(pts.length>=3){const[d,m,y]=pts.map(Number);if(d>31)return new Date(d,m-1,y);return new Date(y<100?y+2000:y,m-1,d);}return new Date(s);};
+            const gameDate=parseDateGame(lastGame.data);
+            const gameDateTs=gameDate.getTime();
+            const DAY=86400000;
+            const gpsEntries=sheetData?.gps?.[sp.n]||[];
+            const questEntries=sheetData?.questionarios?.[sp.n]||[];
+            const diarioEntries=sheetData?.diario?.[sp.n]||[];
+            const dateMatch=e=>{const eD=parseDateGame(e.date).getTime();return Math.abs(eD-gameDateTs)<=DAY;};
+            const matchGps=gpsEntries.filter(dateMatch);
+            const matchQuest=questEntries.filter(dateMatch);
+            const matchDiario=diarioEntries.filter(dateMatch);
+            // Pick the best GPS entry (match session with highest dist)
+            const bestGps=matchGps.length?matchGps.reduce((b,e)=>(e.gps?.dist_total||0)>(b.gps?.dist_total||0)?e:b,matchGps[0]):null;
+            const gps=bestGps?.gps||null;
+            const quest=matchQuest.length?matchQuest[matchQuest.length-1]:null;
+            const diario=matchDiario.length?matchDiario[matchDiario.length-1]:null;
+            const gameDateFmt=gameDate instanceof Date&&!isNaN(gameDate)?gameDate.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"}):(lastGame.data||"—");
+            const placar=lastGame.gols_pro!=null&&lastGame.gols_contra!=null?`${lastGame.gols_pro} x ${lastGame.gols_contra}`:(lastGame.placar||"—");
+            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${resBc}`,padding:18,marginBottom:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+                <div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Último Jogo</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>{lastGame.comp||""} · {lastGame.rodada||""} · {gameDateFmt}</div>
+                </div>
+                <span style={{padding:"4px 14px",borderRadius:6,fontSize:12,fontWeight:800,background:resBg,color:resColor,border:`2px solid ${resBc}`}}>{resLabel}</span>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:14,padding:"12px 16px",background:resBg,borderRadius:10,border:`1px solid ${resBc}`,marginBottom:14}}>
+                {lastGame.escudo&&<img src={lastGame.escudo} alt="" style={{width:32,height:32,objectFit:"contain"}} onError={e=>{e.target.style.display="none"}}/>}
+                <div style={{flex:1}}>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:15,color:pri}}>{lastGame.adversario||"—"}</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>{lastGame.local==="C"?"Casa":"Fora"}</div>
+                </div>
+                <div style={{fontFamily:"'JetBrains Mono'",fontSize:24,fontWeight:900,color:resColor}}>{placar}</div>
+              </div>
+              {/* Player metrics in the match */}
+              {(gps||quest||diario)?<div>
+                <div style={{fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",marginBottom:8}}>Dados Individuais no Jogo</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
+                  {[
+                    gps?.dist_total?{l:"Distância",v:Math.round(gps.dist_total)+"m",c:pri}:null,
+                    gps?.hsr?{l:"HSR",v:Math.round(gps.hsr)+"m",c:"#2563eb"}:null,
+                    gps?.sprints?{l:"Sprints",v:gps.sprints,c:"#7c3aed"}:null,
+                    gps?.pico_vel?{l:"Pico Vel.",v:gps.pico_vel.toFixed(1)+" km/h",c:"#EA580C"}:null,
+                    gps?.player_load?{l:"Player Load",v:Math.round(gps.player_load),c:pri}:null,
+                    diario?.pse?{l:"PSE",v:diario.pse,c:diario.pse>=7?"#DC2626":diario.pse>=5?"#CA8A04":"#16A34A"}:null,
+                    quest?.sono_qualidade?{l:"Sono",v:quest.sono_qualidade,c:quest.sono_qualidade<6?"#DC2626":"#16A34A"}:null,
+                    quest?.dor!=null&&quest.dor>0?{l:"Dor",v:quest.dor,c:quest.dor>=5?"#DC2626":quest.dor>=3?"#CA8A04":"#16A34A"}:null,
+                    quest?.recuperacao_geral?{l:"Recuperação",v:quest.recuperacao_geral,c:quest.recuperacao_geral<6?"#DC2626":"#16A34A"}:null,
+                  ].filter(Boolean).map((m,i)=>
+                    <div key={i} style={{textAlign:"center",padding:"8px 6px",background:t.bgMuted,borderRadius:8}}>
+                      <div style={{fontSize:8,color:t.textFaint,fontWeight:600,textTransform:"uppercase"}}>{m.l}</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:700,color:m.c}}>{m.v}</div>
+                    </div>)}
+                </div>
+              </div>:
+              <div style={{textAlign:"center",padding:"12px 0",color:t.textFaint,fontSize:11}}>Sem dados individuais de GPS/wellness para esta partida</div>}
+            </div>;
+          })()}
 
           {/* ═══ RADAR GPS — Valências do Último Treino vs Média da Posição ═══ */}
           {(()=>{
