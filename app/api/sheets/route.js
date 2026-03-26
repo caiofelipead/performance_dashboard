@@ -280,6 +280,27 @@ function processGPS(rows) {
     // Detectar split principal para exibição
     const splitPrincipal = allSplitNames.length ? allSplitNames[0] : "";
 
+    // Extrair métricas de cada split individual para análise temporal
+    const extractRowMetrics = (row) => {
+      const dist_km = toNum(row.distance__km_) || toNum(row.distance_km) || 0;
+      const hsr_m = toNum(row.sprint_distance_20km_h__m_) || toNum(row.sprint_distance_20km_h_m) || 0;
+      const sprints = toNum(row.sprints_20km_h) || 0;
+      const pl = toNum(row.player_load) || 0;
+      const spd = toNum(row.top_speed__km_h_) || toNum(row.top_speed_km_h) || 0;
+      const acel = toNum(row.aceleracoes_b1_3__1_) || toNum(row.aceleracoes_b1_3_1) || 0;
+      const decel = toNum(row.desaceleracoes_b1_3__1_) || toNum(row.desaceleracoes_b1_3_1) || 0;
+      const hrAvg = toNum(row.average_heart_rate_bpm) || toNum(row.average_heart_rate__bpm_) || toNum(row.hr_avg) || toNum(row.fc_media) || toNum(row.fc_med) || 0;
+      const hrMax = toNum(row.max_heart_rate_bpm) || toNum(row.max_heart_rate__bpm_) || toNum(row.hr_max) || toNum(row.fc_maxima) || toNum(row.fc_max) || 0;
+      return { dist: Math.round(dist_km * 1000), hsr: Math.round(hsr_m), sprints: Math.round(sprints), pl: Math.round(pl * 100) / 100, top_speed: Math.round(spd * 10) / 10, acel: Math.round(acel), decel: Math.round(decel), hr_avg: Math.round(hrAvg), hr_max: Math.round(hrMax) };
+    };
+
+    // Guardar dados detalhados por split (para análise temporal em jogos)
+    const splitsDetail = sr.rows.map(r => {
+      const sn = splitName(r);
+      const bloco = toNum(r.n__bloco || r.no_bloco || r.bloco || r.n_bloco) || 0;
+      return { split: sn, bloco, ...extractRowMetrics(r) };
+    }).filter(sd => sd.split);
+
     sessions[key] = {
       athlete: sr.athlete,
       dashName: resolveName(sr.athlete),
@@ -291,6 +312,7 @@ function processGPS(rows) {
       isTransicao,
       splitPrincipal,
       allSplits: allSplitNames,
+      splitsDetail,
       dist_km: 0, hsr_20_m: 0, sprints_20: 0, player_load: 0, top_speed: 0,
       hsr_25_km: 0, sprints_25: 0, acel_b1: 0, acel_b2: 0, decel_b1: 0, decel_b2: 0,
       acoes_30: 0, rhie: 0, dist_per_min: 0, hr_avg: 0, hr_max: 0, hr_exertion: 0,
@@ -337,6 +359,7 @@ function processGPS(rows) {
       isTransicao: s.isTransicao || false,
       splitPrincipal: s.splitPrincipal || "",
       allSplits: s.allSplits || [],
+      splitsDetail: s.splitsDetail || [],
       gps: {
         dist_total: Math.round(s.dist_km * 1000), // km → m
         hsr: Math.round(s.hsr_20_m),
