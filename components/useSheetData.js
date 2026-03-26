@@ -61,6 +61,7 @@ export function useSheetData({ interval = DEFAULT_INTERVAL, enabled = true } = {
         lesoes: result.lesoes || [],
         cmj_externo: result.cmj_externo || {},
         antropometria: result.antropometria || {},
+        calendario: result.calendario || [],
         sessionAtletas,
         timestamp: result.timestamp
       });
