@@ -756,12 +756,17 @@ function processCalendario(rows) {
     const adversario = findField(row, "adversario", "adversário", "opponent", "oponente", "adv");
     const escudo = findField(row, "escudo", "logo", "badge", "img", "imagem", "shield");
     const local = findField(row, "local", "mando", "home_away", "casa_fora", "venue");
-    const resultado = findField(row, "res", "resultado", "result", "score");
-    const placarRaw = findField(row, "placar", "score_full", "gols");
+    const resultado = findField(row, "res", "resultado", "result");
+    const placarRaw = findField(row, "placar", "score_full");
+    const golsMarcados = findField(row, "gols_marcados", "gols marcados", "goals_scored", "gm");
+    const golsSofridos = findField(row, "gols_sofridos", "gols sofridos", "goals_conceded", "gs");
 
-    // Parse placar "X:Y" or "XxY" format
+    // Usar colunas "Gols marcados" e "Gols sofridos" se disponíveis, senão parsear Placar
     let gols_pro = "", gols_contra = "";
-    if (placarRaw) {
+    if (golsMarcados !== "" || golsSofridos !== "") {
+      gols_pro = String(golsMarcados).trim();
+      gols_contra = String(golsSofridos).trim();
+    } else if (placarRaw) {
       const parts = String(placarRaw).split(/[:xX×]/);
       if (parts.length === 2) {
         gols_pro = parts[0].trim();

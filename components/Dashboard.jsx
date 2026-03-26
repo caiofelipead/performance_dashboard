@@ -1906,7 +1906,15 @@ export default function Dashboard(){
 
             const isMatchTitle2=(st)=>{const s=(st||"").toLowerCase().trim();return s.startsWith("j.")||s.startsWith("j ")||s.includes("jogo")||s.includes("match")||s.includes("partida");};
             const isComplementTitle2=(st)=>{const s=(st||"").toLowerCase().trim();return s.includes("compl")||s.includes("aquec")||s.includes("warmup")||s.startsWith("t-")||s.includes("recupera");};
-            const hasMatchSplits2=(splits)=>{if(!splits?.length)return false;return splits.some(sp=>{const s=sp.toLowerCase();return s.includes("1t")||s.includes("2t")||s.includes("1st")||s.includes("2nd")||/\d+-\d+.*min.*[12]t/.test(s)||/\d+min/.test(s);});};
+            const isGameTimeSplit2=(sp)=>{
+              const s=(sp||"").toLowerCase().trim();
+              if(s.includes("aquec")||s.includes("warmup")||s.includes("compl")||s.includes("interv")||s.startsWith("t-")||s.includes("recupera"))return false;
+              if(s==="session"||s==="sessão")return true;
+              if(/\d+[.\-]\d+\s*min/.test(s)||/\d+\s*mais/.test(s)||/\b[12]t\b/.test(s))return true;
+              return false;
+            };
+            const hasTimePeriods2=(splits)=>{if(!splits?.length)return false;return splits.some(sp=>{const s=(sp||"").toLowerCase();return/\d+[.\-]\d+\s*min/.test(s)||/\d+\s*mais/.test(s)||/\b[12]t\b/.test(s);});};
+            const hasSessionSplit2=(splits)=>{if(!splits?.length)return false;return splits.some(sp=>{const s=(sp||"").toLowerCase().trim();return s==="session"||s==="sessão";});};
             const matchesOpponent2=(sessionTitle,adversario)=>{
               if(!sessionTitle||!adversario)return false;
               const st=sessionTitle.toUpperCase().replace(/\s+/g,"");
@@ -1924,12 +1932,14 @@ export default function Dashboard(){
             const getTeamAvgsForDate=(gameDate,adversario)=>{
               if(!gameDate)return null;
               const gDateTs=normDate2(gameDate);
+              const DAY_MS2=86400000;
+              const dateMatch2=(entryDate)=>{const eTs=parseDateStr2(entryDate);return eTs===gDateTs||eTs===gDateTs-DAY_MS2||eTs===gDateTs+DAY_MS2;};
               const allNames=new Set([...Object.keys(gpsData),...Object.keys(diarioData)]);
               let distArr=[],hsrArr=[],sprintArr=[],pseArr=[],sonoArr=[],dorArr=[],recArr=[];
               for(const name of allNames){
-                const gpsEntries=(gpsData[name]||[]).filter(e=>parseDateStr2(e.date)===gDateTs);
-                const diarioEntries=(diarioData[name]||[]).filter(e=>parseDateStr2(e.date)===gDateTs);
-                const questEntries=(questData[name]||[]).filter(e=>parseDateStr2(e.date)===gDateTs);
+                const gpsEntries=(gpsData[name]||[]).filter(e=>dateMatch2(e.date));
+                const diarioEntries=(diarioData[name]||[]).filter(e=>dateMatch2(e.date));
+                const questEntries=(questData[name]||[]).filter(e=>dateMatch2(e.date));
                 // 1. Filtrar por adversário (session title match)
                 const opponentE=adversario?gpsEntries.filter(e=>matchesOpponent2(e.sessionTitle,adversario)):[];
                 const matchE=gpsEntries.filter(e=>isMatchTitle2(e.sessionTitle));
@@ -1949,8 +1959,11 @@ export default function Dashboard(){
                 const quest=questEntries.length?questEntries[questEntries.length-1]:null;
                 const dist=gps?.dist_total||0;
                 const stIsMatch=isMatchTitle2(bestGps?.sessionTitle);
-                const hasSplits=hasMatchSplits2(allSplits);
-                const played=(stIsMatch&&hasSplits)||(stIsMatch&&dist>=3500)||(!isComplementTitle2(bestGps?.sessionTitle)&&dist>=4500);
+                const gameTimeCt=allSplits.filter(sp=>isGameTimeSplit2(sp)).length;
+                const hasPeriods=hasTimePeriods2(allSplits);
+                const hasSession=hasSessionSplit2(allSplits);
+                // Filtro: splits de período real OU "Session" com dist >= 4000m
+                const played=(hasPeriods&&gameTimeCt>=2)||(hasSession&&stIsMatch&&dist>=4000)||(hasPeriods&&gameTimeCt>=1&&dist>=2000);
                 if(!played)continue;
                 if(dist>0)distArr.push(dist);
                 if(gps?.hsr>0)hsrArr.push(gps.hsr);
@@ -2129,7 +2142,7 @@ export default function Dashboard(){
               let g1T={dist:[],hsr:[],sprints:[]},g2T={dist:[],hsr:[],sprints:[]};
 
               for(const[name,entries]of Object.entries(gpsData2)){
-                const dayEntries=entries.filter(e=>{const ed=normD(e.date);return ed===gDateTs;});
+                const dayEntries=entries.filter(e=>{const ed=normD(e.date);return ed===gDateTs||ed===gDateTs-86400000||ed===gDateTs+86400000;});
                 // Filter by opponent match
                 const oppEntries=game.adversario?dayEntries.filter(e=>matchOpp(e.sessionTitle,game.adversario)):[];
                 const matchEntries=dayEntries.filter(e=>isMatchT(e.sessionTitle));
@@ -2303,16 +2316,37 @@ export default function Dashboard(){
             // Helpers para classificar session titles
             const isMatchTitle=(st)=>{const s=(st||"").toLowerCase().trim();return s.startsWith("j.")||s.startsWith("j ")||s.includes("jogo")||s.includes("match")||s.includes("partida");};
             const isComplementTitle=(st)=>{const s=(st||"").toLowerCase().trim();return s.includes("compl")||s.includes("aquec")||s.includes("warmup")||s.startsWith("t-")||s.includes("recupera");};
-            const hasMatchSplits=(splits)=>{
-              if(!splits?.length)return false;
-              return splits.some(sp=>{const s=sp.toLowerCase();
-                return s.includes("1t")||s.includes("2t")||s.includes("1st")||s.includes("2nd")||
-                  s.includes("half")||s.includes("tempo")||s.includes("et")||
-                  /\d+-\d+.*min.*[12]t/.test(s)||/\d+min/.test(s);
-              });
+            // Checa se um split é de tempo real de jogo (período com faixa de minutos)
+            // Ex: ".4-30.40min", ".5-40mais", ".6-0.10min 2T", ".7-10.20min 2T", "Session"
+            // NÃO: ".0-Aquec R", "G-Aquec", "compl", "T-SAIU", "intervalo"
+            const isGameTimeSplit=(sp)=>{
+              const s=(sp||"").toLowerCase().trim();
+              // Excluir aquecimento, complemento, intervalo, saída
+              if(s.includes("aquec")||s.includes("warmup")||s.includes("warm-up"))return false;
+              if(s.includes("compl")||s.includes("interv")||s.startsWith("t-"))return false;
+              if(s.includes("recupera")||s.includes("cool"))return false;
+              // "Session" = sessão agregada inteira (sem splits por período) → conta como jogo
+              if(s==="session"||s==="sessão"||s==="sessao")return true;
+              // Padrões de tempo real de jogo:
+              // "30.40min", "0.10min", "10.20min 2T", "40mais", "45mais"
+              if(/\d+[.\-]\d+\s*min/.test(s))return true;
+              if(/\d+\s*mais/.test(s))return true;
+              // "1T", "2T" como split
+              if(/\b[12]t\b/.test(s))return true;
+              if(s.includes("1st half")||s.includes("2nd half"))return true;
+              return false;
             };
-            // Checa se um split é de aquecimento reserva (não jogou)
-            const isWarmupSplit=(sp)=>{const s=(sp||"").toLowerCase();return s.includes("aquec")||s.includes("warmup")||s.includes("warm-up");};
+            // Checa se um split é exclusivamente de aquecimento/reserva
+            const isNonGameSplit=(sp)=>{
+              const s=(sp||"").toLowerCase().trim();
+              return s.includes("aquec")||s.includes("warmup")||s.includes("warm-up")||
+                     s.includes("compl")||s.includes("interv")||s.startsWith("t-")||
+                     s.includes("recupera")||s.includes("cool");
+            };
+            const countGameTimeSplits=(splits)=>{
+              if(!splits?.length)return 0;
+              return splits.filter(sp=>isGameTimeSplit(sp)).length;
+            };
 
             // Match adversário do calendário com session title do GPS
             // Ex: adversário="Fortaleza" → session title "J.BOTxFOR" contém "FOR"
@@ -2337,14 +2371,20 @@ export default function Dashboard(){
             const getAthletesForDate=(gameDate,adversario)=>{
               if(!gameDate)return[];
               const gDateTs=normDate(gameDate);
+              const DAY_MS=86400000;
+              // Tolerância de ±1 dia (GPS pode registrar data diferente do calendário)
+              const dateMatch=(entryDate)=>{
+                const eTs=parseDateStr(entryDate);
+                return eTs===gDateTs||eTs===gDateTs-DAY_MS||eTs===gDateTs+DAY_MS;
+              };
               const results=[];
               const allNames=new Set([...Object.keys(gpsData),...Object.keys(diarioData)]);
 
               for(const name of allNames){
-                const gpsEntries=(gpsData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
-                const diarioEntries=(diarioData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
-                const saltosEntries=(saltosData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
-                const questEntries=(questData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
+                const gpsEntries=(gpsData[name]||[]).filter(e=>dateMatch(e.date));
+                const diarioEntries=(diarioData[name]||[]).filter(e=>dateMatch(e.date));
+                const saltosEntries=(saltosData[name]||[]).filter(e=>dateMatch(e.date));
+                const questEntries=(questData[name]||[]).filter(e=>dateMatch(e.date));
                 if(!gpsEntries.length&&!diarioEntries.length)continue;
 
                 // 1. Filtrar por session title que bate com o adversário do jogo
@@ -2377,20 +2417,34 @@ export default function Dashboard(){
                 results.push({name,pos:pInfo?.pos||diario.pos||"",gps,diario,quest,cmj:cmjBest,pInfo,sessionTitle,tags,allSplits,splitsDetail});
               }
 
-              // Filtrar: só quem jogou de fato (splits de tempo real, não aquecimento)
+              // Filtrar: só quem jogou de fato
+              // Critério principal: ter splits de tempo real de jogo (ex: "30.40min", "0.10min 2T", "40mais")
+              // Splits de aquecimento reserva (.0-Aquec R, G-Aquec) NÃO contam
               const filtered=results.filter(a=>{
                 const dist=a.gps?.dist_total||0;
                 const stIsMatch=isMatchTitle(a.sessionTitle);
-                const hasSplits=hasMatchSplits(a.allSplits);
-                // Todos os splits são de aquecimento → não jogou
-                const allWarmup=a.allSplits.length>0&&a.allSplits.every(sp=>isWarmupSplit(sp));
-                if(allWarmup)return false;
+                const gameTimeSplits=countGameTimeSplits(a.allSplits);
+                const nonGameSplits=a.allSplits.filter(sp=>isNonGameSplit(sp)).length;
+                const hasTimePeriodSplits=a.allSplits.some(sp=>{const s=(sp||"").toLowerCase();return/\d+[.\-]\d+\s*min/.test(s)||/\d+\s*mais/.test(s)||/\b[12]t\b/.test(s);});
+                const hasSessionSplit=a.allSplits.some(sp=>(sp||"").toLowerCase().trim()==="session"||sp.toLowerCase().trim()==="sessão");
+
+                // Critério 1: tem splits com períodos de tempo (30.40min, 0.10min 2T, 40mais) — formato detalhado
+                if(hasTimePeriodSplits&&gameTimeSplits>=2)return true;
+
+                // Critério 2: formato "Session" (sem breakdown por período)
+                // Neste caso, usar distância como filtro: quem jogou tem dist >> quem só aqueceu
+                // Outfield jogando ≥ ~4000m, GK ≥ ~3500m, reserva aquecimento < 2500m
+                if(hasSessionSplit&&stIsMatch&&dist>=4000)return true;
+
+                // Critério 3: diário marca que jogou + distância mínima
                 const partida=(a.diario?.partida||"").toLowerCase();
                 const playedDiario=partida.includes("sim")||partida==="1"||partida==="s"||partida==="x";
-                if(playedDiario&&dist>500)return true;
-                if(stIsMatch&&hasSplits)return true;
-                if(stIsMatch&&dist>=3500)return true;
-                if(dist>=4500)return true;
+                if(playedDiario&&dist>2000)return true;
+
+                // Critério 4: substituto que entrou no final (tem pelo menos 1 split de período + dist razoável)
+                if(hasTimePeriodSplits&&gameTimeSplits>=1&&dist>=2000)return true;
+
+                // Sem critérios atendidos → não jogou
                 return false;
               });
 
