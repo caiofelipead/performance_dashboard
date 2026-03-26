@@ -1896,8 +1896,8 @@ export default function Dashboard(){
               if(r==="V"||r==="VITÓRIA"||r==="VITORIA"||r==="W"||r==="WIN")return"V";
               if(r==="E"||r==="EMPATE"||r==="D"&&false||r==="DRAW")return"E";
               if(r==="D"||r==="DERROTA"||r==="L"||r==="LOSS")return"D";
-              const gp=Number(g.gols_pro)||0;const gc=Number(g.gols_contra)||0;
-              if(gp>0||gc>0){if(gp>gc)return"V";if(gp===gc)return"E";return"D";}
+              const gp=Number(g.gols_pro);const gc=Number(g.gols_contra);
+              if(!isNaN(gp)&&!isNaN(gc)&&(g.gols_pro!==""||g.gols_contra!=="")){if(gp>gc)return"V";if(gp===gc)return"E";return"D";}
               return null;
             };
 
@@ -2152,10 +2152,10 @@ export default function Dashboard(){
                     const athleteData=isExpanded?getAthletesForDate(gDate):[];
                     // Classify game result
                     const resStr=(g.resultado||"").toUpperCase().trim();
-                    const gameResult=resStr==="V"||resStr==="VITÓRIA"||resStr==="VITORIA"?"V":resStr==="E"||resStr==="EMPATE"?"E":resStr==="D"||resStr==="DERROTA"?"D":(()=>{const gp=Number(g.gols_pro)||0;const gc=Number(g.gols_contra)||0;if(gp>0||gc>0){if(gp>gc)return"V";if(gp===gc)return"E";return"D";}return null;})();
+                    const gameResult=resStr==="V"||resStr==="VITÓRIA"||resStr==="VITORIA"?"V":resStr==="E"||resStr==="EMPATE"?"E":resStr==="D"||resStr==="DERROTA"?"D":(()=>{const gp=Number(g.gols_pro);const gc=Number(g.gols_contra);if(!isNaN(gp)&&!isNaN(gc)&&(g.gols_pro!==""||g.gols_contra!=="")){if(gp>gc)return"V";if(gp===gc)return"E";return"D";}return null;})();
                     const resColor=gameResult==="V"?"#16A34A":gameResult==="E"?"#CA8A04":gameResult==="D"?"#DC2626":null;
                     const resLabel=gameResult==="V"?"V":gameResult==="E"?"E":gameResult==="D"?"D":null;
-                    const placar=(g.gols_pro||g.gols_contra)?`${g.gols_pro||0}×${g.gols_contra||0}`:"";
+                    const placar=(g.gols_pro!==""&&g.gols_pro!==undefined)||(g.gols_contra!==""&&g.gols_contra!==undefined)?`${g.gols_pro??"0"} × ${g.gols_contra??"0"}`:"";
 
                     return <div key={i} style={{background:t.bgCard,borderRadius:12,border:`1px solid ${borderColor}`,overflow:"hidden",opacity:isPast&&!isExpanded?.6:1,transition:"all .2s"}}>
                       {/* Game row - clickable */}
