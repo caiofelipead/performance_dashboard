@@ -1904,6 +1904,9 @@ export default function Dashboard(){
             const gamesWithResult=jogosCalendario.map(g=>({...g,_result:classifyResult(g)})).filter(g=>g._result);
             if(gamesWithResult.length<2)return null;
 
+            const isMatchTitle2=(st)=>{const s=(st||"").toLowerCase().trim();return s.startsWith("j.")||s.startsWith("j ")||s.includes("jogo")||s.includes("match")||s.includes("partida");};
+            const isComplementTitle2=(st)=>{const s=(st||"").toLowerCase().trim();return s.includes("compl")||s.includes("aquec")||s.includes("warmup")||s.startsWith("t-")||s.includes("recupera");};
+            const hasMatchSplits2=(splits)=>{if(!splits?.length)return false;return splits.some(sp=>{const s=sp.toLowerCase();return s.includes("1t")||s.includes("2t")||s.includes("1st")||s.includes("2nd")||/\d+-\d+.*min.*[12]t/.test(s)||/\d+min/.test(s);});};
             const getTeamAvgsForDate=(gameDate)=>{
               if(!gameDate)return null;
               const gDateTs=normDate2(gameDate);
@@ -1913,10 +1916,24 @@ export default function Dashboard(){
                 const gpsEntries=(gpsData[name]||[]).filter(e=>parseDateStr2(e.date)===gDateTs);
                 const diarioEntries=(diarioData[name]||[]).filter(e=>parseDateStr2(e.date)===gDateTs);
                 const questEntries=(questData[name]||[]).filter(e=>parseDateStr2(e.date)===gDateTs);
-                const gps=gpsEntries.length?gpsEntries[gpsEntries.length-1].gps||gpsEntries[gpsEntries.length-1]:null;
+                // Priorizar sessão de jogo (J.xxx)
+                const matchE=gpsEntries.filter(e=>isMatchTitle2(e.sessionTitle));
+                const nonCompE=gpsEntries.filter(e=>!isComplementTitle2(e.sessionTitle));
+                const pool=matchE.length?matchE:(nonCompE.length?nonCompE:gpsEntries);
+                let bestGps=null;
+                if(pool.length>1){bestGps=pool.reduce((b,e)=>(e.gps?.dist_total||0)>(b?.gps?.dist_total||0)?e:b,pool[0]);}
+                else if(pool.length===1){bestGps=pool[0];}
+                const gps=bestGps?.gps||bestGps||null;
+                const allSplits=bestGps?.allSplits||[];
                 const diario=diarioEntries.length?diarioEntries[diarioEntries.length-1]:null;
                 const quest=questEntries.length?questEntries[questEntries.length-1]:null;
-                if(gps?.dist_total>0)distArr.push(gps.dist_total);
+                const dist=gps?.dist_total||0;
+                const stIsMatch=isMatchTitle2(bestGps?.sessionTitle);
+                const hasSplits=hasMatchSplits2(allSplits);
+                // Mesmo critério de filtro: session title + splits + distância
+                const played=(stIsMatch&&hasSplits)||(stIsMatch&&dist>=3500)||(!isComplementTitle2(bestGps?.sessionTitle)&&dist>=4500);
+                if(!played)continue;
+                if(dist>0)distArr.push(dist);
                 if(gps?.hsr>0)hsrArr.push(gps.hsr);
                 if(gps?.sprints>0)sprintArr.push(gps.sprints);
                 if(diario?.pse>0)pseArr.push(diario.pse);
@@ -1925,7 +1942,7 @@ export default function Dashboard(){
                 if(quest?.recuperacao_geral>0)recArr.push(quest.recuperacao_geral);
               }
               const avg=arr=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;
-              return{dist:avg(distArr),hsr:avg(hsrArr),sprints:avg(sprintArr),pse:avg(pseArr),sono:avg(sonoArr),dor:avg(dorArr),rec:avg(recArr),n:Math.max(distArr.length,diarioData.length||0,1)};
+              return{dist:avg(distArr),hsr:avg(hsrArr),sprints:avg(sprintArr),pse:avg(pseArr),sono:avg(sonoArr),dor:avg(dorArr),rec:avg(recArr),n:distArr.length};
             };
 
             const grouped={V:[],E:[],D:[]};
@@ -2100,22 +2117,86 @@ export default function Dashboard(){
               const gDateTs=normDate(gameDate);
               const results=[];
               const allNames=new Set([...Object.keys(gpsData),...Object.keys(diarioData)]);
+
+              // Classificar session titles: "J." = jogo, "T-" = complemento, etc.
+              const isMatchTitle=(st)=>{
+                const s=(st||"").toLowerCase().trim();
+                return s.startsWith("j.")||s.startsWith("j ")||s.includes("jogo")||s.includes("match")||s.includes("partida");
+              };
+              const isComplementTitle=(st)=>{
+                const s=(st||"").toLowerCase().trim();
+                return s.includes("compl")||s.includes("aquec")||s.includes("warmup")||s.includes("warm-up")||s.startsWith("t-")||s.includes("recupera");
+              };
+              // Splits que indicam participação real no jogo (1T, 2T = tempos de jogo)
+              const hasMatchSplits=(splits)=>{
+                if(!splits||!splits.length)return false;
+                return splits.some(sp=>{
+                  const s=sp.toLowerCase();
+                  return s.includes("1t")||s.includes("2t")||s.includes("1st")||s.includes("2nd")||
+                         s.includes("half")||s.includes("tempo")||s.includes("et")||
+                         /\d+-\d+.*min.*[12]t/.test(s)||/\d+min/.test(s);
+                });
+              };
+
               for(const name of allNames){
                 const gpsEntries=(gpsData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
                 const diarioEntries=(diarioData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
                 const saltosEntries=(saltosData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
                 const questEntries=(questData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
                 if(!gpsEntries.length&&!diarioEntries.length)continue;
-                const gps=gpsEntries.length?gpsEntries[gpsEntries.length-1].gps||gpsEntries[gpsEntries.length-1]:{};
+
+                // Prioridade: sessão de jogo (J.xxx) > maior distância > última
+                let bestGpsEntry=null;
+                const matchEntries=gpsEntries.filter(e=>isMatchTitle(e.sessionTitle));
+                const nonComplEntries=gpsEntries.filter(e=>!isComplementTitle(e.sessionTitle));
+                const pool=matchEntries.length?matchEntries:(nonComplEntries.length?nonComplEntries:gpsEntries);
+                if(pool.length>1){
+                  bestGpsEntry=pool.reduce((best,e)=>{
+                    const d=(e.gps?.dist_total||0);const bD=(best.gps?.dist_total||0);return d>bD?e:best;
+                  },pool[0]);
+                }else{
+                  bestGpsEntry=pool[0]||null;
+                }
+
+                const gps=bestGpsEntry?bestGpsEntry.gps||bestGpsEntry:{};
                 const diario=diarioEntries.length?diarioEntries[diarioEntries.length-1]:{};
                 const saltos=saltosEntries.length?saltosEntries[saltosEntries.length-1]:{};
                 const quest=questEntries.length?questEntries[questEntries.length-1]:{};
                 const cmjBest=Math.max(saltos.cmj_1||0,saltos.cmj_2||0,saltos.cmj_3||0);
                 const pInfo=P.find(p=>p.n===name);
-                results.push({name,pos:pInfo?.pos||diario.pos||"",gps,diario,quest,cmj:cmjBest,pInfo});
+                const sessionTitle=bestGpsEntry?.sessionTitle||"";
+                const tags=bestGpsEntry?.tags||diario?.tags||"";
+                const allSplits=bestGpsEntry?.allSplits||[];
+                results.push({name,pos:pInfo?.pos||diario.pos||"",gps,diario,quest,cmj:cmjBest,pInfo,sessionTitle,tags,allSplits});
               }
-              results.sort((a,b)=>{const posOrder={GOL:0,ZAG:1,LAT:2,VOL:3,MEI:4,EXT:5,ATA:6};return(posOrder[a.pos]??9)-(posOrder[b.pos]??9);});
-              return results;
+
+              // Filtrar: só quem jogou de fato
+              // Critério 1: session title é de jogo (J.xxx) E tem splits de tempo (1T/2T)
+              // Critério 2: session title é de jogo + distância significativa
+              // Critério 3: fallback por distância alta (sem info de session title)
+              const filtered=results.filter(a=>{
+                const dist=a.gps?.dist_total||0;
+                const stIsMatch=isMatchTitle(a.sessionTitle);
+                const stIsComplement=isComplementTitle(a.sessionTitle);
+                const hasSplits=hasMatchSplits(a.allSplits);
+                const partida=(a.diario?.partida||"").toLowerCase();
+                const playedDiario=partida.includes("sim")||partida==="1"||partida==="s"||partida==="x";
+
+                // Se o diário marca como partida → jogou
+                if(playedDiario&&dist>500)return true;
+                // Se session title é de jogo E tem splits de 1T/2T → jogou
+                if(stIsMatch&&hasSplits)return true;
+                // Se session title é de jogo mas sem splits de tempo → usar distância
+                // GK que jogou: ~4000-7000m, jogador de linha: ~7000-13000m, sub 30min: ~3000-5000m
+                if(stIsMatch&&dist>=3500)return true;
+                // Se não é complemento e distância é alta → provavelmente jogou
+                if(!stIsComplement&&dist>=4500)return true;
+                // Senão → não jogou (aquecimento, complemento, ou banco)
+                return false;
+              });
+
+              filtered.sort((a,b)=>{const posOrder={GOL:0,ZAG:1,LAT:2,VOL:3,MEI:4,EXT:5,ATA:6};return(posOrder[a.pos]??9)-(posOrder[b.pos]??9);});
+              return filtered;
             };
 
             const compGroups={};
