@@ -667,7 +667,7 @@ const PREVENTION=[
 // Calendário Série B 2026
 const SERIE_B=[
   {rod:1,date:"21/03/2026",time:"19:15",home:"Botafogo SP",away:"Fortaleza",local:"casa",score:null,result:null,played:false},
-  {rod:2,date:"02/04/2026",time:"A confirmar",home:"América-MG",away:"Botafogo SP",local:"fora",score:null,result:null,played:false},
+  {rod:2,date:"01/04/2026",time:"A confirmar",home:"América-MG",away:"Botafogo SP",local:"fora",score:null,result:null,played:false},
   {rod:3,date:"05/04/2026",time:"20:30",home:"Botafogo SP",away:"São Bernardo",local:"casa",score:null,result:null,played:false},
   {rod:4,date:"10/04/2026",time:"20:30",home:"Criciúma",away:"Botafogo SP",local:"fora",score:null,result:null,played:false},
   {rod:5,date:"20/04/2026",time:"A confirmar",home:"Botafogo SP",away:"Atlético-GO",local:"casa",score:null,result:null,played:false}
@@ -677,7 +677,7 @@ const SERIE_B=[
 // Fonte: Departamento de Futebol Profissional — Sérgio do Prado / Fillipe Soutto / André Leite
 const WEEK_MAP={
   week:"23/03 a 29/03/2026",
-  next_match:{rod:2,opponent:"América-MG",date:"02/04",time:"A confirmar",local:"fora",days_to:10},
+  next_match:{rod:2,opponent:"América-MG",date:"01/04",time:"A confirmar",local:"fora",days_to:6},
   days:[
     {d:"2ª 23",md:"MD+2",type:"FOLGA",focus:"Descanso Programado",local:"-",
       sessions:[],
@@ -740,7 +740,15 @@ const WEEK_READINESS=(players,alerts)=>{
     full:[],limited:[],excluded:[],physio:[]
   };
   const alertList = alerts || ML.alerts;
+  const dmData = getDmAtual();
+  const afastadosNames = new Set(dmData.afastados.map(a => a.n));
   players.forEach(p=>{
+    // Atletas afastados do DM vão direto para excluídos
+    if(afastadosNames.has(p.n)){
+      const dmInfo = dmData.afastados.find(a => a.n === p.n);
+      groups.excluded.push({...p,zone:"DM",dose:`Afastado — ${dmInfo?.regiao||"DM"} (${dmInfo?.dias||"?"}d)`,prob:1});
+      return;
+    }
     const alert=alertList.find(a=>a.n===p.n);
     if(alert){
       if(alert.zone==="VERMELHO") groups.excluded.push({...p,zone:alert.zone,dose:alert.dose,prob:alert.prob});
@@ -1939,7 +1947,15 @@ export default function Dashboard(){
                 if(adv.startsWith(t1)||adv.startsWith(t2))return true;
                 if(t1.length>=3&&adv.substring(0,3)===t1.substring(0,3))return true;
                 if(t2.length>=3&&adv.substring(0,3)===t2.substring(0,3))return true;
+                const advWords=adversario.toUpperCase().split(/\s+/).filter(w=>w.length>=3);
+                for(const w of advWords){
+                  if(t1.length>=3&&w.substring(0,3)===t1.substring(0,3))return true;
+                  if(t2.length>=3&&w.substring(0,3)===t2.substring(0,3))return true;
+                  if(w.length>=4&&(t1.includes(w.substring(0,4))||t2.includes(w.substring(0,4))))return true;
+                }
               }
+              const words=adversario.toUpperCase().split(/\s+/).filter(w=>w.length>=3);
+              for(const w of words){if(w.length>=4&&st.includes(w.substring(0,4)))return true;}
               return false;
             };
             const getTeamAvgsForDate=(gameDate,adversario)=>{
@@ -2369,17 +2385,26 @@ export default function Dashboard(){
               if(!sessionTitle||!adversario)return false;
               const st=sessionTitle.toUpperCase().replace(/\s+/g,"");
               const adv=adversario.toUpperCase().replace(/\s+/g,"");
-              // Tentar match direto (nome completo no title)
-              if(st.includes(adv.substring(0,4)))return true;
+              // Tentar match direto (nome sem espaços, 4+ chars)
+              if(adv.length>=4&&st.includes(adv.substring(0,4)))return true;
               // Extrair siglas do session title: "J.BOTxFOR" → ["BOT","FOR"]
               const m=st.match(/J[.\s]*([A-Z]{2,})X([A-Z]{2,})/i);
               if(m){
                 const t1=m[1],t2=m[2];
-                // Checar se alguma sigla bate com início do adversário
                 if(adv.startsWith(t1)||adv.startsWith(t2))return true;
                 if(t1.length>=3&&adv.substring(0,3)===t1.substring(0,3))return true;
                 if(t2.length>=3&&adv.substring(0,3)===t2.substring(0,3))return true;
+                // Tentar match com cada palavra do adversário (ex: "Red Bull Bragantino" → tentar "RED","BULL","BRAGANTINO")
+                const advWords=adversario.toUpperCase().split(/\s+/).filter(w=>w.length>=3);
+                for(const w of advWords){
+                  if(t1.length>=3&&w.substring(0,3)===t1.substring(0,3))return true;
+                  if(t2.length>=3&&w.substring(0,3)===t2.substring(0,3))return true;
+                  if(w.length>=4&&(t1.includes(w.substring(0,4))||t2.includes(w.substring(0,4))))return true;
+                }
               }
+              // Fallback: tentar cada palavra do adversário (3+ chars) contra o session title
+              const words=adversario.toUpperCase().split(/\s+/).filter(w=>w.length>=3);
+              for(const w of words){if(w.length>=4&&st.includes(w.substring(0,4)))return true;}
               return false;
             };
 
@@ -2396,6 +2421,9 @@ export default function Dashboard(){
               const allNames=new Set([...Object.keys(gpsData),...Object.keys(diarioData)]);
 
               for(const name of allNames){
+                // Filtrar: só atletas do elenco profissional (exclui Sub-20, emprestados, etc.)
+                const inSquad=P.some(p=>p.n===name);
+                if(!inSquad)continue;
                 const gpsEntries=(gpsData[name]||[]).filter(e=>dateMatch(e.date));
                 const diarioEntries=(diarioData[name]||[]).filter(e=>dateMatch(e.date));
                 const saltosEntries=(saltosData[name]||[]).filter(e=>dateMatch(e.date));
@@ -2976,7 +3004,7 @@ export default function Dashboard(){
                     <div key={i} style={{padding:"6px 8px",background:"#FEF2F2",borderRadius:6,marginBottom:4,cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                         <span style={{fontWeight:700,fontSize:11,color:"#DC2626"}}>{p.n}</span>
-                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:"#DC2626"}}>{(p.prob*100).toFixed(0)}%</span>
+                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:p.zone==="DM"?"#7c3aed":"#DC2626"}}>{p.zone==="DM"?"DM":(p.prob*100).toFixed(0)+"%"}</span>
                       </div>
                       <div style={{fontSize:9,color:t.textFaint}}>{p.pos} · {p.dose}</div>
                     </div>)}
