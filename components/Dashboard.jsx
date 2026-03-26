@@ -1904,6 +1904,7 @@ export default function Dashboard(){
             const gamesWithResult=jogosCalendario.map(g=>({...g,_result:classifyResult(g)})).filter(g=>g._result);
             if(gamesWithResult.length<2)return null;
 
+            const MIN_MATCH_DIST_INSIGHTS=3500;
             const getTeamAvgsForDate=(gameDate)=>{
               if(!gameDate)return null;
               const gDateTs=normDate2(gameDate);
@@ -1913,10 +1914,20 @@ export default function Dashboard(){
                 const gpsEntries=(gpsData[name]||[]).filter(e=>parseDateStr2(e.date)===gDateTs);
                 const diarioEntries=(diarioData[name]||[]).filter(e=>parseDateStr2(e.date)===gDateTs);
                 const questEntries=(questData[name]||[]).filter(e=>parseDateStr2(e.date)===gDateTs);
-                const gps=gpsEntries.length?gpsEntries[gpsEntries.length-1].gps||gpsEntries[gpsEntries.length-1]:null;
+                // Pegar sessão com maior distância (= jogo em si)
+                let bestGps=null;
+                if(gpsEntries.length>1){
+                  bestGps=gpsEntries.reduce((best,e)=>{
+                    const d=(e.gps?.dist_total||0);const bD=(best?.gps?.dist_total||0);return d>bD?e:best;
+                  },gpsEntries[0]);
+                }else if(gpsEntries.length===1){bestGps=gpsEntries[0];}
+                const gps=bestGps?.gps||bestGps||null;
                 const diario=diarioEntries.length?diarioEntries[diarioEntries.length-1]:null;
                 const quest=questEntries.length?questEntries[questEntries.length-1]:null;
-                if(gps?.dist_total>0)distArr.push(gps.dist_total);
+                // Só contar quem jogou (dist >= threshold)
+                const dist=gps?.dist_total||0;
+                if(dist<MIN_MATCH_DIST_INSIGHTS)continue;
+                if(dist>0)distArr.push(dist);
                 if(gps?.hsr>0)hsrArr.push(gps.hsr);
                 if(gps?.sprints>0)sprintArr.push(gps.sprints);
                 if(diario?.pse>0)pseArr.push(diario.pse);
@@ -1925,7 +1936,7 @@ export default function Dashboard(){
                 if(quest?.recuperacao_geral>0)recArr.push(quest.recuperacao_geral);
               }
               const avg=arr=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;
-              return{dist:avg(distArr),hsr:avg(hsrArr),sprints:avg(sprintArr),pse:avg(pseArr),sono:avg(sonoArr),dor:avg(dorArr),rec:avg(recArr),n:Math.max(distArr.length,diarioData.length||0,1)};
+              return{dist:avg(distArr),hsr:avg(hsrArr),sprints:avg(sprintArr),pse:avg(pseArr),sono:avg(sonoArr),dor:avg(dorArr),rec:avg(recArr),n:distArr.length};
             };
 
             const grouped={V:[],E:[],D:[]};
@@ -2106,16 +2117,53 @@ export default function Dashboard(){
                 const saltosEntries=(saltosData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
                 const questEntries=(questData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
                 if(!gpsEntries.length&&!diarioEntries.length)continue;
-                const gps=gpsEntries.length?gpsEntries[gpsEntries.length-1].gps||gpsEntries[gpsEntries.length-1]:{};
+
+                // Para dia de jogo: pegar a sessão com maior distância (= o jogo em si)
+                // Ignora sessões de complemento/aquecimento que têm dist. muito menor
+                let bestGpsEntry=null;
+                if(gpsEntries.length>1){
+                  bestGpsEntry=gpsEntries.reduce((best,e)=>{
+                    const d=(e.gps?.dist_total||e.dist_total||0);
+                    const bD=(best.gps?.dist_total||best.dist_total||0);
+                    return d>bD?e:best;
+                  },gpsEntries[0]);
+                }else{
+                  bestGpsEntry=gpsEntries[0]||null;
+                }
+                const gps=bestGpsEntry?bestGpsEntry.gps||bestGpsEntry:{};
                 const diario=diarioEntries.length?diarioEntries[diarioEntries.length-1]:{};
                 const saltos=saltosEntries.length?saltosEntries[saltosEntries.length-1]:{};
                 const quest=questEntries.length?questEntries[questEntries.length-1]:{};
                 const cmjBest=Math.max(saltos.cmj_1||0,saltos.cmj_2||0,saltos.cmj_3||0);
                 const pInfo=P.find(p=>p.n===name);
-                results.push({name,pos:pInfo?.pos||diario.pos||"",gps,diario,quest,cmj:cmjBest,pInfo});
+                const sessionTitle=bestGpsEntry?.sessionTitle||"";
+                const tags=bestGpsEntry?.tags||diario?.tags||"";
+                results.push({name,pos:pInfo?.pos||diario.pos||"",gps,diario,quest,cmj:cmjBest,pInfo,sessionTitle,tags});
               }
-              results.sort((a,b)=>{const posOrder={GOL:0,ZAG:1,LAT:2,VOL:3,MEI:4,EXT:5,ATA:6};return(posOrder[a.pos]??9)-(posOrder[b.pos]??9);});
-              return results;
+
+              // Filtrar: só quem jogou de fato
+              // Em jogos, a distância mínima de quem entrou é ~3500m (sub de 15min)
+              // Complemento/aquecimento tipicamente < 3000m
+              // Também checa tags/sessionTitle para "jogo", "partida", "match"
+              const MIN_MATCH_DIST=3500;
+              const isMatchSession=(a)=>{
+                const st=(a.sessionTitle||"").toLowerCase();
+                const tg=(a.tags||"").toLowerCase();
+                const pt=(a.diario?.partida||"").toLowerCase();
+                return st.includes("jogo")||st.includes("match")||st.includes("partida")||
+                       tg.includes("jogo")||tg.includes("match")||tg.includes("partida")||
+                       pt.includes("sim")||pt.includes("1")||pt==="s"||pt==="x";
+              };
+              const filtered=results.filter(a=>{
+                const dist=a.gps?.dist_total||0;
+                // Se tem tag de jogo/partida → incluir se dist > 1000 (sub brevíssimo)
+                if(isMatchSession(a))return dist>1000;
+                // Senão, usar threshold de distância
+                return dist>=MIN_MATCH_DIST;
+              });
+
+              filtered.sort((a,b)=>{const posOrder={GOL:0,ZAG:1,LAT:2,VOL:3,MEI:4,EXT:5,ATA:6};return(posOrder[a.pos]??9)-(posOrder[b.pos]??9);});
+              return filtered;
             };
 
             const compGroups={};
