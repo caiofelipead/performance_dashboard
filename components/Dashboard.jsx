@@ -1932,12 +1932,14 @@ export default function Dashboard(){
             const getTeamAvgsForDate=(gameDate,adversario)=>{
               if(!gameDate)return null;
               const gDateTs=normDate2(gameDate);
+              const DAY_MS2=86400000;
+              const dateMatch2=(entryDate)=>{const eTs=parseDateStr2(entryDate);return eTs===gDateTs||eTs===gDateTs-DAY_MS2||eTs===gDateTs+DAY_MS2;};
               const allNames=new Set([...Object.keys(gpsData),...Object.keys(diarioData)]);
               let distArr=[],hsrArr=[],sprintArr=[],pseArr=[],sonoArr=[],dorArr=[],recArr=[];
               for(const name of allNames){
-                const gpsEntries=(gpsData[name]||[]).filter(e=>parseDateStr2(e.date)===gDateTs);
-                const diarioEntries=(diarioData[name]||[]).filter(e=>parseDateStr2(e.date)===gDateTs);
-                const questEntries=(questData[name]||[]).filter(e=>parseDateStr2(e.date)===gDateTs);
+                const gpsEntries=(gpsData[name]||[]).filter(e=>dateMatch2(e.date));
+                const diarioEntries=(diarioData[name]||[]).filter(e=>dateMatch2(e.date));
+                const questEntries=(questData[name]||[]).filter(e=>dateMatch2(e.date));
                 // 1. Filtrar por adversário (session title match)
                 const opponentE=adversario?gpsEntries.filter(e=>matchesOpponent2(e.sessionTitle,adversario)):[];
                 const matchE=gpsEntries.filter(e=>isMatchTitle2(e.sessionTitle));
@@ -2140,7 +2142,7 @@ export default function Dashboard(){
               let g1T={dist:[],hsr:[],sprints:[]},g2T={dist:[],hsr:[],sprints:[]};
 
               for(const[name,entries]of Object.entries(gpsData2)){
-                const dayEntries=entries.filter(e=>{const ed=normD(e.date);return ed===gDateTs;});
+                const dayEntries=entries.filter(e=>{const ed=normD(e.date);return ed===gDateTs||ed===gDateTs-86400000||ed===gDateTs+86400000;});
                 // Filter by opponent match
                 const oppEntries=game.adversario?dayEntries.filter(e=>matchOpp(e.sessionTitle,game.adversario)):[];
                 const matchEntries=dayEntries.filter(e=>isMatchT(e.sessionTitle));
@@ -2369,14 +2371,20 @@ export default function Dashboard(){
             const getAthletesForDate=(gameDate,adversario)=>{
               if(!gameDate)return[];
               const gDateTs=normDate(gameDate);
+              const DAY_MS=86400000;
+              // Tolerância de ±1 dia (GPS pode registrar data diferente do calendário)
+              const dateMatch=(entryDate)=>{
+                const eTs=parseDateStr(entryDate);
+                return eTs===gDateTs||eTs===gDateTs-DAY_MS||eTs===gDateTs+DAY_MS;
+              };
               const results=[];
               const allNames=new Set([...Object.keys(gpsData),...Object.keys(diarioData)]);
 
               for(const name of allNames){
-                const gpsEntries=(gpsData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
-                const diarioEntries=(diarioData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
-                const saltosEntries=(saltosData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
-                const questEntries=(questData[name]||[]).filter(e=>parseDateStr(e.date)===gDateTs);
+                const gpsEntries=(gpsData[name]||[]).filter(e=>dateMatch(e.date));
+                const diarioEntries=(diarioData[name]||[]).filter(e=>dateMatch(e.date));
+                const saltosEntries=(saltosData[name]||[]).filter(e=>dateMatch(e.date));
+                const questEntries=(questData[name]||[]).filter(e=>dateMatch(e.date));
                 if(!gpsEntries.length&&!diarioEntries.length)continue;
 
                 // 1. Filtrar por session title que bate com o adversário do jogo
