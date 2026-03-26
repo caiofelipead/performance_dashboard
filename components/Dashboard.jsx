@@ -3197,7 +3197,7 @@ export default function Dashboard(){
             const resColor=resRaw==="V"?"#16A34A":resRaw==="D"?"#DC2626":"#CA8A04";
             const resBg=resRaw==="V"?"#F0FDF4":resRaw==="D"?"#FEF2F2":"#FEFCE8";
             const resBc=resRaw==="V"?"#BBF7D0":resRaw==="D"?"#FECACA":"#FEF08A";
-            // Find player GPS data for the game date
+            // Find player GPS data for the game date — verify player actually played
             const parseDateGame=s=>{if(!s)return 0;const pts=String(s).split(/[\/\-\.]/);if(pts.length>=3){const[d,m,y]=pts.map(Number);if(d>31)return new Date(d,m-1,y);return new Date(y<100?y+2000:y,m-1,d);}return new Date(s);};
             const gameDate=parseDateGame(lastGame.data);
             const gameDateTs=gameDate.getTime();
@@ -3209,9 +3209,26 @@ export default function Dashboard(){
             const matchGps=gpsEntries.filter(dateMatch);
             const matchQuest=questEntries.filter(dateMatch);
             const matchDiario=diarioEntries.filter(dateMatch);
-            // Pick the best GPS entry (match session with highest dist)
-            const bestGps=matchGps.length?matchGps.reduce((b,e)=>(e.gps?.dist_total||0)>(b.gps?.dist_total||0)?e:b,matchGps[0]):null;
-            const gps=bestGps?.gps||null;
+            // Filter GPS: only match sessions (not warmup/complement), verify player actually played
+            const isMatchT=st=>{const s=(st||"").toLowerCase().trim();return s.startsWith("j.")||s.startsWith("j ")||s.includes("jogo")||s.includes("match")||s.includes("partida");};
+            const isComplement=st=>{const s=(st||"").toLowerCase().trim();return s.includes("compl")||s.includes("aquec")||s.includes("warmup")||s.startsWith("t-")||s.includes("recupera");};
+            const matchesOpp=(st,adv)=>{if(!st||!adv)return false;const s=st.toUpperCase().replace(/\s+/g,""),a=adv.toUpperCase().replace(/\s+/g,"");return a.length>=4&&s.includes(a.substring(0,4));};
+            const isGameSplit=sp2=>{const s=(sp2||"").toLowerCase().trim();if(s.includes("aquec")||s.includes("warmup")||s.includes("compl")||s.includes("interv")||s.startsWith("t-")||s.includes("recupera"))return false;if(s==="session"||s==="sessão")return true;if(/\d+[.\-]\d+\s*min/.test(s)||/\d+\s*mais/.test(s)||/\b[12]t\b/.test(s))return true;return false;};
+            // Find match GPS entries (opponent match or match title, excluding complements)
+            const oppEntries=lastGame.adversario?matchGps.filter(e=>matchesOpp(e.sessionTitle,lastGame.adversario)):[];
+            const matchTitleEntries=matchGps.filter(e=>isMatchT(e.sessionTitle));
+            const nonCompEntries=matchGps.filter(e=>!isComplement(e.sessionTitle));
+            const pool=oppEntries.length?oppEntries:(matchTitleEntries.length?matchTitleEntries:nonCompEntries);
+            const bestGps=pool.length?pool.reduce((b,e)=>(e.gps?.dist_total||0)>(b.gps?.dist_total||0)?e:b,pool[0]):null;
+            // Verify player actually played: check splits and minimum distance
+            const allSplits=bestGps?.allSplits||[];
+            const gameTimeCt=allSplits.filter(sp2=>isGameSplit(sp2)).length;
+            const hasPeriods=allSplits.some(sp2=>/\d+[.\-]\d+\s*min/.test((sp2||"").toLowerCase())||/\d+\s*mais/.test((sp2||"").toLowerCase())||/\b[12]t\b/.test((sp2||"").toLowerCase()));
+            const hasSession=allSplits.some(sp2=>{const s=(sp2||"").toLowerCase().trim();return s==="session"||s==="sessão";});
+            const dist=bestGps?.gps?.dist_total||0;
+            const stIsMatch=isMatchT(bestGps?.sessionTitle);
+            const playerPlayed=(hasPeriods&&gameTimeCt>=2)||(hasSession&&stIsMatch&&dist>=4000)||(hasPeriods&&gameTimeCt>=1&&dist>=2000);
+            const gps=playerPlayed?bestGps?.gps||null:null;
             const quest=matchQuest.length?matchQuest[matchQuest.length-1]:null;
             const diario=matchDiario.length?matchDiario[matchDiario.length-1]:null;
             const gameDateFmt=gameDate instanceof Date&&!isNaN(gameDate)?gameDate.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"}):(lastGame.data||"—");
@@ -3253,7 +3270,7 @@ export default function Dashboard(){
                     </div>)}
                 </div>
               </div>:
-              <div style={{textAlign:"center",padding:"12px 0",color:t.textFaint,fontSize:11}}>Sem dados individuais de GPS/wellness para esta partida</div>}
+              <div style={{textAlign:"center",padding:"12px 0",color:t.textFaint,fontSize:11}}>{bestGps&&!playerPlayed?"Atleta não participou desta partida":"Sem dados individuais de GPS/wellness para esta partida"}</div>}
             </div>;
           })()}
 
