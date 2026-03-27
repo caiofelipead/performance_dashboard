@@ -3478,17 +3478,19 @@ export default function Dashboard(){
             if(sessions.length<3)return null;
             const matchSess=sessions.filter(s=>s.isMatch);
             const trainSess=sessions.filter(s=>!s.isMatch);
-            // Averages and tops
+            // Averages and robust tops (P95 percentile + 38 km/h physiological cap to filter GPS spikes)
+            const GPS_SPEED_CAP=38; // km/h — cap fisiológico para futebol (filtra spikes de GPS)
             const avg=arr=>{if(!arr.length)return 0;return Math.round(arr.reduce((a,b)=>a+b,0)/arr.length*10)/10;};
-            const max=arr=>arr.length?Math.max(...arr):0;
+            const p95=arr=>{if(!arr.length)return 0;const s=[...arr].sort((a,b)=>a-b);const i=Math.floor(s.length*0.95);return s[Math.min(i,s.length-1)];};
+            const robustMax=arr=>{const capped=arr.filter(v=>v<=GPS_SPEED_CAP);return capped.length?Math.round(p95(capped)*10)/10:(arr.length?Math.round(p95(arr)*10)/10:0);};
             const matchTopSpeeds=matchSess.map(s=>s.topSpeed).filter(v=>v>0);
             const trainTopSpeeds=trainSess.map(s=>s.topSpeed).filter(v=>v>0);
             const matchHSR=matchSess.map(s=>s.hsr).filter(v=>v>0);
             const trainHSR=trainSess.map(s=>s.hsr).filter(v=>v>0);
             const matchSPR=matchSess.map(s=>s.sprDist).filter(v=>v>0);
             const trainSPR=trainSess.map(s=>s.sprDist).filter(v=>v>0);
-            const statsMatch={topSpeedAvg:avg(matchTopSpeeds),topSpeedMax:max(matchTopSpeeds),hsrAvg:avg(matchHSR),sprAvg:avg(matchSPR),n:matchSess.length};
-            const statsTrain={topSpeedAvg:avg(trainTopSpeeds),topSpeedMax:max(trainTopSpeeds),hsrAvg:avg(trainHSR),sprAvg:avg(trainSPR),n:trainSess.length};
+            const statsMatch={topSpeedAvg:avg(matchTopSpeeds.filter(v=>v<=GPS_SPEED_CAP)),topSpeedMax:robustMax(matchTopSpeeds),hsrAvg:avg(matchHSR),sprAvg:avg(matchSPR),n:matchSess.length};
+            const statsTrain={topSpeedAvg:avg(trainTopSpeeds.filter(v=>v<=GPS_SPEED_CAP)),topSpeedMax:robustMax(trainTopSpeeds),hsrAvg:avg(trainHSR),sprAvg:avg(trainSPR),n:trainSess.length};
             // Speed gap ratio (training avg / match avg)
             const speedGapPct=statsMatch.topSpeedAvg>0&&statsTrain.topSpeedAvg>0?Math.round(statsTrain.topSpeedAvg/statsMatch.topSpeedAvg*100):null;
             // Vmax ratio: training max / match max
@@ -3501,7 +3503,9 @@ export default function Dashboard(){
             const alertBg=alertLevel==="high"?"#FEF2F2":alertLevel==="moderate"?"#FFF7ED":"#F0FDF4";
             const alertBc=alertLevel==="high"?"#FECACA":alertLevel==="moderate"?"#FED7AA":"#BBF7D0";
             // Time series data for top speed chart (last 10 sessions of each type, interleaved by date)
-            const tsData=sessions.slice(-20).map(s=>({d:s.fmtDate,matchSpd:s.isMatch?s.topSpeed:null,trainSpd:!s.isMatch?s.topSpeed:null,isMatch:s.isMatch}));
+            // Cap speed values at GPS_SPEED_CAP for chart display (spikes distort Y axis)
+            const capSpd=v=>v>0?(v<=GPS_SPEED_CAP?v:null):null;
+            const tsData=sessions.slice(-20).map(s=>({d:s.fmtDate,matchSpd:s.isMatch?capSpd(s.topSpeed):null,trainSpd:!s.isMatch?capSpd(s.topSpeed):null,isMatch:s.isMatch}));
             // Acute exposure: last 15 days
             const now=new Date();
             const d15ago=new Date(now.getTime()-15*86400000);
@@ -3513,16 +3517,17 @@ export default function Dashboard(){
               if(!acuteByDate[k])acuteByDate[k]={d:k,spr:0,hsr:0,topSpeed:0};
               acuteByDate[k].spr+=s.sprDist;
               acuteByDate[k].hsr+=s.hsr;
-              if(s.topSpeed>acuteByDate[k].topSpeed)acuteByDate[k].topSpeed=s.topSpeed;
+              if(s.topSpeed<=GPS_SPEED_CAP&&s.topSpeed>acuteByDate[k].topSpeed)acuteByDate[k].topSpeed=s.topSpeed;
             }
             const acuteData=Object.values(acuteByDate);
             const acute15TotalSPR=acute15.reduce((a,s)=>a+s.sprDist,0);
-            const acute15MaxSpeed=acute15.length?max(acute15.map(s=>s.topSpeed)):0;
-            const acute15AvgSpeed=acute15.length?avg(acute15.map(s=>s.topSpeed).filter(v=>v>0)):0;
-            // 95% Vmax threshold (individualized)
+            const acute15Speeds=acute15.map(s=>s.topSpeed).filter(v=>v>0&&v<=GPS_SPEED_CAP);
+            const acute15MaxSpeed=acute15Speeds.length?Math.round(Math.max(...acute15Speeds)*10)/10:0;
+            const acute15AvgSpeed=acute15Speeds.length?avg(acute15Speeds):0;
+            // 95% Vmax threshold (individualized, robust — ignores GPS spikes)
             const vmax=statsMatch.topSpeedMax||statsTrain.topSpeedMax||0;
             const vmax95=Math.round(vmax*0.95*10)/10;
-            const trainHits95=trainSess.filter(s=>s.topSpeed>=vmax95).length;
+            const trainHits95=trainSess.filter(s=>s.topSpeed>=vmax95&&s.topSpeed<=GPS_SPEED_CAP).length;
             const trainPct95=trainSess.length>0?Math.round(trainHits95/trainSess.length*100):0;
             return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${alertBc}`,padding:18,marginBottom:16}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
