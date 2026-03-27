@@ -3457,6 +3457,173 @@ export default function Dashboard(){
             </div>;
           })()}
 
+          {/* ═══ MÓDULO: Monitoramento de Exposição a Sprint — Prevenção de Lesão ═══ */}
+          {(()=>{
+            const gpsAll=sheetData?.gps?.[sp.n]||[];
+            if(gpsAll.length<3)return null;
+            const calendarioGames=sheetData?.calendario||[];
+            const parseDt=s=>{if(!s)return null;const pts=String(s).trim().split(/[\/\-\.]/);if(pts.length>=3){const[a,b,c]=pts.map(Number);if(a>31)return new Date(a,b-1,c);if(c>31)return new Date(c,b-1,a);return new Date(c<100?c+2000:c,b-1,a);}return new Date(s)||null;};
+            const fmtDt=d=>{if(!d||isNaN(d))return"";return d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"});};
+            const isMatchST=st=>{const s=(st||"").toLowerCase().trim();return s.startsWith("j.")||s.startsWith("j ")||s.includes("jogo")||s.includes("match")||s.includes("partida");};
+            // Build match dates set from calendario
+            const matchDateSet=new Set();
+            for(const g of calendarioGames){const d=parseDt(g.data);if(d&&!isNaN(d))matchDateSet.add(d.toISOString().slice(0,10));}
+            // Classify each GPS session
+            const sessions=gpsAll.map(e=>{
+              const dt=parseDt(e.date);
+              const dtKey=dt&&!isNaN(dt)?dt.toISOString().slice(0,10):"";
+              const isMatch=isMatchST(e.sessionTitle)||matchDateSet.has(dtKey);
+              return{date:dt,dateStr:dtKey,fmtDate:fmtDt(dt),sessionTitle:e.sessionTitle||"",isMatch,topSpeed:e.gps?.pico_vel||0,hsr:e.gps?.hsr||0,sprDist:e.gps?.hsr_25||0,sprints:e.gps?.sprints_25||0,dist:e.gps?.dist_total||0};
+            }).filter(s=>s.date&&!isNaN(s.date)).sort((a,b)=>a.date-b.date);
+            if(sessions.length<3)return null;
+            const matchSess=sessions.filter(s=>s.isMatch);
+            const trainSess=sessions.filter(s=>!s.isMatch);
+            // Averages and tops
+            const avg=arr=>{if(!arr.length)return 0;return Math.round(arr.reduce((a,b)=>a+b,0)/arr.length*10)/10;};
+            const max=arr=>arr.length?Math.max(...arr):0;
+            const matchTopSpeeds=matchSess.map(s=>s.topSpeed).filter(v=>v>0);
+            const trainTopSpeeds=trainSess.map(s=>s.topSpeed).filter(v=>v>0);
+            const matchHSR=matchSess.map(s=>s.hsr).filter(v=>v>0);
+            const trainHSR=trainSess.map(s=>s.hsr).filter(v=>v>0);
+            const matchSPR=matchSess.map(s=>s.sprDist).filter(v=>v>0);
+            const trainSPR=trainSess.map(s=>s.sprDist).filter(v=>v>0);
+            const statsMatch={topSpeedAvg:avg(matchTopSpeeds),topSpeedMax:max(matchTopSpeeds),hsrAvg:avg(matchHSR),sprAvg:avg(matchSPR),n:matchSess.length};
+            const statsTrain={topSpeedAvg:avg(trainTopSpeeds),topSpeedMax:max(trainTopSpeeds),hsrAvg:avg(trainHSR),sprAvg:avg(trainSPR),n:trainSess.length};
+            // Speed gap ratio (training avg / match avg)
+            const speedGapPct=statsMatch.topSpeedAvg>0&&statsTrain.topSpeedAvg>0?Math.round(statsTrain.topSpeedAvg/statsMatch.topSpeedAvg*100):null;
+            // Vmax ratio: training max / match max
+            const vmaxRatio=statsMatch.topSpeedMax>0&&statsTrain.topSpeedMax>0?Math.round(statsTrain.topSpeedMax/statsMatch.topSpeedMax*100):null;
+            // HSR gap
+            const hsrGapPct=statsMatch.hsrAvg>0&&statsTrain.hsrAvg>0?Math.round(statsTrain.hsrAvg/statsMatch.hsrAvg*100):null;
+            // Alert level
+            const alertLevel=speedGapPct!==null&&speedGapPct<75?"high":speedGapPct!==null&&speedGapPct<85?"moderate":"ok";
+            const alertColor=alertLevel==="high"?"#DC2626":alertLevel==="moderate"?"#EA580C":"#16A34A";
+            const alertBg=alertLevel==="high"?"#FEF2F2":alertLevel==="moderate"?"#FFF7ED":"#F0FDF4";
+            const alertBc=alertLevel==="high"?"#FECACA":alertLevel==="moderate"?"#FED7AA":"#BBF7D0";
+            // Time series data for top speed chart (last 10 sessions of each type, interleaved by date)
+            const tsData=sessions.slice(-20).map(s=>({d:s.fmtDate,matchSpd:s.isMatch?s.topSpeed:null,trainSpd:!s.isMatch?s.topSpeed:null,isMatch:s.isMatch}));
+            // Acute exposure: last 15 days
+            const now=new Date();
+            const d15ago=new Date(now.getTime()-15*86400000);
+            const acute15=sessions.filter(s=>s.date>=d15ago&&!s.isMatch);
+            // Group by date for bar chart
+            const acuteByDate={};
+            for(const s of acute15){
+              const k=s.fmtDate;
+              if(!acuteByDate[k])acuteByDate[k]={d:k,spr:0,hsr:0,topSpeed:0};
+              acuteByDate[k].spr+=s.sprDist;
+              acuteByDate[k].hsr+=s.hsr;
+              if(s.topSpeed>acuteByDate[k].topSpeed)acuteByDate[k].topSpeed=s.topSpeed;
+            }
+            const acuteData=Object.values(acuteByDate);
+            const acute15TotalSPR=acute15.reduce((a,s)=>a+s.sprDist,0);
+            const acute15MaxSpeed=acute15.length?max(acute15.map(s=>s.topSpeed)):0;
+            const acute15AvgSpeed=acute15.length?avg(acute15.map(s=>s.topSpeed).filter(v=>v>0)):0;
+            // 95% Vmax threshold (individualized)
+            const vmax=statsMatch.topSpeedMax||statsTrain.topSpeedMax||0;
+            const vmax95=Math.round(vmax*0.95*10)/10;
+            const trainHits95=trainSess.filter(s=>s.topSpeed>=vmax95).length;
+            const trainPct95=trainSess.length>0?Math.round(trainHits95/trainSess.length*100):0;
+            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${alertBc}`,padding:18,marginBottom:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,display:"flex",alignItems:"center",gap:6}}>
+                    <Zap size={14} color={alertColor}/>
+                    Monitoramento de Exposição a Sprint
+                  </div>
+                  <div style={{fontSize:10,color:t.textFaint}}>Análise treino vs. jogo — prevenção de lesão muscular (HSR &amp; Sprint)</div>
+                </div>
+                <span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,background:alertBg,color:alertColor,border:`1px solid ${alertBc}`}}>
+                  {alertLevel==="high"?"RISCO ALTO — GAP CRÍTICO":alertLevel==="moderate"?"ATENÇÃO — GAP MODERADO":"ADEQUADO"}
+                </span>
+              </div>
+
+              {/* Alert Banner */}
+              {alertLevel!=="ok"&&<div style={{background:alertBg,border:`1px solid ${alertBc}`,borderRadius:8,padding:"10px 14px",marginBottom:14,fontSize:10,color:alertColor,fontWeight:600,lineHeight:1.5}}>
+                {alertLevel==="high"
+                  ?`Velocidade média de treino (${statsTrain.topSpeedAvg} km/h) está a ${speedGapPct}% da média de jogo (${statsMatch.topSpeedAvg} km/h). Gap crítico — jogador atinge demandas de sprint em jogo sem preparação neuromuscular adequada no treino. Risco elevado de lesão muscular (isquiotibiais).`
+                  :`Velocidade média de treino (${statsTrain.topSpeedAvg} km/h) está a ${speedGapPct}% da média de jogo (${statsMatch.topSpeedAvg} km/h). Exposição a alta velocidade no treino abaixo do ideal — monitorar e considerar inclusão de trabalho de sprint.`}
+              </div>}
+
+              {/* Summary Stats Grid */}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:8,marginBottom:14}}>
+                {[
+                  {l:"Vel. Máx Jogo",v:statsMatch.topSpeedMax>0?statsMatch.topSpeedMax+" km/h":"—",sub:`avg ${statsMatch.topSpeedAvg}`,c:"#DC2626"},
+                  {l:"Vel. Máx Treino",v:statsTrain.topSpeedMax>0?statsTrain.topSpeedMax+" km/h":"—",sub:`avg ${statsTrain.topSpeedAvg}`,c:"#2563eb"},
+                  {l:"Gap Velocidade",v:speedGapPct!==null?speedGapPct+"%":"—",sub:"treino/jogo",c:alertColor},
+                  {l:"HSR avg Jogo",v:statsMatch.hsrAvg>0?statsMatch.hsrAvg+"m":"—",sub:`${statsMatch.n} jogos`,c:"#DC2626"},
+                  {l:"HSR avg Treino",v:statsTrain.hsrAvg>0?statsTrain.hsrAvg+"m":"—",sub:`${statsTrain.n} treinos`,c:"#2563eb"},
+                  {l:"Treinos ≥95% Vmax",v:trainPct95+"%",sub:`${trainHits95}/${trainSess.length} sessões`,c:trainPct95<15?"#DC2626":trainPct95<30?"#EA580C":"#16A34A"}
+                ].map((m,i)=>
+                  <div key={i} style={{textAlign:"center",padding:"8px 4px",background:t.bgMuted,borderRadius:8}}>
+                    <div style={{fontSize:8,color:t.textFaint,fontWeight:600,textTransform:"uppercase",marginBottom:2}}>{m.l}</div>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:800,color:m.c}}>{m.v}</div>
+                    <div style={{fontSize:8,color:t.textFaint,marginTop:1}}>{m.sub}</div>
+                  </div>)}
+              </div>
+
+              {/* Charts: Top Speed Time Series + Acute Exposure */}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+                {/* Top Speed — Match vs Training */}
+                <div>
+                  <div style={{fontSize:10,fontWeight:700,color:pri,marginBottom:6}}>Velocidade Máxima — Jogo vs Treino (km/h)</div>
+                  <ResponsiveContainer width="100%" height={180}>
+                    <LineChart data={tsData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
+                      <XAxis dataKey="d" tick={{fontSize:7,fill:t.textFaint}} interval="preserveStartEnd"/>
+                      <YAxis tick={{fontSize:8,fill:t.textFaint}} domain={["dataMin-2","dataMax+2"]}/>
+                      <Tooltip content={<TT theme={t}/>}/>
+                      <ReferenceLine y={vmax95} stroke="#EA580C" strokeDasharray="4 4" label={{value:"95% Vmax",fontSize:8,fill:"#EA580C",position:"right"}}/>
+                      <ReferenceLine y={statsMatch.topSpeedAvg} stroke="#DC262640" strokeDasharray="2 2"/>
+                      <ReferenceLine y={statsTrain.topSpeedAvg} stroke="#2563eb40" strokeDasharray="2 2"/>
+                      <Line type="monotone" dataKey="matchSpd" name="Jogo" stroke="#DC2626" strokeWidth={2.5} dot={{r:4,fill:"#DC2626",stroke:t.bgCard,strokeWidth:2}} connectNulls={false}/>
+                      <Line type="monotone" dataKey="trainSpd" name="Treino" stroke="#2563eb" strokeWidth={1.5} dot={{r:2.5,fill:"#2563eb",stroke:t.bgCard,strokeWidth:1}} connectNulls={false}/>
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Acute Sprint Exposure — Last 15 Days */}
+                <div>
+                  <div style={{fontSize:10,fontWeight:700,color:pri,marginBottom:6}}>Exposição Aguda — Últimos 15 Dias (treino)</div>
+                  {acuteData.length>0?<>
+                    <ResponsiveContainer width="100%" height={140}>
+                      <BarChart data={acuteData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
+                        <XAxis dataKey="d" tick={{fontSize:7,fill:t.textFaint}}/>
+                        <YAxis tick={{fontSize:8,fill:t.textFaint}}/>
+                        <Tooltip content={<TT theme={t}/>}/>
+                        <Bar dataKey="hsr" name="HSR (m)" fill="#EA580C" radius={[3,3,0,0]} barSize={14}/>
+                        <Bar dataKey="spr" name="Sprint (m)" fill="#DC2626" radius={[3,3,0,0]} barSize={14}/>
+                      </BarChart>
+                    </ResponsiveContainer>
+                    <div style={{display:"flex",justifyContent:"space-around",marginTop:6}}>
+                      {[
+                        {l:"SPR Total 15d",v:acute15TotalSPR+"m",c:acute15TotalSPR<50?"#DC2626":"#16A34A"},
+                        {l:"Vel. Máx 15d",v:acute15MaxSpeed+" km/h",c:acute15MaxSpeed<vmax95?"#EA580C":"#16A34A"},
+                        {l:"Vel. Média 15d",v:acute15AvgSpeed+" km/h",c:acute15AvgSpeed<statsTrain.topSpeedAvg*0.85?"#DC2626":"#16A34A"}
+                      ].map((m,i)=>
+                        <div key={i} style={{textAlign:"center"}}>
+                          <div style={{fontSize:8,color:t.textFaint,fontWeight:600}}>{m.l}</div>
+                          <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:m.c}}>{m.v}</div>
+                        </div>)}
+                    </div>
+                  </>:<div style={{textAlign:"center",padding:"30px 0",color:t.textFaint,fontSize:10}}>Sem sessões de treino nos últimos 15 dias</div>}
+                </div>
+              </div>
+
+              {/* Threshold Reference */}
+              <div style={{marginTop:12,padding:"8px 12px",background:t.bgMuted,borderRadius:8,display:"flex",gap:16,alignItems:"center"}}>
+                <div style={{fontSize:9,color:t.textFaint,flex:1}}>
+                  <strong style={{color:pri}}>Vmax Individual:</strong> {vmax>0?vmax+" km/h":"—"} · <strong style={{color:pri}}>95% Vmax:</strong> {vmax95>0?vmax95+" km/h":"—"} · Treinos com ≥90% Vmax semanal recomendado para adaptação neuromuscular
+                </div>
+                <div style={{display:"flex",gap:8}}>
+                  <span style={{fontSize:8,fontWeight:600,color:"#DC2626"}}>● Jogo</span>
+                  <span style={{fontSize:8,fontWeight:600,color:"#2563eb"}}>● Treino</span>
+                </div>
+              </div>
+            </div>;
+          })()}
+
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
             <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
               <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Radar Bem-estar</div>
