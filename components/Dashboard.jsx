@@ -3302,6 +3302,110 @@ export default function Dashboard(){
             </div>;
           })()}
 
+          {/* ═══ MÉDIA MÓVEL DOS 5 MELHORES JOGOS — Peak Performance Baseline ═══ */}
+          {(()=>{
+            const calendario=sheetData?.calendario||[];
+            const gpsAll=sheetData?.gps?.[sp.n]||[];
+            const diarioAll=sheetData?.diario?.[sp.n]||[];
+            if(!gpsAll.length||!calendario.length)return null;
+            const parseDt2=s=>{if(!s)return null;const pts=String(s).trim().split(/[\/\-\.]/);if(pts.length>=3){const[a,b,c]=pts.map(Number);if(a>31)return new Date(a,b-1,c);if(c>31)return new Date(c,b-1,a);return new Date(c<100?c+2000:c,b-1,a);}return new Date(s)||null;};
+            const fmtDt2=d=>{if(!d||isNaN(d))return"";return d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"});};
+            const isMatchST2=st=>{const s=(st||"").toLowerCase().trim();return s.startsWith("j.")||s.startsWith("j ")||s.includes("jogo")||s.includes("match")||s.includes("partida");};
+            const matchDateSet2=new Set();
+            for(const g of calendario){const d=parseDt2(g.data);if(d&&!isNaN(d))matchDateSet2.add(d.toISOString().slice(0,10));}
+            // Identify game sessions
+            const gameSessions=gpsAll.map(e=>{
+              const dt=parseDt2(e.date);
+              const dtKey=dt&&!isNaN(dt)?dt.toISOString().slice(0,10):"";
+              const isMatch=isMatchST2(e.sessionTitle)||matchDateSet2.has(dtKey);
+              if(!isMatch)return null;
+              const g=e.gps||{};
+              return{date:dt,dateStr:dtKey,fmtDate:fmtDt2(dt),title:e.sessionTitle||"",dist:g.dist_total||0,hsr:g.hsr||0,sprints:g.sprints||0,pico_vel:g.pico_vel||0,player_load:g.player_load||0,acel:g.acel||0,decel:g.decel||0};
+            }).filter(Boolean).filter(s=>s.dist>2000); // Min 2km = actually played
+            if(gameSessions.length<3)return null;
+            // Sort by composite score (dist + hsr*3 + sprints*50) to find best games
+            const scored=gameSessions.map(s=>({...s,score:s.dist+s.hsr*3+s.sprints*50+s.player_load})).sort((a,b)=>b.score-a.score);
+            const top5=scored.slice(0,Math.min(5,scored.length));
+            const avg5=k=>top5.length?Math.round(top5.reduce((a,s)=>a+s[k],0)/top5.length*10)/10:0;
+            const ma={dist:avg5("dist"),hsr:avg5("hsr"),sprints:avg5("sprints"),pico_vel:avg5("pico_vel"),player_load:avg5("player_load"),acel:avg5("acel"),decel:avg5("decel")};
+            // All games average for comparison
+            const avgAll=k=>gameSessions.length?Math.round(gameSessions.reduce((a,s)=>a+s[k],0)/gameSessions.length*10)/10:0;
+            const allAvg={dist:avgAll("dist"),hsr:avgAll("hsr"),sprints:avgAll("sprints"),pico_vel:avgAll("pico_vel"),player_load:avgAll("player_load")};
+            // Last game data
+            const lastGame=gameSessions.sort((a,b)=>b.date-a.date)[0];
+            // Comparison bars data
+            const metrics=[
+              {l:"Distância (m)",last:lastGame?.dist||0,top5:ma.dist,all:allAvg.dist,unit:"m"},
+              {l:"HSR (m)",last:lastGame?.hsr||0,top5:ma.hsr,all:allAvg.hsr,unit:"m"},
+              {l:"Sprints",last:lastGame?.sprints||0,top5:ma.sprints,all:allAvg.sprints,unit:""},
+              {l:"Pico Vel. (km/h)",last:lastGame?.pico_vel||0,top5:ma.pico_vel,all:allAvg.pico_vel,unit:"km/h"},
+              {l:"Player Load",last:lastGame?.player_load||0,top5:ma.player_load,all:allAvg.player_load,unit:""},
+            ];
+            const chartData=metrics.map(m=>({name:m.l.split("(")[0].trim(),last:Math.round(m.last),top5:Math.round(m.top5),avg:Math.round(m.all)}));
+            // % of top5 for each metric in last game
+            const pctOfTop5=m=>m.top5>0?Math.round((m.last/m.top5)*100):0;
+            const overallPct=metrics.length?Math.round(metrics.reduce((a,m)=>a+pctOfTop5(m),0)/metrics.length):0;
+            const pctColor=v=>v>=100?"#16A34A":v>=85?"#2563eb":v>=70?"#CA8A04":"#DC2626";
+            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,display:"flex",alignItems:"center",gap:6}}>
+                    <Trophy size={14} color="#CA8A04"/>
+                    Média Móvel — Top {top5.length} Melhores Jogos
+                  </div>
+                  <div style={{fontSize:10,color:t.textFaint}}>Baseline de pico individual · {gameSessions.length} jogos com GPS · Último: {lastGame?.fmtDate||"—"}</div>
+                </div>
+                <div style={{textAlign:"center",padding:"4px 14px",background:pctColor(overallPct)+"15",borderRadius:8,border:`1px solid ${pctColor(overallPct)}33`}}>
+                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:18,fontWeight:900,color:pctColor(overallPct)}}>{overallPct}%</div>
+                  <div style={{fontSize:8,color:t.textFaint,fontWeight:600}}>vs Top {top5.length}</div>
+                </div>
+              </div>
+              {/* Comparison Bars */}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+                <div>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={chartData} layout="vertical" margin={{left:10,right:10}}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
+                      <XAxis type="number" tick={{fontSize:8,fill:t.textFaint}}/>
+                      <YAxis type="category" dataKey="name" tick={{fontSize:9,fill:t.textMuted}} width={70}/>
+                      <Tooltip content={<TT theme={t}/>}/>
+                      <Bar dataKey="top5" name={`Top ${top5.length} Jogos`} fill="#CA8A04" radius={[0,3,3,0]} barSize={10}/>
+                      <Bar dataKey="last" name="Último Jogo" fill="#2563eb" radius={[0,3,3,0]} barSize={10}/>
+                      <Bar dataKey="avg" name="Média Geral" fill={t.textFaint} radius={[0,3,3,0]} barSize={10} fillOpacity={0.4}/>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div style={{display:"flex",flexDirection:"column",justifyContent:"center",gap:6}}>
+                  <div style={{display:"flex",alignItems:"center",gap:4,padding:"4px 10px",marginBottom:2}}>
+                    <div style={{flex:1,fontSize:9,color:t.textFaint,fontWeight:700}}>Métrica</div>
+                    <div style={{fontSize:9,color:t.textFaint,fontWeight:700,minWidth:44,textAlign:"right"}}>Último</div>
+                    <div style={{fontSize:9,color:"#CA8A04",fontWeight:700,minWidth:44,textAlign:"right"}}>Top {top5.length}</div>
+                    <div style={{fontSize:9,color:t.textFaint,fontWeight:700,minWidth:36,textAlign:"right"}}>%</div>
+                  </div>
+                  {metrics.map((m,i)=>{
+                    const pct=pctOfTop5(m);
+                    return <div key={i} style={{display:"flex",alignItems:"center",gap:4,padding:"5px 10px",background:i%2===0?t.bgMuted:"transparent",borderRadius:6}}>
+                      <div style={{flex:1,fontSize:10,fontWeight:600,color:t.text}}>{m.l}</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:"#2563eb",minWidth:44,textAlign:"right"}}>{Math.round(m.last)}{m.unit&&<span style={{fontSize:7}}>{m.unit}</span>}</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:"#CA8A04",minWidth:44,textAlign:"right"}}>{Math.round(m.top5)}{m.unit&&<span style={{fontSize:7}}>{m.unit}</span>}</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:800,color:pctColor(pct),minWidth:36,textAlign:"right"}}>{pct}%</div>
+                    </div>;
+                  })}
+                  <div style={{marginTop:6,padding:"6px 10px",background:t.bgMuted,borderRadius:6,fontSize:9,color:t.textFaint,lineHeight:1.4}}>
+                    <strong style={{color:pri}}>Top {top5.length}:</strong> média dos {top5.length} jogos com maior output composto (dist + HSR×3 + sprints×50 + PL). Referência: demanda de pico individual (Malone et al., 2015).
+                  </div>
+                </div>
+              </div>
+              {/* Top 5 games list */}
+              <div style={{marginTop:12,borderTop:`1px solid ${t.borderLight}`,paddingTop:10}}>
+                <div style={{fontSize:9,fontWeight:700,color:t.textFaint,textTransform:"uppercase",marginBottom:6}}>Jogos que compõem o Top {top5.length}</div>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                  {top5.map((g,i)=><span key={i} style={{padding:"3px 8px",borderRadius:5,fontSize:9,fontWeight:600,background:"#CA8A0410",color:"#CA8A04",border:"1px solid #CA8A0425"}}>{g.fmtDate} — {Math.round(g.dist)}m · {Math.round(g.hsr)}m HSR · {g.pico_vel.toFixed(1)}km/h</span>)}
+                </div>
+              </div>
+            </div>;
+          })()}
+
           {/* ═══ RADAR GPS — Valências do Último Treino vs Média da Posição ═══ */}
           {(()=>{
             const liveAth=LIVE_SESSION.atletas[sp.n];
@@ -3669,6 +3773,189 @@ export default function Dashboard(){
               </ResponsiveContainer>
             </div>}
           </div>
+
+          {/* ═══ COMPARATIVO SEMANAL DE TREINO — Week-over-Week Load Monitoring ═══ */}
+          {(()=>{
+            const diarioAll=sheetData?.diario?.[sp.n]||[];
+            const gpsAll=sheetData?.gps?.[sp.n]||[];
+            const questAll=sheetData?.questionarios?.[sp.n]||[];
+            if(diarioAll.length<5&&gpsAll.length<5)return null;
+            const parseDtW=s=>{if(!s)return null;const pts=String(s).trim().split(/[\/\-\.]/);if(pts.length>=3){const[a,b,c]=pts.map(Number);if(a>31)return new Date(a,b-1,c);if(c>31)return new Date(c,b-1,a);return new Date(c<100?c+2000:c,b-1,a);}return new Date(s)||null;};
+            // Get ISO week number
+            const getWeek=d=>{const t2=new Date(d.getFullYear(),d.getMonth(),d.getDate());t2.setDate(t2.getDate()+3-(t2.getDay()+6)%7);const w1=new Date(t2.getFullYear(),0,4);return 1+Math.round(((t2-w1)/86400000-3+(w1.getDay()+6)%7)/7);};
+            const getWeekStart=d=>{const t2=new Date(d);const day=t2.getDay();const diff=t2.getDate()-day+(day===0?-6:1);t2.setDate(diff);t2.setHours(0,0,0,0);return t2;};
+            // Group diario entries by week
+            const weekMap={};
+            for(const e of diarioAll){
+              const dt=parseDtW(e.date);
+              if(!dt||isNaN(dt))continue;
+              const wStart=getWeekStart(dt);
+              const wKey=wStart.toISOString().slice(0,10);
+              if(!weekMap[wKey])weekMap[wKey]={start:wStart,week:getWeek(dt),sessions:[],srpe_vals:[],dist_vals:[],hsr_vals:[],sono_vals:[],dor_vals:[],rec_vals:[]};
+              const pse=e.pse||0;
+              const dur=e.duracao||0;
+              const srpe=e.spe||(pse*dur)||0;
+              weekMap[wKey].sessions.push({date:dt,pse,dur,srpe});
+              if(srpe>0)weekMap[wKey].srpe_vals.push(srpe);
+            }
+            // Add GPS data per week
+            for(const e of gpsAll){
+              const dt=parseDtW(e.date);
+              if(!dt||isNaN(dt))continue;
+              const wStart=getWeekStart(dt);
+              const wKey=wStart.toISOString().slice(0,10);
+              if(!weekMap[wKey])weekMap[wKey]={start:wStart,week:getWeek(dt),sessions:[],srpe_vals:[],dist_vals:[],hsr_vals:[],sono_vals:[],dor_vals:[],rec_vals:[]};
+              if(e.gps?.dist_total>0)weekMap[wKey].dist_vals.push(e.gps.dist_total);
+              if(e.gps?.hsr>0)weekMap[wKey].hsr_vals.push(e.gps.hsr);
+            }
+            // Add wellness per week
+            for(const e of questAll){
+              const dt=parseDtW(e.date);
+              if(!dt||isNaN(dt))continue;
+              const wStart=getWeekStart(dt);
+              const wKey=wStart.toISOString().slice(0,10);
+              if(!weekMap[wKey])weekMap[wKey]={start:wStart,week:getWeek(dt),sessions:[],srpe_vals:[],dist_vals:[],hsr_vals:[],sono_vals:[],dor_vals:[],rec_vals:[]};
+              if(e.sono_qualidade>0)weekMap[wKey].sono_vals.push(e.sono_qualidade);
+              if(e.dor!=null)weekMap[wKey].dor_vals.push(e.dor);
+              if(e.recuperacao_geral>0)weekMap[wKey].rec_vals.push(e.recuperacao_geral);
+            }
+            const weeks=Object.values(weekMap).filter(w=>w.srpe_vals.length>=2||w.dist_vals.length>=2).sort((a,b)=>a.start-b.start);
+            if(weeks.length<2)return null;
+            const last4=weeks.slice(-4);
+            const avgArr=arr=>arr.length?Math.round(arr.reduce((a,b)=>a+b,0)/arr.length*10)/10:0;
+            const sumArr=arr=>arr.reduce((a,b)=>a+b,0);
+            // Calculate weekly metrics
+            const weekData=last4.map((w,i)=>{
+              const totalSrpe=sumArr(w.srpe_vals);
+              const avgSrpe=avgArr(w.srpe_vals);
+              const stdSrpe=w.srpe_vals.length>1?Math.sqrt(w.srpe_vals.reduce((a,v)=>a+(v-avgSrpe)**2,0)/w.srpe_vals.length):0;
+              const monotonia=stdSrpe>0?Math.round(avgSrpe/stdSrpe*100)/100:0;
+              const strain=Math.round(totalSrpe*monotonia);
+              const totalDist=Math.round(sumArr(w.dist_vals));
+              const totalHsr=Math.round(sumArr(w.hsr_vals));
+              const avgSono=avgArr(w.sono_vals);
+              const avgDor=avgArr(w.dor_vals);
+              const avgRec=avgArr(w.rec_vals);
+              const wLabel=w.start.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
+              return{label:`S${w.week} (${wLabel})`,totalSrpe:Math.round(totalSrpe),avgSrpe:Math.round(avgSrpe),monotonia,strain,totalDist,totalHsr,nSess:w.srpe_vals.length,avgSono,avgDor,avgRec};
+            });
+            // Calculate deltas between consecutive weeks
+            const currentW=weekData[weekData.length-1];
+            const prevW=weekData.length>=2?weekData[weekData.length-2]:null;
+            const deltaSrpe=prevW&&prevW.totalSrpe>0?Math.round((currentW.totalSrpe-prevW.totalSrpe)/prevW.totalSrpe*100):null;
+            const deltaDist=prevW&&prevW.totalDist>0?Math.round((currentW.totalDist-prevW.totalDist)/prevW.totalDist*100):null;
+            // ACWR from weekly data (current week / avg of last 4 weeks)
+            const chronicSrpe=weekData.length>=2?Math.round(weekData.slice(0,-1).reduce((a,w2)=>a+w2.totalSrpe,0)/weekData.slice(0,-1).length):0;
+            const acwrWeekly=chronicSrpe>0?(currentW.totalSrpe/chronicSrpe).toFixed(2):"—";
+            const acwrV=parseFloat(acwrWeekly)||0;
+            const acwrC=acwrV>1.5?"#DC2626":acwrV>1.3?"#EA580C":acwrV>=0.8?"#16A34A":acwrV>0?"#CA8A04":"#64748b";
+            const deltaC=v=>v===null?"#64748b":v>20?"#DC2626":v>10?"#EA580C":v>=-10?"#16A34A":"#CA8A04";
+            const monoC=v=>v>2?"#DC2626":v>1.5?"#EA580C":"#16A34A";
+            // Chart data for bars
+            const chartW=weekData.map(w=>({name:w.label,sRPE:w.totalSrpe,Dist:Math.round(w.totalDist/100),HSR:w.totalHsr}));
+            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${acwrV>1.3?"#EA580C33":t.border}`,padding:18,marginBottom:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,display:"flex",alignItems:"center",gap:6}}>
+                    <Calendar size={14} color="#2563eb"/>
+                    Comparativo Semanal de Treino
+                  </div>
+                  <div style={{fontSize:10,color:t.textFaint}}>Últimas {weekData.length} semanas · ACWR semanal, Monotonia, Strain, Δ% (Gabbett, 2016; Foster, 1998)</div>
+                </div>
+              </div>
+              {/* Summary Indicators */}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:8,marginBottom:14}}>
+                {[
+                  {l:"ACWR Semanal",v:acwrWeekly,sub:"aguda/crônica",c:acwrC},
+                  {l:"Δ sRPE",v:deltaSrpe!==null?(deltaSrpe>0?"+":"")+deltaSrpe+"%":"—",sub:"vs semana ant.",c:deltaC(deltaSrpe)},
+                  {l:"Δ Distância",v:deltaDist!==null?(deltaDist>0?"+":"")+deltaDist+"%":"—",sub:"vs semana ant.",c:deltaC(deltaDist)},
+                  {l:"Monotonia",v:currentW.monotonia.toFixed(1),sub:currentW.monotonia>2?"ALTO":"OK",c:monoC(currentW.monotonia)},
+                  {l:"Strain",v:currentW.strain,sub:"carga×mono",c:currentW.strain>5000?"#DC2626":currentW.strain>3500?"#EA580C":"#16A34A"},
+                  {l:"Sessões",v:currentW.nSess,sub:"semana atual",c:pri}
+                ].map((m,i)=>
+                  <div key={i} style={{textAlign:"center",padding:"8px 4px",background:t.bgMuted,borderRadius:8}}>
+                    <div style={{fontSize:8,color:t.textFaint,fontWeight:600,textTransform:"uppercase",marginBottom:2}}>{m.l}</div>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:15,fontWeight:800,color:m.c}}>{m.v}</div>
+                    <div style={{fontSize:8,color:m.sub==="ALTO"?"#DC2626":t.textFaint,fontWeight:m.sub==="ALTO"?700:400,marginTop:1}}>{m.sub}</div>
+                  </div>)}
+              </div>
+              {/* Alert Banner */}
+              {(acwrV>1.3||currentW.monotonia>2||(deltaSrpe!==null&&deltaSrpe>15))&&<div style={{background:acwrV>1.5||currentW.monotonia>2?"#FEF2F2":"#FFF7ED",border:`1px solid ${acwrV>1.5||currentW.monotonia>2?"#FECACA":"#FED7AA"}`,borderRadius:8,padding:"10px 14px",marginBottom:14,fontSize:10,color:acwrV>1.5||currentW.monotonia>2?"#DC2626":"#EA580C",fontWeight:600,lineHeight:1.5}}>
+                {acwrV>1.5?"ACWR semanal acima de 1.5 — aumento abrupto de carga. Risco elevado de lesão (Gabbett, 2016). Considerar redução na próxima sessão."
+                :acwrV>1.3?"ACWR semanal entre 1.3-1.5 — zona de atenção. Monitorar resposta do atleta."
+                :currentW.monotonia>2?"Monotonia alta (>2.0) — carga muito uniforme sem variação adequada entre dias (Foster, 1998). Incluir dias de descarga."
+                :deltaSrpe>20?"Aumento de carga semanal >20% — acima da progressão recomendada de 10-15% (Piggott et al., 2009)."
+                :"Aumento de carga semanal entre 15-20% — no limite superior da progressão segura."}
+              </div>}
+              {/* Charts */}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+                <div>
+                  <div style={{fontSize:10,fontWeight:700,color:pri,marginBottom:6}}>Carga Semanal (sRPE Total)</div>
+                  <ResponsiveContainer width="100%" height={180}>
+                    <BarChart data={chartW}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
+                      <XAxis dataKey="name" tick={{fontSize:8,fill:t.textFaint}}/>
+                      <YAxis tick={{fontSize:8,fill:t.textFaint}}/>
+                      <Tooltip content={<TT theme={t}/>}/>
+                      <Bar dataKey="sRPE" name="sRPE Total (UA)" fill="#2563eb" radius={[4,4,0,0]} barSize={28}>
+                        {chartW.map((e,i)=><Cell key={i} fill={i===chartW.length-1?"#2563eb":"#2563eb60"}/>)}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div>
+                  <div style={{fontSize:10,fontWeight:700,color:pri,marginBottom:6}}>Volume GPS Semanal</div>
+                  <ResponsiveContainer width="100%" height={180}>
+                    <BarChart data={chartW}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
+                      <XAxis dataKey="name" tick={{fontSize:8,fill:t.textFaint}}/>
+                      <YAxis tick={{fontSize:8,fill:t.textFaint}}/>
+                      <Tooltip content={<TT theme={t}/>}/>
+                      <Bar dataKey="Dist" name="Dist Total (×100m)" fill="#16A34A" radius={[4,4,0,0]} barSize={14}>
+                        {chartW.map((e,i)=><Cell key={i} fill={i===chartW.length-1?"#16A34A":"#16A34A60"}/>)}
+                      </Bar>
+                      <Bar dataKey="HSR" name="HSR Total (m)" fill="#EA580C" radius={[4,4,0,0]} barSize={14}>
+                        {chartW.map((e,i)=><Cell key={i} fill={i===chartW.length-1?"#EA580C":"#EA580C60"}/>)}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              {/* Weekly Detail Table */}
+              <div style={{marginTop:12,overflowX:"auto"}}>
+                <table style={{width:"100%",borderCollapse:"collapse",fontSize:10}}>
+                  <thead>
+                    <tr style={{borderBottom:`1px solid ${t.border}`}}>
+                      {["Semana","Sessões","sRPE Total","sRPE Média","Monotonia","Strain","Dist Total","HSR Total","Sono","Dor","Rec"].map((h,i)=>
+                        <th key={i} style={{padding:"6px 8px",textAlign:i===0?"left":"center",fontSize:9,fontWeight:700,color:t.textFaint,textTransform:"uppercase"}}>{h}</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {weekData.map((w,i)=>{
+                      const isCurr=i===weekData.length-1;
+                      return <tr key={i} style={{background:isCurr?pri+"08":"transparent",borderBottom:`1px solid ${t.borderLight}`}}>
+                        <td style={{padding:"6px 8px",fontWeight:isCurr?700:500,color:isCurr?pri:t.text}}>{w.label}{isCurr?" ●":""}</td>
+                        <td style={{padding:"6px 8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:t.text}}>{w.nSess}</td>
+                        <td style={{padding:"6px 8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:700,color:pri}}>{w.totalSrpe}</td>
+                        <td style={{padding:"6px 8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:t.textMuted}}>{w.avgSrpe}</td>
+                        <td style={{padding:"6px 8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:700,color:monoC(w.monotonia)}}>{w.monotonia.toFixed(1)}</td>
+                        <td style={{padding:"6px 8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:w.strain>5000?"#DC2626":t.textMuted}}>{w.strain}</td>
+                        <td style={{padding:"6px 8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:t.textMuted}}>{w.totalDist>0?(w.totalDist/1000).toFixed(1)+"km":"—"}</td>
+                        <td style={{padding:"6px 8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:t.textMuted}}>{w.totalHsr>0?w.totalHsr+"m":"—"}</td>
+                        <td style={{padding:"6px 8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:w.avgSono<6?"#DC2626":"#16A34A"}}>{w.avgSono||"—"}</td>
+                        <td style={{padding:"6px 8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:w.avgDor>=4?"#DC2626":t.textMuted}}>{w.avgDor||"—"}</td>
+                        <td style={{padding:"6px 8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:w.avgRec<6?"#DC2626":"#16A34A"}}>{w.avgRec||"—"}</td>
+                      </tr>;
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              {/* Reference */}
+              <div style={{marginTop:10,padding:"6px 10px",background:t.bgMuted,borderRadius:6,fontSize:9,color:t.textFaint,lineHeight:1.4}}>
+                <strong style={{color:pri}}>Referências:</strong> ACWR sweet spot 0.8-1.3 (Gabbett, 2016) · Monotonia {">"} 2.0 = risco (Foster, 1998) · Δ semanal ideal ≤10-15% (Piggott et al., 2009) · Strain = carga total × monotonia
+              </div>
+            </div>;
+          })()}
 
           {/* ═══ CAMADA 4: TENDÊNCIA TEMPORAL — Fatigue Debt, sRPE, CMJ ═══ */}
           {(()=>{
