@@ -27,7 +27,7 @@ const THEMES={
     tooltipBg:"#1e2230"}
 };
 
-const P=[{n:"ADRIANO",pos:"GOL",id:19,h:5,e:4,rg:7,rp:6,d:2,sq:7,rpa:7,da:1.6,sa:7.3,nw:39,pse:3,sra:331,w:82.7,alt:183,bf:12.4,mm:38.2,imc:24.2,nc:60,ai:1.24,cmj:49.6,ct:[54.2,50.3,48.5,51.4,52,52.2,52.6,49.6],wt:{dt:["02","03","07","09","10","11","12"],s:[10,8,7,7,8,7,7],r:[8,6,6,8,8,7,6],dr:[1,1,1,1,2,1,2]}},{n:"BRENNO",pos:"GOL",id:23,h:4,e:4,rg:8,rp:8,d:3,sq:7,rpa:7.3,da:1.3,sa:7.3,nw:50,pse:4,sra:310,w:90.8,alt:191,bf:13.8,mm:41.5,imc:24.9,nc:75,ai:1.17,cmj:44.6,ct:[45,47.8,49.3,48,47.6,49.3,46.2,44.6],wt:{dt:["04","05","06","07","09","10","11"],s:[7,7,7,6,10,8,7],r:[7,7,8,5,8,7,8],dr:[0,0,0,0,0,2,3]}},{n:"CARLOS EDUARDO",pos:"ZAG",id:25,h:5,e:3,rg:8,rp:8,d:2,sq:8,rpa:7.9,da:1,sa:9.2,nw:57,pse:3,sra:391,w:85.9,alt:186,bf:11.9,mm:39.8,imc:24.6,nc:75,ai:1.07,cmj:46.7,ct:[49.1,44,47.1,44.5,48.8,46.5,52.6,46.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,9,8,8,9,10,8],r:[9,5,6,9,8,6,8],dr:[1,1,0,0,0,2,2]}},{n:"DARLAN",pos:"ZAG",id:20,h:4,e:3,rg:9,rp:8,d:0,sq:8,rpa:7.8,da:.7,sa:7.8,nw:17,pse:5,sra:317,w:80.2,alt:186,bf:10.5,mm:37.1,imc:25.3,nc:20,ai:.95,cmj:31.1,ct:[31.1]},{n:"ERICSON",pos:"ZAG",id:26,h:5,e:3,rg:10,rp:9,d:3,sq:9,rpa:6.7,da:1.1,sa:8.8,nw:51,pse:0,sra:431,w:91.6,alt:184,bf:13.2,mm:42.0,imc:25.4,nc:75,ai:.64,cmj:43.1,ct:[44.3,47.4,42.4,47.1,50.9,50.9,55.5,43.1],wt:{dt:["26","27","28","02","03","04","06"],s:[9,9,9,7,9,8,9],r:[6,6,5,8,7,9,9],dr:[1,1,1,1,4,3,3]}},{n:"ERIK",pos:"VOL",id:20,h:5,e:4,rg:7,rp:7,d:0,sq:9,rpa:7.2,da:.2,sa:9.3,nw:22,pse:6,sra:308,w:75.5,alt:176,bf:9.8,mm:35.4,imc:24.4,nc:59,ai:1.97,ct:[54.1,52.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,8,8,10,10,9],r:[7,8,7,10,7,7,7],dr:[0,0,0,0,0,0,0]}},{n:"FELIPE VIEIRA",pos:"LAT",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.2,da:.3,sa:8.2,nw:27,pse:7,sra:385,w:77,alt:176,bf:7.7,mm:35.8,imc:24.9,nc:27,ai:1.0,cmj:39.3,ct:[45.0,39.3],wt:{dt:["03","04","05","06","07","09","10"],s:[7,7,8,9,6,5,7],r:[7,7,7,8,6,5,7],dr:[0,0,0,0,0,0,0]}},{n:"GABRIEL INOCENCIO",pos:"LAT",id:31,h:4,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.8,da:.4,sa:7.2,nw:58,pse:3,sra:407,w:78.5,alt:177,bf:10.8,mm:36.5,imc:25.1,nc:75,ai:.97,cmj:48.2,ct:[48.2,52.3,45.3,48.9,53.6,49.3,50.8,48.2],wt:{dt:["04","05","06","09","10","11","12"],s:[8,9,8,8,7,7,8],r:[7,7,7,8,8,8,8],dr:[1,2,7,2,2,2,1]}},{n:"GUI MARIANO",pos:"ZAG",id:26,h:5,e:4,rg:8,rp:8,d:4,sq:8,rpa:7.6,da:.3,sa:8.2,nw:59,pse:7,sra:476,w:89.7,alt:191,bf:12.7,mm:41.0,imc:25.1,nc:75,ai:1.1,cmj:53.1,ct:[52.4,52.2,52,55.1,47.5,53.7,53.5,53.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,9,9,8,8],r:[7,7,5,10,8,6,8],dr:[0,0,0,0,0,0,4]}},{n:"GUILHERME QUEIROZ",pos:"ATA",id:35,h:5,e:3,rg:7,rp:7,d:2,sq:8,rpa:7.3,da:1.5,sa:6.9,nw:56,pse:6,sra:369,w:87.9,alt:180,bf:13.1,mm:40.2,imc:24.9,nc:75,ai:1.14,cmj:46,ct:[43.3,43.3,46.2,47.4,44.7,48.3,48,46],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,7,7,5,8],r:[10,7,6,8,6,7,7],dr:[0,0,1,0,1,1,2]}},{n:"GUSTAVO VILAR",pos:"ZAG",id:25,h:5,e:3,rg:6,rp:6,d:0,sq:7,rpa:6.5,da:.2,sa:7.7,nw:55,pse:5,sra:410,w:86.4,alt:189,bf:12.9,mm:39.5,imc:25.8,nc:75,ai:1.07,cmj:43.5,ct:[43.3,42.9,47.9,42.8,43.1,44,44.8,43.5]},{n:"HEBERT",pos:"ZAG",id:20,h:5,e:3,rg:8,rp:7,d:0,sq:7,rpa:6.7,da:.1,sa:7.7,nw:46,pse:5,sra:366,w:88.1,alt:187,bf:12.5,mm:40.8,imc:25.5,nc:59,ai:1.04,cmj:46.9,ct:[50.1,49.8,50,52.5,48.6,51.2,53.3,46.9]},{n:"HENRIQUE TELES",pos:"LAT",id:19,h:5,e:4,rg:8,rp:8,d:2,sq:8,rpa:7,da:1.4,sa:7.7,nw:54,pse:6,sra:415,w:80.1,alt:179,bf:11.3,mm:37.2,imc:24.7,nc:69,ai:1.14,cmj:45.5,ct:[53.1,55.5,49.8,54.9,51.6,50.8,55.1,45.5],wt:{dt:["04","05","07","09","10","11","12"],s:[8,9,6,9,8,9,8],r:[6,8,6,10,8,9,8],dr:[2,1,7,5,3,3,2]}},{n:"HYGOR",pos:"ATA",id:33,h:5,e:4,rg:10,rp:8,d:2,sq:7,rpa:8.8,da:1.6,sa:9.2,nw:57,pse:4,sra:387,w:83.3,alt:183,bf:11.6,mm:38.6,imc:25.2,nc:75,ai:1.12,cmj:42.1,ct:[40.8,44.5,39.9,44.2,43.5,42.4,41.9,42.1],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,10,10,10,10,7],r:[10,6,8,10,8,8,8],dr:[0,2,0,0,0,3,2]}},{n:"JEFFERSON NEM",pos:"EXT",id:29,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:7.1,da:.8,sa:7.9,nw:57,pse:7,sra:423,w:72.5,alt:166,bf:10.1,mm:33.8,imc:23.9,nc:75,ai:.97,cmj:47.5,ct:[44,48.2,44.5,50.4,50,44.1,47.2,47.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,7],r:[7,6,7,8,8,7,7],dr:[0,0,0,0,0,0,2]}},{n:"JONATHAN",pos:"LAT",id:33,h:5,e:4,rg:5,rp:5,d:4,sq:7,rpa:5.8,da:2.9,sa:5.9,nw:51,pse:4,sra:333,w:73.7,alt:177,bf:10.9,mm:34.3,imc:24.1,nc:75,ai:1.14,cmj:42.8,ct:[46.4,46.8,46.9,37.3,45,44.7,45,42.8],wt:{dt:["04","05","07","09","10","11","12"],s:[5,7,6,6,6,6,7],r:[6,7,4,7,5,6,5],dr:[3,3,3,2,3,3,4]}},{n:"JORDAN",pos:"GOL",id:28,h:5,e:3,rg:7,rp:7,d:0,sq:9,rpa:8,da:.7,sa:8,nw:60,pse:4,sra:418,w:92.2,alt:189,bf:12.0,mm:42.8,imc:25.0,nc:75,ai:1.1,cmj:54.1,ct:[52.2,53.4,53.4,53.2,54.5,56,55.7,54.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,9],r:[8,8,6,8,8,7,7],dr:[1,0,0,0,0,0,0]}},{n:"KELVIN",pos:"EXT",id:28,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:6.9,da:3,sa:7.4,nw:49,pse:3,sra:288,w:74.6,alt:170,bf:10.3,mm:34.8,imc:23.8,nc:67,ai:.86,cmj:38.4,ct:[40.4,38.3,40.8,40.2,40.6,39.5,42.3,38.4],wt:{dt:["04","05","06","09","10","11","12"],s:[7,9,8,9,9,8,7],r:[7,7,7,10,10,9,7],dr:[3,3,3,0,0,2,2]}},{n:"LEANDRO MACIEL",pos:"VOL",id:30,h:4,e:3,rg:8,rp:8,d:0,sq:9,rpa:7.7,da:.5,sa:8.6,nw:57,pse:4,sra:399,w:91.3,alt:175,bf:13.5,mm:41.6,imc:25.8,nc:75,ai:1.08,cmj:43.8,ct:[41.7,47.4,40.5,46.2,47.8,44.3,50.4,43.8],wt:{dt:["05","06","07","09","10","11","12"],s:[8,7,9,8,8,8,9],r:[8,7,8,8,7,7,8],dr:[0,1,0,0,0,1,0]}},{n:"MARANHAO",pos:"EXT",id:26,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:6.9,da:1,sa:6.8,nw:58,pse:4,sra:339,w:75.1,alt:171,bf:11.0,mm:34.9,imc:24.2,nc:75,ai:.95,cmj:42.2,ct:[45.2,45.2,44.4,48.8,44.9,43.8,54.1,42.2],wt:{dt:["05","06","07","09","10","11","12"],s:[7,5,6,7,7,7,7],r:[7,6,5,7,7,7,7],dr:[1,1,1,1,1,1,1]}},{n:"MARCO ANTONIO",pos:"MEI",id:22,h:5,e:4,rg:7,rp:7,d:1,sq:8,rpa:7.0,da:.5,sa:7.5,nw:45,pse:5,sra:350,w:74.2,alt:175,bf:10.2,mm:34.5,imc:24.2,nc:55,ai:1.1,cmj:42.0,ct:[43.5,44.1,42.8,43.2,42.5,41.9,43.0,42.0],wt:{dt:["05","06","07","09","10","11","12"],s:[8,7,8,8,7,8,7],r:[7,7,7,8,7,7,7],dr:[0,1,0,0,1,0,1]}},{n:"MARQUINHO JR.",pos:"MEI",id:23,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.4,da:0,sa:8.1,nw:58,pse:5,sra:360,w:64.9,alt:182,bf:9.2,mm:30.8,imc:22.5,nc:75,ai:1.17,cmj:41.3,ct:[44.4,45.7,42.6,46.7,43.1,42.5,47.6,41.3]},{n:"MATHEUS SALES",pos:"VOL",id:30,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:7.2,da:.6,sa:6.8,nw:58,pse:7,sra:454,w:80.1,alt:176,bf:11.7,mm:37.0,imc:24.7,nc:75,ai:1.06,cmj:44.3,ct:[47.4,47.9,46.1,47.3,44.3,49.1,49.8,44.3],wt:{dt:["05","06","07","09","10","11","12"],s:[6,4,8,7,7,5,7],r:[7,4,5,8,8,7,7],dr:[1,2,1,0,1,2,1]}},{n:"MORELLI",pos:"VOL",id:28,h:5,e:3,rg:6,rp:7,d:0,sq:8,rpa:7,da:.5,sa:7.4,nw:56,pse:3,sra:356,w:82.4,alt:181,bf:12.1,mm:38.0,imc:24.6,nc:75,ai:1.07,cmj:43.8,ct:[46,50.6,44.9,44.8,43.8,38.1,46.6,43.8]},{n:"PATRICK BREY",pos:"LAT",id:28,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.9,da:2,sa:7.3,nw:33,pse:3,sra:385,w:73.5,alt:176,bf:10.0,mm:34.5,imc:24.0,nc:63,ai:1.3,ct:[43.2,42.6,42.3,41.9,41,45.8,42.8,45.1],wt:{dt:["05","06","07","09","10","11","12"],s:[4,7,2,9,8,7,8],r:[4,5,3,9,8,7,8],dr:[3,2,4,0,0,3,1]}},{n:"PEDRINHO",pos:"LAT",id:19,h:5,e:3,rg:8,rp:8,d:0,sq:10,rpa:7.3,da:.4,sa:9.9,nw:44,pse:6,sra:343,w:67.5,alt:175,bf:9.5,mm:31.9,imc:22.8,nc:52,ai:1.02,cmj:45.5,ct:[41.6,42.6,38.6,42.9,44.9,40.1,44,45.5]},{n:"PEDRO TORTELLO",pos:"VOL",id:21,h:5,e:3,rg:7,rp:7,d:0,sq:10,rpa:8.4,da:.3,sa:9.2,nw:56,pse:4,sra:381,w:75.1,alt:176,bf:10.6,mm:35.0,imc:23.7,nc:75,ai:1.14,cmj:41,ct:[40.6,47.6,41.3,43.7,39.2,41.6,44,41]},{n:"RAFAEL GAVA",pos:"MEI",id:32,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:6.2,da:1,sa:5.8,nw:55,pse:7,sra:364,w:78.3,alt:178,bf:11.4,mm:36.3,imc:24.4,nc:75,ai:1.1,ct:[36.2,38.9,33.8,33.6,39.2,35.3,36.7,38.7],wt:{dt:["05","06","07","09","10","11","12"],s:[4,4,6,4,5,6,8],r:[5,5,6,4,7,7,7],dr:[1,1,1,0,0,0,0]}},{n:"THALLES",pos:"ATA",id:20,h:5,e:4,rg:10,rp:10,d:2,sq:7,rpa:5.7,da:.5,sa:7.4,dpo:1,nw:60,pse:3,sra:409,w:83.9,alt:178,bf:12.2,mm:38.7,imc:24.8,nc:75,ai:1.19,cmj:43.3,ct:[46.4,44.1,44,45.1,43,47.4,44.9,43.3],wt:{dt:["04","05","06","07","09","11","12"],s:[7,7,10,6,7,8,7],r:[5,5,7,4,7,10,10],dr:[3,0,0,3,3,3,2]}},{n:"THIAGUINHO",pos:"VOL",id:27,h:3,e:4,rg:7,rp:7,d:0,sq:7,rpa:6.5,da:.2,sa:7.4,nw:17,pse:7,sra:390,w:64.5,alt:176,bf:7.7,mm:30.0,imc:20.8,nc:17,ai:1.0,cmj:41.5,ct:[41.5],wt:{dt:["03","04","05","06","07","09","10"],s:[7,6,7,8,5,9,6],r:[7,6,7,7,5,8,6],dr:[0,0,0,0,0,0,0]}},{n:"VICTOR SOUZA",pos:"GOL",id:33,h:4,e:3,rg:7,rp:7,d:0,sq:6,rpa:7.2,da:.5,sa:6.1,nw:57,pse:3,sra:473,w:92.8,alt:187,bf:14.1,mm:42.2,imc:24.9,nc:75,ai:1.04,cmj:46.9,ct:[55.4,56.5,60.9,57.9,58.7,53.2,59.5,46.9]},{n:"WALLACE",pos:"ZAG",id:31,h:4,e:3,rg:7,rp:7,d:0,sq:8,rpa:6.7,da:.8,sa:7.8,nw:47,pse:5,sra:305,w:91.6,alt:192,bf:14.0,mm:41.3,imc:26.5,nc:75,ai:.98,cmj:40.8,ct:[43.6,38.3,40.3,39.4,40.8],wt:{dt:["04","05","06","09","10","11","12"],s:[8,8,8,8,8,8,8],r:[7,8,5,8,7,7,7],dr:[2,2,2,0,2,2,0]}},{n:"YURI",pos:"VOL",id:19,h:4,e:4,rg:8,rp:8,d:0,sq:8,rpa:7.9,da:0,sa:8.1,nw:49,pse:6,sra:320,w:66.4,alt:172,bf:9.0,mm:31.5,imc:23.2,nc:69,ai:1.16,cmj:41.5,ct:[40.8,44.9,43.8,43.2,42.8,42.9,43.5,41.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,8,8,8],r:[9,8,7,8,7,8,8],dr:[0,0,0,0,0,0,0]}},{n:"WESLEY",pos:"EXT",id:25,h:5,e:4,rg:8,rp:7,d:1,sq:8,rpa:7.4,da:.6,sa:7.8,nw:52,pse:5,sra:378,w:76.8,alt:185,bf:10.4,mm:35.8,imc:24.2,nc:68,ai:1.08,cmj:43.2,ct:[44.8,45.1,43.5,44.2,42.8,43.9,44.5,43.2],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,7,8,8],r:[8,7,7,8,8,7,7],dr:[0,0,1,0,1,1,0]}},{n:"LUIZAO",pos:"ATA",id:23,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:7.5,da:.4,sa:8.0,nw:55,pse:4,sra:395,w:88.5,alt:183,bf:12.8,mm:40.6,imc:25.0,nc:72,ai:1.05,cmj:45.2,ct:[46.8,44.5,47.2,45.8,46.1,44.9,45.6,45.2],wt:{dt:["05","06","07","09","10","11","12"],s:[9,8,8,8,9,8,8],r:[8,7,7,9,8,7,8],dr:[0,1,0,0,0,1,1]}},{n:"ZE HUGO",pos:"EXT",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.6,da:.3,sa:8.2,nw:48,pse:5,sra:342,w:72.1,alt:178,bf:9.6,mm:33.6,imc:23.5,nc:62,ai:1.12,cmj:42.5,ct:[43.8,44.2,41.9,43.5,42.8,43.1,42.6,42.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,8,8,7,8],r:[8,8,7,9,7,8,7],dr:[0,0,0,0,0,0,0]}}];
+const P=[{n:"ADRIANO",pos:"GOL",id:19,h:5,e:4,rg:7,rp:6,d:2,sq:7,rpa:7,da:1.6,sa:7.3,nw:39,pse:3,sra:331,w:82.7,alt:183,bf:12.4,mm:38.2,imc:24.2,nc:60,ai:1.24,cmj:49.6,ct:[54.2,50.3,48.5,51.4,52,52.2,52.6,49.6],wt:{dt:["02","03","07","09","10","11","12"],s:[10,8,7,7,8,7,7],r:[8,6,6,8,8,7,6],dr:[1,1,1,1,2,1,2]}},{n:"BRENNO",pos:"GOL",id:23,h:4,e:4,rg:8,rp:8,d:3,sq:7,rpa:7.3,da:1.3,sa:7.3,nw:50,pse:4,sra:310,w:90.8,alt:191,bf:13.8,mm:41.5,imc:24.9,nc:75,ai:1.17,cmj:44.6,ct:[45,47.8,49.3,48,47.6,49.3,46.2,44.6],wt:{dt:["04","05","06","07","09","10","11"],s:[7,7,7,6,10,8,7],r:[7,7,8,5,8,7,8],dr:[0,0,0,0,0,2,3]}},{n:"CARLOS EDUARDO",pos:"ZAG",id:25,h:5,e:3,rg:8,rp:8,d:2,sq:8,rpa:7.9,da:1,sa:9.2,nw:57,pse:3,sra:391,w:85.9,alt:186,bf:11.9,mm:39.8,imc:24.6,nc:75,ai:1.07,cmj:46.7,ct:[49.1,44,47.1,44.5,48.8,46.5,52.6,46.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,9,8,8,9,10,8],r:[9,5,6,9,8,6,8],dr:[1,1,0,0,0,2,2]}},{n:"DARLAN",pos:"ZAG",id:20,h:4,e:3,rg:9,rp:8,d:0,sq:8,rpa:7.8,da:.7,sa:7.8,nw:17,pse:5,sra:317,w:80.2,alt:186,bf:10.5,mm:37.1,imc:25.3,nc:20,ai:.95,cmj:31.1,ct:[31.1]},{n:"ERICSON",pos:"ZAG",id:26,h:5,e:3,rg:10,rp:9,d:3,sq:9,rpa:6.7,da:1.1,sa:8.8,nw:51,pse:0,sra:431,w:91.6,alt:184,bf:13.2,mm:42.0,imc:25.4,nc:75,ai:.64,cmj:43.1,ct:[44.3,47.4,42.4,47.1,50.9,50.9,55.5,43.1],wt:{dt:["26","27","28","02","03","04","06"],s:[9,9,9,7,9,8,9],r:[6,6,5,8,7,9,9],dr:[1,1,1,1,4,3,3]}},{n:"ERIK",pos:"VOL",id:20,h:5,e:4,rg:7,rp:7,d:0,sq:9,rpa:7.2,da:.2,sa:9.3,nw:22,pse:6,sra:308,w:75.5,alt:176,bf:9.8,mm:35.4,imc:24.4,nc:59,ai:1.97,ct:[54.1,52.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,8,8,10,10,9],r:[7,8,7,10,7,7,7],dr:[0,0,0,0,0,0,0]}},{n:"FELIPE VIEIRA",pos:"LAT",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.2,da:.3,sa:8.2,nw:27,pse:7,sra:385,w:77,alt:176,bf:7.7,mm:35.8,imc:24.9,nc:27,ai:1.0,cmj:39.3,ct:[45.0,39.3],wt:{dt:["03","04","05","06","07","09","10"],s:[7,7,8,9,6,5,7],r:[7,7,7,8,6,5,7],dr:[0,0,0,0,0,0,0]}},{n:"GABRIEL INOCENCIO",pos:"LAT",id:31,h:4,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.8,da:.4,sa:7.2,nw:58,pse:3,sra:407,w:78.5,alt:177,bf:10.8,mm:36.5,imc:25.1,nc:75,ai:.97,cmj:48.2,ct:[48.2,52.3,45.3,48.9,53.6,49.3,50.8,48.2],wt:{dt:["04","05","06","09","10","11","12"],s:[8,9,8,8,7,7,8],r:[7,7,7,8,8,8,8],dr:[1,2,7,2,2,2,1]}},{n:"GUI MARIANO",pos:"ZAG",id:26,h:5,e:4,rg:8,rp:8,d:4,sq:8,rpa:7.6,da:.3,sa:8.2,nw:59,pse:7,sra:476,w:89.7,alt:191,bf:12.7,mm:41.0,imc:25.1,nc:75,ai:1.1,cmj:53.1,ct:[52.4,52.2,52,55.1,47.5,53.7,53.5,53.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,9,9,8,8],r:[7,7,5,10,8,6,8],dr:[0,0,0,0,0,0,4]}},{n:"GUILHERME QUEIROZ",pos:"ATA",id:35,h:5,e:3,rg:7,rp:7,d:2,sq:8,rpa:7.3,da:1.5,sa:6.9,nw:56,pse:6,sra:369,w:87.9,alt:180,bf:13.1,mm:40.2,imc:24.9,nc:75,ai:1.14,cmj:46,ct:[43.3,43.3,46.2,47.4,44.7,48.3,48,46],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,7,7,5,8],r:[10,7,6,8,6,7,7],dr:[0,0,1,0,1,1,2]}},{n:"GUSTAVO VILAR",pos:"ZAG",id:25,h:5,e:3,rg:6,rp:6,d:0,sq:7,rpa:6.5,da:.2,sa:7.7,nw:55,pse:5,sra:410,w:86.4,alt:189,bf:12.9,mm:39.5,imc:25.8,nc:75,ai:1.07,cmj:43.5,ct:[43.3,42.9,47.9,42.8,43.1,44,44.8,43.5]},{n:"HEBERT",pos:"ZAG",id:20,h:5,e:3,rg:8,rp:7,d:0,sq:7,rpa:6.7,da:.1,sa:7.7,nw:46,pse:5,sra:366,w:88.1,alt:187,bf:12.5,mm:40.8,imc:25.5,nc:59,ai:1.04,cmj:46.9,ct:[50.1,49.8,50,52.5,48.6,51.2,53.3,46.9]},{n:"HENRIQUE TELES",pos:"LAT",id:19,h:5,e:4,rg:8,rp:8,d:2,sq:8,rpa:7,da:1.4,sa:7.7,nw:54,pse:6,sra:415,w:80.1,alt:179,bf:11.3,mm:37.2,imc:24.7,nc:69,ai:1.14,cmj:45.5,ct:[53.1,55.5,49.8,54.9,51.6,50.8,55.1,45.5],wt:{dt:["04","05","07","09","10","11","12"],s:[8,9,6,9,8,9,8],r:[6,8,6,10,8,9,8],dr:[2,1,7,5,3,3,2]}},{n:"HYGOR",pos:"ATA",id:33,h:5,e:4,rg:10,rp:8,d:2,sq:7,rpa:8.8,da:1.6,sa:9.2,nw:57,pse:4,sra:387,w:83.3,alt:183,bf:11.6,mm:38.6,imc:25.2,nc:75,ai:1.12,cmj:42.1,ct:[40.8,44.5,39.9,44.2,43.5,42.4,41.9,42.1],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,10,10,10,10,7],r:[10,6,8,10,8,8,8],dr:[0,2,0,0,0,3,2]}},{n:"JEFFERSON NEM",pos:"EXT",id:29,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:7.1,da:.8,sa:7.9,nw:57,pse:7,sra:423,w:72.5,alt:166,bf:10.1,mm:33.8,imc:23.9,nc:75,ai:.97,cmj:47.5,ct:[44,48.2,44.5,50.4,50,44.1,47.2,47.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,7],r:[7,6,7,8,8,7,7],dr:[0,0,0,0,0,0,2]}},{n:"JONATHAN",pos:"LAT",id:33,h:5,e:4,rg:5,rp:5,d:4,sq:7,rpa:5.8,da:2.9,sa:5.9,nw:51,pse:4,sra:333,w:73.7,alt:177,bf:10.9,mm:34.3,imc:24.1,nc:75,ai:1.14,cmj:42.8,ct:[46.4,46.8,46.9,37.3,45,44.7,45,42.8],wt:{dt:["04","05","07","09","10","11","12"],s:[5,7,6,6,6,6,7],r:[6,7,4,7,5,6,5],dr:[3,3,3,2,3,3,4]}},{n:"JORDAN",pos:"GOL",id:28,h:5,e:3,rg:7,rp:7,d:0,sq:9,rpa:8,da:.7,sa:8,nw:60,pse:4,sra:418,w:92.2,alt:189,bf:12.0,mm:42.8,imc:25.0,nc:75,ai:1.1,cmj:54.1,ct:[52.2,53.4,53.4,53.2,54.5,56,55.7,54.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,9],r:[8,8,6,8,8,7,7],dr:[1,0,0,0,0,0,0]}},{n:"KELVIN",pos:"EXT",id:28,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:6.9,da:3,sa:7.4,nw:49,pse:3,sra:288,w:74.6,alt:170,bf:10.3,mm:34.8,imc:23.8,nc:67,ai:.86,cmj:38.4,ct:[40.4,38.3,40.8,40.2,40.6,39.5,42.3,38.4],wt:{dt:["04","05","06","09","10","11","12"],s:[7,9,8,9,9,8,7],r:[7,7,7,10,10,9,7],dr:[3,3,3,0,0,2,2]}},{n:"LEANDRO MACIEL",pos:"VOL",id:30,h:4,e:3,rg:8,rp:8,d:0,sq:9,rpa:7.7,da:.5,sa:8.6,nw:57,pse:4,sra:399,w:91.3,alt:175,bf:13.5,mm:41.6,imc:25.8,nc:75,ai:1.08,cmj:43.8,ct:[41.7,47.4,40.5,46.2,47.8,44.3,50.4,43.8],wt:{dt:["05","06","07","09","10","11","12"],s:[8,7,9,8,8,8,9],r:[8,7,8,8,7,7,8],dr:[0,1,0,0,0,1,0]}},{n:"MARANHAO",pos:"EXT",id:26,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:6.9,da:1,sa:6.8,nw:58,pse:4,sra:339,w:75.1,alt:171,bf:11.0,mm:34.9,imc:24.2,nc:75,ai:.95,cmj:42.2,ct:[45.2,45.2,44.4,48.8,44.9,43.8,54.1,42.2],wt:{dt:["05","06","07","09","10","11","12"],s:[7,5,6,7,7,7,7],r:[7,6,5,7,7,7,7],dr:[1,1,1,1,1,1,1]}},{n:"MARCO ANTONIO",pos:"VOL",id:22,h:5,e:4,rg:7,rp:7,d:1,sq:8,rpa:7.0,da:.5,sa:7.5,nw:45,pse:5,sra:350,w:74.4,alt:180,bf:10.2,mm:34.5,imc:23.0,nc:55,ai:1.1,cmj:42.0,ct:[43.5,44.1,42.8,43.2,42.5,41.9,43.0,42.0],wt:{dt:["05","06","07","09","10","11","12"],s:[8,7,8,8,7,8,7],r:[7,7,7,8,7,7,7],dr:[0,1,0,0,1,0,1]}},{n:"MARQUINHO JR.",pos:"MEI",id:23,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.4,da:0,sa:8.1,nw:58,pse:5,sra:360,w:64.9,alt:182,bf:9.2,mm:30.8,imc:22.5,nc:75,ai:1.17,cmj:41.3,ct:[44.4,45.7,42.6,46.7,43.1,42.5,47.6,41.3]},{n:"MATHEUS SALES",pos:"VOL",id:30,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:7.2,da:.6,sa:6.8,nw:58,pse:7,sra:454,w:80.1,alt:176,bf:11.7,mm:37.0,imc:24.7,nc:75,ai:1.06,cmj:44.3,ct:[47.4,47.9,46.1,47.3,44.3,49.1,49.8,44.3],wt:{dt:["05","06","07","09","10","11","12"],s:[6,4,8,7,7,5,7],r:[7,4,5,8,8,7,7],dr:[1,2,1,0,1,2,1]}},{n:"MORELLI",pos:"VOL",id:28,h:5,e:3,rg:6,rp:7,d:0,sq:8,rpa:7,da:.5,sa:7.4,nw:56,pse:3,sra:356,w:82.4,alt:181,bf:12.1,mm:38.0,imc:24.6,nc:75,ai:1.07,cmj:43.8,ct:[46,50.6,44.9,44.8,43.8,38.1,46.6,43.8]},{n:"PATRICK BREY",pos:"LAT",id:28,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.9,da:2,sa:7.3,nw:33,pse:3,sra:385,w:73.5,alt:176,bf:10.0,mm:34.5,imc:24.0,nc:63,ai:1.3,ct:[43.2,42.6,42.3,41.9,41,45.8,42.8,45.1],wt:{dt:["05","06","07","09","10","11","12"],s:[4,7,2,9,8,7,8],r:[4,5,3,9,8,7,8],dr:[3,2,4,0,0,3,1]}},{n:"PEDRINHO",pos:"LAT",id:19,h:5,e:3,rg:8,rp:8,d:0,sq:10,rpa:7.3,da:.4,sa:9.9,nw:44,pse:6,sra:343,w:67.5,alt:175,bf:9.5,mm:31.9,imc:22.8,nc:52,ai:1.02,cmj:45.5,ct:[41.6,42.6,38.6,42.9,44.9,40.1,44,45.5]},{n:"PEDRO TORTELLO",pos:"VOL",id:21,h:5,e:3,rg:7,rp:7,d:0,sq:10,rpa:8.4,da:.3,sa:9.2,nw:56,pse:4,sra:381,w:75.1,alt:176,bf:10.6,mm:35.0,imc:23.7,nc:75,ai:1.14,cmj:41,ct:[40.6,47.6,41.3,43.7,39.2,41.6,44,41]},{n:"RAFAEL GAVA",pos:"MEI",id:32,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:6.2,da:1,sa:5.8,nw:55,pse:7,sra:364,w:78.3,alt:178,bf:11.4,mm:36.3,imc:24.4,nc:75,ai:1.1,ct:[36.2,38.9,33.8,33.6,39.2,35.3,36.7,38.7],wt:{dt:["05","06","07","09","10","11","12"],s:[4,4,6,4,5,6,8],r:[5,5,6,4,7,7,7],dr:[1,1,1,0,0,0,0]}},{n:"THALLES",pos:"ATA",id:20,h:5,e:4,rg:10,rp:10,d:2,sq:7,rpa:5.7,da:.5,sa:7.4,dpo:1,nw:60,pse:3,sra:409,w:83.9,alt:178,bf:12.2,mm:38.7,imc:24.8,nc:75,ai:1.19,cmj:43.3,ct:[46.4,44.1,44,45.1,43,47.4,44.9,43.3],wt:{dt:["04","05","06","07","09","11","12"],s:[7,7,10,6,7,8,7],r:[5,5,7,4,7,10,10],dr:[3,0,0,3,3,3,2]}},{n:"THIAGUINHO",pos:"VOL",id:27,h:3,e:4,rg:7,rp:7,d:0,sq:7,rpa:6.5,da:.2,sa:7.4,nw:17,pse:7,sra:390,w:64.5,alt:176,bf:7.7,mm:30.0,imc:20.8,nc:17,ai:1.0,cmj:41.5,ct:[41.5],wt:{dt:["03","04","05","06","07","09","10"],s:[7,6,7,8,5,9,6],r:[7,6,7,7,5,8,6],dr:[0,0,0,0,0,0,0]}},{n:"VICTOR SOUZA",pos:"GOL",id:33,h:4,e:3,rg:7,rp:7,d:0,sq:6,rpa:7.2,da:.5,sa:6.1,nw:57,pse:3,sra:473,w:92.8,alt:187,bf:14.1,mm:42.2,imc:24.9,nc:75,ai:1.04,cmj:46.9,ct:[55.4,56.5,60.9,57.9,58.7,53.2,59.5,46.9]},{n:"WALLACE",pos:"ZAG",id:31,h:4,e:3,rg:7,rp:7,d:0,sq:8,rpa:6.7,da:.8,sa:7.8,nw:47,pse:5,sra:305,w:91.6,alt:192,bf:14.0,mm:41.3,imc:26.5,nc:75,ai:.98,cmj:40.8,ct:[43.6,38.3,40.3,39.4,40.8],wt:{dt:["04","05","06","09","10","11","12"],s:[8,8,8,8,8,8,8],r:[7,8,5,8,7,7,7],dr:[2,2,2,0,2,2,0]}},{n:"YURI",pos:"VOL",id:19,h:4,e:4,rg:8,rp:8,d:0,sq:8,rpa:7.9,da:0,sa:8.1,nw:49,pse:6,sra:320,w:66.4,alt:172,bf:9.0,mm:31.5,imc:23.2,nc:69,ai:1.16,cmj:41.5,ct:[40.8,44.9,43.8,43.2,42.8,42.9,43.5,41.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,8,8,8],r:[9,8,7,8,7,8,8],dr:[0,0,0,0,0,0,0]}},{n:"WESLEY",pos:"EXT",id:25,h:5,e:4,rg:8,rp:7,d:1,sq:8,rpa:7.4,da:.6,sa:7.8,nw:52,pse:5,sra:378,w:76.8,alt:185,bf:10.4,mm:35.8,imc:24.2,nc:68,ai:1.08,cmj:43.2,ct:[44.8,45.1,43.5,44.2,42.8,43.9,44.5,43.2],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,7,8,8],r:[8,7,7,8,8,7,7],dr:[0,0,1,0,1,1,0]}},{n:"LUIZAO",pos:"ATA",id:23,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:7.5,da:.4,sa:8.0,nw:55,pse:4,sra:395,w:88.5,alt:183,bf:12.8,mm:40.6,imc:25.0,nc:72,ai:1.05,cmj:45.2,ct:[46.8,44.5,47.2,45.8,46.1,44.9,45.6,45.2],wt:{dt:["05","06","07","09","10","11","12"],s:[9,8,8,8,9,8,8],r:[8,7,7,9,8,7,8],dr:[0,1,0,0,0,1,1]}},{n:"ZE HUGO",pos:"EXT",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.6,da:.3,sa:8.2,nw:48,pse:5,sra:342,w:72.1,alt:178,bf:9.6,mm:33.6,imc:23.5,nc:62,ai:1.12,cmj:42.5,ct:[43.8,44.2,41.9,43.5,42.8,43.1,42.6,42.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,8,8,7,8],r:[8,8,7,9,7,8,7],dr:[0,0,0,0,0,0,0]}}];
 
 // Tooltip customizado para Recharts
 const TT=({active,payload,label,theme})=>{
@@ -667,72 +667,133 @@ const PREVENTION=[
 // Calendário Série B 2026
 const SERIE_B=[
   {rod:1,date:"21/03/2026",time:"19:15",home:"Botafogo SP",away:"Fortaleza",local:"casa",score:null,result:null,played:false},
-  {rod:2,date:"01/04/2026",time:"A confirmar",home:"América-MG",away:"Botafogo SP",local:"fora",score:null,result:null,played:false},
+  {rod:2,date:"01/04/2026",time:"18:00",home:"América-MG",away:"Botafogo SP",local:"fora",score:null,result:null,played:false},
   {rod:3,date:"05/04/2026",time:"20:30",home:"Botafogo SP",away:"São Bernardo",local:"casa",score:null,result:null,played:false},
   {rod:4,date:"10/04/2026",time:"20:30",home:"Criciúma",away:"Botafogo SP",local:"fora",score:null,result:null,played:false},
   {rod:5,date:"20/04/2026",time:"A confirmar",home:"Botafogo SP",away:"Atlético-GO",local:"casa",score:null,result:null,played:false}
 ];
 
-// Mapa Semanal — Quadro de Trabalho 23/03 a 29/03/2026
+// Mapa Semanal — Quadro de Trabalho
 // Fonte: Departamento de Futebol Profissional — Sérgio do Prado / Fillipe Soutto / André Leite
-const WEEK_MAP={
-  week:"23/03 a 29/03/2026",
-  next_match:{rod:2,opponent:"América-MG",date:"01/04",time:"A confirmar",local:"fora",days_to:6},
+const WEEK_MAPS=[
+{
+  week:"30/03 a 05/04/2026",
+  next_match:{rod:2,opponent:"América-MG",date:"01/04",time:"18:00",local:"fora",days_to:2},
   days:[
-    {d:"2ª 23",md:"MD+2",type:"FOLGA",focus:"Descanso Programado",local:"-",
+    {d:"2ª 30",md:"MD-2",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Descanso + Treino (tarde)",local:"CT Botafogo Academy",
+      sessions:[
+        {name:"Apresentação",time:"14:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
+        {name:"Pré Treino",time:"15:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
+        {name:"Treino",time:"16:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
+      ],
+      almoco:false,tarde:"Lanche",
+      wellness:true,cmj:false,notes:"Descanso programado pela manhã. Treino à tarde no CT Botafogo Academy. Após: Lanche."},
+    {d:"3ª 31",md:"MD-1",type:"TREINO",focus:"Treino + Viagem",local:"Estádio Santa Cruz",
+      sessions:[
+        {name:"Apresentação",time:"07:00",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
+        {name:"Treino",time:"08:00",dur:75,rpe_alvo:"4-5",content:"Treino de campo",group:"Elenco"}
+      ],
+      almoco:false,tarde:"Viagem para Belo Horizonte-MG",
+      wellness:true,cmj:false,notes:"Estádio Santa Cruz. Após: Lanche + Saída para Aeroporto. Viagem para BH."},
+    {d:"4ª 01",md:"MD",type:"JOGO",focus:"Série B R2 — América-MG x BFC",local:"Arena MRV",
+      sessions:[
+        {name:"JOGO",time:"18:00",dur:90,rpe_alvo:null,content:"Brasileiro Série B — 2ª Rodada",group:"Elenco"}
+      ],
+      almoco:false,tarde:"Descanso Programado",
+      wellness:false,cmj:false,notes:"JOGO: América-MG x Botafogo SP. Arena MRV, 18h00. Série B 2ª Rodada."},
+    {d:"5ª 02",md:"MD+1",type:"FOLGA",focus:"Descanso Programado",local:"-",
       sessions:[],
       almoco:false,tarde:"Descanso Programado",
-      wellness:false,cmj:false,notes:"Descanso programado pós-jogo (Fortaleza R1). Recuperação. DM: chegar 30min antes."},
-    {d:"3ª 24",md:"MD+3",type:"TREINO",focus:"Treino",local:"Campo Auxiliar",
-      sessions:[
-        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
-        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
-        {name:"Treino",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
-      ],
-      almoco:true,tarde:"Descanso Programado",
-      wellness:true,cmj:false,notes:"Retorno aos treinos pós-jogo. Campo Auxiliar. Almoço obrigatório."},
-    {d:"4ª 25",md:"MD+4",type:"TREINO",focus:"Treino + Confraternização",local:"Campo Auxiliar",
-      sessions:[
-        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
-        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
-        {name:"Treino",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
-      ],
-      almoco:false,tarde:"Descanso Programado",
-      wellness:true,cmj:false,notes:"Campo Auxiliar. Após treino: Confraternização no CT."},
-    {d:"5ª 26",md:"MD-7",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Treino (tarde)",local:"Estádio Santa Cruz",
+      wellness:false,cmj:false,notes:"Descanso programado pós-jogo (América-MG R2). Recuperação."},
+    {d:"6ª 03",md:"MD-2",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Descanso + Treino (tarde)",local:"Campo Auxiliar",
       sessions:[
         {name:"Apresentação",time:"14:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
         {name:"Pré Treino",time:"15:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
         {name:"Treino",time:"16:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
       ],
-      almoco:false,tarde:"Lanche (Sala anexa)",
-      wellness:true,cmj:false,notes:"Descanso programado pela manhã. Treino à tarde no Estádio Santa Cruz."},
-    {d:"6ª 27",md:"MD-6",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Treino (tarde)",local:"Estádio Santa Cruz",
+      almoco:false,tarde:"Lanche (Sala Anexa)",
+      wellness:true,cmj:false,notes:"Descanso programado pela manhã. Treino à tarde no Campo Auxiliar. Após: Lanche."},
+    {d:"Sáb 04",md:"MD-1",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Treino + Concentração",local:"Estádio Santa Cruz",
       sessions:[
         {name:"Apresentação",time:"14:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
         {name:"Pré Treino",time:"15:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
-        {name:"Treino",time:"16:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
+        {name:"Treino",time:"16:00",dur:60,rpe_alvo:"4-5",content:"Treino de campo — ativação pré-jogo",group:"Elenco"}
       ],
-      almoco:false,tarde:"Lanche (Sala anexa)",
-      wellness:true,cmj:false,notes:"Descanso programado pela manhã. Treino à tarde no Estádio Santa Cruz."},
-    {d:"Sáb 28",md:"MD-5",type:"TREINO",focus:"Treino",local:"CT Botafogo Academy",
+      almoco:false,tarde:"INÍCIO DE CONCENTRAÇÃO",
+      wellness:true,cmj:false,notes:"Estádio Santa Cruz. Após treino: INÍCIO DE CONCENTRAÇÃO."},
+    {d:"Dom 05",md:"MD",type:"JOGO",focus:"Série B R3 — BFC x São Bernardo",local:"Estádio Santa Cruz",
       sessions:[
-        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
-        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
-        {name:"Treino",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação — Não Relacionados",group:"Não Relacionados"},
+        {name:"Pré Treino",time:"08:30",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Não Relacionados"},
+        {name:"Treino Não Relacionados",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo — atletas não relacionados",group:"Não Relacionados"},
+        {name:"JOGO",time:"20:30",dur:90,rpe_alvo:null,content:"Brasileiro Série B — 3ª Rodada",group:"Elenco"}
       ],
-      almoco:true,tarde:"Descanso Programado",
-      wellness:true,cmj:false,notes:"CT Botafogo Academy. Almoço obrigatório. Descanso programado à tarde."},
-    {d:"Dom 29",md:"MD-4",type:"TREINO",focus:"Treino",local:"Campo Auxiliar",
-      sessions:[
-        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
-        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
-        {name:"Treino",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
-      ],
-      almoco:true,tarde:"Descanso Programado",
-      wellness:true,cmj:false,notes:"Campo Auxiliar. Almoço obrigatório. Descanso programado à tarde."}
+      almoco:true,tarde:"JOGO 20:30",
+      wellness:false,cmj:false,notes:"Manhã: Treino Não Relacionados (Campo Auxiliar). Almoço obrigatório. JOGO: BFC x São Bernardo, 20h30. Estádio Santa Cruz. Série B 3ª Rodada."}
   ]
-};
+},
+{
+  week:"06/04 a 12/04/2026",
+  next_match:{rod:4,opponent:"Criciúma",date:"10/04",time:"20:30",local:"fora",days_to:4},
+  days:[
+    {d:"2ª 06",md:"MD+1",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Descanso + Treino (tarde)",local:"Campo Auxiliar",
+      sessions:[
+        {name:"Apresentação",time:"14:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
+        {name:"Pré Treino",time:"15:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
+        {name:"Treino",time:"16:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
+      ],
+      almoco:false,tarde:"Lanche",
+      wellness:true,cmj:false,notes:"Descanso programado pela manhã pós-jogo (São Bernardo R3). Treino à tarde no Campo Auxiliar. Após: Lanche."},
+    {d:"3ª 07",md:"MD+2",type:"TREINO",focus:"Treino",local:"Estádio Santa Cruz",
+      sessions:[
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
+        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
+        {name:"Treino",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
+      ],
+      almoco:true,tarde:"Descanso Programado",
+      wellness:true,cmj:false,notes:"Estádio Santa Cruz. Almoço obrigatório. Descanso programado à tarde."},
+    {d:"4ª 08",md:"MD-2",type:"TREINO",focus:"Treino + Viagem",local:"Estádio Santa Cruz",
+      sessions:[
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
+        {name:"Pré Treino",time:"08:00",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
+        {name:"Treino",time:"08:30",dur:60,rpe_alvo:"4-5",content:"Treino de campo",group:"Elenco"}
+      ],
+      almoco:false,tarde:"Viagem para Criciúma-SC",
+      wellness:true,cmj:false,notes:"Estádio Santa Cruz. Após: Lanche + Saída para Aeroporto. Viagem para Criciúma-SC."},
+    {d:"5ª 09",md:"MD-1",type:"TREINO",focus:"Treino Não Relacionados + Treino em Criciúma",local:"Campo Auxiliar / Criciúma-SC",
+      sessions:[
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação — Não Relacionados",group:"Não Relacionados"},
+        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Não Relacionados"},
+        {name:"Treino Não Relacionados",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo — atletas não relacionados",group:"Não Relacionados"},
+        {name:"Treino em Criciúma",time:"—",dur:null,rpe_alvo:null,content:"Treino em Criciúma-SC — relacionados",group:"Relacionados"}
+      ],
+      almoco:true,tarde:"Treino em Criciúma-SC",
+      wellness:true,cmj:false,notes:"Manhã: Treino Não Relacionados (Campo Auxiliar). Almoço obrigatório. Tarde: Treino em Criciúma-SC (relacionados)."},
+    {d:"6ª 10",md:"MD",type:"JOGO",focus:"Série B R4 — Criciúma x BFC",local:"Heriberto Hülse",
+      sessions:[
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação — Não Relacionados",group:"Não Relacionados"},
+        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Não Relacionados"},
+        {name:"Treino Não Relacionados",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo — atletas não relacionados",group:"Não Relacionados"},
+        {name:"JOGO",time:"20:30",dur:90,rpe_alvo:null,content:"Brasileiro Série B — 4ª Rodada",group:"Elenco"}
+      ],
+      almoco:true,tarde:"JOGO 20:30",
+      wellness:false,cmj:false,notes:"Manhã: Treino Não Relacionados (Campo Auxiliar). Almoço obrigatório. JOGO: Criciúma x BFC, 20h30. Heriberto Hülse. Série B 4ª Rodada."},
+    {d:"Sáb 11",md:"MD+1",type:"TREINO",focus:"Treino Não Relacionados",local:"Campo Auxiliar",
+      sessions:[
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação — Não Relacionados",group:"Não Relacionados"},
+        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Não Relacionados"},
+        {name:"Treino Não Relacionados",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo — atletas não relacionados",group:"Não Relacionados"}
+      ],
+      almoco:true,tarde:"Descanso Programado",
+      wellness:true,cmj:false,notes:"Campo Auxiliar. Treino Não Relacionados. Almoço obrigatório. Descanso programado à tarde."},
+    {d:"Dom 12",md:"MD+2",type:"FOLGA",focus:"Descanso Programado",local:"-",
+      sessions:[],
+      almoco:false,tarde:"Descanso Programado",
+      wellness:false,cmj:false,notes:"Descanso programado."}
+  ]
+}
+];
+const WEEK_MAP=WEEK_MAPS[0];
 
 // Mapa de readiness por atleta para a semana
 const WEEK_READINESS=(players,alerts)=>{
@@ -2856,12 +2917,13 @@ export default function Dashboard(){
         </div>}
 
         {tab==="mapa"&&<div>
+          {WEEK_MAPS.map((wm,wi)=><div key={wi} style={{marginBottom:24}}>
           {/* Weekly Map Header */}
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <div>
-                <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Mapa Semanal — Microciclo</div>
-                <div style={{fontSize:12,color:t.textFaint,marginTop:2}}>{WEEK_MAP.week} · Próximo Jogo: {WEEK_MAP.next_match.opponent} ({WEEK_MAP.next_match.date} — {WEEK_MAP.next_match.time}) · Série B Rodada {WEEK_MAP.next_match.rod}</div>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Mapa Semanal — Microciclo {wi===0?"(Semana Atual)":"(Próxima Semana)"}</div>
+                <div style={{fontSize:12,color:t.textFaint,marginTop:2}}>{wm.week} · Próximo Jogo: {wm.next_match.opponent} ({wm.next_match.date} — {wm.next_match.time}) · Série B Rodada {wm.next_match.rod}</div>
               </div>
               <div style={{display:"flex",gap:8}}>
                 {["Bem-estar","CMJ","GPS"].map((t,i)=><span key={i} style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:t.bgMuted,color:t.textMuted,border:`1px solid ${t.border}`}}>{t}</span>)}
@@ -2871,7 +2933,7 @@ export default function Dashboard(){
 
           {/* Timeline */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:8,marginBottom:16}}>
-            {WEEK_MAP.days.map((day,i)=>{
+            {wm.days.map((day,i)=>{
               const tc=day.type==="JOGO"?acc:day.type==="FOLGA"?"#16A34A":day.type==="PRÉ-JOGO"?"#7c3aed":"#2563eb";
               return <div key={i} style={{background:t.bgCard,borderRadius:12,border:`1px solid ${tc}33`,overflow:"hidden",display:"flex",flexDirection:"column"}}>
                 {/* Day Header */}
@@ -2910,6 +2972,7 @@ export default function Dashboard(){
               </div>;
             })}
           </div>
+          </div>)}
 
           {/* DM Atual + Calendário Série B */}
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
