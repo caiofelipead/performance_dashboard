@@ -34,7 +34,10 @@ const SHEETS_CONFIG = {
       spreadsheet_id: "1cAPY5omeDQlCy19khEuRvXuM4yoj3Y05"
     },
     cmj: {
-      csv_url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNl68Hb8Qy6JH0TLmf96oufeWBtHjCqDCclUhKle6YR9ajxMVlfO5LoxILhOPNqg/pub?output=csv"
+      csv_url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSLtLBwIDepJ2biUoLrYW7Jlibwc9CZSsk2yiX1CYtb4gDdacebsrdo33aIWrVBIdwEE3D1RfE13AAF/pub?gid=117504582&single=true&output=csv",
+      published_key: "2PACX-1vSLtLBwIDepJ2biUoLrYW7Jlibwc9CZSsk2yiX1CYtb4gDdacebsrdo33aIWrVBIdwEE3D1RfE13AAF",
+      spreadsheet_id: "1BbwelzhdGfQnSks5vIwplh0r46EgxPE4",
+      gid: 117504582
     }
   }
 };
@@ -832,7 +835,8 @@ async function fetchSheetCSV(gid = 0) {
 }
 
 // Fetch CSV de planilha externa (publicada separadamente)
-async function fetchExternalCSV(config, gid = 0) {
+async function fetchExternalCSV(config, gid) {
+  gid = gid ?? config.gid ?? 0;
   const errors = [];
 
   // Se tem URL direta de CSV
