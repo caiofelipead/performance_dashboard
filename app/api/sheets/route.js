@@ -73,6 +73,7 @@ const NAME_MAP = {
   "Leo Gamalho": "LEO GAMALHO",
   "M Sales": "MATHEUS SALES",
   "M Maranhao": "MARANHAO",
+  "Marco Antonio": "MARCO ANTONIO",
   "Marquinho A": "MARQUINHO JR.",
   "P Brey": "PATRICK BREY",
   "Pedro H": "PEDRINHO",
