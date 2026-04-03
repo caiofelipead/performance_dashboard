@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { BarChart, Bar, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, AreaChart, Cell, ReferenceLine, LineChart, Line } from "recharts";
-import { Activity, TrendingUp, AlertTriangle, CheckCircle2, ChevronRight, ChevronDown, Heart, Zap, Shield, Users, Eye, Brain, Target, Calendar, RefreshCw, Wifi, WifiOff, Moon, Sun, Trophy } from "lucide-react";
+import { Activity, TrendingUp, AlertTriangle, CheckCircle2, ChevronRight, ChevronDown, Heart, Zap, Shield, Users, Eye, Brain, Target, Calendar, RefreshCw, Wifi, WifiOff, Moon, Sun, Trophy, BookOpen, Info } from "lucide-react";
 import { useSheetData } from "./useSheetData";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1124,7 +1124,7 @@ export default function Dashboard(){
   }, [sheetData, players]);
 
   const sp=sel?players.find(p=>p.n===sel):null;
-  const tabs=[{id:"squad",l:"Squad Overview",ic:Users},{id:"alerts",l:"Alertas",ic:AlertTriangle},{id:"carga",l:"Carga & ACWR",ic:TrendingUp},{id:"neuro",l:"Neuromuscular",ic:Zap},{id:"fisio",l:"Fisiológico",ic:Heart},{id:"temporal",l:"Temporal",ic:Activity},{id:"fisioterapia",l:"Fisioterapia",ic:Shield},{id:"jogos",l:"Jogos",ic:Trophy},{id:"mapa",l:"Mapa Semanal",ic:Calendar},{id:"player",l:"Individual",ic:Eye},{id:"sessao",l:"Sessão de Treino",ic:Activity},{id:"model",l:"Modelo Preditivo",ic:Brain},{id:"retro",l:"Retrospectiva",ic:Target}];
+  const tabs=[{id:"squad",l:"Squad Overview",ic:Users},{id:"alerts",l:"Alertas",ic:AlertTriangle},{id:"carga",l:"Carga & ACWR",ic:TrendingUp},{id:"neuro",l:"Neuromuscular",ic:Zap},{id:"fisio",l:"Fisiológico",ic:Heart},{id:"temporal",l:"Temporal",ic:Activity},{id:"fisioterapia",l:"Fisioterapia",ic:Shield},{id:"jogos",l:"Jogos",ic:Trophy},{id:"mapa",l:"Mapa Semanal",ic:Calendar},{id:"player",l:"Individual",ic:Eye},{id:"sessao",l:"Sessão de Treino",ic:Activity},{id:"model",l:"Modelo Preditivo",ic:Brain},{id:"retro",l:"Retrospectiva",ic:Target},{id:"glossario",l:"Glossário",ic:BookOpen}];
 
   const radarData=sp?[{s:"Sono",v:sp.sq||0},{s:"Rec Geral",v:sp.rg||0},{s:"Rec Pernas",v:sp.rp||0},{s:"Dor (inv)",v:10-(sp.d||0)},{s:"Humor",v:(sp.h||3)*2},{s:"Energia",v:(sp.e||3)*2.5}]:[];
   const wtData=sp?.wt?sp.wt.dt.map((d,i)=>({d:sp._wtLive?d:("Mar/"+d),sono:sp.wt.s[i],rec:sp.wt.r[i],dor:sp.wt.dr[i]})):[];
@@ -1188,7 +1188,12 @@ export default function Dashboard(){
       {/* SIDEBAR */}
       <aside style={{width:240,flexShrink:0}}>
         <div style={{fontSize:10,fontWeight:700,color:t.textFaint,letterSpacing:1.5,textTransform:"uppercase",marginBottom:2,paddingLeft:4}}>Elenco — Risco</div>
-        <div style={{fontSize:8,color:t.textFaintest,marginBottom:4,paddingLeft:4}}>Risk Score: composto de ACWR, Dor, Rec. Pernas, Dor média, Sono e Bem-estar. Quanto maior, mais atenção necessária.</div>
+        <div style={{fontSize:8,color:t.textFaintest,marginBottom:4,paddingLeft:4}}>
+          <strong style={{color:t.textFaint}}>Risk Score (0–100):</strong> índice composto baseado em regras clínicas (ACWR, Dor, Rec. Pernas, Sono, Bem-estar). Indica o <em>nível de atenção</em> necessário com base em indicadores observáveis do dia. ≠ Probabilidade de Lesão.
+        </div>
+        <div style={{fontSize:7,color:t.textFaintest,marginBottom:4,paddingLeft:4,lineHeight:1.4}}>
+          <strong style={{color:t.textFaint}}>Prob. Lesão (%):</strong> estimativa do modelo XGBoost calibrado com 89 features (GPS, carga, neuromuscular, sono, histórico). Prevê a chance real de lesão nos próximos 7 dias. Disponível apenas para atletas no modelo preditivo.
+        </div>
         <div style={{display:"flex",gap:4,marginBottom:4,paddingLeft:4,flexWrap:"wrap"}}>
           {[{l:"Crítico",c:"#DC2626",r:"≥65"},{l:"Alto",c:"#EA580C",r:"50–64"},{l:"Moderado",c:"#CA8A04",r:"20–49"},{l:"Ótimo",c:"#16A34A",r:"<20"}].map((z,i)=>
             <span key={i} style={{fontSize:7,padding:"1px 5px",borderRadius:4,background:`${z.c}12`,color:z.c,border:`1px solid ${z.c}30`,fontWeight:600}}>{z.l} ({z.r})</span>
@@ -1348,7 +1353,8 @@ export default function Dashboard(){
           {/* Charts Row */}
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
             <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>ACWR Interno (sRPE) — Elenco</div>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:4}}>ACWR Interno (sRPE) — Elenco</div>
+              <div style={{fontSize:9,color:t.textFaint,marginBottom:8,lineHeight:1.4}}>ACWR (Acute:Chronic Workload Ratio) = carga aguda (7 dias) ÷ carga crônica (28 dias). Mede a relação entre o que o atleta treinou recentemente vs. o que está acostumado. Valores entre <strong style={{color:"#16A34A"}}>0.8–1.3</strong> indicam zona ótima de progressão. Acima de <strong style={{color:"#DC2626"}}>1.5</strong> = sobrecarga aguda, risco elevado de lesão (Gabbett, 2016; Hulin et al., 2014). Abaixo de <strong style={{color:"#EA580C"}}>0.8</strong> = subcarga, perda de condicionamento e desproteção contra picos futuros.</div>
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={players.filter(p=>p.ai).slice(0,25)} margin={{bottom:45}}>
                   <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
@@ -1391,7 +1397,8 @@ export default function Dashboard(){
               </div>
             </div>
             <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>CMJ — Último Teste</div>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:4}}>CMJ — Último Teste</div>
+              <div style={{fontSize:9,color:t.textFaint,marginBottom:8,lineHeight:1.4}}>Counter-Movement Jump: salto vertical com contramovimento (melhor de 3 tentativas). Indicador de prontidão neuromuscular — queda {">"} 5% do baseline = fadiga acumulada.</div>
               <ResponsiveContainer width="100%" height={160}>
                 <BarChart data={players.filter(p=>p.cmj).sort((a,b)=>b.cmj-a.cmj).slice(0,15)} margin={{bottom:35}}>
                   <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
@@ -1436,8 +1443,8 @@ export default function Dashboard(){
                 <strong style={{fontFamily:"'Inter Tight'"}}>Recomendação:</strong> {rx}
               </div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:8,marginTop:10}}>
-                {[{l:"PSE",v:p.pse},{l:"sRPE avg",v:p.sra},{l:"Sono",v:p.sq},{l:"RecP",v:p.rp},{l:"Dor",v:p.d},{l:"CMJ",v:p.cmj||"-"}].map((m,j)=>
-                  <div key={j} style={{textAlign:"center",padding:"6px 0",background:t.bgMuted,borderRadius:6}}>
+                {[{l:"PSE",v:p.pse,tip:"Percepção de Esforço (0–10)"},{l:"sRPE Total",v:p.sra,tip:"PSE × Duração (UA)"},{l:"Sono",v:p.sq,tip:"Qualidade do sono (1–10)"},{l:"RecP",v:p.rp,tip:"Recuperação de pernas (1–10)"},{l:"Dor",v:p.d,tip:"Nível de dor (0–10)"},{l:"CMJ",v:p.cmj||"-",tip:"Salto CMJ (cm)"}].map((m,j)=>
+                  <div key={j} style={{textAlign:"center",padding:"6px 0",background:t.bgMuted,borderRadius:6,cursor:"help"}} title={m.tip}>
                     <div style={{fontSize:9,color:t.textFaint}}>{m.l}</div>
                     <div style={{fontFamily:"'JetBrains Mono'",fontSize:13,fontWeight:700,color:t.text}}>{m.v}</div>
                   </div>)}
@@ -1449,7 +1456,10 @@ export default function Dashboard(){
         {tab==="carga"&&<div>
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri,marginBottom:4}}>Painel de Carga & ACWR</div>
-            <div style={{fontSize:11,color:t.textMuted}}>Monitoramento de ACWR (EWMA), carga cumulativa semanal/mensal e monotonia por atleta</div>
+            <div style={{fontSize:11,color:t.textMuted,marginBottom:6}}>Monitoramento de ACWR (EWMA), carga cumulativa semanal/mensal e monotonia por atleta</div>
+            <div style={{fontSize:10,color:t.textFaint,lineHeight:1.5,padding:"8px 12px",background:t.bgMuted,borderRadius:8,border:`1px solid ${t.borderLight}`}}>
+              <strong style={{color:pri}}>O que é o ACWR?</strong> O Acute:Chronic Workload Ratio compara a carga de treino recente (últimos 7 dias) com o que o atleta acumulou no último mês (28 dias). O valor mostra se houve um pico repentino de carga ({">"}1.3) ou uma queda significativa ({"<"}0.8) em relação ao habitual. Valores fora da faixa 0.8–1.3 estão associados a maior incidência de lesões (Gabbett, 2016). O cálculo usa o método EWMA (Exponentially Weighted Moving Average), que dá mais peso aos dias mais recentes, tornando o indicador mais sensível a mudanças abruptas de carga do que a média simples (Williams et al., 2017).
+            </div>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12,marginBottom:16}}>
             {[{l:"ACWR Médio",v:players.reduce((s,p)=>s+(p.ai||1),0)/players.length,u:"",c:players.reduce((s,p)=>s+(p.ai||1),0)/players.length>1.3?"#DC2626":"#16A34A"},
@@ -1488,7 +1498,8 @@ export default function Dashboard(){
           </div>
           {/* Carga Acumulada semanal */}
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Carga Semanal sRPE (Top 10 atletas)</div>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:4}}>Carga Semanal sRPE (Top 10 atletas)</div>
+            <div style={{fontSize:9,color:t.textFaint,marginBottom:8,lineHeight:1.4}}>sRPE Total = PSE (0–10) × Duração da sessão (min). Representa o volume de esforço percebido em Unidades Arbitrárias (UA). Ex: PSE 7 × 90 min = 630 UA. Valores acima de 450 UA indicam sessões de alta carga (Foster et al., 2001).</div>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={players.slice(0,10).map(p=>({n:p.n.split(" ")[0],sRPE:p.sra||0}))}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={t.borderLight}/>
@@ -1507,7 +1518,10 @@ export default function Dashboard(){
         {tab==="neuro"&&<div>
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri,marginBottom:4}}>Painel Neuromuscular</div>
-            <div style={{fontSize:11,color:t.textMuted}}>CMJ, tendência neuromuscular, NME (Eficiência Neuromuscular) e assimetria bilateral</div>
+            <div style={{fontSize:11,color:t.textMuted,marginBottom:6}}>CMJ, tendência neuromuscular, NME (Eficiência Neuromuscular) e assimetria bilateral</div>
+            <div style={{fontSize:10,color:t.textFaint,lineHeight:1.5,padding:"8px 12px",background:t.bgMuted,borderRadius:8,border:`1px solid ${t.borderLight}`}}>
+              <strong style={{color:pri}}>O que é o CMJ?</strong> O Counter-Movement Jump (Salto com Contramovimento) é um teste de salto vertical onde o atleta realiza uma rápida flexão de joelhos antes de saltar o mais alto possível. Mede a <strong>prontidão neuromuscular</strong> — a capacidade do sistema nervoso de recrutar fibras musculares de forma explosiva. Uma queda {">"} 5% em relação ao baseline individual indica fadiga neuromuscular acumulada; queda {">"} 8% é alerta crítico (Claudino et al., 2017). Utilizamos o <strong>melhor dos 3 saltos</strong> de cada sessão para minimizar variabilidade. O CMJ unipodal (SLCMJ) avalia assimetria entre pernas — diferenças {">"} 10% sugerem risco biomecânico. O NME (Eficiência Neuromuscular = CMJ ÷ sRPE) indica quando o atleta está produzindo menos força para o mesmo esforço percebido.
+            </div>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12,marginBottom:16}}>
             {[{l:"CMJ Médio Elenco",v:(players.reduce((s,p)=>s+(p.cmj||0),0)/players.filter(p=>p.cmj).length).toFixed(1),u:"cm",c:"#7c3aed"},
@@ -3069,7 +3083,7 @@ export default function Dashboard(){
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
                 <PlayerPhoto theme={t} name={sp.n} sz={80}/>
                 <ScoreRing theme={t} v={sp.riskScore} sz={48} th={4}/>
-                <div style={{fontSize:8,color:t.textFaint,textAlign:"center"}}>Risk Score</div>
+                <div style={{fontSize:8,color:t.textFaint,textAlign:"center",cursor:"help"}} title="Índice composto (0–100) baseado em regras clínicas: ACWR, Dor, Rec. Pernas, Sono e Bem-estar. Diferente da Probabilidade de Lesão (modelo ML).">Risk Score</div>
               </div>
               <div style={{flex:1}}>
                 <div style={{fontFamily:"'Inter Tight'",fontSize:20,fontWeight:900,color:pri}}>{sp.n} <Badge level={sp.risk}/> <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:t.textFaint,fontWeight:400,marginLeft:6}}>{sp.pos} · {sp.id} anos · {sp.nc} sessões</span></div>
@@ -3077,8 +3091,8 @@ export default function Dashboard(){
                   {sp.reasons.map((r,i)=><span key={i} style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:LV[sp.risk].bg,color:LV[sp.risk].c,border:`1px solid ${LV[sp.risk].bc}`}}>{r}</span>)}
                 </div>}
                 <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:12,marginTop:12}}>
-                  {[{l:"ACWR Int",v:sp.ai?.toFixed(2)||"-"},{l:"PSE",v:sp.pse},{l:"sRPE avg",v:sp.sra},{l:"CMJ",v:sp.cmj||"-"},{l:"Humor",v:humorL[sp.h]},{l:"Energia",v:sp.e<=2?"Baixa":"OK"}].map((m,i)=>
-                    <div key={i} style={{textAlign:"center"}}><div style={{fontSize:9,color:t.textFaint,fontWeight:500}}>{m.l}</div><div style={{fontFamily:"'JetBrains Mono'",fontSize:15,fontWeight:700,color:pri,marginTop:1}}>{m.v}</div></div>)}
+                  {[{l:"ACWR Int",v:sp.ai?.toFixed(2)||"-",tip:"Acute:Chronic Workload Ratio — carga aguda (7d) ÷ crônica (28d). Ideal: 0.8–1.3"},{l:"PSE",v:sp.pse,tip:"Percepção Subjetiva de Esforço da sessão (escala CR-10 de Borg, 0–10)"},{l:"sRPE Total",v:sp.sra,tip:"Carga total da sessão = PSE × Duração (min). Representa o volume de esforço em Unidades Arbitrárias (UA)"},{l:"CMJ",v:sp.cmj||"-",tip:"Counter-Movement Jump (cm) — melhor de 3 saltos. Indicador de prontidão neuromuscular"},{l:"Humor",v:humorL[sp.h],tip:"Estado de humor pré-treino (1=Raiva, 5=Tranquilo)"},{l:"Energia",v:sp.e<=2?"Baixa":"OK",tip:"Nível de energia pré-treino (1–4)"}].map((m,i)=>
+                    <div key={i} style={{textAlign:"center",cursor:"help"}} title={m.tip}><div style={{fontSize:9,color:t.textFaint,fontWeight:500}}>{m.l}</div><div style={{fontFamily:"'JetBrains Mono'",fontSize:15,fontWeight:700,color:pri,marginTop:1}}>{m.v}</div></div>)}
                 </div>
               </div>
             </div>
@@ -3095,7 +3109,8 @@ export default function Dashboard(){
             return <div style={{display:"grid",gridTemplateColumns:dmStatus?"1fr 1fr":"1fr",gap:16,marginBottom:16}}>
               {/* Probabilidade de Lesão */}
               <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${probPct?probC+"33":t.border}`,padding:18}}>
-                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Probabilidade de Lesão — XGBoost + SHAP</div>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:4}}>Probabilidade de Lesão — XGBoost + SHAP</div>
+                <div style={{fontSize:9,color:t.textFaint,marginBottom:8,lineHeight:1.4}}>Diferente do Risk Score (regras clínicas), esta é a probabilidade estimada por machine learning usando 33 features selecionadas (GPS, carga, neuromuscular, sono, bioquímica, histórico). Modelo calibrado com Isotonic Regression — o percentual representa a chance real de lesão nos próximos 7 dias.</div>
                 {probPct!==null?<div>
                   <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:12}}>
                     <div style={{position:"relative",width:90,height:90,display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -3320,17 +3335,17 @@ export default function Dashboard(){
               const isMatch=isMatchST2(e.sessionTitle)||matchDateSet2.has(dtKey);
               if(!isMatch)return null;
               const g=e.gps||{};
-              return{date:dt,dateStr:dtKey,fmtDate:fmtDt2(dt),title:e.sessionTitle||"",dist:g.dist_total||0,hsr:g.hsr||0,sprints:g.sprints||0,pico_vel:g.pico_vel||0,player_load:g.player_load||0,acel:g.acel||0,decel:g.decel||0};
+              return{date:dt,dateStr:dtKey,fmtDate:fmtDt2(dt),title:e.sessionTitle||"",dist:g.dist_total||0,hsr:g.hsr||0,sprints:g.sprints||0,pico_vel:g.pico_vel||0,player_load:g.player_load||0,acel:g.acel||0,decel:g.decel||0,acel_3:g.acel_3||0,decel_3:g.decel_3||0};
             }).filter(Boolean).filter(s=>s.dist>2000); // Min 2km = actually played
             if(gameSessions.length<3)return null;
             // Sort by composite score (dist + hsr*3 + sprints*50) to find best games
             const scored=gameSessions.map(s=>({...s,score:s.dist+s.hsr*3+s.sprints*50+s.player_load})).sort((a,b)=>b.score-a.score);
             const top5=scored.slice(0,Math.min(5,scored.length));
             const avg5=k=>top5.length?Math.round(top5.reduce((a,s)=>a+s[k],0)/top5.length*10)/10:0;
-            const ma={dist:avg5("dist"),hsr:avg5("hsr"),sprints:avg5("sprints"),pico_vel:avg5("pico_vel"),player_load:avg5("player_load"),acel:avg5("acel"),decel:avg5("decel")};
+            const ma={dist:avg5("dist"),hsr:avg5("hsr"),sprints:avg5("sprints"),pico_vel:avg5("pico_vel"),player_load:avg5("player_load"),acel:avg5("acel"),decel:avg5("decel"),acel_3:avg5("acel_3"),decel_3:avg5("decel_3")};
             // All games average for comparison
             const avgAll=k=>gameSessions.length?Math.round(gameSessions.reduce((a,s)=>a+s[k],0)/gameSessions.length*10)/10:0;
-            const allAvg={dist:avgAll("dist"),hsr:avgAll("hsr"),sprints:avgAll("sprints"),pico_vel:avgAll("pico_vel"),player_load:avgAll("player_load")};
+            const allAvg={dist:avgAll("dist"),hsr:avgAll("hsr"),sprints:avgAll("sprints"),pico_vel:avgAll("pico_vel"),player_load:avgAll("player_load"),acel_3:avgAll("acel_3"),decel_3:avgAll("decel_3")};
             // Last game data
             const lastGame=gameSessions.sort((a,b)=>b.date-a.date)[0];
             // Comparison bars data
@@ -3340,6 +3355,8 @@ export default function Dashboard(){
               {l:"Sprints",last:lastGame?.sprints||0,top5:ma.sprints,all:allAvg.sprints,unit:""},
               {l:"Pico Vel. (km/h)",last:lastGame?.pico_vel||0,top5:ma.pico_vel,all:allAvg.pico_vel,unit:"km/h"},
               {l:"Player Load",last:lastGame?.player_load||0,top5:ma.player_load,all:allAvg.player_load,unit:""},
+              {l:"Acel >3m/s²",last:lastGame?.acel_3||0,top5:ma.acel_3,all:allAvg.acel_3,unit:""},
+              {l:"Desacel >3m/s²",last:lastGame?.decel_3||0,top5:ma.decel_3,all:allAvg.decel_3,unit:""},
             ];
             const chartData=metrics.map(m=>({name:m.l.split("(")[0].trim(),last:Math.round(m.last),top5:Math.round(m.top5),avg:Math.round(m.all)}));
             // % of top5 for each metric in last game
@@ -3748,7 +3765,7 @@ export default function Dashboard(){
               <WBar theme={t} label={`Dor — avg ${sp.da||"-"}`} v={sp.d||0} max={10} inv/>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:8}}>
                 <div style={{padding:8,background:t.bgMuted,borderRadius:8,textAlign:"center"}}><div style={{fontSize:9,color:t.textFaint}}>Humor</div><div style={{fontSize:13,fontWeight:700,color:sp.h<=2?"#DC2626":"#16A34A"}}>{humorL[sp.h]}</div></div>
-                <div style={{padding:8,background:t.bgMuted,borderRadius:8,textAlign:"center"}}><div style={{fontSize:9,color:t.textFaint}}>sRPE avg</div><div style={{fontFamily:"'JetBrains Mono'",fontSize:13,fontWeight:700,color:pri}}>{sp.sra}</div></div>
+                <div style={{padding:8,background:t.bgMuted,borderRadius:8,textAlign:"center",cursor:"help"}} title="sRPE Total = PSE × Duração (min). Carga total da sessão em Unidades Arbitrárias (UA)"><div style={{fontSize:9,color:t.textFaint}}>sRPE Total</div><div style={{fontFamily:"'JetBrains Mono'",fontSize:13,fontWeight:700,color:pri}}>{sp.sra}</div></div>
               </div>
             </div>
           </div>
@@ -4886,6 +4903,206 @@ export default function Dashboard(){
                 })}
               </tbody>
             </table>
+          </div>
+        </div>}
+
+        {/* ═══════════ GLOSSÁRIO COMPLETO DA PLATAFORMA ═══════════ */}
+        {tab==="glossario"&&<div>
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri,marginBottom:4}}>Glossário da Plataforma</div>
+            <div style={{fontSize:11,color:t.textMuted}}>Definição completa de todos os termos, métricas e indicadores utilizados no Performance Dashboard</div>
+          </div>
+
+          {/* Risk Score vs Probabilidade de Lesão */}
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:"#DC2626",marginBottom:10,display:"flex",alignItems:"center",gap:6}}><AlertTriangle size={16}/>Diferença: Risk Score vs. Probabilidade de Lesão</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+              <div style={{padding:14,background:t.bgMuted,borderRadius:10,border:`1px solid ${t.borderLight}`}}>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:6}}>Risk Score (0–100)</div>
+                <div style={{fontSize:11,color:t.textMuted,lineHeight:1.6}}>
+                  <strong>O que é:</strong> Índice composto calculado por <strong>regras clínicas</strong> pré-definidas pela equipe de performance.<br/>
+                  <strong>Como calcula:</strong> Soma ponderada de ACWR ({">"}1.45 = +30pts), Dor ({">"}4 = +20pts), Recuperação Pernas ({"<"}5 = +18pts), Dor média ({">"}2.5 = +10pts), Sono médio ({"<"}6 = +8pts) e Bem-estar ({"<"}6 = +6pts).<br/>
+                  <strong>Para que serve:</strong> Triagem rápida diária — identifica quem precisa de atenção imediata baseado em indicadores observáveis do dia.<br/>
+                  <strong>Limitação:</strong> Não considera histórico de lesões, biomecânica, bioquímica ou interações entre variáveis.
+                </div>
+              </div>
+              <div style={{padding:14,background:t.bgMuted,borderRadius:10,border:`1px solid ${t.borderLight}`}}>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:6}}>Probabilidade de Lesão (0–100%)</div>
+                <div style={{fontSize:11,color:t.textMuted,lineHeight:1.6}}>
+                  <strong>O que é:</strong> Estimativa de machine learning (XGBoost) da <strong>chance real de lesão</strong> nos próximos 7 dias.<br/>
+                  <strong>Como calcula:</strong> Modelo treinado com dados históricos, usando 33 features selecionadas por LASSO (GPS, carga, neuromuscular, sono, bioquímica, histórico de lesões). Calibrado com Isotonic Regression + Platt Scaling.<br/>
+                  <strong>Para que serve:</strong> Predição individualizada — considera interações complexas (ex: ACWR alto + sono ruim + lesão recente = risco exponencial).<br/>
+                  <strong>Explicabilidade:</strong> Valores SHAP mostram quais fatores aumentam ou reduzem o risco de cada atleta individualmente.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Métricas GPS */}
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,marginBottom:12}}>1. Métricas GPS (Rastreamento Externo)</div>
+            <div style={{fontSize:10,color:t.textFaint,marginBottom:10}}>Dados coletados via dispositivo GPS vestível durante treinos e jogos.</div>
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+              <thead><tr style={{borderBottom:`2px solid ${t.border}`}}>
+                {["Métrica","Unidade","Descrição","Interpretação"].map((h,i)=><th key={i} style={{padding:"8px 6px",textAlign:"left",fontSize:9,color:t.textFaint,fontWeight:700,textTransform:"uppercase"}}>{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {[
+                  {m:"Distância Total",u:"metros",d:"Distância total percorrida na sessão",i:"Volume geral do treino. Comparar com baseline individual."},
+                  {m:"HSR (High-Speed Running)",u:"metros",d:"Distância percorrida acima de 19.8 km/h",i:"Indicador de intensidade alta. Picos acima de 130% do baseline = alerta."},
+                  {m:"Sprints",u:"contagem",d:"Número de ações acima de 25.2 km/h",i:"Ações de máxima intensidade. Relação direta com risco de lesão muscular."},
+                  {m:"Player Load",u:"UA",d:"Métrica de carga externa (acelerometria triaxial)",i:"Medida global de demanda mecânica. Unidade arbitrária."},
+                  {m:"Pico de Velocidade",u:"km/h",d:"Velocidade máxima atingida na sessão",i:"Capacidade de sprint máximo. Variações indicam fadiga neuromuscular."},
+                  {m:"Acelerações >2 m/s²",u:"contagem",d:"Número de acelerações acima de 2 m/s²",i:"Demanda mecânica de arranques moderados."},
+                  {m:"Acelerações >3 m/s²",u:"contagem",d:"Número de acelerações acima de 3 m/s² (alta intensidade)",i:"Arranques explosivos. Maior estresse muscular e articular."},
+                  {m:"Desacelerações >2 m/s²",u:"contagem",d:"Número de desacelerações acima de 2 m/s²",i:"Demanda excêntrica moderada de frenagens."},
+                  {m:"Desacelerações >3 m/s²",u:"contagem",d:"Número de desacelerações acima de 3 m/s² (alta intensidade)",i:"Frenagens bruscas — alto estresse excêntrico no quadríceps e tendões."},
+                  {m:"FC Média / FC Máx",u:"bpm",d:"Frequência cardíaca média e máxima da sessão",i:"Indicador de demanda cardiovascular e intensidade metabólica."},
+                  {m:"Tempo em Zona Alta",u:"minutos",d:"Tempo com FC acima de 85% da FCmáx",i:"Exposição a alta intensidade cardíaca. Relacionado a fadiga central."}
+                ].map((r,i)=><tr key={i} style={{borderBottom:`1px solid ${t.borderLight}`,background:i%2===0?"transparent":t.bgMuted}}>
+                  <td style={{padding:"6px",fontWeight:600,color:pri}}>{r.m}</td>
+                  <td style={{padding:"6px",fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textMuted}}>{r.u}</td>
+                  <td style={{padding:"6px",color:t.textMuted}}>{r.d}</td>
+                  <td style={{padding:"6px",color:t.text,fontSize:10}}>{r.i}</td>
+                </tr>)}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Carga Interna - sRPE */}
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,marginBottom:12}}>2. Carga Interna (sRPE / Diário)</div>
+            <div style={{fontSize:10,color:t.textFaint,marginBottom:10}}>Dados subjetivos reportados pelo atleta após cada sessão de treino ou jogo.</div>
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+              <thead><tr style={{borderBottom:`2px solid ${t.border}`}}>
+                {["Métrica","Fórmula / Escala","Descrição","Interpretação"].map((h,i)=><th key={i} style={{padding:"8px 6px",textAlign:"left",fontSize:9,color:t.textFaint,fontWeight:700,textTransform:"uppercase"}}>{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {[
+                  {m:"PSE (sRPE sessão)",f:"Escala CR-10 (0–10)",d:"Percepção Subjetiva de Esforço da sessão (Escala de Borg modificada)",i:"0 = repouso, 10 = esforço máximo. Coletado 30 min após a sessão para evitar viés do último exercício."},
+                  {m:"sRPE Total",f:"PSE × Duração (min)",d:"Carga total da sessão em Unidades Arbitrárias (UA)",i:"Exemplo: PSE 7 × 90 min = 630 UA. Acima de 450 UA = sessão de alta carga. Reflete o volume de esforço percebido (Foster et al., 2001)."},
+                  {m:"ACWR",f:"Carga 7d ÷ Carga 28d",d:"Acute:Chronic Workload Ratio — razão entre carga aguda e crônica",i:"Compara o que o atleta treinou recentemente com o que está acostumado. Ideal: 0.8–1.3. >1.5 = risco alto de lesão. <0.8 = subcarga/desproteção (Gabbett, 2016). Calculado por EWMA."},
+                  {m:"ACWR HSR",f:"HSR 7d ÷ HSR 28d",d:"ACWR específico para corrida de alta velocidade",i:"Foca na carga de alta intensidade (>19.8 km/h). Mais sensível para lesões musculares de sprint."},
+                  {m:"Monotonia",f:"Média diária ÷ DP diário",d:"Variabilidade da carga nos últimos 7 dias",i:"Alta monotonia (>2.0) = carga repetitiva sem variação → risco de overreaching. Indica falta de periodização (Foster, 1998)."},
+                  {m:"Strain",f:"Carga semanal × Monotonia",d:"Esforço acumulado ponderado pela monotonia",i:"Combina volume total com falta de variação. Valores altos indicam risco de overtraining."}
+                ].map((r,i)=><tr key={i} style={{borderBottom:`1px solid ${t.borderLight}`,background:i%2===0?"transparent":t.bgMuted}}>
+                  <td style={{padding:"6px",fontWeight:600,color:pri}}>{r.m}</td>
+                  <td style={{padding:"6px",fontFamily:"'JetBrains Mono'",fontSize:10,color:"#7c3aed"}}>{r.f}</td>
+                  <td style={{padding:"6px",color:t.textMuted}}>{r.d}</td>
+                  <td style={{padding:"6px",color:t.text,fontSize:10}}>{r.i}</td>
+                </tr>)}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Neuromuscular - CMJ */}
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,marginBottom:12}}>3. Métricas Neuromusculares (CMJ / Saltos)</div>
+            <div style={{fontSize:10,color:t.textFaint,marginBottom:10}}>Avaliação neuromuscular via saltos verticais — indicador de prontidão e fadiga.</div>
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+              <thead><tr style={{borderBottom:`2px solid ${t.border}`}}>
+                {["Métrica","Fórmula / Método","Descrição","Interpretação"].map((h,i)=><th key={i} style={{padding:"8px 6px",textAlign:"left",fontSize:9,color:t.textFaint,fontWeight:700,textTransform:"uppercase"}}>{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {[
+                  {m:"CMJ (Counter-Movement Jump)",f:"Melhor de 3 saltos (cm)",d:"Salto vertical com contramovimento — o atleta flexiona os joelhos rapidamente e salta o mais alto possível",i:"Mede a prontidão neuromuscular: a capacidade do sistema nervoso de recrutar fibras musculares explosivamente. Redução do CMJ indica fadiga central/periférica antes de sinais clínicos."},
+                  {m:"CMJ Delta %",f:"(CMJ pós - CMJ pré) ÷ pré × 100",d:"Variação percentual do CMJ entre pré e pós-treino",i:"Queda >5% = fadiga neuromuscular significativa. >8% = alerta crítico, considerar treino regenerativo (Claudino et al., 2017)."},
+                  {m:"SLCMJ (Single-Leg CMJ)",f:"Melhor de 3 (cada perna)",d:"CMJ unipodal — perna direita e esquerda separadamente",i:"Avalia assimetria entre membros. Diferenças refletem compensações, fraqueza unilateral ou lesão prévia."},
+                  {m:"Assimetria SLCMJ",f:"|Dir - Esq| ÷ max(Dir,Esq) × 100",d:"Diferença percentual entre pernas no CMJ unipodal",i:">10% = risco biomecânico elevado. >15% = programa de correção neuromuscular obrigatório."},
+                  {m:"NME (Eficiência Neuromuscular)",f:"CMJ ÷ sRPE da sessão",d:"Relação entre output neuromuscular e esforço percebido",i:"Queda no NME indica que o atleta está produzindo menos força para o mesmo nível de esforço — fadiga desproporcional."},
+                  {m:"RSI (Reactive Strength Index)",f:"Altura ÷ Tempo de contato",d:"Índice de força reativa (quando disponível)",i:"Mede a capacidade do ciclo alongamento-encurtamento. Queda indica fadiga elástica dos tendões."}
+                ].map((r,i)=><tr key={i} style={{borderBottom:`1px solid ${t.borderLight}`,background:i%2===0?"transparent":t.bgMuted}}>
+                  <td style={{padding:"6px",fontWeight:600,color:pri}}>{r.m}</td>
+                  <td style={{padding:"6px",fontFamily:"'JetBrains Mono'",fontSize:10,color:"#7c3aed"}}>{r.f}</td>
+                  <td style={{padding:"6px",color:t.textMuted}}>{r.d}</td>
+                  <td style={{padding:"6px",color:t.text,fontSize:10}}>{r.i}</td>
+                </tr>)}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Bem-estar */}
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,marginBottom:12}}>4. Bem-estar (Questionários Diários)</div>
+            <div style={{fontSize:10,color:t.textFaint,marginBottom:10}}>Dados subjetivos coletados via questionário diário pré-treino.</div>
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+              <thead><tr style={{borderBottom:`2px solid ${t.border}`}}>
+                {["Métrica","Escala","Descrição","Limiar de Alerta"].map((h,i)=><th key={i} style={{padding:"8px 6px",textAlign:"left",fontSize:9,color:t.textFaint,fontWeight:700,textTransform:"uppercase"}}>{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {[
+                  {m:"Sono (qualidade)",s:"1–10",d:"Qualidade percebida do sono na noite anterior",a:"< 5 = sono insuficiente, aumento de risco de lesão e queda de performance cognitiva"},
+                  {m:"Sono (duração)",s:"horas",d:"Horas dormidas na noite anterior",a:"< 6h = duração crítica. Recomendado: 7–9h para atletas (Watson, 2017)"},
+                  {m:"Dor",s:"0–10",d:"Nível de dor ou desconforto geral. 0 = sem dor",a:"> 6 = dor significativa, avaliar com fisioterapia. > 7 = avaliação imediata"},
+                  {m:"Recuperação Geral",s:"1–10",d:"Percepção geral de recuperação",a:"< 4 = recuperação insuficiente, considerar redução de carga"},
+                  {m:"Recuperação Pernas",s:"1–10",d:"Recuperação específica de membros inferiores",a:"< 5 = fadiga residual significativa nos MMII"},
+                  {m:"Humor",s:"1–5",d:"Estado de humor/disposição (1=Raiva, 5=Tranquilo)",a:"Queda sustentada pode indicar overtraining ou fatores psicossociais"},
+                  {m:"Energia",s:"1–4",d:"Nível subjetivo de energia/disposição",a:"≤ 2 = energia baixa, monitorar carga e sono"},
+                  {m:"Peso",s:"kg",d:"Peso corporal matinal (pré-treino)",a:"Variações > 2% em 24h podem indicar desidratação ou retenção"}
+                ].map((r,i)=><tr key={i} style={{borderBottom:`1px solid ${t.borderLight}`,background:i%2===0?"transparent":t.bgMuted}}>
+                  <td style={{padding:"6px",fontWeight:600,color:pri}}>{r.m}</td>
+                  <td style={{padding:"6px",fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textMuted}}>{r.s}</td>
+                  <td style={{padding:"6px",color:t.textMuted}}>{r.d}</td>
+                  <td style={{padding:"6px",color:"#DC2626",fontSize:10,fontWeight:500}}>{r.a}</td>
+                </tr>)}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Indicadores Derivados */}
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,marginBottom:12}}>5. Indicadores Derivados & Compostos</div>
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+              <thead><tr style={{borderBottom:`2px solid ${t.border}`}}>
+                {["Indicador","Fórmula","Descrição","Quando preocupar"].map((h,i)=><th key={i} style={{padding:"8px 6px",textAlign:"left",fontSize:9,color:t.textFaint,fontWeight:700,textTransform:"uppercase"}}>{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {[
+                  {m:"Déficit Biológico",f:"(10−Sono)×0.4 + Dor×0.3 + (10−Rec)×0.3",d:"Indicador composto de recuperação biológica",a:">1.5 = atenção. >2.0 = crítico. Combina os 3 principais marcadores subjetivos de recuperação."},
+                  {m:"Fatigue Debt",f:"sRPE Total × ACWR × 2.5",d:"Dívida de fadiga acumulada — carga absoluta ponderada pelo ACWR",a:">3000 = fadiga alta. >2500 = moderada. Indica acúmulo de carga sem recuperação adequada."},
+                  {m:"Média Móvel (Top 5 Jogos)",f:"Média das 5 melhores partidas (score composto)",d:"Baseline de pico individual para comparação de demanda",a:"Último jogo < 70% do Top 5 = rendimento abaixo do pico. Usado como referência de match demand (Malone et al., 2015)."},
+                  {m:"Zonas de Risco (ML)",f:"VERDE <28% | AMARELO 28–39% | LARANJA 40–64% | VERMELHO ≥65%",d:"Classificação da probabilidade de lesão em zonas de ação",a:"Cada zona tem um protocolo de intervenção específico definido pela equipe."}
+                ].map((r,i)=><tr key={i} style={{borderBottom:`1px solid ${t.borderLight}`,background:i%2===0?"transparent":t.bgMuted}}>
+                  <td style={{padding:"6px",fontWeight:600,color:pri}}>{r.m}</td>
+                  <td style={{padding:"6px",fontFamily:"'JetBrains Mono'",fontSize:9,color:"#7c3aed"}}>{r.f}</td>
+                  <td style={{padding:"6px",color:t.textMuted}}>{r.d}</td>
+                  <td style={{padding:"6px",color:"#DC2626",fontSize:10,fontWeight:500}}>{r.a}</td>
+                </tr>)}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Perfis de Risco */}
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,marginBottom:12}}>6. Perfis de Risco de Lesão</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              {[
+                {l:"Aguda",c:"#DC2626",d:"Evento traumático ou pico súbito de carga",m:"ACWR alto, sprint em estado de fadiga, mudança brusca de direção",a:"Redução imediata de HSR e sprints. Monitorar 48h."},
+                {l:"Sobrecarga",c:"#EA580C",d:"Acúmulo progressivo sem recuperação",m:"Monotonia alta (>2.0), strain elevado, sono ruim crônico",a:"Microciclo de descarga. Priorizar sono e recuperação."},
+                {l:"Neuromuscular",c:"#7c3aed",d:"Déficit de força ou coordenação",m:"CMJ em queda >5%, NME baixo, RSI reduzido",a:"Treino regenerativo. Avaliar CMJ pré-treino como gate."},
+                {l:"Biomecânico",c:"#CA8A04",d:"Assimetria ou padrão de movimento compensatório",m:"Assimetria SLCMJ >10%, histórico de lesão recente, H:Q ratio <0.55",a:"Programa de correção. Ativação bilateral pré-treino."}
+              ].map((p,i)=><div key={i} style={{padding:14,background:t.bgMuted,borderRadius:10,border:`1px solid ${p.c}22`}}>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:p.c,marginBottom:6}}>{p.l}</div>
+                <div style={{fontSize:10,color:t.textMuted,lineHeight:1.5,marginBottom:4}}><strong>Definição:</strong> {p.d}</div>
+                <div style={{fontSize:10,color:t.textMuted,lineHeight:1.5,marginBottom:4}}><strong>Marcadores:</strong> {p.m}</div>
+                <div style={{fontSize:10,color:t.text,lineHeight:1.5}}><strong>Intervenção:</strong> {p.a}</div>
+              </div>)}
+            </div>
+          </div>
+
+          {/* Referências */}
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,marginBottom:12}}>7. Referências Científicas</div>
+            <div style={{fontSize:10,color:t.textMuted,lineHeight:1.8}}>
+              <div>• <strong>Gabbett, T.J. (2016)</strong> — The training–injury prevention paradox. <em>British Journal of Sports Medicine</em>, 50(5), 273-280. [ACWR, zonas de risco]</div>
+              <div>• <strong>Hulin, B.T. et al. (2014)</strong> — The acute:chronic workload ratio predicts injury. <em>British Journal of Sports Medicine</em>, 48(8), 708-712. [ACWR aplicado]</div>
+              <div>• <strong>Williams, S. et al. (2017)</strong> — Better way to determine ACWR. <em>British Journal of Sports Medicine</em>, 51(3), 209-210. [EWMA vs rolling average]</div>
+              <div>• <strong>Foster, C. et al. (2001)</strong> — A new approach to monitoring exercise training. <em>Journal of Strength and Conditioning Research</em>, 15(1), 109-115. [sRPE, Monotonia, Strain]</div>
+              <div>• <strong>Foster, C. (1998)</strong> — Monitoring training in athletes. <em>Medicine and Science in Sports and Exercise</em>, 30(7), 1164-1168. [Monotonia]</div>
+              <div>• <strong>Claudino, J.G. et al. (2017)</strong> — The countermovement jump to monitor neuromuscular status. <em>Journal of Science and Medicine in Sport</em>, 20(4), 396-402. [CMJ como marcador]</div>
+              <div>• <strong>Watson, A.M. (2017)</strong> — Sleep and athletic performance. <em>Current Sports Medicine Reports</em>, 16(6), 413-418. [Sono e performance]</div>
+              <div>• <strong>Malone, J.J. et al. (2015)</strong> — High chronic training loads and exposure to bouts of maximal velocity running. <em>Journal of Sports Science and Medicine</em>, 14(4), 861. [Match demand baseline]</div>
+            </div>
           </div>
         </div>}
       </main>

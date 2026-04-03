@@ -4,6 +4,22 @@ Definicao completa de todas as variaveis, metricas e indicadores utilizados no P
 
 ---
 
+## 0. Conceitos Fundamentais — Risk Score vs. Probabilidade de Lesao
+
+### Risk Score (0–100)
+- **O que e:** Indice composto calculado por **regras clinicas** pre-definidas pela equipe de performance.
+- **Como calcula:** Soma ponderada de ACWR (>1.45 = +30pts), Dor (>4 = +20pts), Rec. Pernas (<5 = +18pts), Dor media (>2.5 = +10pts), Sono medio (<6 = +8pts) e Bem-estar (<6 = +6pts).
+- **Para que serve:** Triagem rapida diaria — identifica quem precisa de atencao imediata baseado em indicadores observaveis do dia.
+- **Limitacao:** Nao considera historico de lesoes, biomecanica, bioquimica ou interacoes entre variaveis.
+
+### Probabilidade de Lesao (0–100%)
+- **O que e:** Estimativa de machine learning (XGBoost) da **chance real de lesao** nos proximos 7 dias.
+- **Como calcula:** Modelo treinado com dados historicos, usando 33 features selecionadas por LASSO (GPS, carga, neuromuscular, sono, bioquimica, historico de lesoes). Calibrado com Isotonic Regression + Platt Scaling.
+- **Para que serve:** Predicao individualizada — considera interacoes complexas entre variaveis.
+- **Explicabilidade:** Valores SHAP mostram quais fatores aumentam ou reduzem o risco de cada atleta individualmente.
+
+---
+
 ## 1. Metricas GPS (Rastreamento Externo)
 
 Dados coletados via dispositivo GPS vestivel durante treinos e jogos.
@@ -35,9 +51,9 @@ Dados subjetivos reportados pelo atleta apos cada sessao.
 
 | Variavel | Tipo | Unidade | Descricao |
 |----------|------|---------|-----------|
-| `srpe_sessao` | number | 0-10 | Percepcao Subjetiva de Esforco (PSE) da sessao. Escala CR-10 de Borg |
+| `srpe_sessao` | number | 0-10 | Percepcao Subjetiva de Esforco (PSE) da sessao. Escala CR-10 de Borg modificada. 0 = repouso total, 10 = esforco maximo. Coletado ~30 min apos a sessao para evitar vies do ultimo exercicio. |
 | `duracao` | number | minutos | Duracao da sessao de treino/jogo |
-| `srpe_total` | number | UA | Carga total da sessao = PSE x Duracao (unidade arbitraria) |
+| `srpe_total` | number | UA | Carga total da sessao = PSE x Duracao (Unidades Arbitrarias). Exemplo: PSE 7 x 90 min = 630 UA. Acima de 450 UA = sessao de alta carga. Reflete o volume de esforco percebido pelo atleta (Foster et al., 2001). |
 | `hr_avg` | number | bpm | FC media (pode vir do GPS ou monitor de FC) |
 | `hr_max` | number | bpm | FC maxima da sessao |
 | `tempo_zona_alta` | number | minutos | Tempo em zona de FC alta |
@@ -46,10 +62,10 @@ Dados subjetivos reportados pelo atleta apos cada sessao.
 
 | Indicador | Formula | Descricao |
 |-----------|---------|-----------|
-| **ACWR** | Carga aguda (7d) / Carga cronica (28d) | Acute:Chronic Workload Ratio. Ideal: 0.8-1.3. Risco: >1.5 |
-| **ACWR HSR** | HSR agudo / HSR cronico | ACWR especifico para corrida de alta velocidade |
-| **Monotonia** | Media diaria / DP diario | Variabilidade da carga. Alta monotonia = risco |
-| **Strain** | Carga semanal x Monotonia | Esforco acumulado ponderado |
+| **ACWR** | Carga aguda (7d) / Carga cronica (28d) | Acute:Chronic Workload Ratio. Compara carga recente com habitual. Ideal: 0.8-1.3 (zona otima). >1.3 = risco moderado. >1.5 = risco alto de lesao (Gabbett, 2016). <0.8 = subcarga/desprotecao contra picos futuros. Calculado por EWMA (mais peso aos dias recentes). |
+| **ACWR HSR** | HSR agudo / HSR cronico | ACWR especifico para corrida de alta velocidade (>19.8 km/h). Mais sensivel para lesoes musculares de sprint. |
+| **Monotonia** | Media diaria / DP diario | Variabilidade da carga nos ultimos 7 dias. >2.0 = carga repetitiva sem variacao, risco de overreaching (Foster, 1998). Indica falta de periodizacao. |
+| **Strain** | Carga semanal x Monotonia | Esforco acumulado ponderado pela monotonia. Combina volume total com falta de variacao. Valores altos indicam risco de overtraining. |
 
 ---
 
@@ -59,9 +75,9 @@ Dados de avaliacao neuromuscular via saltos verticais.
 
 | Variavel | Tipo | Unidade | Descricao |
 |----------|------|---------|-----------|
-| `cmj_pre` | number | cm | Counter-Movement Jump pre-treino. Indicador de prontidao neuromuscular |
-| `cmj_pos` | number | cm | CMJ pos-treino. Queda indica fadiga neuromuscular |
-| `cmj_delta_pct` | number | % | Variacao percentual do CMJ (pos vs pre). Queda >5% = alerta |
+| `cmj_pre` | number | cm | Counter-Movement Jump (Salto com Contramovimento) pre-treino. O atleta realiza flexao rapida de joelhos e salta o mais alto possivel. Melhor de 3 tentativas. Indicador de prontidao neuromuscular — mede a capacidade do sistema nervoso de recrutar fibras musculares explosivamente. |
+| `cmj_pos` | number | cm | CMJ pos-treino. Comparacao com pre indica fadiga neuromuscular aguda da sessao. |
+| `cmj_delta_pct` | number | % | Variacao percentual do CMJ (pos vs pre). Queda >5% = fadiga neuromuscular significativa. >8% = alerta critico, considerar treino regenerativo (Claudino et al., 2017). |
 | `sj` | number | cm | Squat Jump (sem contramovimento) |
 | `slcmj_d` | number | cm | Single-Leg CMJ — perna direita |
 | `slcmj_e` | number | cm | Single-Leg CMJ — perna esquerda |
