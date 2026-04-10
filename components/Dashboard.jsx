@@ -3421,7 +3421,7 @@ export default function Dashboard(){
               {l:"Acel >3m/s²",last:lastGame?.acel_3||0,top5:ma.acel_3,all:allAvg.acel_3,unit:""},
               {l:"Desacel >3m/s²",last:lastGame?.decel_3||0,top5:ma.decel_3,all:allAvg.decel_3,unit:""},
             ];
-            const chartData=metrics.map(m=>({name:m.l.split("(")[0].trim(),last:Math.round(m.last),top5:Math.round(m.top5),avg:Math.round(m.all)}));
+            const chartData=metrics.map(m=>{const mx=Math.max(m.last,m.top5,m.all,1);return{name:m.l.split("(")[0].trim(),last:Math.round(m.last/mx*100),top5:Math.round(m.top5/mx*100),avg:Math.round(m.all/mx*100),rawLast:Math.round(m.last),rawTop5:Math.round(m.top5),rawAvg:Math.round(m.all)};});
             // % of top5 for each metric in last game
             const pctOfTop5=m=>m.top5>0?Math.round((m.last/m.top5)*100):0;
             const overallPct=metrics.length?Math.round(metrics.reduce((a,m)=>a+pctOfTop5(m),0)/metrics.length):0;
@@ -3446,9 +3446,17 @@ export default function Dashboard(){
                   <ResponsiveContainer width="100%" height={220}>
                     <BarChart data={chartData} layout="vertical" margin={{left:10,right:10}}>
                       <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
-                      <XAxis type="number" tick={{fontSize:8,fill:t.textFaint}}/>
+                      <XAxis type="number" domain={[0,100]} tickFormatter={v=>`${v}%`} tick={{fontSize:8,fill:t.textFaint}}/>
                       <YAxis type="category" dataKey="name" tick={{fontSize:9,fill:t.textMuted}} width={70}/>
-                      <Tooltip content={<TT theme={t}/>}/>
+                      <Tooltip content={({active,payload,label})=>{
+                        if(!active||!payload?.length)return null;
+                        const d=payload[0]?.payload||{};
+                        const rawMap={top5:d.rawTop5,last:d.rawLast,avg:d.rawAvg};
+                        return <div style={{background:t.tooltipBg,border:`1px solid ${t.border}`,borderRadius:8,padding:"8px 12px",boxShadow:`0 2px 8px ${t.shadowLg}`}}>
+                          <div style={{fontWeight:700,fontSize:11,color:t.text,marginBottom:4}}>{label}</div>
+                          {payload.map((p,i)=><div key={i} style={{fontSize:10,color:p.color||t.textMuted}}>{p.name}: <strong>{rawMap[p.dataKey]!=null?rawMap[p.dataKey]:p.value}</strong></div>)}
+                        </div>;
+                      }}/>
                       <Bar dataKey="top5" name={`Top ${top5.length} Jogos`} fill="#CA8A04" radius={[0,3,3,0]} barSize={10}/>
                       <Bar dataKey="last" name="Último Jogo" fill="#2563eb" radius={[0,3,3,0]} barSize={10}/>
                       <Bar dataKey="avg" name="Média Geral" fill={t.textFaint} radius={[0,3,3,0]} barSize={10} fillOpacity={0.4}/>
