@@ -3258,6 +3258,45 @@ export default function Dashboard(){
             </div>;
           })()}
 
+          {/* Web de determinantes — rede de correlações entre features (Bittencourt 2016) */}
+          {(()=>{
+            const psi=sheetData?.psi;
+            const net=psi?.network;
+            if(!net||!net.nodes?.length)return null;
+            const featLabel={dist_total:"Distância",hsr:"HSR",sprints:"Spr >20",player_load:"PL",pico_vel:"Vel.Pico",pse:"PSE",srpe:"sRPE",cmj:"CMJ",sono:"Sono",dor:"Dor",rec:"Recup."};
+            const p=net.nodes.length;
+            const cx=220,cy=170,R=130;
+            // Layout circular — posições fixas por feature
+            const pos=net.nodes.map((n,i)=>{const ang=-Math.PI/2+(i*2*Math.PI/p);return{...n,x:cx+R*Math.cos(ang),y:cy+R*Math.sin(ang),ang};});
+            const byKey=Object.fromEntries(pos.map(n=>[n.key,n]));
+            const maxDeg=Math.max(1,...pos.map(n=>n.degree));
+            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,marginBottom:4,display:"flex",alignItems:"center",gap:6}}><Users size={16} color="#2563eb"/>Web de Determinantes</div>
+              <div style={{fontSize:10,color:t.textFaint,marginBottom:12}}>Correlações entre as 11 features do elenco (pooled). Arestas com |r| ≥ 0,2 visíveis. Espessura e opacidade escalam com |r|; vermelho = correlação positiva, verde = negativa.</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 260px",gap:16,alignItems:"start"}}>
+                <div style={{width:"100%",display:"flex",justifyContent:"center"}}>
+                  <svg width="440" height="340" viewBox="0 0 440 340" style={{maxWidth:"100%",height:"auto"}}>
+                    {net.edges.map((e,i)=>{const A=byKey[e.a],B=byKey[e.b];if(!A||!B)return null;const c=e.r>=0?"#DC2626":"#16A34A";const op=Math.min(1,Math.abs(e.r)*1.4);const sw=Math.max(0.6,Math.abs(e.r)*3.5);return <line key={i} x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke={c} strokeOpacity={op} strokeWidth={sw}/>;})}
+                    {pos.map((n,i)=>{const rad=8+Math.abs(n.loading)*14;const nc=n.loading>=0?"#DC2626":"#16A34A";const labelR=R+24;const lx=cx+labelR*Math.cos(n.ang);const ly=cy+labelR*Math.sin(n.ang);return <g key={i}>
+                      <circle cx={n.x} cy={n.y} r={rad} fill={nc} fillOpacity={0.18+0.5*(n.degree/maxDeg)} stroke={nc} strokeWidth={1.5}/>
+                      <text x={lx} y={ly} textAnchor="middle" dominantBaseline="middle" fontSize={10} fontWeight={700} fill={t.textMuted}>{featLabel[n.key]||n.key}</text>
+                    </g>;})}
+                  </svg>
+                </div>
+                <div>
+                  <div style={{fontSize:10,fontWeight:700,color:t.textMuted,marginBottom:6,textTransform:"uppercase",letterSpacing:.5}}>Top 6 interações</div>
+                  <div style={{display:"flex",flexDirection:"column",gap:5}}>
+                    {net.edges.slice(0,6).map((e,i)=>{const c=e.r>=0?"#DC2626":"#16A34A";return <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 8px",background:t.bgMuted,borderRadius:6,border:`1px solid ${t.borderLight}`}}>
+                      <span style={{fontSize:10,color:t.textMuted,fontWeight:600}}>{featLabel[e.a]||e.a} ↔ {featLabel[e.b]||e.b}</span>
+                      <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:c}}>{e.r>=0?"+":""}{e.r.toFixed(2)}</span>
+                    </div>;})}
+                  </div>
+                  <div style={{fontSize:9,color:t.textFaint,marginTop:10,lineHeight:1.4}}>Tamanho do nó: |loading em PC1| (contribuição para Ψ). Tom: loading positivo (vermelho) empurra Ψ para cima; negativo (verde) puxa para baixo. <em>Bittencourt et al., Br J Sports Med 2016.</em></div>
+                </div>
+              </div>
+            </div>;
+          })()}
+
           {/* Risco de Lesão + DM + Histórico */}
           {(()=>{
             const mlAlert=liveAlerts.find(a=>a.n===sp.n);

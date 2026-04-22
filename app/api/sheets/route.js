@@ -1377,10 +1377,44 @@ function assembleOrderParameter({ gps, diario, questionarios, saltos }) {
 
   const loadings = featKeys.map((k, i) => ({ key: k, loading: Math.round(v[i] * 1000) / 1000 }));
 
+  // Web of determinants (Bittencourt 2016): matriz de correlações pooled
+  // entre as features padronizadas + lista achatada de arestas significativas
+  // (|r| ≥ 0.2) para renderização em rede no front-end.
+  const p = featKeys.length;
+  const corr = Array.from({ length: p }, () => new Array(p).fill(0));
+  const traceC = C.reduce((s, r, i) => s + r[i], 0);
+  const diag = C.map((r, i) => Math.sqrt(r[i] > 0 ? r[i] : 1));
+  for (let a = 0; a < p; a++) {
+    for (let b = 0; b < p; b++) {
+      corr[a][b] = Math.round((C[a][b] / (diag[a] * diag[b])) * 1000) / 1000;
+    }
+  }
+  const edges = [];
+  for (let a = 0; a < p; a++) {
+    for (let b = a + 1; b < p; b++) {
+      const r = corr[a][b];
+      if (Math.abs(r) >= 0.2) {
+        edges.push({ a: featKeys[a], b: featKeys[b], r });
+      }
+    }
+  }
+  edges.sort((x, y) => Math.abs(y.r) - Math.abs(x.r));
+
+  const network = {
+    nodes: featKeys.map((k, i) => ({
+      key: k,
+      loading: Math.round(v[i] * 1000) / 1000,
+      degree: edges.reduce((s, e) => s + (e.a === k || e.b === k ? 1 : 0), 0)
+    })),
+    edges,
+    citation: "Bittencourt et al., Br J Sports Med 2016 (doi:10.1136/bjsports-2015-095850)"
+  };
+
   return {
     series,
     loadings,
     features: featKeys,
+    network,
     meta: {
       n: rows.length,
       p: featKeys.length,
