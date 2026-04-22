@@ -3148,11 +3148,7 @@ export default function Dashboard(){
         {tab==="player"&&sp&&<div>
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{display:"flex",gap:20,alignItems:"center"}}>
-              <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
-                <PlayerPhoto theme={t} name={sp.n} sz={80}/>
-                <ScoreRing theme={t} v={sp.riskScore} sz={48} th={4}/>
-                <div style={{fontSize:8,color:t.textFaint,textAlign:"center",cursor:"help"}} title="Índice composto (0–100) baseado em regras clínicas: ACWR, Dor, Rec. Pernas, Sono e Bem-estar. Diferente da Probabilidade de Lesão (modelo ML).">Risk Score</div>
-              </div>
+              <PlayerPhoto theme={t} name={sp.n} sz={80}/>
               <div style={{flex:1}}>
                 <div style={{fontFamily:"'Inter Tight'",fontSize:20,fontWeight:900,color:pri}}>{sp.n} <Badge level={sp.risk}/> <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:t.textFaint,fontWeight:400,marginLeft:6}}>{sp.pos} · {sp.id} anos · {sp.nc} sessões</span></div>
                 {sp.reasons.length>0&&<div style={{display:"flex",gap:6,marginTop:6,flexWrap:"wrap"}}>
@@ -3166,7 +3162,8 @@ export default function Dashboard(){
             </div>
           </div>
 
-          {/* Parâmetro de Ordem Ψ(t) — trajetória dinâmica do atleta (Fonseca 2020) */}
+          {/* Estado do Atleta — métrica única que funde Risk Score e Probabilidade de Lesão.
+               Ψ(t) é o estado observável (Fonseca 2020); Previsão ML é o forecast derivado (XGBoost+SHAP). */}
           {(()=>{
             const psi=sheetData?.psi;
             const series=psi?.series?.[sp.n]||[];
@@ -3177,6 +3174,10 @@ export default function Dashboard(){
             const sdV=last?.sd;
             const ews=last?.ews||{};
             const ewsCount=ews.risingCount||0;
+            const mlAlertP=liveAlerts.find(a=>a.n===sp.n);
+            const probML=mlAlertP?mlAlertP.prob:null;
+            const probPctML=probML!==null?(probML*100).toFixed(0):null;
+            const probCML=probML>=0.5?"#DC2626":probML>=0.3?"#EA580C":probML>=0.15?"#CA8A04":"#16A34A";
             // Zona combina desvio vs baseline individual + early-warning signals
             // (Scheffer 2009 / Fonseca 2020, passo 4): 2+ indicadores subindo
             // antecipam a transição mesmo sem desvio estático extremo.
@@ -3204,16 +3205,42 @@ export default function Dashboard(){
             return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
               <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:12,gap:16,flexWrap:"wrap"}}>
                 <div>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,display:"flex",alignItems:"center",gap:6}}>
-                    <TrendingUp size={16} color={zone}/>Parâmetro de Ordem Ψ(t)
-                    <span style={{fontSize:9,padding:"2px 8px",borderRadius:5,background:zone+"15",color:zone,fontWeight:700,marginLeft:6}}>{zoneLabel}</span>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri,display:"flex",alignItems:"center",gap:8}}>
+                    <TrendingUp size={18} color={zone}/>Estado do Atleta
+                    <span style={{fontSize:10,padding:"3px 10px",borderRadius:6,background:zone+"15",color:zone,fontWeight:700,border:`1px solid ${zone}33`}}>{zoneLabel}</span>
                   </div>
-                  <div style={{fontSize:10,color:t.textFaint,marginTop:3}}>PC1 de carga, neuromuscular e wellness — {psi.meta?.explained}% da variância explicada · n={psi.meta?.n} sessões</div>
+                  <div style={{fontSize:10,color:t.textFaint,marginTop:4}}>Métrica única que integra carga, neuromuscular, bioquímica e bem-estar · n={psi.meta?.n} sessões · {psi.meta?.explained}% variância explicada</div>
                 </div>
-                <div style={{textAlign:"right"}}>
-                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:28,fontWeight:800,color:zone,lineHeight:1}}>{psiV>=0?"+":""}{psiV.toFixed(2)}<span style={{fontSize:11,color:t.textFaint,marginLeft:4}}>σ</span></div>
-                  <div style={{fontSize:10,color:t.textMuted,marginTop:2}}>{zoneDesc}</div>
+              </div>
+              {/* Duas leituras do mesmo estado: observável (Ψ) + forecast (ML) */}
+              <div style={{display:"grid",gridTemplateColumns:probPctML!==null?"1fr 1fr":"1fr",gap:12,marginBottom:12}}>
+                <div style={{padding:14,background:zone+"0D",borderRadius:10,border:`1px solid ${zone}33`}}>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
+                    <div style={{fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Estado atual (observável)</div>
+                    <div style={{fontSize:9,color:t.textFaint}}>Ψ</div>
+                  </div>
+                  <div style={{display:"flex",alignItems:"baseline",gap:8}}>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:36,fontWeight:800,color:zone,lineHeight:1}}>{psiV>=0?"+":""}{psiV.toFixed(2)}</div>
+                    <div style={{fontSize:12,color:t.textFaint,fontWeight:600}}>σ</div>
+                  </div>
+                  <div style={{fontSize:11,color:t.textMuted,marginTop:4}}>{zoneDesc}</div>
+                  <div style={{fontSize:10,color:t.textFaint,marginTop:6,lineHeight:1.4}}>Resume carga + sono + recuperação + neuromuscular numa só trajetória. Cresce quando o atleta se afasta do padrão saudável dele.</div>
                 </div>
+                {probPctML!==null&&<div style={{padding:14,background:probCML+"0D",borderRadius:10,border:`1px solid ${probCML}33`}}>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
+                    <div style={{fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Previsão de lesão (7 dias)</div>
+                    <div style={{fontSize:9,color:t.textFaint}}>ML · XGBoost</div>
+                  </div>
+                  <div style={{display:"flex",alignItems:"baseline",gap:8}}>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:36,fontWeight:800,color:probCML,lineHeight:1}}>{probPctML}</div>
+                    <div style={{fontSize:18,color:probCML,fontWeight:700}}>%</div>
+                  </div>
+                  <div style={{fontSize:11,color:probCML,fontWeight:700,marginTop:4}}>{mlAlertP.zone==="VERMELHO"?"Risco alto":mlAlertP.zone==="LARANJA"?"Risco moderado-alto":mlAlertP.zone==="AMARELO"?"Risco moderado":"Risco baixo"}</div>
+                  {mlAlertP.dose&&<div style={{fontSize:10,color:t.textMuted,marginTop:6,lineHeight:1.4}}>{mlAlertP.dose}</div>}
+                  {mlAlertP.shap_pos&&mlAlertP.shap_pos.length>0&&<div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:8}}>
+                    {mlAlertP.shap_pos.slice(0,3).map((s,i)=><span key={i} style={{padding:"2px 7px",borderRadius:4,fontSize:9,fontWeight:600,background:probCML+"15",color:probCML,border:`1px solid ${probCML}33`}}>{s.f}: {s.v}</span>)}
+                  </div>}
+                </div>}
               </div>
               {chartData.length>=2&&<ResponsiveContainer width="100%" height={180}>
                 <LineChart data={chartData} margin={{top:5,right:10,left:-20,bottom:0}}>
@@ -3265,35 +3292,56 @@ export default function Dashboard(){
             if(!net||!net.nodes?.length)return null;
             const featLabel={dist_total:"Distância",hsr:"HSR",sprints:"Spr >20",player_load:"PL",pico_vel:"Vel.Pico",pse:"PSE",srpe:"sRPE",cmj:"CMJ",sono:"Sono",dor:"Dor",rec:"Recup."};
             const p=net.nodes.length;
-            const cx=220,cy=170,R=130;
-            // Layout circular — posições fixas por feature
-            const pos=net.nodes.map((n,i)=>{const ang=-Math.PI/2+(i*2*Math.PI/p);return{...n,x:cx+R*Math.cos(ang),y:cy+R*Math.sin(ang),ang};});
-            const byKey=Object.fromEntries(pos.map(n=>[n.key,n]));
-            const maxDeg=Math.max(1,...pos.map(n=>n.degree));
+            // Matriz de correlações pooled — reconstruída a partir das arestas (inclui auto-correlação = 1)
+            const M={};
+            net.nodes.forEach(n=>{M[n.key]={};net.nodes.forEach(m=>{M[n.key][m.key]=n.key===m.key?1:0;});});
+            net.edges.forEach(e=>{M[e.a][e.b]=e.r;M[e.b][e.a]=e.r;});
+            const keys=net.nodes.map(n=>n.key);
+            const cellC=(r)=>{const a=Math.min(1,Math.abs(r));if(r>=0)return`rgba(220,38,38,${a.toFixed(2)})`;return`rgba(22,163,74,${a.toFixed(2)})`;};
+            const cellTxt=(r)=>Math.abs(r)>0.4?"#fff":t.text;
+            // Top positive e top negative pares para leitura em linguagem natural
+            const posPairs=[...net.edges].filter(e=>e.r>0).sort((a,b)=>b.r-a.r).slice(0,3);
+            const negPairs=[...net.edges].filter(e=>e.r<0).sort((a,b)=>a.r-b.r).slice(0,3);
             return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
-              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,marginBottom:4,display:"flex",alignItems:"center",gap:6}}><Users size={16} color="#2563eb"/>Web de Determinantes</div>
-              <div style={{fontSize:10,color:t.textFaint,marginBottom:12}}>Correlações entre as 11 features do elenco (pooled). Arestas com |r| ≥ 0,2 visíveis. Espessura e opacidade escalam com |r|; vermelho = correlação positiva, verde = negativa.</div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 260px",gap:16,alignItems:"start"}}>
-                <div style={{width:"100%",display:"flex",justifyContent:"center"}}>
-                  <svg width="440" height="340" viewBox="0 0 440 340" style={{maxWidth:"100%",height:"auto"}}>
-                    {net.edges.map((e,i)=>{const A=byKey[e.a],B=byKey[e.b];if(!A||!B)return null;const c=e.r>=0?"#DC2626":"#16A34A";const op=Math.min(1,Math.abs(e.r)*1.4);const sw=Math.max(0.6,Math.abs(e.r)*3.5);return <line key={i} x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke={c} strokeOpacity={op} strokeWidth={sw}/>;})}
-                    {pos.map((n,i)=>{const rad=8+Math.abs(n.loading)*14;const nc=n.loading>=0?"#DC2626":"#16A34A";const labelR=R+24;const lx=cx+labelR*Math.cos(n.ang);const ly=cy+labelR*Math.sin(n.ang);return <g key={i}>
-                      <circle cx={n.x} cy={n.y} r={rad} fill={nc} fillOpacity={0.18+0.5*(n.degree/maxDeg)} stroke={nc} strokeWidth={1.5}/>
-                      <text x={lx} y={ly} textAnchor="middle" dominantBaseline="middle" fontSize={10} fontWeight={700} fill={t.textMuted}>{featLabel[n.key]||n.key}</text>
-                    </g>;})}
-                  </svg>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,marginBottom:4,display:"flex",alignItems:"center",gap:6}}><Users size={16} color="#2563eb"/>Como as variáveis se relacionam</div>
+              <div style={{fontSize:10,color:t.textFaint,marginBottom:12,lineHeight:1.5}}>Cada célula mostra como duas variáveis se movem juntas no elenco. <strong style={{color:"#DC2626"}}>Vermelho</strong> = sobem juntas (quando uma aumenta, a outra tende a aumentar). <strong style={{color:"#16A34A"}}>Verde</strong> = se comportam de forma oposta. Quanto mais forte a cor, mais forte a ligação.</div>
+              {/* Resumo em linguagem natural */}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+                <div style={{padding:10,background:"#FEF2F2",borderRadius:8,border:"1px solid #FECACA"}}>
+                  <div style={{fontSize:10,fontWeight:700,color:"#991B1B",marginBottom:6,textTransform:"uppercase",letterSpacing:.5}}>Sobem juntas</div>
+                  {posPairs.length?posPairs.map((e,i)=><div key={i} style={{fontSize:11,color:t.textMuted,marginBottom:3,display:"flex",justifyContent:"space-between"}}><span>{featLabel[e.a]||e.a} + {featLabel[e.b]||e.b}</span><span style={{fontFamily:"'JetBrains Mono'",fontWeight:700,color:"#DC2626"}}>+{e.r.toFixed(2)}</span></div>):<div style={{fontSize:10,color:t.textFaint,fontStyle:"italic"}}>sem pares relevantes</div>}
                 </div>
-                <div>
-                  <div style={{fontSize:10,fontWeight:700,color:t.textMuted,marginBottom:6,textTransform:"uppercase",letterSpacing:.5}}>Top 6 interações</div>
-                  <div style={{display:"flex",flexDirection:"column",gap:5}}>
-                    {net.edges.slice(0,6).map((e,i)=>{const c=e.r>=0?"#DC2626":"#16A34A";return <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 8px",background:t.bgMuted,borderRadius:6,border:`1px solid ${t.borderLight}`}}>
-                      <span style={{fontSize:10,color:t.textMuted,fontWeight:600}}>{featLabel[e.a]||e.a} ↔ {featLabel[e.b]||e.b}</span>
-                      <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:c}}>{e.r>=0?"+":""}{e.r.toFixed(2)}</span>
-                    </div>;})}
-                  </div>
-                  <div style={{fontSize:9,color:t.textFaint,marginTop:10,lineHeight:1.4}}>Tamanho do nó: |loading em PC1| (contribuição para Ψ). Tom: loading positivo (vermelho) empurra Ψ para cima; negativo (verde) puxa para baixo. <em>Bittencourt et al., Br J Sports Med 2016.</em></div>
+                <div style={{padding:10,background:"#F0FDF4",borderRadius:8,border:"1px solid #BBF7D0"}}>
+                  <div style={{fontSize:10,fontWeight:700,color:"#166534",marginBottom:6,textTransform:"uppercase",letterSpacing:.5}}>Se comportam de forma oposta</div>
+                  {negPairs.length?negPairs.map((e,i)=><div key={i} style={{fontSize:11,color:t.textMuted,marginBottom:3,display:"flex",justifyContent:"space-between"}}><span>{featLabel[e.a]||e.a} vs {featLabel[e.b]||e.b}</span><span style={{fontFamily:"'JetBrains Mono'",fontWeight:700,color:"#16A34A"}}>{e.r.toFixed(2)}</span></div>):<div style={{fontSize:10,color:t.textFaint,fontStyle:"italic"}}>sem pares relevantes</div>}
                 </div>
               </div>
+              {/* Heatmap: muito mais legível que rede circular */}
+              <div style={{overflowX:"auto"}}>
+                <table style={{borderCollapse:"collapse",margin:"0 auto",fontSize:10}}>
+                  <thead><tr>
+                    <th style={{padding:"4px 6px"}}></th>
+                    {keys.map(k=><th key={k} style={{padding:"4px 2px",fontSize:9,color:t.textMuted,fontWeight:700,textAlign:"center",writingMode:"vertical-rl",transform:"rotate(180deg)",height:50,whiteSpace:"nowrap"}}>{featLabel[k]||k}</th>)}
+                  </tr></thead>
+                  <tbody>
+                    {keys.map((r,i)=><tr key={r}>
+                      <td style={{padding:"2px 8px",fontSize:9,color:t.textMuted,fontWeight:700,textAlign:"right",whiteSpace:"nowrap"}}>{featLabel[r]||r}</td>
+                      {keys.map((c,j)=>{const v=M[r][c];const bg=cellC(v);const fg=cellTxt(v);return <td key={c} style={{padding:0,textAlign:"center"}}>
+                        <div title={`${featLabel[r]||r} ↔ ${featLabel[c]||c}: ${v>=0?"+":""}${v.toFixed(2)}`} style={{width:36,height:28,background:bg,color:fg,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'JetBrains Mono'",fontWeight:700,fontSize:9,border:`1px solid ${t.border}`,cursor:"help"}}>{i===j?"":(v>=0?"+":"")+v.toFixed(2)}</div>
+                      </td>;})}
+                    </tr>)}
+                  </tbody>
+                </table>
+              </div>
+              {/* Legenda de cor */}
+              <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:12,marginTop:12,fontSize:9,color:t.textFaint}}>
+                <span style={{color:"#16A34A",fontWeight:700}}>−1.0</span>
+                <div style={{display:"flex",height:10,width:200,borderRadius:5,overflow:"hidden",border:`1px solid ${t.border}`}}>
+                  {Array.from({length:20},(_,i)=>{const v=-1+i/10;return <div key={i} style={{flex:1,background:cellC(v)}}/>;})}
+                </div>
+                <span style={{color:"#DC2626",fontWeight:700}}>+1.0</span>
+              </div>
+              <div style={{fontSize:9,color:t.textFaint,marginTop:8,lineHeight:1.5,textAlign:"center"}}>Cada valor é a correlação de Pearson calculada sobre todas as sessões do elenco. Passe o mouse sobre uma célula para ver o par. <em>Bittencourt et al., Br J Sports Med 2016 — web of determinants.</em></div>
             </div>;
           })()}
 
@@ -3306,50 +3354,11 @@ export default function Dashboard(){
             const probPct=prob!==null?(prob*100).toFixed(0):null;
             const probC=prob>=0.5?"#DC2626":prob>=0.3?"#EA580C":prob>=0.15?"#CA8A04":"#16A34A";
             return <div style={{display:"grid",gridTemplateColumns:dmStatus?"1fr 1fr":"1fr",gap:16,marginBottom:16}}>
-              {/* Probabilidade de Lesão */}
-              <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${probPct?probC+"33":t.border}`,padding:18}}>
-                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:4}}>Probabilidade de Lesão — XGBoost + SHAP</div>
-                <div style={{fontSize:9,color:t.textFaint,marginBottom:8,lineHeight:1.4}}>Diferente do Risk Score (regras clínicas), esta é a probabilidade estimada por machine learning usando 33 features selecionadas (GPS, carga, neuromuscular, sono, bioquímica, histórico). Modelo calibrado com Isotonic Regression — o percentual representa a chance real de lesão nos próximos 7 dias.</div>
-                {probPct!==null?<div>
-                  <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:12}}>
-                    <div style={{position:"relative",width:90,height:90,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                      <svg width={90} height={90} style={{transform:"rotate(-90deg)"}}>
-                        <circle cx={45} cy={45} r={38} fill="none" stroke={t.borderLight} strokeWidth={6}/>
-                        <circle cx={45} cy={45} r={38} fill="none" stroke={probC} strokeWidth={6} strokeDasharray={2*Math.PI*38} strokeDashoffset={2*Math.PI*38*(1-prob)} strokeLinecap="round"/>
-                      </svg>
-                      <div style={{position:"absolute",fontFamily:"'JetBrains Mono'",fontSize:24,fontWeight:800,color:probC}}>{probPct}%</div>
-                    </div>
-                    <div style={{flex:1}}>
-                      <div style={{fontSize:12,fontWeight:700,color:probC,marginBottom:4}}>{mlAlert.zone==="VERMELHO"?"RISCO ALTO":mlAlert.zone==="LARANJA"?"RISCO MODERADO-ALTO":mlAlert.zone==="AMARELO"?"RISCO MODERADO":"RISCO BAIXO"}</div>
-                      <div style={{fontSize:11,color:t.textMuted,lineHeight:1.4,marginBottom:6}}>{mlAlert.dose}</div>
-                      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                        {mlAlert.shap_pos.slice(0,3).map((s,i)=>
-                          <span key={i} style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:600,background:"#FEF2F2",color:"#DC2626",border:"1px solid #FECACA"}}>{s.f}: {s.v}</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6}}>
-                    {[
-                      {l:"ACWR",v:mlAlert.acwr,c:mlAlert.acwr>1.3?"#DC2626":"#16A34A"},
-                      {l:"CMJ Δ",v:mlAlert.cmj+"%",c:mlAlert.cmj<-8?"#DC2626":"#EA580C"},
-                      {l:"Sono",v:mlAlert.sono,c:mlAlert.sono<6?"#DC2626":"#16A34A"},
-                      {l:"Bio Def",v:mlAlert.bio,c:mlAlert.bio>1.5?"#DC2626":"#CA8A04"}
-                    ].map((m,j)=>
-                      <div key={j} style={{textAlign:"center",padding:"6px 4px",background:t.bgMuted,borderRadius:6}}>
-                        <div style={{fontSize:8,color:t.textFaint,fontWeight:600}}>{m.l}</div>
-                        <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:m.c}}>{m.v}</div>
-                      </div>)}
-                  </div>
-                </div>:
-                <div style={{textAlign:"center",padding:"20px 0",color:t.textFaint}}>
-                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:28,fontWeight:800,color:"#16A34A",marginBottom:4}}>N/A</div>
-                  <div style={{fontSize:11}}>Atleta fora do modelo de alertas — risco baixo estimado</div>
-                </div>}
-                {/* Histórico de Lesões do Atleta */}
-                {playerInj.length>0&&<div style={{marginTop:14,borderTop:"1px solid #f1f5f9",paddingTop:12}}>
-                  <div style={{fontSize:11,fontWeight:700,color:pri,marginBottom:8}}>Histórico de Lesões ({playerInj.length} {playerInj.length===1?"caso":"casos"})</div>
-                  {playerInj.map((inj,i)=>{
+              {/* Histórico de Lesões (Previsão ML agora mora no card Estado acima) */}
+              <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:10,display:"flex",alignItems:"center",gap:6}}><Shield size={14}/>Histórico de Lesões {playerInj.length>0&&<span style={{fontSize:10,color:t.textFaint,fontWeight:500}}>({playerInj.length} {playerInj.length===1?"caso":"casos"})</span>}</div>
+                {playerInj.length===0?<div style={{textAlign:"center",padding:"24px 0",color:t.textFaint,fontSize:11}}>Sem lesões registradas</div>:
+                  playerInj.map((inj,i)=>{
                     const ic=inj.classif.includes("4C")?"#DC2626":inj.classif.includes("2")?"#EA580C":inj.classif==="Cirurgia"?"#7c3aed":"#CA8A04";
                     return <div key={i} style={{padding:"8px 10px",background:!inj.fim_trans?"#FEF2F2":t.bgMuted,borderRadius:8,marginBottom:6,border:`1px solid ${!inj.fim_trans?ic+"33":t.border}`}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -3366,7 +3375,6 @@ export default function Dashboard(){
                       <div style={{fontSize:9,color:t.textFaint,marginTop:3}}>{inj.estrutura} · {inj.mecanismo} · {inj.evento} · {inj.estagio}</div>
                     </div>;
                   })}
-                </div>}
               </div>
 
               {/* DM Atual — se aplicável */}
@@ -5150,16 +5158,17 @@ export default function Dashboard(){
             </div>
           </div>
 
-          {/* Parâmetro de Ordem Ψ(t) — métrica observável (Fonseca 2020, passos 2–3) */}
+          {/* Estado do Atleta — métrica unificada (Fonseca 2020 passos 2-3 + XGBoost forecast) */}
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
-            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,marginBottom:10,display:"flex",alignItems:"center",gap:6}}><TrendingUp size={16} color="#2563eb"/>Parâmetro de Ordem Ψ(t)</div>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,marginBottom:10,display:"flex",alignItems:"center",gap:6}}><TrendingUp size={16} color="#2563eb"/>Estado do Atleta (Ψ)</div>
             <div style={{padding:14,background:t.bgMuted,borderRadius:10,border:`1px solid ${t.borderLight}`}}>
               <div style={{fontSize:11,color:t.textMuted,lineHeight:1.7}}>
-                <strong>O que é:</strong> Variável macroscópica que resume o estado dinâmico do atleta em um único escalar, em unidades de desvio-padrão da população. Implementa o passo 2 da síntese de <em>Fonseca 2020</em>: reduzir a dimensionalidade das múltiplas medidas diárias a um observável único que se pode acompanhar ao longo do tempo.<br/>
-                <strong>Como é calculado:</strong> Primeira componente principal (<strong>PC1</strong>) de 11 features padronizadas por sessão — <em>carga externa</em> (distância, HSR, sprints, player load, pico de velocidade), <em>carga interna</em> (PSE, sRPE), <em>neuromuscular</em> (CMJ) e <em>wellness</em> (sono, dor, recuperação). O sinal de PC1 é orientado para que valores altos correspondam ao estado de risco (carga e dor ↑, CMJ e recuperação ↓).<br/>
-                <strong>Leitura clínica:</strong> cada atleta tem um baseline individual (média móvel 28 dias). Desvios do baseline &gt; 1σ ativam <em>Atenção</em>, &gt; 2σ <em>Sinal de alerta</em>, &gt; 3σ <em>Transição iminente</em> — uma aproximação operacional dos <em>early-warning signals</em> de transição de fase descritos por Fonseca (passo 4 do roadmap).<br/>
-                <strong>Interpretabilidade:</strong> cada feature tem um <em>loading</em> em PC1. Loading positivo = puxa Ψ para cima; loading negativo = puxa para baixo. O painel do atleta exibe os 6 maiores.<br/>
-                <strong>Base teórica:</strong> Fonseca et al., <em>Sports Medicine</em> 2020 (synergetics, parâmetro de ordem) · Bittencourt et al., <em>Br J Sports Med</em> 2016 (web of determinants, pattern recognition).
+                <strong>O que é:</strong> Número único, em desvios-padrão, que resume em que ponto o atleta está hoje em relação ao padrão saudável dele. Substitui os antigos <em>Risk Score</em> (regras clínicas) e <em>Probabilidade de Lesão</em> (ML) — agora os dois convivem como duas leituras do mesmo estado: (a) <strong>Ψ</strong> = o que a gente <em>observa</em> nas últimas sessões; (b) <strong>Previsão ML (7d)</strong> = o que o modelo preditivo <em>projeta</em> a partir desse estado.<br/>
+                <strong>Como é calculado (Ψ):</strong> primeira componente principal (<strong>PC1</strong>) de 11 features padronizadas por sessão — <em>carga externa</em> (distância, HSR, sprints, player load, pico de velocidade), <em>carga interna</em> (PSE, sRPE), <em>neuromuscular</em> (CMJ) e <em>wellness</em> (sono, dor, recuperação). Valores altos = carga e dor ↑ com CMJ e recuperação ↓. Implementa o passo 2 da síntese de <em>Fonseca 2020</em>: reduzir a dimensionalidade das múltiplas medidas diárias a um observável único que se acompanha ao longo do tempo.<br/>
+                <strong>Leitura clínica:</strong> cada atleta tem um baseline individual (média móvel 28 dias). Desvios do baseline &gt; 1σ ativam <em>Atenção</em>, &gt; 2σ <em>Sinal de alerta</em>, &gt; 3σ <em>Transição iminente</em>. A zona pode escalar antes disso quando os <em>early-warning signals</em> (variância, autocorrelação, assimetria dos resíduos) sobem simultaneamente — passo 4 do roadmap de Fonseca.<br/>
+                <strong>Previsão ML (7d):</strong> XGBoost calibrado que, a partir do mesmo substrato de features + histórico de lesões + bioquímica, estima a probabilidade de lesão nos próximos 7 dias. Mostrado lado a lado com Ψ no card do atleta.<br/>
+                <strong>Interpretabilidade:</strong> cada feature tem um <em>loading</em> em PC1. Loading positivo = puxa Ψ para cima; loading negativo = puxa para baixo. O painel do atleta exibe os 6 maiores. O bloco <em>Como as variáveis se relacionam</em> complementa mostrando como elas se movem juntas.<br/>
+                <strong>Base teórica:</strong> Fonseca et al., <em>Sports Medicine</em> 2020 (synergetics, parâmetro de ordem) · Bittencourt et al., <em>Br J Sports Med</em> 2016 (web of determinants, pattern recognition) · Scheffer et al., <em>Nature</em> 2009 (early-warning signals).
               </div>
             </div>
           </div>
