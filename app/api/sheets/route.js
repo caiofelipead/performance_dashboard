@@ -19,6 +19,7 @@ const SHEETS_CONFIG = {
     diario: 555914149,
     vbt: 2056067101,
     gps: 0,
+    gps_individual: 1595283302,
     saltos: 1915291461,
     bioquimico: 193203862,
     antropometria: 461631273,
@@ -432,6 +433,203 @@ function processGPS(rows) {
   }
 
   result._nameDebug = { rawNames: [..._gpsRawNames], resolvedMap: _gpsResolvedMap };
+  return result;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GPS_INDIVIDUAL (aba nova — long format, 1 linha por atleta/sessão).
+// Fonte da verdade do GPS do elenco atual. Substitui processGPS em tab=all.
+// Colunas conhecidas:
+//   Atleta, Data, Duração (min), Distância (metros),
+//   Distância > 20 km/h (metros), Números de Sprint > 20 km/h,
+//   Distância > 25 km/h (metros), Números de Sprint > 25 km/h,
+//   Ações de Acc > 2m/s, Ações de Acc > 3m/s,
+//   Ações de Dcc > 2 m/s, Ações de Dcc > 3 m/s,
+//   Player Load, Max Vel (km/h), FC Max, RHIE, PE, LOCAL, RESULTADO, OBS.
+// Limiares aqui já são 20 km/h (HSR) e 25 km/h (sprint "verdadeiro").
+// Linhas de agregado semanal (Data = "SEMANA N") vão para bucket _weekly.
+// ─────────────────────────────────────────────────────────────────────────────
+function processGPSIndividual(rows) {
+  const parseDate = (d) => {
+    if (!d) return 0;
+    const s = String(d).trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s).getTime();
+    const parts = s.split(/[\/\-\.]/);
+    if (parts.length >= 3) {
+      const [a, b, c] = parts.map(Number);
+      if (a > 31) return new Date(a, b - 1, c).getTime();
+      if (c > 31) return new Date(c, b - 1, a).getTime();
+      return new Date(c, a - 1, b).getTime();
+    }
+    return new Date(s).getTime() || 0;
+  };
+
+  // Colunas normalizadas (headers passam por lower + deaccent + non-alnum→_ + collapse _)
+  const col = (row, ...keys) => {
+    for (const k of keys) {
+      if (row[k] !== undefined && row[k] !== "") return row[k];
+    }
+    return undefined;
+  };
+
+  const result = {};
+  const weekly = {};
+  const _rawNames = new Set();
+  const _resolvedMap = {};
+  let _weekSkipped = 0;
+  let _noAthleteSkipped = 0;
+
+  for (const row of rows) {
+    const athleteRaw = col(row, "atleta", "athlete", "atletas");
+    if (!athleteRaw) { _noAthleteSkipped++; continue; }
+    const athlete = String(athleteRaw).trim();
+    if (!athlete) { _noAthleteSkipped++; continue; }
+
+    const dateVal = col(row, "data", "date");
+    const dateStr = dateVal === undefined ? "" : String(dateVal).trim();
+
+    _rawNames.add(athlete);
+    const dashName = resolveName(athlete);
+    _resolvedMap[athlete] = dashName;
+    if (!dashName) continue;
+
+    // Linha de agregado semanal: "SEMANA N", "Semana 3", etc.
+    if (/^semana\b/i.test(dateStr)) {
+      if (!weekly[dashName]) weekly[dashName] = [];
+      weekly[dashName].push({
+        periodo: dateStr,
+        duracao:     toNum(col(row, "duracao_min", "duracao")),
+        dist_total:  Math.round(toNum(col(row, "distancia_metros", "distance_m", "distancia"))),
+        hsr:         Math.round(toNum(col(row, "distancia_20_km_h_metros", "distancia_20_km_h", "hsr"))),
+        sprints:     Math.round(toNum(col(row, "numeros_de_sprint_20_km_h", "sprints_20km_h", "sprints"))),
+        dist_25:     Math.round(toNum(col(row, "distancia_25_km_h_metros", "distancia_25_km_h"))),
+        sprints_25:  Math.round(toNum(col(row, "numeros_de_sprint_25_km_h", "sprints_25km_h"))),
+        acel:        Math.round(toNum(col(row, "acoes_de_acc_2m_s", "acoes_de_acc_2_m_s"))),
+        acel_3:      Math.round(toNum(col(row, "acoes_de_acc_3m_s", "acoes_de_acc_3_m_s"))),
+        decel:       Math.round(toNum(col(row, "acoes_de_dcc_2_m_s", "acoes_de_dcc_2m_s"))),
+        decel_3:     Math.round(toNum(col(row, "acoes_de_dcc_3_m_s", "acoes_de_dcc_3m_s"))),
+        player_load: Math.round(toNum(col(row, "player_load")) * 100) / 100,
+        pico_vel:    Math.round(toNum(col(row, "max_vel_km_h", "top_speed_km_h", "top_speed__km_h_")) * 10) / 10,
+        hr_max:      Math.round(toNum(col(row, "fc_max", "hr_max")))
+      });
+      _weekSkipped++;
+      continue;
+    }
+
+    const duracao    = toNum(col(row, "duracao_min", "duracao"));
+    const dist_total = toNum(col(row, "distancia_metros", "distance_m", "distancia"));
+    const hsr        = toNum(col(row, "distancia_20_km_h_metros", "distancia_20_km_h", "hsr"));
+    const sprints    = toNum(col(row, "numeros_de_sprint_20_km_h", "sprints_20km_h", "sprints"));
+    const dist_25    = toNum(col(row, "distancia_25_km_h_metros", "distancia_25_km_h"));
+    const sprints_25 = toNum(col(row, "numeros_de_sprint_25_km_h", "sprints_25km_h"));
+    const acel       = toNum(col(row, "acoes_de_acc_2m_s", "acoes_de_acc_2_m_s"));
+    const acel_3     = toNum(col(row, "acoes_de_acc_3m_s", "acoes_de_acc_3_m_s"));
+    const decel      = toNum(col(row, "acoes_de_dcc_2_m_s", "acoes_de_dcc_2m_s"));
+    const decel_3    = toNum(col(row, "acoes_de_dcc_3_m_s", "acoes_de_dcc_3m_s"));
+    const pLoad      = toNum(col(row, "player_load"));
+    const picoVel    = toNum(col(row, "max_vel_km_h", "top_speed_km_h", "top_speed__km_h_"));
+    const hrMax      = toNum(col(row, "fc_max", "hr_max"));
+    const rhie       = toNum(col(row, "rhie"));
+    const pse        = toNum(col(row, "pe", "pse"));
+
+    const localV     = col(row, "local") || "";
+    const resultado  = col(row, "resultado") || "";
+    const obs        = col(row, "obs") || "";
+
+    // sessionTitle compatível com matchesOpponent* / isMatchTitle do Dashboard:
+    //   - se há RESULTADO, marca como "Jogo" para isMatchTitle acertar
+    //   - anexa OBS para que matchesOpp (substring) acerte o adversário
+    let sessionTitle = "";
+    if (String(resultado).trim()) {
+      const piece = String(obs).trim();
+      sessionTitle = piece ? `Jogo ${piece} (${String(resultado).trim()})` : `Jogo (${String(resultado).trim()})`;
+    } else if (String(obs).trim()) {
+      sessionTitle = String(obs).trim();
+    }
+
+    if (!result[dashName]) result[dashName] = [];
+    result[dashName].push({
+      date: dateStr,
+      sessionTitle,
+      tags: "",
+      grupo: "",
+      dpj: "",
+      isTransicao: false,
+      splitPrincipal: "",
+      allSplits: [],
+      splitsDetail: [],
+      local: String(localV),
+      resultado: String(resultado),
+      obs: String(obs),
+      pse: Math.round(pse * 10) / 10,
+      duracao: Math.round(duracao),
+      gps: {
+        dist_total: Math.round(dist_total),
+        hsr: Math.round(hsr),
+        sprints: Math.round(sprints),
+        player_load: Math.round(pLoad * 100) / 100,
+        pico_vel: Math.round(picoVel * 10) / 10,
+        acel: Math.round(acel),
+        acel_3: Math.round(acel_3),
+        decel: Math.round(decel),
+        decel_3: Math.round(decel_3),
+        hsr_25: Math.round(dist_25),
+        sprints_25: Math.round(sprints_25),
+        acoes_30: 0,
+        rhie: Math.round(rhie),
+        dist_per_min: duracao > 0 ? Math.round(dist_total / duracao) : 0,
+        // Campos inexistentes na nova aba — mantidos como null para o Dashboard
+        // renderizar "—" em vez de 0 (falso-zero).
+        hr_avg: null,
+        hr_max: hrMax > 0 ? Math.round(hrMax) : null,
+        tempo_zona_alta: null
+      }
+    });
+  }
+
+  // Ordenar por data asc e calcular baselines (média móvel 14d antes da última sessão)
+  for (const [name, entries] of Object.entries(result)) {
+    entries.sort((a, b) => parseDate(a.date) - parseDate(b.date));
+    const len = entries.length;
+    if (len < 2) continue;
+
+    const last = entries[len - 1];
+    const lastTs = parseDate(last.date);
+    const WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
+    let baseline = entries.slice(0, -1).filter(e => {
+      const ts = parseDate(e.date);
+      return ts > 0 && (lastTs - ts) <= WINDOW_MS;
+    });
+    // Fallback: se não há dados nos últimos 14d, usa todas as entradas anteriores
+    if (!baseline.length) baseline = entries.slice(0, -1);
+
+    const avg = (arr, key) => {
+      const vals = arr.map(e => e.gps[key]).filter(v => v !== null && v !== undefined && v > 0);
+      return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
+    };
+    const avgF = (arr, key) => {
+      const vals = arr.map(e => e.gps[key]).filter(v => v !== null && v !== undefined && v > 0);
+      return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length * 10) / 10 : 0;
+    };
+
+    last.gps.dist_baseline      = avg(baseline, "dist_total");
+    last.gps.hsr_baseline       = avg(baseline, "hsr");
+    last.gps.sprints_baseline   = avg(baseline, "sprints");
+    last.gps.acel_baseline      = avg(baseline, "acel");
+    last.gps.decel_baseline     = avg(baseline, "decel");
+    last.gps.pico_vel_baseline  = avgF(baseline, "pico_vel");
+    // HR e zona alta não existem nessa fonte
+    last.gps.hr_baseline_avg           = null;
+    last.gps.tempo_zona_alta_baseline  = null;
+  }
+
+  result._weekly = weekly;
+  result._nameDebug = {
+    rawNames: [..._rawNames],
+    resolvedMap: _resolvedMap,
+    weekSkipped: _weekSkipped,
+    noAthleteSkipped: _noAthleteSkipped
+  };
   return result;
 }
 
@@ -900,8 +1098,9 @@ export async function GET(request) {
 
     if (tab === "all") {
       // Buscar todas as abas em paralelo
+      // GPS: fonte primária = gps_individual (aba nova, 32 atletas, HSR >20 km/h)
       const [gpsCSV, diarioCSV, saltosCSV, questCSV, fisioCSV, lesoesCSV, cmjExtCSV, antropCSV, calendarioCSV] = await Promise.allSettled([
-        fetchSheetCSV(SHEETS_CONFIG.tabs.gps),
+        fetchSheetCSV(SHEETS_CONFIG.tabs.gps_individual),
         fetchSheetCSV(SHEETS_CONFIG.tabs.diario),
         fetchSheetCSV(SHEETS_CONFIG.tabs.saltos),
         fetchSheetCSV(SHEETS_CONFIG.tabs.questionarios),
@@ -916,12 +1115,23 @@ export async function GET(request) {
 
       if (gpsCSV.status === "fulfilled") {
         const { rows, headers } = parseCSV(gpsCSV.value);
-        result.gps = processGPS(rows);
+        result.gps = processGPSIndividual(rows);
         const gpsNameDebug = result.gps._nameDebug;
+        const gpsWeekly = result.gps._weekly;
         delete result.gps._nameDebug;
-        result._debug.gps = { rows: rows.length, headers: headers?.slice(0, 10), athletes: Object.keys(result.gps).length, nameResolution: gpsNameDebug };
+        delete result.gps._weekly;
+        result.gps_weekly = gpsWeekly || {};
+        result._debug.gps = {
+          source: "gps_individual",
+          gid: SHEETS_CONFIG.tabs.gps_individual,
+          hsrThresholdKmh: 20,
+          rows: rows.length,
+          headers: headers?.slice(0, 20),
+          athletes: Object.keys(result.gps).length,
+          nameResolution: gpsNameDebug
+        };
       } else {
-        result._debug.gps = { error: gpsCSV.reason?.message || "failed" };
+        result._debug.gps = { error: gpsCSV.reason?.message || "failed", source: "gps_individual" };
       }
       if (diarioCSV.status === "fulfilled") {
         const { rows, headers } = parseCSV(diarioCSV.value);
@@ -1016,6 +1226,7 @@ export async function GET(request) {
 
     switch (tab) {
       case "gps": processed = processGPS(rows); break;
+      case "gps_individual": processed = processGPSIndividual(rows); break;
       case "diario": processed = processDiario(rows); break;
       case "saltos": processed = processSaltos(rows); break;
       case "questionarios": processed = processQuestionarios(rows); break;
