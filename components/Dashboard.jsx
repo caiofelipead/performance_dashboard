@@ -4984,27 +4984,25 @@ export default function Dashboard(){
             <div style={{fontSize:11,color:t.textMuted}}>Definição completa de todos os termos, métricas e indicadores utilizados no Performance Dashboard</div>
           </div>
 
-          {/* Risk Score vs Probabilidade de Lesão */}
+          {/* Risco de Lesão — Métrica Unificada */}
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
-            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:"#DC2626",marginBottom:10,display:"flex",alignItems:"center",gap:6}}><AlertTriangle size={16}/>Diferença: Risk Score vs. Probabilidade de Lesão</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-              <div style={{padding:14,background:t.bgMuted,borderRadius:10,border:`1px solid ${t.borderLight}`}}>
-                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:6}}>Risk Score (0–100)</div>
-                <div style={{fontSize:11,color:t.textMuted,lineHeight:1.6}}>
-                  <strong>O que é:</strong> Índice composto calculado por <strong>regras clínicas</strong> pré-definidas pela equipe de performance.<br/>
-                  <strong>Como calcula:</strong> Soma ponderada de ACWR ({">"}1.45 = +30pts), Dor ({">"}4 = +20pts), Recuperação Pernas ({"<"}5 = +18pts), Dor média ({">"}2.5 = +10pts), Sono médio ({"<"}6 = +8pts) e Bem-estar ({"<"}6 = +6pts).<br/>
-                  <strong>Para que serve:</strong> Triagem rápida diária — identifica quem precisa de atenção imediata baseado em indicadores observáveis do dia.<br/>
-                  <strong>Limitação:</strong> Não considera histórico de lesões, biomecânica, bioquímica ou interações entre variáveis.
-                </div>
-              </div>
-              <div style={{padding:14,background:t.bgMuted,borderRadius:10,border:`1px solid ${t.borderLight}`}}>
-                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:6}}>Probabilidade de Lesão (0–100%)</div>
-                <div style={{fontSize:11,color:t.textMuted,lineHeight:1.6}}>
-                  <strong>O que é:</strong> Estimativa de machine learning (XGBoost) da <strong>chance real de lesão</strong> nos próximos 7 dias.<br/>
-                  <strong>Como calcula:</strong> Modelo treinado com dados históricos, usando 33 features selecionadas por LASSO (GPS, carga, neuromuscular, sono, bioquímica, histórico de lesões). Calibrado com Isotonic Regression + Platt Scaling.<br/>
-                  <strong>Para que serve:</strong> Predição individualizada — considera interações complexas (ex: ACWR alto + sono ruim + lesão recente = risco exponencial).<br/>
-                  <strong>Explicabilidade:</strong> Valores SHAP mostram quais fatores aumentam ou reduzem o risco de cada atleta individualmente.
-                </div>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:"#DC2626",marginBottom:10,display:"flex",alignItems:"center",gap:6}}><AlertTriangle size={16}/>Risco de Lesão (0–100%) — Métrica Unificada</div>
+            <div style={{padding:14,background:t.bgMuted,borderRadius:10,border:`1px solid ${t.borderLight}`}}>
+              <div style={{fontSize:11,color:t.textMuted,lineHeight:1.7}}>
+                <strong>O que é:</strong> Índice único de risco de lesão nos próximos 7 dias, calculado por modelo de machine learning (XGBoost) treinado com dados históricos do clube e calibrado com Isotonic Regression + Platt Scaling.<br/>
+                <strong>Fontes de dados integradas:</strong>
+                <ul style={{margin:"4px 0 4px 18px",padding:0}}>
+                  <li><strong>Carga externa (GPS):</strong> ACWR, distância, HSR, acelerações/desacelerações, monotonia, strain.</li>
+                  <li><strong>Carga interna / bem-estar:</strong> PSE, dor, recuperação de pernas, sono, humor, recuperação geral.</li>
+                  <li><strong>Neuromuscular:</strong> CMJ, assimetria bilateral (SLCMJ L/R/ASI), razão H:Q, isometria.</li>
+                  <li><strong>Bioquímica:</strong> CK, ureia, testosterona/cortisol, hemograma e marcadores inflamatórios.</li>
+                  <li><strong>Histórico de lesões:</strong> tipo, região, estrutura, gravidade, dias parado, lesão nos últimos 30 dias.</li>
+                  <li><strong>Biomecânica:</strong> COP sway, valgus em single-leg step-down, assimetrias funcionais.</li>
+                </ul>
+                <strong>Interações entre fatores:</strong> O modelo captura combinações de risco não-lineares — por exemplo, <em>ACWR alto × sono ruim × CK elevado × lesão recente</em> eleva o risco de forma exponencial, algo que regras clínicas isoladas não conseguem representar.<br/>
+                <strong>Zonas de risco:</strong> <span style={{color:"#16A34A",fontWeight:700}}>Verde</span> ({"<"}28%) · <span style={{color:"#CA8A04",fontWeight:700}}>Amarelo</span> (28–39%) · <span style={{color:"#EA580C",fontWeight:700}}>Laranja</span> (40–64%) · <span style={{color:"#DC2626",fontWeight:700}}>Vermelho</span> (≥65%).<br/>
+                <strong>Explicabilidade (SHAP):</strong> Cada predição traz os fatores que mais aumentam ou reduzem o risco individual do atleta, permitindo intervenção direcionada (dose de treino, recuperação, triagem clínica).<br/>
+                <strong>Pipeline:</strong> KNNImputer → StandardScaler → SMOTE+Tomek → LASSO (33 de 110 features) → XGBoost (Optuna) → Calibração → SHAP. AUC-ROC 0.75 · AUC calibrada 0.88 · Recall 0.97.
               </div>
             </div>
           </div>

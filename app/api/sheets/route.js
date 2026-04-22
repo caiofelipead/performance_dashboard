@@ -10,6 +10,7 @@ const SHEETS_CONFIG = {
   published_key: "2PACX-1vQSxRZObs5anHZcJH7LsETalW7vY1U5A066mLFpWVZMWgHNWL28PWSnhjJHWtznCQ2R8AV5YYdlt6AP",
   // IDs das planilhas editáveis (principal + fallback)
   spreadsheet_ids: [
+    "1yUQ2faGfJOsWYWqxG3E5p2ksrvFr3jxmPNRccwR3mLo",
     "1f4j4Qj0o3BYZPZ5YOTKoG0mk3H7UUCiK8gw2Ywv2LPU",
     "1PRwHxkPWQmlwiXC6i2kbkaQSOmqW6-BKFq51pWaPwxY"
   ],
