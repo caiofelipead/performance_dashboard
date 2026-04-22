@@ -532,6 +532,13 @@ function processGPSIndividual(rows) {
     const rhie       = toNum(col(row, "rhie"));
     const pse        = toNum(col(row, "pe", "pse"));
 
+    // Linhas placeholder (atleta preenchido, mas sem dado de sessão) não contam
+    // como sessão. A planilha carrega o calendário completo por atleta, então
+    // dias sem treino aparecem com todas as colunas de carga vazias.
+    if (duracao <= 0 && dist_total <= 0 && pLoad <= 0 && hsr <= 0 && sprints <= 0 && pse <= 0) {
+      continue;
+    }
+
     const localV     = col(row, "local") || "";
     const resultado  = col(row, "resultado") || "";
     const obs        = col(row, "obs") || "";
