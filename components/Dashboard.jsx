@@ -3166,6 +3166,69 @@ export default function Dashboard(){
             </div>
           </div>
 
+          {/* Parâmetro de Ordem Ψ(t) — trajetória dinâmica do atleta (Fonseca 2020) */}
+          {(()=>{
+            const psi=sheetData?.psi;
+            const series=psi?.series?.[sp.n]||[];
+            if(!psi||series.length<3)return null;
+            const last=series[series.length-1];
+            const psiV=last?.psi||0;
+            const baseV=last?.baseline;
+            const sdV=last?.sd;
+            // Zona a partir do desvio vs baseline individual (critical slowing proxy)
+            let zone="#16A34A",zoneLabel="Estável",zoneDesc="Dentro do baseline individual";
+            if(baseV!==null&&baseV!==undefined&&sdV>0){
+              const dev=(psiV-baseV)/sdV;
+              if(dev>=3){zone="#DC2626";zoneLabel="Transição iminente";zoneDesc=`+${dev.toFixed(1)}σ acima do baseline`;}
+              else if(dev>=2){zone="#EA580C";zoneLabel="Sinal de alerta";zoneDesc=`+${dev.toFixed(1)}σ acima do baseline`;}
+              else if(dev>=1){zone="#CA8A04";zoneLabel="Atenção";zoneDesc=`+${dev.toFixed(1)}σ acima do baseline`;}
+              else{zoneDesc=`${dev>=0?"+":""}${dev.toFixed(1)}σ vs baseline`;}
+            }
+            const WINDOW_DAYS=90;
+            const cutoffMs=Date.now()-WINDOW_DAYS*24*60*60*1000;
+            const parseDt=(s)=>{if(!s)return 0;if(/^\d{4}-\d{2}-\d{2}/.test(s))return new Date(s).getTime();const p=String(s).split(/[\/\-\.]/);if(p.length>=3){const[a,b,c]=p.map(Number);if(a>31)return new Date(a,b-1,c).getTime();if(c>31)return new Date(c,b-1,a).getTime();return new Date(c,a-1,b).getTime();}return 0;};
+            const chartData=series.filter(x=>parseDt(x.date)>=cutoffMs).map(x=>{const ts=parseDt(x.date);const dt=new Date(ts);return{d:`${String(dt.getDate()).padStart(2,"0")}/${String(dt.getMonth()+1).padStart(2,"0")}`,psi:x.psi,baseline:x.baseline,upper:x.baseline!==null&&x.sd>0?Math.round((x.baseline+2*x.sd)*1000)/1000:null};});
+            const topLoadings=[...(psi.loadings||[])].sort((a,b)=>Math.abs(b.loading)-Math.abs(a.loading)).slice(0,6);
+            const featLabel={dist_total:"Distância",hsr:"HSR",sprints:"Spr >20",player_load:"Player Load",pico_vel:"Vel. Pico",pse:"PSE",srpe:"sRPE",cmj:"CMJ",sono:"Sono",dor:"Dor",rec:"Recuperação"};
+            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+              <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:12,gap:16,flexWrap:"wrap"}}>
+                <div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,display:"flex",alignItems:"center",gap:6}}>
+                    <TrendingUp size={16} color={zone}/>Parâmetro de Ordem Ψ(t)
+                    <span style={{fontSize:9,padding:"2px 8px",borderRadius:5,background:zone+"15",color:zone,fontWeight:700,marginLeft:6}}>{zoneLabel}</span>
+                  </div>
+                  <div style={{fontSize:10,color:t.textFaint,marginTop:3}}>PC1 de carga, neuromuscular e wellness — {psi.meta?.explained}% da variância explicada · n={psi.meta?.n} sessões</div>
+                </div>
+                <div style={{textAlign:"right"}}>
+                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:28,fontWeight:800,color:zone,lineHeight:1}}>{psiV>=0?"+":""}{psiV.toFixed(2)}<span style={{fontSize:11,color:t.textFaint,marginLeft:4}}>σ</span></div>
+                  <div style={{fontSize:10,color:t.textMuted,marginTop:2}}>{zoneDesc}</div>
+                </div>
+              </div>
+              {chartData.length>=2&&<ResponsiveContainer width="100%" height={180}>
+                <LineChart data={chartData} margin={{top:5,right:10,left:-20,bottom:0}}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={t.border}/>
+                  <XAxis dataKey="d" tick={{fontSize:9,fill:t.textFaint}}/>
+                  <YAxis tick={{fontSize:9,fill:t.textFaint}} domain={["auto","auto"]}/>
+                  <Tooltip content={<Tip theme={t}/>}/>
+                  <ReferenceLine y={0} stroke={t.textFaint} strokeDasharray="2 4" label={{value:"média pop.",fontSize:9,fill:t.textFaint,position:"insideTopLeft"}}/>
+                  <Line type="monotone" dataKey="baseline" name="Baseline 28d" stroke="#94a3b8" strokeDasharray="4 3" dot={false} strokeWidth={1.5}/>
+                  <Line type="monotone" dataKey="upper" name="Limite +2σ" stroke="#EA580C" strokeDasharray="2 4" dot={false} strokeWidth={1}/>
+                  <Line type="monotone" dataKey="psi" name="Ψ(t)" stroke={zone} strokeWidth={2.5} dot={{r:2.5,fill:zone}}/>
+                </LineChart>
+              </ResponsiveContainer>}
+              <div style={{marginTop:10,padding:10,background:t.bgMuted,borderRadius:8,border:`1px solid ${t.borderLight}`}}>
+                <div style={{fontSize:10,fontWeight:700,color:t.textMuted,marginBottom:6,textTransform:"uppercase",letterSpacing:.5}}>Loadings de PC1 (top 6)</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:6}}>
+                  {topLoadings.map((l,i)=>{const sign=l.loading>=0?"+":"";const c=l.loading>=0?"#DC2626":"#16A34A";return <div key={i} style={{textAlign:"center",padding:"6px 4px",background:t.bgCard,borderRadius:6,border:`1px solid ${t.borderLight}`}}>
+                    <div style={{fontSize:9,color:t.textFaint,fontWeight:600}}>{featLabel[l.key]||l.key}</div>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:c}}>{sign}{l.loading.toFixed(2)}</div>
+                  </div>;})}
+                </div>
+                <div style={{fontSize:9,color:t.textFaint,marginTop:6,lineHeight:1.4}}>Loading positivo = a feature empurra Ψ para cima (estado de risco). Loading negativo = a feature puxa Ψ para baixo (estado saudável). Ver <em>Fundamento Teórico</em> no Glossário (Fonseca 2020).</div>
+              </div>
+            </div>;
+          })()}
+
           {/* Risco de Lesão + DM + Histórico */}
           {(()=>{
             const mlAlert=liveAlerts.find(a=>a.n===sp.n);
@@ -5019,12 +5082,26 @@ export default function Dashboard(){
             </div>
           </div>
 
-          {/* Risco de Lesão — Métrica Unificada */}
+          {/* Parâmetro de Ordem Ψ(t) — métrica observável (Fonseca 2020, passos 2–3) */}
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
-            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:"#DC2626",marginBottom:10,display:"flex",alignItems:"center",gap:6}}><AlertTriangle size={16}/>Risco de Lesão (0–100%) — Métrica Unificada</div>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,marginBottom:10,display:"flex",alignItems:"center",gap:6}}><TrendingUp size={16} color="#2563eb"/>Parâmetro de Ordem Ψ(t)</div>
             <div style={{padding:14,background:t.bgMuted,borderRadius:10,border:`1px solid ${t.borderLight}`}}>
               <div style={{fontSize:11,color:t.textMuted,lineHeight:1.7}}>
-                <strong>O que é:</strong> Índice único de risco de lesão nos próximos 7 dias, calculado por modelo de machine learning (XGBoost) treinado com dados históricos do clube e calibrado com Isotonic Regression + Platt Scaling.<br/>
+                <strong>O que é:</strong> Variável macroscópica que resume o estado dinâmico do atleta em um único escalar, em unidades de desvio-padrão da população. Implementa o passo 2 da síntese de <em>Fonseca 2020</em>: reduzir a dimensionalidade das múltiplas medidas diárias a um observável único que se pode acompanhar ao longo do tempo.<br/>
+                <strong>Como é calculado:</strong> Primeira componente principal (<strong>PC1</strong>) de 11 features padronizadas por sessão — <em>carga externa</em> (distância, HSR, sprints, player load, pico de velocidade), <em>carga interna</em> (PSE, sRPE), <em>neuromuscular</em> (CMJ) e <em>wellness</em> (sono, dor, recuperação). O sinal de PC1 é orientado para que valores altos correspondam ao estado de risco (carga e dor ↑, CMJ e recuperação ↓).<br/>
+                <strong>Leitura clínica:</strong> cada atleta tem um baseline individual (média móvel 28 dias). Desvios do baseline &gt; 1σ ativam <em>Atenção</em>, &gt; 2σ <em>Sinal de alerta</em>, &gt; 3σ <em>Transição iminente</em> — uma aproximação operacional dos <em>early-warning signals</em> de transição de fase descritos por Fonseca (passo 4 do roadmap).<br/>
+                <strong>Interpretabilidade:</strong> cada feature tem um <em>loading</em> em PC1. Loading positivo = puxa Ψ para cima; loading negativo = puxa para baixo. O painel do atleta exibe os 6 maiores.<br/>
+                <strong>Base teórica:</strong> Fonseca et al., <em>Sports Medicine</em> 2020 (synergetics, parâmetro de ordem) · Bittencourt et al., <em>Br J Sports Med</em> 2016 (web of determinants, pattern recognition).
+              </div>
+            </div>
+          </div>
+
+          {/* Previsão de Lesão — Métrica Supervisionada */}
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:"#DC2626",marginBottom:10,display:"flex",alignItems:"center",gap:6}}><AlertTriangle size={16}/>Previsão de Lesão (0–100%) — Métrica Supervisionada</div>
+            <div style={{padding:14,background:t.bgMuted,borderRadius:10,border:`1px solid ${t.borderLight}`}}>
+              <div style={{fontSize:11,color:t.textMuted,lineHeight:1.7}}>
+                <strong>O que é:</strong> Probabilidade estimada de lesão nos próximos 7 dias via modelo supervisionado (XGBoost) calibrado — <em>forecast</em> construído sobre o mesmo espaço de features que alimenta Ψ(t).<br/>
                 <strong>Fontes de dados integradas:</strong>
                 <ul style={{margin:"4px 0 4px 18px",padding:0}}>
                   <li><strong>Carga externa (GPS):</strong> ACWR, distância, HSR, acelerações/desacelerações, monotonia, strain.</li>
