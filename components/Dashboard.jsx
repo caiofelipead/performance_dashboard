@@ -4994,6 +4994,31 @@ export default function Dashboard(){
             <div style={{fontSize:11,color:t.textMuted}}>Definição completa de todos os termos, métricas e indicadores utilizados no Performance Dashboard</div>
           </div>
 
+          {/* Fundamento Teórico — base científica da plataforma */}
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,marginBottom:10,display:"flex",alignItems:"center",gap:6}}><Info size={16} color="#2563eb"/>Fundamento Teórico</div>
+            <div style={{fontSize:11,color:t.textMuted,lineHeight:1.7,marginBottom:12}}>
+              O dashboard é construído sobre a abordagem de <strong>sistemas complexos</strong> aplicada a lesões esportivas: a lesão não emerge da soma linear de fatores isolados, mas da <strong>interação não-linear entre um web de determinantes</strong> (carga, neuromuscular, bioquímica, sono, histórico, biomecânica). Por isso a plataforma evita ranquear variáveis isoladas e prioriza o reconhecimento de <strong>padrões</strong> de risco e a <strong>trajetória dinâmica</strong> do atleta ao longo do tempo.
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <div style={{padding:12,background:t.bgMuted,borderRadius:8,border:`1px solid ${t.borderLight}`}}>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:pri,marginBottom:4}}>Bittencourt et al., 2016</div>
+                <div style={{fontSize:10,color:t.textFaint,fontStyle:"italic",marginBottom:6}}>Complex systems approach for sports injuries: moving from risk factor identification to injury pattern recognition — narrative review and new concept. <strong>Br J Sports Med.</strong></div>
+                <div style={{fontSize:11,color:t.textMuted,lineHeight:1.6}}>Introduz a noção de <strong>web of determinants</strong>: lesões emergem de interações não-lineares, não da simples combinação de preditores isolados. Prescreve a migração de <em>risk factor identification</em> para <em>injury pattern recognition</em>.</div>
+                <div style={{fontSize:10,color:"#2563eb",marginTop:6,fontFamily:"'JetBrains Mono'"}}>DOI: 10.1136/bjsports-2015-095850</div>
+              </div>
+              <div style={{padding:12,background:t.bgMuted,borderRadius:8,border:`1px solid ${t.borderLight}`}}>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:pri,marginBottom:4}}>Fonseca et al., 2020</div>
+                <div style={{fontSize:10,color:t.textFaint,fontStyle:"italic",marginBottom:6}}>Sports Injury Forecasting and Complexity: A Synergetic Approach. <strong>Sports Medicine.</strong></div>
+                <div style={{fontSize:11,color:t.textMuted,lineHeight:1.6}}>Formaliza a previsão de lesão via <strong>synergetics</strong>: monitorar um <strong>parâmetro de ordem</strong> (variável de alta ordem que resume o estado dinâmico do atleta) e detectar <strong>transições de fase</strong>. Quatro passos: (1) escala temporal, (2) definição do parâmetro de ordem, (3) monitoramento, (4) detecção da transição.</div>
+                <div style={{fontSize:10,color:"#2563eb",marginTop:6,fontFamily:"'JetBrains Mono'"}}>DOI: 10.1007/s40279-020-01326-4</div>
+              </div>
+            </div>
+            <div style={{marginTop:10,padding:10,background:"#EFF6FF",borderRadius:8,border:"1px solid #BFDBFE",fontSize:10,color:"#1E40AF",lineHeight:1.5}}>
+              <strong>Como isso aparece no dashboard:</strong> (a) o <em>Risco de Lesão</em> é uma métrica única, não a soma de flags independentes; (b) o modelo ML captura interações entre domínios (carga × sono × bioquímica × histórico); (c) SHAP explicita os determinantes que estão ativos em cada atleta; (d) o roadmap inclui trajetória de parâmetro de ordem e detecção de transição de fase (Fonseca, passos 3–4).
+            </div>
+          </div>
+
           {/* Risco de Lesão — Métrica Unificada */}
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:"#DC2626",marginBottom:10,display:"flex",alignItems:"center",gap:6}}><AlertTriangle size={16}/>Risco de Lesão (0–100%) — Métrica Unificada</div>
@@ -5012,7 +5037,8 @@ export default function Dashboard(){
                 <strong>Interações entre fatores:</strong> O modelo captura combinações de risco não-lineares — por exemplo, <em>ACWR alto × sono ruim × CK elevado × lesão recente</em> eleva o risco de forma exponencial, algo que regras clínicas isoladas não conseguem representar.<br/>
                 <strong>Zonas de risco:</strong> <span style={{color:"#16A34A",fontWeight:700}}>Verde</span> ({"<"}28%) · <span style={{color:"#CA8A04",fontWeight:700}}>Amarelo</span> (28–39%) · <span style={{color:"#EA580C",fontWeight:700}}>Laranja</span> (40–64%) · <span style={{color:"#DC2626",fontWeight:700}}>Vermelho</span> (≥65%).<br/>
                 <strong>Explicabilidade (SHAP):</strong> Cada predição traz os fatores que mais aumentam ou reduzem o risco individual do atleta, permitindo intervenção direcionada (dose de treino, recuperação, triagem clínica).<br/>
-                <strong>Pipeline:</strong> KNNImputer → StandardScaler → SMOTE+Tomek → LASSO (33 de 110 features) → XGBoost (Optuna) → Calibração → SHAP. AUC-ROC 0.75 · AUC calibrada 0.88 · Recall 0.97.
+                <strong>Pipeline:</strong> KNNImputer → StandardScaler → SMOTE+Tomek → LASSO (33 de 110 features) → XGBoost (Optuna) → Calibração → SHAP. AUC-ROC 0.75 · AUC calibrada 0.88 · Recall 0.97.<br/>
+                <strong>Base teórica:</strong> Bittencourt et al., <em>Br J Sports Med</em> 2016 (web of determinants / pattern recognition) · Fonseca et al., <em>Sports Medicine</em> 2020 (synergetics, parâmetro de ordem, transição de fase). Ver seção <em>Fundamento Teórico</em> acima.
               </div>
             </div>
           </div>
