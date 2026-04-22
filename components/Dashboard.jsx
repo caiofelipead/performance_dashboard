@@ -4399,7 +4399,7 @@ export default function Dashboard(){
                   <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:6}}>
                     {[
                       {l:"Dist. Total",v:g.dist_total?g.dist_total+"m":"—",bl:g.dist_baseline+"m",pct:g.dist_total?((g.dist_total/g.dist_baseline)*100).toFixed(0):0},
-                      {l:"HSR (>19 km/h)",v:g.hsr+"m",bl:g.hsr_baseline+"m",pct:g.hsr_baseline?((g.hsr/g.hsr_baseline)*100).toFixed(0):0},
+                      {l:"HSR (>20 km/h)",v:g.hsr+"m",bl:g.hsr_baseline+"m",pct:g.hsr_baseline?((g.hsr/g.hsr_baseline)*100).toFixed(0):0},
                       {l:"Sprints",v:g.sprints,bl:g.sprints_baseline,pct:g.sprints_baseline?((g.sprints/g.sprints_baseline)*100).toFixed(0):0},
                       {l:"Acelerações",v:g.acel,bl:g.acel_baseline,pct:g.acel_baseline?((g.acel/g.acel_baseline)*100).toFixed(0):0},
                       {l:"Desacelerações",v:g.decel,bl:g.decel_baseline,pct:g.decel_baseline?((g.decel/g.decel_baseline)*100).toFixed(0):0},
@@ -4426,9 +4426,9 @@ export default function Dashboard(){
                     {[
                       {l:"sRPE Sessão",v:ci.srpe_sessao,c:ci.srpe_sessao>7?"#DC2626":ci.srpe_sessao>5?"#CA8A04":"#16A34A"},
                       {l:"sRPE Total",v:ci.srpe_total+" UA",c:ci.srpe_total>500?"#DC2626":ci.srpe_total>400?"#CA8A04":"#16A34A"},
-                      {l:"FC Média",v:ci.hr_avg+" bpm",c:ci.hr_avg>ci.hr_baseline_avg?"#EA580C":"#16A34A"},
-                      {l:"FC Máxima",v:ci.hr_max+" bpm",c:t.textMuted},
-                      {l:"Tempo Z. Alta",v:ci.tempo_zona_alta+"min",c:ci.tempo_zona_alta>ci.tempo_zona_alta_baseline?"#DC2626":"#16A34A"}
+                      {l:"FC Média",v:ci.hr_avg?ci.hr_avg+" bpm":"—",c:ci.hr_avg&&ci.hr_baseline_avg&&ci.hr_avg>ci.hr_baseline_avg?"#EA580C":(ci.hr_avg?"#16A34A":t.textFaint)},
+                      {l:"FC Máxima",v:ci.hr_max?ci.hr_max+" bpm":"—",c:ci.hr_max?t.textMuted:t.textFaint},
+                      {l:"Tempo Z. Alta",v:ci.tempo_zona_alta?ci.tempo_zona_alta+"min":"—",c:ci.tempo_zona_alta&&ci.tempo_zona_alta_baseline&&ci.tempo_zona_alta>ci.tempo_zona_alta_baseline?"#DC2626":(ci.tempo_zona_alta?"#16A34A":t.textFaint)}
                     ].map((m,j)=>
                       <div key={j} style={{textAlign:"center",padding:"6px 4px",background:t.bgMuted,borderRadius:6}}>
                         <div style={{fontSize:8,color:t.textFaint,fontWeight:600}}>{m.l}</div>
@@ -5018,7 +5018,7 @@ export default function Dashboard(){
               <tbody>
                 {[
                   {m:"Distância Total",u:"metros",d:"Distância total percorrida na sessão",i:"Volume geral do treino. Comparar com baseline individual."},
-                  {m:"HSR (High-Speed Running)",u:"metros",d:"Distância percorrida acima de 19.8 km/h",i:"Indicador de intensidade alta. Picos acima de 130% do baseline = alerta."},
+                  {m:"HSR (High-Speed Running)",u:"metros",d:"Distância percorrida acima de 20 km/h",i:"Indicador de intensidade alta. Picos acima de 130% do baseline = alerta."},
                   {m:"Sprints",u:"contagem",d:"Número de ações acima de 25.2 km/h",i:"Ações de máxima intensidade. Relação direta com risco de lesão muscular."},
                   {m:"Player Load",u:"UA",d:"Métrica de carga externa (acelerometria triaxial)",i:"Medida global de demanda mecânica. Unidade arbitrária."},
                   {m:"Pico de Velocidade",u:"km/h",d:"Velocidade máxima atingida na sessão",i:"Capacidade de sprint máximo. Variações indicam fadiga neuromuscular."},
@@ -5051,7 +5051,7 @@ export default function Dashboard(){
                   {m:"PSE (sRPE sessão)",f:"Escala CR-10 (0–10)",d:"Percepção Subjetiva de Esforço da sessão (Escala de Borg modificada)",i:"0 = repouso, 10 = esforço máximo. Coletado 30 min após a sessão para evitar viés do último exercício."},
                   {m:"sRPE Total",f:"PSE × Duração (min)",d:"Carga total da sessão em Unidades Arbitrárias (UA)",i:"Exemplo: PSE 7 × 90 min = 630 UA. Acima de 450 UA = sessão de alta carga. Reflete o volume de esforço percebido (Foster et al., 2001)."},
                   {m:"ACWR",f:"Carga 7d ÷ Carga 28d",d:"Acute:Chronic Workload Ratio — razão entre carga aguda e crônica",i:"Compara o que o atleta treinou recentemente com o que está acostumado. Ideal: 0.8–1.3. >1.5 = risco alto de lesão. <0.8 = subcarga/desproteção (Gabbett, 2016). Calculado por EWMA."},
-                  {m:"ACWR HSR",f:"HSR 7d ÷ HSR 28d",d:"ACWR específico para corrida de alta velocidade",i:"Foca na carga de alta intensidade (>19.8 km/h). Mais sensível para lesões musculares de sprint."},
+                  {m:"ACWR HSR",f:"HSR 7d ÷ HSR 28d",d:"ACWR específico para corrida de alta velocidade",i:"Foca na carga de alta intensidade (>20 km/h). Mais sensível para lesões musculares de sprint."},
                   {m:"Monotonia",f:"Média diária ÷ DP diário",d:"Variabilidade da carga nos últimos 7 dias",i:"Alta monotonia (>2.0) = carga repetitiva sem variação → risco de overreaching. Indica falta de periodização (Foster, 1998)."},
                   {m:"Strain",f:"Carga semanal × Monotonia",d:"Esforço acumulado ponderado pela monotonia",i:"Combina volume total com falta de variação. Valores altos indicam risco de overtraining."}
                 ].map((r,i)=><tr key={i} style={{borderBottom:`1px solid ${t.borderLight}`,background:i%2===0?"transparent":t.bgMuted}}>
