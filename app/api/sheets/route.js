@@ -615,6 +615,8 @@ function processGPSIndividual(rows) {
     last.gps.dist_baseline      = avg(baseline, "dist_total");
     last.gps.hsr_baseline       = avg(baseline, "hsr");
     last.gps.sprints_baseline   = avg(baseline, "sprints");
+    last.gps.hsr_25_baseline    = avg(baseline, "hsr_25");
+    last.gps.sprints_25_baseline= avg(baseline, "sprints_25");
     last.gps.acel_baseline      = avg(baseline, "acel");
     last.gps.decel_baseline     = avg(baseline, "decel");
     last.gps.pico_vel_baseline  = avgF(baseline, "pico_vel");

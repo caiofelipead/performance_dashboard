@@ -2647,10 +2647,12 @@ export default function Dashboard(){
                                 const avgDist=athleteData.filter(a=>a.gps?.dist_total>0);
                                 const avgHsr=athleteData.filter(a=>a.gps?.hsr>0);
                                 const avgSprints=athleteData.filter(a=>a.gps?.sprints>0);
+                                const avgSprints25=athleteData.filter(a=>a.gps?.sprints_25>0);
                                 return<>
                                   {avgDist.length>0&&<span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#EFF6FF",color:"#2563eb",border:"1px solid #BFDBFE"}}>Dist. Média: {Math.round(avgDist.reduce((s,a)=>s+(a.gps.dist_total||0),0)/avgDist.length)}m</span>}
                                   {avgHsr.length>0&&<span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#FEF3C7",color:"#92400E",border:"1px solid #FDE68A"}}>HSR Média: {Math.round(avgHsr.reduce((s,a)=>s+(a.gps.hsr||0),0)/avgHsr.length)}m</span>}
-                                  {avgSprints.length>0&&<span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#FEE2E2",color:"#991B1B",border:"1px solid #FECACA"}}>Sprints Média: {(avgSprints.reduce((s,a)=>s+(a.gps.sprints||0),0)/avgSprints.length).toFixed(1)}</span>}
+                                  {avgSprints.length>0&&<span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#FEE2E2",color:"#991B1B",border:"1px solid #FECACA"}}>Spr &gt;20: {(avgSprints.reduce((s,a)=>s+(a.gps.sprints||0),0)/avgSprints.length).toFixed(1)}</span>}
+                                  {avgSprints25.length>0&&<span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#F3E8FF",color:"#6D28D9",border:"1px solid #DDD6FE"}}>Spr &gt;25: {(avgSprints25.reduce((s,a)=>s+(a.gps.sprints_25||0),0)/avgSprints25.length).toFixed(1)}</span>}
                                 </>;
                               })()}
                             </div>
@@ -2661,7 +2663,8 @@ export default function Dashboard(){
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Pos</th>
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Dist (m)</th>
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>HSR (m)</th>
-                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Sprints</th>
+                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Spr &gt;20</th>
+                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Spr &gt;25</th>
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Vel. Pico</th>
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>PL</th>
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>PSE</th>
@@ -2692,6 +2695,7 @@ export default function Dashboard(){
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.dist_total||<span style={{color:t.textFaint}}>—</span>}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.hsr||<span style={{color:t.textFaint}}>—</span>}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.sprints||<span style={{color:t.textFaint}}>—</span>}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:"#7c3aed"}}>{gps.sprints_25||<span style={{color:t.textFaint}}>—</span>}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.pico_vel||<span style={{color:t.textFaint}}>—</span>}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.player_load?Math.round(gps.player_load):<span style={{color:t.textFaint}}>—</span>}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pse>7?"#DC2626":pse>5?"#CA8A04":"#16A34A"}}>{pse||<span style={{color:t.textFaint}}>—</span>}</td>
@@ -2713,6 +2717,7 @@ export default function Dashboard(){
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(athleteData,a=>a.gps?.dist_total||0)||"—"}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(athleteData,a=>a.gps?.hsr||0)||"—"}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avgF(athleteData,a=>a.gps?.sprints||0)}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:"#7c3aed"}}>{avgF(athleteData,a=>a.gps?.sprints_25||0)}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avgF(athleteData,a=>a.gps?.pico_vel||0)}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(athleteData,a=>a.gps?.player_load||0)||"—"}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avgF(athleteData,a=>a.diario?.pse||0)}</td>
@@ -3362,7 +3367,8 @@ export default function Dashboard(){
                   {[
                     gps?.dist_total?{l:"Distância",v:Math.round(gps.dist_total)+"m",c:pri}:null,
                     gps?.hsr?{l:"HSR",v:Math.round(gps.hsr)+"m",c:"#2563eb"}:null,
-                    gps?.sprints?{l:"Sprints",v:gps.sprints,c:"#7c3aed"}:null,
+                    gps?.sprints?{l:"Spr >20",v:gps.sprints,c:"#7c3aed"}:null,
+                    gps?.sprints_25?{l:"Spr >25",v:gps.sprints_25,c:"#6D28D9"}:null,
                     gps?.pico_vel?{l:"Pico Vel.",v:gps.pico_vel.toFixed(1)+" km/h",c:"#EA580C"}:null,
                     gps?.player_load?{l:"Player Load",v:Math.round(gps.player_load),c:pri}:null,
                     diario?.pse?{l:"PSE",v:diario.pse,c:diario.pse>=7?"#DC2626":diario.pse>=5?"#CA8A04":"#16A34A"}:null,
@@ -3398,24 +3404,25 @@ export default function Dashboard(){
               const isMatch=isMatchST2(e.sessionTitle)||matchDateSet2.has(dtKey);
               if(!isMatch)return null;
               const g=e.gps||{};
-              return{date:dt,dateStr:dtKey,fmtDate:fmtDt2(dt),title:e.sessionTitle||"",dist:g.dist_total||0,hsr:g.hsr||0,sprints:g.sprints||0,pico_vel:g.pico_vel||0,player_load:g.player_load||0,acel:g.acel||0,decel:g.decel||0,acel_3:g.acel_3||0,decel_3:g.decel_3||0};
+              return{date:dt,dateStr:dtKey,fmtDate:fmtDt2(dt),title:e.sessionTitle||"",dist:g.dist_total||0,hsr:g.hsr||0,sprints:g.sprints||0,sprints_25:g.sprints_25||0,pico_vel:g.pico_vel||0,player_load:g.player_load||0,acel:g.acel||0,decel:g.decel||0,acel_3:g.acel_3||0,decel_3:g.decel_3||0};
             }).filter(Boolean).filter(s=>s.dist>2000); // Min 2km = actually played
             if(gameSessions.length<3)return null;
             // Sort by composite score (dist + hsr*3 + sprints*50) to find best games
             const scored=gameSessions.map(s=>({...s,score:s.dist+s.hsr*3+s.sprints*50+s.player_load})).sort((a,b)=>b.score-a.score);
             const top5=scored.slice(0,Math.min(5,scored.length));
             const avg5=k=>top5.length?Math.round(top5.reduce((a,s)=>a+s[k],0)/top5.length*10)/10:0;
-            const ma={dist:avg5("dist"),hsr:avg5("hsr"),sprints:avg5("sprints"),pico_vel:avg5("pico_vel"),player_load:avg5("player_load"),acel:avg5("acel"),decel:avg5("decel"),acel_3:avg5("acel_3"),decel_3:avg5("decel_3")};
+            const ma={dist:avg5("dist"),hsr:avg5("hsr"),sprints:avg5("sprints"),sprints_25:avg5("sprints_25"),pico_vel:avg5("pico_vel"),player_load:avg5("player_load"),acel:avg5("acel"),decel:avg5("decel"),acel_3:avg5("acel_3"),decel_3:avg5("decel_3")};
             // All games average for comparison
             const avgAll=k=>gameSessions.length?Math.round(gameSessions.reduce((a,s)=>a+s[k],0)/gameSessions.length*10)/10:0;
-            const allAvg={dist:avgAll("dist"),hsr:avgAll("hsr"),sprints:avgAll("sprints"),pico_vel:avgAll("pico_vel"),player_load:avgAll("player_load"),acel_3:avgAll("acel_3"),decel_3:avgAll("decel_3")};
+            const allAvg={dist:avgAll("dist"),hsr:avgAll("hsr"),sprints:avgAll("sprints"),sprints_25:avgAll("sprints_25"),pico_vel:avgAll("pico_vel"),player_load:avgAll("player_load"),acel_3:avgAll("acel_3"),decel_3:avgAll("decel_3")};
             // Last game data
             const lastGame=gameSessions.sort((a,b)=>b.date-a.date)[0];
             // Comparison bars data
             const metrics=[
               {l:"Distância (m)",last:lastGame?.dist||0,top5:ma.dist,all:allAvg.dist,unit:"m"},
               {l:"HSR (m)",last:lastGame?.hsr||0,top5:ma.hsr,all:allAvg.hsr,unit:"m"},
-              {l:"Sprints",last:lastGame?.sprints||0,top5:ma.sprints,all:allAvg.sprints,unit:""},
+              {l:"Spr >20",last:lastGame?.sprints||0,top5:ma.sprints,all:allAvg.sprints,unit:""},
+              {l:"Spr >25",last:lastGame?.sprints_25||0,top5:ma.sprints_25,all:allAvg.sprints_25,unit:""},
               {l:"Pico Vel. (km/h)",last:lastGame?.pico_vel||0,top5:ma.pico_vel,all:allAvg.pico_vel,unit:"km/h"},
               {l:"Player Load",last:lastGame?.player_load||0,top5:ma.player_load,all:allAvg.player_load,unit:""},
               {l:"Acel >3m/s²",last:lastGame?.acel_3||0,top5:ma.acel_3,all:allAvg.acel_3,unit:""},
@@ -4291,13 +4298,13 @@ export default function Dashboard(){
               <table style={{width:"100%",borderCollapse:"collapse",fontSize:10}}>
                 <thead style={{position:"sticky",top:0,zIndex:2,background:t.bgCard}}>
                   <tr style={{borderBottom:`2px solid ${t.border}`}}>
-                    {[{l:"Atleta",k:"n"},{l:"Classificação",k:"classif"},{l:"Dist (m)",k:"dist"},{l:"HSR (m)",k:"hsr"},{l:"Sprints",k:"sprints"},{l:"Acel",k:"acel"},{l:"Decel",k:"decel"},{l:"PL",k:"pl"},{l:"Vel. Pico",k:"vel"},{l:"PSE",k:"pse"},{l:"sRPE",k:"srpe"},{l:"Sono",k:"sono"},{l:"Dor",k:"dor"},{l:"Recup.",k:"rec"},{l:"CMJ (cm)",k:"cmj"}].map((h,i)=>
+                    {[{l:"Atleta",k:"n"},{l:"Classificação",k:"classif"},{l:"Dist (m)",k:"dist"},{l:"HSR (m)",k:"hsr"},{l:"Spr >20",k:"sprints"},{l:"Spr >25",k:"sprints_25"},{l:"Acel",k:"acel"},{l:"Decel",k:"decel"},{l:"PL",k:"pl"},{l:"Vel. Pico",k:"vel"},{l:"PSE",k:"pse"},{l:"sRPE",k:"srpe"},{l:"Sono",k:"sono"},{l:"Dor",k:"dor"},{l:"Recup.",k:"rec"},{l:"CMJ (cm)",k:"cmj"}].map((h,i)=>
                       <th key={i} style={{padding:"6px 8px",textAlign:i===0?"left":"center",fontWeight:700,color:sessSort.col===h.k?acc:t.textMuted,fontSize:9,whiteSpace:"nowrap",cursor:"pointer",userSelect:"none"}} onClick={()=>setSessSort(prev=>({col:h.k,dir:prev.col===h.k&&prev.dir==="asc"?"desc":"asc"}))}>{h.l}{sessSort.col===h.k?sessSort.dir==="desc"?" ↓":" ↑":""}</th>
                     )}
                   </tr>
                 </thead>
                 <tbody>
-                  {(()=>{const classOrder={vermelho:0,amarelo:1,verde:2};const allSessionPlayers=players.filter(p=>LIVE_SESSION.atletas[p.n]).map(p=>{const sess=LIVE_SESSION.atletas[p.n];return{p,sess,classif:sess.classificacao};}).sort((a,b)=>{const d=sessSort.dir==="asc"?1:-1;const col=sessSort.col;if(col==="n")return d*a.p.n.localeCompare(b.p.n);if(col==="classif")return d*(classOrder[a.classif]-classOrder[b.classif]);const gv=(x,k)=>{const s=x.sess;if(!s)return 0;if(k==="dist")return s.gps?.dist_total||0;if(k==="hsr")return s.gps?.hsr||0;if(k==="sprints")return s.gps?.sprints||0;if(k==="acel")return s.gps?.acel||0;if(k==="decel")return s.gps?.decel||0;if(k==="pl")return s.gps?.player_load||0;if(k==="vel")return s.gps?.pico_vel||0;if(k==="pse")return s.carga_interna?.srpe_sessao||0;if(k==="srpe")return s.carga_interna?.srpe_total||0;if(k==="sono")return s.fisio?.sono_noite||0;if(k==="dor")return s.fisio?.dor_pos||0;if(k==="rec")return s.fisio?.rec_percebida||0;if(k==="cmj")return s.nm_response?.cmj_pre||0;return 0;};return d*(gv(a,col)-gv(b,col));});return allSessionPlayers.map(({p,sess,classif},idx)=>{
+                  {(()=>{const classOrder={vermelho:0,amarelo:1,verde:2};const allSessionPlayers=players.filter(p=>LIVE_SESSION.atletas[p.n]).map(p=>{const sess=LIVE_SESSION.atletas[p.n];return{p,sess,classif:sess.classificacao};}).sort((a,b)=>{const d=sessSort.dir==="asc"?1:-1;const col=sessSort.col;if(col==="n")return d*a.p.n.localeCompare(b.p.n);if(col==="classif")return d*(classOrder[a.classif]-classOrder[b.classif]);const gv=(x,k)=>{const s=x.sess;if(!s)return 0;if(k==="dist")return s.gps?.dist_total||0;if(k==="hsr")return s.gps?.hsr||0;if(k==="sprints")return s.gps?.sprints||0;if(k==="sprints_25")return s.gps?.sprints_25||0;if(k==="acel")return s.gps?.acel||0;if(k==="decel")return s.gps?.decel||0;if(k==="pl")return s.gps?.player_load||0;if(k==="vel")return s.gps?.pico_vel||0;if(k==="pse")return s.carga_interna?.srpe_sessao||0;if(k==="srpe")return s.carga_interna?.srpe_total||0;if(k==="sono")return s.fisio?.sono_noite||0;if(k==="dor")return s.fisio?.dor_pos||0;if(k==="rec")return s.fisio?.rec_percebida||0;if(k==="cmj")return s.nm_response?.cmj_pre||0;return 0;};return d*(gv(a,col)-gv(b,col));});return allSessionPlayers.map(({p,sess,classif},idx)=>{
                     const classC=classif==="vermelho"?"#DC2626":classif==="amarelo"?"#CA8A04":"#16A34A";
                     const g=sess?.gps||{};const ci=sess?.carga_interna||{};const fi=sess?.fisio||{};const nm=sess?.nm_response||{};
                     const distPct=g.dist_baseline>0?Math.round((g.dist_total/g.dist_baseline)*100):0;
@@ -4316,6 +4323,7 @@ export default function Dashboard(){
                       <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.dist_total?<><span style={{color:distColor}}>{g.dist_total}</span> <span style={{fontSize:8,color:t.textFaint}}>({distPct}%)</span></>:<span style={{color:t.textFaint}}>—</span>}</td>
                       <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.hsr?<><span style={{color:hsrColor}}>{g.hsr}</span> <span style={{fontSize:8,color:t.textFaint}}>({hsrPct}%)</span></>:<span style={{color:t.textFaint}}>—</span>}</td>
                       <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.sprints||<span style={{color:t.textFaint}}>—</span>}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:"#6D28D9"}}>{g.sprints_25||<span style={{color:t.textFaint}}>—</span>}</td>
                       <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.acel||<span style={{color:t.textFaint}}>—</span>}</td>
                       <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.decel||<span style={{color:t.textFaint}}>—</span>}</td>
                       <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.player_load?Math.round(g.player_load):<span style={{color:t.textFaint}}>—</span>}</td>
@@ -4340,6 +4348,7 @@ export default function Dashboard(){
                     <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.dist_total)}</td>
                     <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.hsr)}</td>
                     <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.sprints)}</td>
+                    <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:"#6D28D9"}}>{avg(sessAtletas,s=>s.gps.sprints_25)}</td>
                     <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.acel)}</td>
                     <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.decel)}</td>
                     <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.player_load)}</td>
@@ -4396,11 +4405,12 @@ export default function Dashboard(){
                   <div style={{fontSize:11,fontWeight:700,color:pri,marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
                     <Zap size={12} color="#EA580C"/> Carga Externa (GPS)
                   </div>
-                  <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:6}}>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:6}}>
                     {[
                       {l:"Dist. Total",v:g.dist_total?g.dist_total+"m":"—",bl:g.dist_baseline+"m",pct:g.dist_total?((g.dist_total/g.dist_baseline)*100).toFixed(0):0},
                       {l:"HSR (>20 km/h)",v:g.hsr+"m",bl:g.hsr_baseline+"m",pct:g.hsr_baseline?((g.hsr/g.hsr_baseline)*100).toFixed(0):0},
-                      {l:"Sprints",v:g.sprints,bl:g.sprints_baseline,pct:g.sprints_baseline?((g.sprints/g.sprints_baseline)*100).toFixed(0):0},
+                      {l:"Spr >20",v:g.sprints,bl:g.sprints_baseline,pct:g.sprints_baseline?((g.sprints/g.sprints_baseline)*100).toFixed(0):0},
+                      {l:"Spr >25",v:g.sprints_25||0,bl:g.sprints_25_baseline||0,pct:g.sprints_25_baseline?((g.sprints_25/g.sprints_25_baseline)*100).toFixed(0):0},
                       {l:"Acelerações",v:g.acel,bl:g.acel_baseline,pct:g.acel_baseline?((g.acel/g.acel_baseline)*100).toFixed(0):0},
                       {l:"Desacelerações",v:g.decel,bl:g.decel_baseline,pct:g.decel_baseline?((g.decel/g.decel_baseline)*100).toFixed(0):0},
                       {l:"Vel. Pico",v:g.pico_vel?g.pico_vel+" km/h":"—",bl:g.pico_vel_baseline+" km/h",pct:g.pico_vel?((g.pico_vel/g.pico_vel_baseline)*100).toFixed(0):0}
@@ -5019,7 +5029,8 @@ export default function Dashboard(){
                 {[
                   {m:"Distância Total",u:"metros",d:"Distância total percorrida na sessão",i:"Volume geral do treino. Comparar com baseline individual."},
                   {m:"HSR (High-Speed Running)",u:"metros",d:"Distância percorrida acima de 20 km/h",i:"Indicador de intensidade alta. Picos acima de 130% do baseline = alerta."},
-                  {m:"Sprints",u:"contagem",d:"Número de ações acima de 25.2 km/h",i:"Ações de máxima intensidade. Relação direta com risco de lesão muscular."},
+                  {m:"Spr >20 (HSR-events)",u:"contagem",d:"Número de ações acima de 20 km/h",i:"Volume de eventos em alta velocidade. Proxy de demanda aeróbia intensa; pareia com o campo HSR (distância)."},
+                  {m:"Spr >25 (sprint verdadeiro)",u:"contagem",d:"Número de ações acima de 25 km/h",i:"Ações de máxima intensidade. Relação direta com risco de lesão muscular (posterior de coxa, sóleo)."},
                   {m:"Player Load",u:"UA",d:"Métrica de carga externa (acelerometria triaxial)",i:"Medida global de demanda mecânica. Unidade arbitrária."},
                   {m:"Pico de Velocidade",u:"km/h",d:"Velocidade máxima atingida na sessão",i:"Capacidade de sprint máximo. Variações indicam fadiga neuromuscular."},
                   {m:"Acelerações >2 m/s²",u:"contagem",d:"Número de acelerações acima de 2 m/s²",i:"Demanda mecânica de arranques moderados."},
