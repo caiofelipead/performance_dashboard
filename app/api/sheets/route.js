@@ -1091,6 +1091,292 @@ async function fetchExternalCSV(config, gid) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // GET /api/sheets?tab=gps|diario|saltos|questionarios|all&date=YYYY-MM-DD
 // ═══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
+// Parâmetro de Ordem Ψ(t) — Fase 1 (Fonseca 2020)
+//
+// Ψ(t) é a 1ª componente principal (PC1) de um conjunto de features
+// padronizadas por atleta/dia cobrindo: carga externa (GPS), carga interna
+// (PSE/sRPE), neuromuscular (CMJ) e wellness (sono, dor, recuperação).
+//
+// PCA é resolvido via power iteration sobre a matriz de covariância pooled
+// (todos os atletas no mesmo espaço). O sinal de PC1 é orientado para que Ψ
+// cresça com indicadores de risco (carga e dor ↑, CMJ e sono ↓). Cada
+// ponto da série Ψ(t) é retornado com a data original do gps, mais uma
+// baseline individual (média móvel 28d) e desvio-padrão individual.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Lista de features canônicas usadas para compor Ψ(t). Sinal esperado
+// indica a direção associada a "risco" (será usado para orientar PC1).
+const PSI_FEATURES = [
+  { key: "dist_total",  src: "gps",   sign: +1 },
+  { key: "hsr",         src: "gps",   sign: +1 },
+  { key: "sprints",     src: "gps",   sign: +1 },
+  { key: "player_load", src: "gps",   sign: +1 },
+  { key: "pico_vel",    src: "gps",   sign: +1 },
+  { key: "pse",         src: "day",   sign: +1 }, // do gps_individual ou diário
+  { key: "srpe",        src: "day",   sign: +1 },
+  { key: "cmj",         src: "day",   sign: -1 }, // CMJ alto = bom
+  { key: "sono",        src: "day",   sign: -1 }, // Sono alto = bom
+  { key: "dor",         src: "day",   sign: +1 },
+  { key: "rec",         src: "day",   sign: -1 }, // Recuperação alta = bom
+];
+
+function psiParseDate(d) {
+  if (!d) return 0;
+  const s = String(d).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s).getTime();
+  const parts = s.split(/[\/\-\.]/);
+  if (parts.length >= 3) {
+    const [a, b, c] = parts.map(Number);
+    if (a > 31) return new Date(a, b - 1, c).getTime();
+    if (c > 31) return new Date(c, b - 1, a).getTime();
+    return new Date(c, a - 1, b).getTime();
+  }
+  return new Date(s).getTime() || 0;
+}
+
+function psiDayKey(d) {
+  const ts = psiParseDate(d);
+  if (!ts) return "";
+  const dt = new Date(ts);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+}
+
+// Monta a matriz de features: uma linha por atleta/sessão GPS, colunas fixas
+// por PSI_FEATURES. Valores ausentes são NaN; linhas com muitos NaN são
+// descartadas (mínimo 70% de cobertura).
+function buildPsiMatrix({ gps, diario, questionarios, saltos }) {
+  const rows = [];
+  const atletas = Object.keys(gps || {});
+  const featKeys = PSI_FEATURES.map(f => f.key);
+
+  for (const name of atletas) {
+    // Index auxiliar por dia
+    const diarioByDay = {};
+    for (const e of (diario?.[name] || [])) {
+      const k = psiDayKey(e.date);
+      if (k) diarioByDay[k] = e;
+    }
+    const questByDay = {};
+    for (const e of (questionarios?.[name] || [])) {
+      const k = psiDayKey(e.date);
+      if (k) questByDay[k] = e;
+    }
+    // Saltos: raros → pega o mais recente até a data
+    const saltosSorted = (saltos?.[name] || []).slice().sort((a, b) => psiParseDate(a.date) - psiParseDate(b.date));
+    const cmjUpTo = (ts) => {
+      let best = null;
+      for (const s of saltosSorted) {
+        const sts = psiParseDate(s.date);
+        if (!sts || sts > ts) break;
+        const c = Math.max(s.cmj_1 || 0, s.cmj_2 || 0, s.cmj_3 || 0, s.media_cmj || 0);
+        if (c > 0) best = c;
+      }
+      return best;
+    };
+
+    for (const ge of (gps[name] || [])) {
+      const ts = psiParseDate(ge.date);
+      if (!ts) continue;
+      const k = psiDayKey(ge.date);
+      const d = diarioByDay[k];
+      const q = questByDay[k];
+      const g = ge.gps || {};
+
+      const pse    = (ge.pse > 0 ? ge.pse : null) ?? (d?.pse > 0 ? d.pse : null);
+      const duracao= (ge.duracao > 0 ? ge.duracao : null) ?? (d?.duracao > 0 ? d.duracao : null);
+      const srpe   = (d?.spe > 0 ? d.spe : null) ?? (pse && duracao ? pse * duracao : null);
+      const cmj    = cmjUpTo(ts);
+
+      const vec = {
+        dist_total:  g.dist_total  > 0 ? g.dist_total  : null,
+        hsr:         g.hsr         > 0 ? g.hsr         : null,
+        sprints:     g.sprints     > 0 ? g.sprints     : null,
+        player_load: g.player_load > 0 ? g.player_load : null,
+        pico_vel:    g.pico_vel    > 0 ? g.pico_vel    : null,
+        pse:         pse,
+        srpe:        srpe,
+        cmj:         cmj,
+        sono:        q?.sono_qualidade > 0 ? q.sono_qualidade : null,
+        dor:         q?.dor > 0 ? q.dor : (q && q.dor === 0 ? 0 : null),
+        rec:         q?.recuperacao_geral > 0 ? q.recuperacao_geral : null
+      };
+
+      const cov = featKeys.filter(k => vec[k] !== null && vec[k] !== undefined && Number.isFinite(vec[k])).length / featKeys.length;
+      if (cov < 0.7) continue; // exige 70% das colunas preenchidas
+
+      rows.push({ athlete: name, date: ge.date, ts, vec });
+    }
+  }
+
+  return { rows, featKeys };
+}
+
+function psiStandardize(rows, featKeys) {
+  const p = featKeys.length;
+  const mu = new Array(p).fill(0);
+  const sigma = new Array(p).fill(0);
+  const counts = new Array(p).fill(0);
+
+  for (const r of rows) {
+    for (let j = 0; j < p; j++) {
+      const v = r.vec[featKeys[j]];
+      if (v !== null && Number.isFinite(v)) { mu[j] += v; counts[j]++; }
+    }
+  }
+  for (let j = 0; j < p; j++) mu[j] = counts[j] > 0 ? mu[j] / counts[j] : 0;
+
+  const var_ = new Array(p).fill(0);
+  for (const r of rows) {
+    for (let j = 0; j < p; j++) {
+      const v = r.vec[featKeys[j]];
+      if (v !== null && Number.isFinite(v)) var_[j] += (v - mu[j]) * (v - mu[j]);
+    }
+  }
+  for (let j = 0; j < p; j++) sigma[j] = counts[j] > 1 ? Math.sqrt(var_[j] / (counts[j] - 1)) : 1;
+  for (let j = 0; j < p; j++) if (!(sigma[j] > 0)) sigma[j] = 1;
+
+  // Imputa valores ausentes com a média (z = 0) e devolve a matriz Z.
+  const Z = rows.map(r => featKeys.map((k, j) => {
+    const v = r.vec[k];
+    if (v === null || !Number.isFinite(v)) return 0;
+    return (v - mu[j]) / sigma[j];
+  }));
+
+  return { Z, mu, sigma };
+}
+
+function psiCovariance(Z) {
+  const n = Z.length, p = Z[0]?.length || 0;
+  const C = Array.from({ length: p }, () => new Array(p).fill(0));
+  for (let i = 0; i < n; i++) {
+    const row = Z[i];
+    for (let a = 0; a < p; a++) {
+      const va = row[a];
+      for (let b = a; b < p; b++) {
+        C[a][b] += va * row[b];
+      }
+    }
+  }
+  const denom = Math.max(n - 1, 1);
+  for (let a = 0; a < p; a++) for (let b = a; b < p; b++) {
+    C[a][b] /= denom;
+    if (b !== a) C[b][a] = C[a][b];
+  }
+  return C;
+}
+
+function psiPowerIteration(C, iters = 400) {
+  const p = C.length;
+  let v = new Array(p).fill(0).map((_, i) => (i === 0 ? 1 : 0.01 * (i + 1)));
+  const norm = (x) => Math.sqrt(x.reduce((s, xi) => s + xi * xi, 0)) || 1;
+  let n0 = norm(v); v = v.map(x => x / n0);
+  for (let it = 0; it < iters; it++) {
+    const w = new Array(p).fill(0);
+    for (let a = 0; a < p; a++) {
+      let s = 0;
+      for (let b = 0; b < p; b++) s += C[a][b] * v[b];
+      w[a] = s;
+    }
+    const nw = norm(w);
+    if (nw === 0) break;
+    const nxt = w.map(x => x / nw);
+    let delta = 0;
+    for (let j = 0; j < p; j++) delta += Math.abs(nxt[j] - v[j]);
+    v = nxt;
+    if (delta < 1e-8) break;
+  }
+  // Eigenvalor de Rayleigh
+  let num = 0, den = 0;
+  for (let a = 0; a < p; a++) {
+    let s = 0;
+    for (let b = 0; b < p; b++) s += C[a][b] * v[b];
+    num += v[a] * s;
+    den += v[a] * v[a];
+  }
+  return { v, lambda: den > 0 ? num / den : 0 };
+}
+
+function psiOrientLoadings(v, featKeys) {
+  // Se a soma ponderada pelos sinais esperados der negativa, inverte v.
+  let score = 0;
+  for (let j = 0; j < featKeys.length; j++) {
+    const f = PSI_FEATURES.find(x => x.key === featKeys[j]);
+    score += (f?.sign || 0) * v[j];
+  }
+  if (score < 0) return v.map(x => -x);
+  return v;
+}
+
+function assembleOrderParameter({ gps, diario, questionarios, saltos }) {
+  if (!gps || !Object.keys(gps).length) return null;
+
+  const { rows, featKeys } = buildPsiMatrix({ gps, diario, questionarios, saltos });
+  if (rows.length < 20) return { error: "insufficient_data", n: rows.length };
+
+  const { Z, mu, sigma } = psiStandardize(rows, featKeys);
+  const C = psiCovariance(Z);
+  const { v: vRaw, lambda } = psiPowerIteration(C);
+  const v = psiOrientLoadings(vRaw, featKeys);
+
+  // Projeção Ψ = Z · v
+  const psiRaw = Z.map(zr => zr.reduce((s, x, i) => s + x * v[i], 0));
+
+  // Normaliza Ψ pela população (z-unit) para interpretabilidade
+  const psiMean = psiRaw.reduce((a, b) => a + b, 0) / Math.max(psiRaw.length, 1);
+  const psiVar = psiRaw.reduce((a, b) => a + (b - psiMean) ** 2, 0) / Math.max(psiRaw.length - 1, 1);
+  const psiSd = Math.sqrt(psiVar) || 1;
+  const psiZ = psiRaw.map(x => (x - psiMean) / psiSd);
+
+  // Variância explicada por PC1 (lambda / traço da covariância)
+  const trace = C.reduce((s, r, i) => s + r[i], 0) || 1;
+  const explained = Math.max(0, Math.min(1, lambda / trace));
+
+  // Agrupa por atleta e ordena por data ascendente
+  const series = {};
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    if (!series[r.athlete]) series[r.athlete] = [];
+    series[r.athlete].push({ date: r.date, ts: r.ts, psi: Math.round(psiZ[i] * 1000) / 1000 });
+  }
+  for (const name of Object.keys(series)) {
+    series[name].sort((a, b) => a.ts - b.ts);
+    // Baseline individual (média móvel 28d) e desvio-padrão individual
+    const WIN = 28 * 24 * 60 * 60 * 1000;
+    for (let i = 0; i < series[name].length; i++) {
+      const cur = series[name][i];
+      const window = series[name].slice(0, i).filter(p => cur.ts - p.ts <= WIN);
+      if (window.length >= 3) {
+        const m = window.reduce((s, p) => s + p.psi, 0) / window.length;
+        const s2 = window.reduce((s, p) => s + (p.psi - m) ** 2, 0) / Math.max(window.length - 1, 1);
+        cur.baseline = Math.round(m * 1000) / 1000;
+        cur.sd = Math.round(Math.sqrt(s2) * 1000) / 1000;
+      } else {
+        cur.baseline = null;
+        cur.sd = null;
+      }
+      delete cur.ts;
+    }
+  }
+
+  const loadings = featKeys.map((k, i) => ({ key: k, loading: Math.round(v[i] * 1000) / 1000 }));
+
+  return {
+    series,
+    loadings,
+    features: featKeys,
+    meta: {
+      n: rows.length,
+      p: featKeys.length,
+      explained: Math.round(explained * 10000) / 100, // %
+      lambda: Math.round(lambda * 10000) / 10000,
+      mu: featKeys.map((k, i) => ({ key: k, mu: Math.round(mu[i] * 1000) / 1000 })),
+      sigma: featKeys.map((k, i) => ({ key: k, sigma: Math.round(sigma[i] * 1000) / 1000 })),
+      citation: "Fonseca et al., Sports Medicine 2020 (doi:10.1007/s40279-020-01326-4)"
+    }
+  };
+}
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -1199,6 +1485,31 @@ export async function GET(request) {
         result._debug.calendario = { rows: rows.length, headers: headers?.slice(0, 10), games: result.calendario.length };
       } else {
         result._debug.calendario = { error: calendarioCSV.reason?.message || "failed" };
+      }
+
+      // Parâmetro de ordem Ψ(t) — PC1 sobre features padronizadas
+      try {
+        const psi = assembleOrderParameter({
+          gps: result.gps,
+          diario: result.diario,
+          questionarios: result.questionarios,
+          saltos: result.saltos
+        });
+        if (psi) {
+          result.psi = psi;
+          result._debug.psi = {
+            n: psi.meta?.n,
+            p: psi.meta?.p,
+            explained_pct: psi.meta?.explained,
+            lambda: psi.meta?.lambda,
+            athletes: psi.series ? Object.keys(psi.series).length : 0,
+            error: psi.error || null
+          };
+        } else {
+          result._debug.psi = { error: "no_gps" };
+        }
+      } catch (e) {
+        result._debug.psi = { error: e.message };
       }
 
       return Response.json(result, {
