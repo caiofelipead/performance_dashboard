@@ -3175,14 +3175,25 @@ export default function Dashboard(){
             const psiV=last?.psi||0;
             const baseV=last?.baseline;
             const sdV=last?.sd;
-            // Zona a partir do desvio vs baseline individual (critical slowing proxy)
+            const ews=last?.ews||{};
+            const ewsCount=ews.risingCount||0;
+            // Zona combina desvio vs baseline individual + early-warning signals
+            // (Scheffer 2009 / Fonseca 2020, passo 4): 2+ indicadores subindo
+            // antecipam a transição mesmo sem desvio estático extremo.
             let zone="#16A34A",zoneLabel="Estável",zoneDesc="Dentro do baseline individual";
+            let dev=null;
             if(baseV!==null&&baseV!==undefined&&sdV>0){
-              const dev=(psiV-baseV)/sdV;
-              if(dev>=3){zone="#DC2626";zoneLabel="Transição iminente";zoneDesc=`+${dev.toFixed(1)}σ acima do baseline`;}
-              else if(dev>=2){zone="#EA580C";zoneLabel="Sinal de alerta";zoneDesc=`+${dev.toFixed(1)}σ acima do baseline`;}
-              else if(dev>=1){zone="#CA8A04";zoneLabel="Atenção";zoneDesc=`+${dev.toFixed(1)}σ acima do baseline`;}
-              else{zoneDesc=`${dev>=0?"+":""}${dev.toFixed(1)}σ vs baseline`;}
+              dev=(psiV-baseV)/sdV;
+              zoneDesc=`${dev>=0?"+":""}${dev.toFixed(1)}σ vs baseline`;
+            }
+            if((dev!==null&&dev>=3)||(dev!==null&&dev>=1.5&&ewsCount>=2)){
+              zone="#DC2626";zoneLabel="Transição iminente";
+            }else if((dev!==null&&dev>=2)||(dev!==null&&dev>=1&&ewsCount>=2)){
+              zone="#EA580C";zoneLabel="Sinal de alerta";
+            }else if((dev!==null&&dev>=1)||ewsCount>=2){
+              zone="#CA8A04";zoneLabel=ewsCount>=2&&(dev===null||dev<1)?"Sinais precoces ativos":"Atenção";
+            }else if(ewsCount>=1){
+              zoneLabel="Estável com sinal precoce";
             }
             const WINDOW_DAYS=90;
             const cutoffMs=Date.now()-WINDOW_DAYS*24*60*60*1000;
@@ -3216,6 +3227,24 @@ export default function Dashboard(){
                   <Line type="monotone" dataKey="psi" name="Ψ(t)" stroke={zone} strokeWidth={2.5} dot={{r:2.5,fill:zone}}/>
                 </LineChart>
               </ResponsiveContainer>}
+              {/* Early-warning signals — critical slowing down nos resíduos de Ψ */}
+              {ews&&ews.variance!==null&&ews.variance!==undefined&&<div style={{marginTop:10,padding:10,background:t.bgMuted,borderRadius:8,border:`1px solid ${t.borderLight}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                  <div style={{fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Early-Warning Signals (resíduos de Ψ)</div>
+                  <div style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:5,background:ewsCount>=2?"#DC262615":ewsCount>=1?"#CA8A0415":"#16A34A15",color:ewsCount>=2?"#DC2626":ewsCount>=1?"#CA8A04":"#16A34A"}}>{ewsCount}/3 indicadores em alta</div>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}}>
+                  {[
+                    {l:"Variância",v:ews.variance,rising:ews.risingVar,tip:"Amplitude dos desvios de Ψ vs baseline individual. Cresce quando o sistema fica sensível a pequenas perturbações."},
+                    {l:"Autocorr. lag-1",v:ews.ar1,rising:ews.risingAr1,tip:"Correlação de resíduos sucessivos. Cresce quando o sistema demora mais a retornar ao equilíbrio (critical slowing down)."},
+                    {l:"|Skewness|",v:Math.abs(ews.skew||0),rising:ews.risingSkew,tip:"Assimetria da distribuição de resíduos. Cresce quando o atrator começa a deformar em direção a outro regime."}
+                  ].map((m,i)=><div key={i} title={m.tip} style={{textAlign:"center",padding:"6px 4px",background:t.bgCard,borderRadius:6,border:`1px solid ${t.borderLight}`,cursor:"help"}}>
+                    <div style={{fontSize:9,color:t.textFaint,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:4}}>{m.l} <span style={{color:m.rising?"#DC2626":"#16A34A",fontWeight:700}}>{m.rising?"↑":"→"}</span></div>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:pri}}>{(m.v||0).toFixed(3)}</div>
+                  </div>)}
+                </div>
+                <div style={{fontSize:9,color:t.textFaint,marginTop:6,lineHeight:1.4}}>Scheffer et al., <em>Nature</em> 2009. Dois ou mais indicadores subindo simultaneamente ativam <em>Sinais precoces ativos</em> — a zona pode escalar mesmo sem desvio extremo de Ψ.</div>
+              </div>}
               <div style={{marginTop:10,padding:10,background:t.bgMuted,borderRadius:8,border:`1px solid ${t.borderLight}`}}>
                 <div style={{fontSize:10,fontWeight:700,color:t.textMuted,marginBottom:6,textTransform:"uppercase",letterSpacing:.5}}>Loadings de PC1 (top 6)</div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:6}}>

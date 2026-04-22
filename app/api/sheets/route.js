@@ -1357,6 +1357,22 @@ function assembleOrderParameter({ gps, diario, questionarios, saltos }) {
       }
       delete cur.ts;
     }
+
+    // EWS: variância, AR1 e skewness dos resíduos, com tendência linear
+    const ews = psiEarlyWarning(series[name]);
+    for (let i = 0; i < series[name].length; i++) {
+      const e = ews[i];
+      if (!e) continue;
+      series[name][i].ews = {
+        variance: e.variance,
+        ar1: e.ar1,
+        skew: e.skew,
+        risingVar: e.risingVar,
+        risingAr1: e.risingAr1,
+        risingSkew: e.risingSkew,
+        risingCount: e.risingCount
+      };
+    }
   }
 
   const loadings = featKeys.map((k, i) => ({ key: k, loading: Math.round(v[i] * 1000) / 1000 }));
@@ -1375,6 +1391,85 @@ function assembleOrderParameter({ gps, diario, questionarios, saltos }) {
       citation: "Fonseca et al., Sports Medicine 2020 (doi:10.1007/s40279-020-01326-4)"
     }
   };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Early-warning signals (EWS) sobre os resíduos de Ψ — Fase 2.
+//
+// Seguindo Scheffer et al. 2009 (Nature) e alinhado ao passo 4 de Fonseca
+// 2020 (detecção da transição de fase), um sistema que se aproxima de uma
+// bifurcação ("critical slowing down") apresenta três assinaturas nos
+// resíduos da série temporal: variância crescente, autocorrelação lag-1
+// crescente e assimetria (skewness) crescente. Nenhum indicador é
+// suficiente sozinho — o sinal composto é contar quantos estão em
+// tendência de alta simultaneamente.
+//
+// Implementação: resíduo ε(t) = Ψ(t) − baseline_indivíduo(t). Janela móvel
+// WINDOW=7 pontos para var/AR1/skew. Em cada ponto, trend é a inclinação
+// de regressão linear dos últimos TREND_K=8 valores de cada indicador.
+// ─────────────────────────────────────────────────────────────────────────────
+function psiEarlyWarning(series) {
+  const WINDOW = 7;
+  const TREND_K = 8;
+  const round = (x, k = 1000) => Math.round(x * k) / k;
+
+  const resids = series.map(p => ({
+    date: p.date,
+    psi: p.psi,
+    baseline: p.baseline,
+    resid: (p.baseline !== null && p.baseline !== undefined) ? p.psi - p.baseline : null
+  }));
+
+  const ewsSeries = resids.map((p, i) => {
+    const w = resids.slice(Math.max(0, i - WINDOW + 1), i + 1)
+                    .map(x => x.resid)
+                    .filter(x => x !== null && Number.isFinite(x));
+    if (w.length < WINDOW) return { date: p.date, variance: null, ar1: null, skew: null };
+    const n = w.length;
+    const mean = w.reduce((a, b) => a + b, 0) / n;
+    let varNum = 0;
+    for (let j = 0; j < n; j++) varNum += (w[j] - mean) ** 2;
+    const variance = varNum / (n - 1);
+    const sd = Math.sqrt(variance);
+    let ar1Num = 0, ar1Den = 0;
+    for (let j = 1; j < n; j++) ar1Num += (w[j] - mean) * (w[j - 1] - mean);
+    for (let j = 0; j < n; j++) ar1Den += (w[j] - mean) ** 2;
+    const ar1 = ar1Den > 0 ? ar1Num / ar1Den : 0;
+    let m3 = 0;
+    for (let j = 0; j < n; j++) m3 += (w[j] - mean) ** 3;
+    m3 /= n;
+    const skew = sd > 0 ? m3 / (sd ** 3) : 0;
+    return { date: p.date, variance: round(variance), ar1: round(ar1), skew: round(skew) };
+  });
+
+  const slope = (arr) => {
+    const n = arr.length;
+    if (n < 3) return 0;
+    const xm = (n - 1) / 2;
+    const ym = arr.reduce((a, b) => a + b, 0) / n;
+    let num = 0, den = 0;
+    for (let j = 0; j < n; j++) { num += (j - xm) * (arr[j] - ym); den += (j - xm) ** 2; }
+    return den > 0 ? num / den : 0;
+  };
+
+  return ewsSeries.map((p, i) => {
+    if (p.variance === null) return { ...p, risingVar: false, risingAr1: false, risingSkew: false, risingCount: 0 };
+    const lookback = ewsSeries.slice(Math.max(0, i - TREND_K + 1), i + 1).filter(x => x.variance !== null);
+    const sVar = slope(lookback.map(x => x.variance));
+    const sAr1 = slope(lookback.map(x => x.ar1));
+    const sSkew = slope(lookback.map(x => Math.abs(x.skew))); // |skew| cresce independente do sinal
+    const risingVar = sVar > 0;
+    const risingAr1 = sAr1 > 0;
+    const risingSkew = sSkew > 0;
+    const risingCount = (risingVar ? 1 : 0) + (risingAr1 ? 1 : 0) + (risingSkew ? 1 : 0);
+    return {
+      ...p,
+      slopeVar: round(sVar, 10000),
+      slopeAr1: round(sAr1, 10000),
+      slopeSkew: round(sSkew, 10000),
+      risingVar, risingAr1, risingSkew, risingCount
+    };
+  });
 }
 
 export async function GET(request) {
