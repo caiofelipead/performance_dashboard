@@ -19,6 +19,7 @@ const SHEETS_CONFIG = {
     diario: 555914149,
     vbt: 2056067101,
     gps: 0,
+    gps_individual: 1595283302,
     saltos: 1915291461,
     bioquimico: 193203862,
     antropometria: 461631273,
@@ -432,6 +433,205 @@ function processGPS(rows) {
   }
 
   result._nameDebug = { rawNames: [..._gpsRawNames], resolvedMap: _gpsResolvedMap };
+  return result;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GPS_INDIVIDUAL (aba nova — long format, 1 linha por atleta/sessão).
+// Fonte da verdade do GPS do elenco atual. Substitui processGPS em tab=all.
+// Colunas conhecidas:
+//   Atleta, Data, Duração (min), Distância (metros),
+//   Distância > 20 km/h (metros), Números de Sprint > 20 km/h,
+//   Distância > 25 km/h (metros), Números de Sprint > 25 km/h,
+//   Ações de Acc > 2m/s, Ações de Acc > 3m/s,
+//   Ações de Dcc > 2 m/s, Ações de Dcc > 3 m/s,
+//   Player Load, Max Vel (km/h), FC Max, RHIE, PE, LOCAL, RESULTADO, OBS.
+// Limiares aqui já são 20 km/h (HSR) e 25 km/h (sprint "verdadeiro").
+// Linhas de agregado semanal (Data = "SEMANA N") vão para bucket _weekly.
+// ─────────────────────────────────────────────────────────────────────────────
+function processGPSIndividual(rows) {
+  const parseDate = (d) => {
+    if (!d) return 0;
+    const s = String(d).trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s).getTime();
+    const parts = s.split(/[\/\-\.]/);
+    if (parts.length >= 3) {
+      const [a, b, c] = parts.map(Number);
+      if (a > 31) return new Date(a, b - 1, c).getTime();
+      if (c > 31) return new Date(c, b - 1, a).getTime();
+      return new Date(c, a - 1, b).getTime();
+    }
+    return new Date(s).getTime() || 0;
+  };
+
+  // Colunas normalizadas (headers passam por lower + deaccent + non-alnum→_ + collapse _)
+  const col = (row, ...keys) => {
+    for (const k of keys) {
+      if (row[k] !== undefined && row[k] !== "") return row[k];
+    }
+    return undefined;
+  };
+
+  const result = {};
+  const weekly = {};
+  const _rawNames = new Set();
+  const _resolvedMap = {};
+  let _weekSkipped = 0;
+  let _noAthleteSkipped = 0;
+
+  for (const row of rows) {
+    const athleteRaw = col(row, "atleta", "athlete", "atletas");
+    if (!athleteRaw) { _noAthleteSkipped++; continue; }
+    const athlete = String(athleteRaw).trim();
+    if (!athlete) { _noAthleteSkipped++; continue; }
+
+    const dateVal = col(row, "data", "date");
+    const dateStr = dateVal === undefined ? "" : String(dateVal).trim();
+
+    _rawNames.add(athlete);
+    const dashName = resolveName(athlete);
+    _resolvedMap[athlete] = dashName;
+    if (!dashName) continue;
+
+    // Linha de agregado semanal: "SEMANA N", "Semana 3", etc.
+    if (/^semana\b/i.test(dateStr)) {
+      if (!weekly[dashName]) weekly[dashName] = [];
+      weekly[dashName].push({
+        periodo: dateStr,
+        duracao:     toNum(col(row, "duracao_min", "duracao")),
+        dist_total:  Math.round(toNum(col(row, "distancia_metros", "distance_m", "distancia"))),
+        hsr:         Math.round(toNum(col(row, "distancia_20_km_h_metros", "distancia_20_km_h", "hsr"))),
+        sprints:     Math.round(toNum(col(row, "numeros_de_sprint_20_km_h", "sprints_20km_h", "sprints"))),
+        dist_25:     Math.round(toNum(col(row, "distancia_25_km_h_metros", "distancia_25_km_h"))),
+        sprints_25:  Math.round(toNum(col(row, "numeros_de_sprint_25_km_h", "sprints_25km_h"))),
+        acel:        Math.round(toNum(col(row, "acoes_de_acc_2m_s", "acoes_de_acc_2_m_s"))),
+        acel_3:      Math.round(toNum(col(row, "acoes_de_acc_3m_s", "acoes_de_acc_3_m_s"))),
+        decel:       Math.round(toNum(col(row, "acoes_de_dcc_2_m_s", "acoes_de_dcc_2m_s"))),
+        decel_3:     Math.round(toNum(col(row, "acoes_de_dcc_3_m_s", "acoes_de_dcc_3m_s"))),
+        player_load: Math.round(toNum(col(row, "player_load")) * 100) / 100,
+        pico_vel:    Math.round(toNum(col(row, "max_vel_km_h", "top_speed_km_h", "top_speed__km_h_")) * 10) / 10,
+        hr_max:      Math.round(toNum(col(row, "fc_max", "hr_max")))
+      });
+      _weekSkipped++;
+      continue;
+    }
+
+    const duracao    = toNum(col(row, "duracao_min", "duracao"));
+    const dist_total = toNum(col(row, "distancia_metros", "distance_m", "distancia"));
+    const hsr        = toNum(col(row, "distancia_20_km_h_metros", "distancia_20_km_h", "hsr"));
+    const sprints    = toNum(col(row, "numeros_de_sprint_20_km_h", "sprints_20km_h", "sprints"));
+    const dist_25    = toNum(col(row, "distancia_25_km_h_metros", "distancia_25_km_h"));
+    const sprints_25 = toNum(col(row, "numeros_de_sprint_25_km_h", "sprints_25km_h"));
+    const acel       = toNum(col(row, "acoes_de_acc_2m_s", "acoes_de_acc_2_m_s"));
+    const acel_3     = toNum(col(row, "acoes_de_acc_3m_s", "acoes_de_acc_3_m_s"));
+    const decel      = toNum(col(row, "acoes_de_dcc_2_m_s", "acoes_de_dcc_2m_s"));
+    const decel_3    = toNum(col(row, "acoes_de_dcc_3_m_s", "acoes_de_dcc_3m_s"));
+    const pLoad      = toNum(col(row, "player_load"));
+    const picoVel    = toNum(col(row, "max_vel_km_h", "top_speed_km_h", "top_speed__km_h_"));
+    const hrMax      = toNum(col(row, "fc_max", "hr_max"));
+    const rhie       = toNum(col(row, "rhie"));
+    const pse        = toNum(col(row, "pe", "pse"));
+
+    const localV     = col(row, "local") || "";
+    const resultado  = col(row, "resultado") || "";
+    const obs        = col(row, "obs") || "";
+
+    // sessionTitle compatível com matchesOpponent* / isMatchTitle do Dashboard:
+    //   - se há RESULTADO, marca como "Jogo" para isMatchTitle acertar
+    //   - anexa OBS para que matchesOpp (substring) acerte o adversário
+    let sessionTitle = "";
+    if (String(resultado).trim()) {
+      const piece = String(obs).trim();
+      sessionTitle = piece ? `Jogo ${piece} (${String(resultado).trim()})` : `Jogo (${String(resultado).trim()})`;
+    } else if (String(obs).trim()) {
+      sessionTitle = String(obs).trim();
+    }
+
+    if (!result[dashName]) result[dashName] = [];
+    result[dashName].push({
+      date: dateStr,
+      sessionTitle,
+      tags: "",
+      grupo: "",
+      dpj: "",
+      isTransicao: false,
+      splitPrincipal: "",
+      allSplits: [],
+      splitsDetail: [],
+      local: String(localV),
+      resultado: String(resultado),
+      obs: String(obs),
+      pse: Math.round(pse * 10) / 10,
+      duracao: Math.round(duracao),
+      gps: {
+        dist_total: Math.round(dist_total),
+        hsr: Math.round(hsr),
+        sprints: Math.round(sprints),
+        player_load: Math.round(pLoad * 100) / 100,
+        pico_vel: Math.round(picoVel * 10) / 10,
+        acel: Math.round(acel),
+        acel_3: Math.round(acel_3),
+        decel: Math.round(decel),
+        decel_3: Math.round(decel_3),
+        hsr_25: Math.round(dist_25),
+        sprints_25: Math.round(sprints_25),
+        acoes_30: 0,
+        rhie: Math.round(rhie),
+        dist_per_min: duracao > 0 ? Math.round(dist_total / duracao) : 0,
+        // Campos inexistentes na nova aba — mantidos como null para o Dashboard
+        // renderizar "—" em vez de 0 (falso-zero).
+        hr_avg: null,
+        hr_max: hrMax > 0 ? Math.round(hrMax) : null,
+        tempo_zona_alta: null
+      }
+    });
+  }
+
+  // Ordenar por data asc e calcular baselines (média móvel 14d antes da última sessão)
+  for (const [name, entries] of Object.entries(result)) {
+    entries.sort((a, b) => parseDate(a.date) - parseDate(b.date));
+    const len = entries.length;
+    if (len < 2) continue;
+
+    const last = entries[len - 1];
+    const lastTs = parseDate(last.date);
+    const WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
+    let baseline = entries.slice(0, -1).filter(e => {
+      const ts = parseDate(e.date);
+      return ts > 0 && (lastTs - ts) <= WINDOW_MS;
+    });
+    // Fallback: se não há dados nos últimos 14d, usa todas as entradas anteriores
+    if (!baseline.length) baseline = entries.slice(0, -1);
+
+    const avg = (arr, key) => {
+      const vals = arr.map(e => e.gps[key]).filter(v => v !== null && v !== undefined && v > 0);
+      return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
+    };
+    const avgF = (arr, key) => {
+      const vals = arr.map(e => e.gps[key]).filter(v => v !== null && v !== undefined && v > 0);
+      return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length * 10) / 10 : 0;
+    };
+
+    last.gps.dist_baseline      = avg(baseline, "dist_total");
+    last.gps.hsr_baseline       = avg(baseline, "hsr");
+    last.gps.sprints_baseline   = avg(baseline, "sprints");
+    last.gps.hsr_25_baseline    = avg(baseline, "hsr_25");
+    last.gps.sprints_25_baseline= avg(baseline, "sprints_25");
+    last.gps.acel_baseline      = avg(baseline, "acel");
+    last.gps.decel_baseline     = avg(baseline, "decel");
+    last.gps.pico_vel_baseline  = avgF(baseline, "pico_vel");
+    // HR e zona alta não existem nessa fonte
+    last.gps.hr_baseline_avg           = null;
+    last.gps.tempo_zona_alta_baseline  = null;
+  }
+
+  result._weekly = weekly;
+  result._nameDebug = {
+    rawNames: [..._rawNames],
+    resolvedMap: _resolvedMap,
+    weekSkipped: _weekSkipped,
+    noAthleteSkipped: _noAthleteSkipped
+  };
   return result;
 }
 
@@ -891,6 +1091,421 @@ async function fetchExternalCSV(config, gid) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // GET /api/sheets?tab=gps|diario|saltos|questionarios|all&date=YYYY-MM-DD
 // ═══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
+// Parâmetro de Ordem Ψ(t) — Fase 1 (Fonseca 2020)
+//
+// Ψ(t) é a 1ª componente principal (PC1) de um conjunto de features
+// padronizadas por atleta/dia cobrindo: carga externa (GPS), carga interna
+// (PSE/sRPE), neuromuscular (CMJ) e wellness (sono, dor, recuperação).
+//
+// PCA é resolvido via power iteration sobre a matriz de covariância pooled
+// (todos os atletas no mesmo espaço). O sinal de PC1 é orientado para que Ψ
+// cresça com indicadores de risco (carga e dor ↑, CMJ e sono ↓). Cada
+// ponto da série Ψ(t) é retornado com a data original do gps, mais uma
+// baseline individual (média móvel 28d) e desvio-padrão individual.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Lista de features canônicas usadas para compor Ψ(t). Sinal esperado
+// indica a direção associada a "risco" (será usado para orientar PC1).
+const PSI_FEATURES = [
+  { key: "dist_total",  src: "gps",   sign: +1 },
+  { key: "hsr",         src: "gps",   sign: +1 },
+  { key: "sprints",     src: "gps",   sign: +1 },
+  { key: "player_load", src: "gps",   sign: +1 },
+  { key: "pico_vel",    src: "gps",   sign: +1 },
+  { key: "pse",         src: "day",   sign: +1 }, // do gps_individual ou diário
+  { key: "srpe",        src: "day",   sign: +1 },
+  { key: "cmj",         src: "day",   sign: -1 }, // CMJ alto = bom
+  { key: "sono",        src: "day",   sign: -1 }, // Sono alto = bom
+  { key: "dor",         src: "day",   sign: +1 },
+  { key: "rec",         src: "day",   sign: -1 }, // Recuperação alta = bom
+];
+
+function psiParseDate(d) {
+  if (!d) return 0;
+  const s = String(d).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s).getTime();
+  const parts = s.split(/[\/\-\.]/);
+  if (parts.length >= 3) {
+    const [a, b, c] = parts.map(Number);
+    if (a > 31) return new Date(a, b - 1, c).getTime();
+    if (c > 31) return new Date(c, b - 1, a).getTime();
+    return new Date(c, a - 1, b).getTime();
+  }
+  return new Date(s).getTime() || 0;
+}
+
+function psiDayKey(d) {
+  const ts = psiParseDate(d);
+  if (!ts) return "";
+  const dt = new Date(ts);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+}
+
+// Monta a matriz de features: uma linha por atleta/sessão GPS, colunas fixas
+// por PSI_FEATURES. Valores ausentes são NaN; linhas com muitos NaN são
+// descartadas (mínimo 70% de cobertura).
+function buildPsiMatrix({ gps, diario, questionarios, saltos }) {
+  const rows = [];
+  const atletas = Object.keys(gps || {});
+  const featKeys = PSI_FEATURES.map(f => f.key);
+
+  for (const name of atletas) {
+    // Index auxiliar por dia
+    const diarioByDay = {};
+    for (const e of (diario?.[name] || [])) {
+      const k = psiDayKey(e.date);
+      if (k) diarioByDay[k] = e;
+    }
+    const questByDay = {};
+    for (const e of (questionarios?.[name] || [])) {
+      const k = psiDayKey(e.date);
+      if (k) questByDay[k] = e;
+    }
+    // Saltos: raros → pega o mais recente até a data
+    const saltosSorted = (saltos?.[name] || []).slice().sort((a, b) => psiParseDate(a.date) - psiParseDate(b.date));
+    const cmjUpTo = (ts) => {
+      let best = null;
+      for (const s of saltosSorted) {
+        const sts = psiParseDate(s.date);
+        if (!sts || sts > ts) break;
+        const c = Math.max(s.cmj_1 || 0, s.cmj_2 || 0, s.cmj_3 || 0, s.media_cmj || 0);
+        if (c > 0) best = c;
+      }
+      return best;
+    };
+
+    for (const ge of (gps[name] || [])) {
+      const ts = psiParseDate(ge.date);
+      if (!ts) continue;
+      const k = psiDayKey(ge.date);
+      const d = diarioByDay[k];
+      const q = questByDay[k];
+      const g = ge.gps || {};
+
+      const pse    = (ge.pse > 0 ? ge.pse : null) ?? (d?.pse > 0 ? d.pse : null);
+      const duracao= (ge.duracao > 0 ? ge.duracao : null) ?? (d?.duracao > 0 ? d.duracao : null);
+      const srpe   = (d?.spe > 0 ? d.spe : null) ?? (pse && duracao ? pse * duracao : null);
+      const cmj    = cmjUpTo(ts);
+
+      const vec = {
+        dist_total:  g.dist_total  > 0 ? g.dist_total  : null,
+        hsr:         g.hsr         > 0 ? g.hsr         : null,
+        sprints:     g.sprints     > 0 ? g.sprints     : null,
+        player_load: g.player_load > 0 ? g.player_load : null,
+        pico_vel:    g.pico_vel    > 0 ? g.pico_vel    : null,
+        pse:         pse,
+        srpe:        srpe,
+        cmj:         cmj,
+        sono:        q?.sono_qualidade > 0 ? q.sono_qualidade : null,
+        dor:         q?.dor > 0 ? q.dor : (q && q.dor === 0 ? 0 : null),
+        rec:         q?.recuperacao_geral > 0 ? q.recuperacao_geral : null
+      };
+
+      const cov = featKeys.filter(k => vec[k] !== null && vec[k] !== undefined && Number.isFinite(vec[k])).length / featKeys.length;
+      if (cov < 0.7) continue; // exige 70% das colunas preenchidas
+
+      rows.push({ athlete: name, date: ge.date, ts, vec });
+    }
+  }
+
+  return { rows, featKeys };
+}
+
+function psiStandardize(rows, featKeys) {
+  const p = featKeys.length;
+  const mu = new Array(p).fill(0);
+  const sigma = new Array(p).fill(0);
+  const counts = new Array(p).fill(0);
+
+  for (const r of rows) {
+    for (let j = 0; j < p; j++) {
+      const v = r.vec[featKeys[j]];
+      if (v !== null && Number.isFinite(v)) { mu[j] += v; counts[j]++; }
+    }
+  }
+  for (let j = 0; j < p; j++) mu[j] = counts[j] > 0 ? mu[j] / counts[j] : 0;
+
+  const var_ = new Array(p).fill(0);
+  for (const r of rows) {
+    for (let j = 0; j < p; j++) {
+      const v = r.vec[featKeys[j]];
+      if (v !== null && Number.isFinite(v)) var_[j] += (v - mu[j]) * (v - mu[j]);
+    }
+  }
+  for (let j = 0; j < p; j++) sigma[j] = counts[j] > 1 ? Math.sqrt(var_[j] / (counts[j] - 1)) : 1;
+  for (let j = 0; j < p; j++) if (!(sigma[j] > 0)) sigma[j] = 1;
+
+  // Imputa valores ausentes com a média (z = 0) e devolve a matriz Z.
+  const Z = rows.map(r => featKeys.map((k, j) => {
+    const v = r.vec[k];
+    if (v === null || !Number.isFinite(v)) return 0;
+    return (v - mu[j]) / sigma[j];
+  }));
+
+  return { Z, mu, sigma };
+}
+
+function psiCovariance(Z) {
+  const n = Z.length, p = Z[0]?.length || 0;
+  const C = Array.from({ length: p }, () => new Array(p).fill(0));
+  for (let i = 0; i < n; i++) {
+    const row = Z[i];
+    for (let a = 0; a < p; a++) {
+      const va = row[a];
+      for (let b = a; b < p; b++) {
+        C[a][b] += va * row[b];
+      }
+    }
+  }
+  const denom = Math.max(n - 1, 1);
+  for (let a = 0; a < p; a++) for (let b = a; b < p; b++) {
+    C[a][b] /= denom;
+    if (b !== a) C[b][a] = C[a][b];
+  }
+  return C;
+}
+
+function psiPowerIteration(C, iters = 400) {
+  const p = C.length;
+  let v = new Array(p).fill(0).map((_, i) => (i === 0 ? 1 : 0.01 * (i + 1)));
+  const norm = (x) => Math.sqrt(x.reduce((s, xi) => s + xi * xi, 0)) || 1;
+  let n0 = norm(v); v = v.map(x => x / n0);
+  for (let it = 0; it < iters; it++) {
+    const w = new Array(p).fill(0);
+    for (let a = 0; a < p; a++) {
+      let s = 0;
+      for (let b = 0; b < p; b++) s += C[a][b] * v[b];
+      w[a] = s;
+    }
+    const nw = norm(w);
+    if (nw === 0) break;
+    const nxt = w.map(x => x / nw);
+    let delta = 0;
+    for (let j = 0; j < p; j++) delta += Math.abs(nxt[j] - v[j]);
+    v = nxt;
+    if (delta < 1e-8) break;
+  }
+  // Eigenvalor de Rayleigh
+  let num = 0, den = 0;
+  for (let a = 0; a < p; a++) {
+    let s = 0;
+    for (let b = 0; b < p; b++) s += C[a][b] * v[b];
+    num += v[a] * s;
+    den += v[a] * v[a];
+  }
+  return { v, lambda: den > 0 ? num / den : 0 };
+}
+
+function psiOrientLoadings(v, featKeys) {
+  // Se a soma ponderada pelos sinais esperados der negativa, inverte v.
+  let score = 0;
+  for (let j = 0; j < featKeys.length; j++) {
+    const f = PSI_FEATURES.find(x => x.key === featKeys[j]);
+    score += (f?.sign || 0) * v[j];
+  }
+  if (score < 0) return v.map(x => -x);
+  return v;
+}
+
+function assembleOrderParameter({ gps, diario, questionarios, saltos }) {
+  if (!gps || !Object.keys(gps).length) return null;
+
+  const { rows, featKeys } = buildPsiMatrix({ gps, diario, questionarios, saltos });
+  if (rows.length < 20) return { error: "insufficient_data", n: rows.length };
+
+  const { Z, mu, sigma } = psiStandardize(rows, featKeys);
+  const C = psiCovariance(Z);
+  const { v: vRaw, lambda } = psiPowerIteration(C);
+  const v = psiOrientLoadings(vRaw, featKeys);
+
+  // Projeção Ψ = Z · v
+  const psiRaw = Z.map(zr => zr.reduce((s, x, i) => s + x * v[i], 0));
+
+  // Normaliza Ψ pela população (z-unit) para interpretabilidade
+  const psiMean = psiRaw.reduce((a, b) => a + b, 0) / Math.max(psiRaw.length, 1);
+  const psiVar = psiRaw.reduce((a, b) => a + (b - psiMean) ** 2, 0) / Math.max(psiRaw.length - 1, 1);
+  const psiSd = Math.sqrt(psiVar) || 1;
+  const psiZ = psiRaw.map(x => (x - psiMean) / psiSd);
+
+  // Variância explicada por PC1 (lambda / traço da covariância)
+  const trace = C.reduce((s, r, i) => s + r[i], 0) || 1;
+  const explained = Math.max(0, Math.min(1, lambda / trace));
+
+  // Agrupa por atleta e ordena por data ascendente
+  const series = {};
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    if (!series[r.athlete]) series[r.athlete] = [];
+    series[r.athlete].push({ date: r.date, ts: r.ts, psi: Math.round(psiZ[i] * 1000) / 1000 });
+  }
+  for (const name of Object.keys(series)) {
+    series[name].sort((a, b) => a.ts - b.ts);
+    // Baseline individual (média móvel 28d) e desvio-padrão individual
+    const WIN = 28 * 24 * 60 * 60 * 1000;
+    for (let i = 0; i < series[name].length; i++) {
+      const cur = series[name][i];
+      const window = series[name].slice(0, i).filter(p => cur.ts - p.ts <= WIN);
+      if (window.length >= 3) {
+        const m = window.reduce((s, p) => s + p.psi, 0) / window.length;
+        const s2 = window.reduce((s, p) => s + (p.psi - m) ** 2, 0) / Math.max(window.length - 1, 1);
+        cur.baseline = Math.round(m * 1000) / 1000;
+        cur.sd = Math.round(Math.sqrt(s2) * 1000) / 1000;
+      } else {
+        cur.baseline = null;
+        cur.sd = null;
+      }
+      delete cur.ts;
+    }
+
+    // EWS: variância, AR1 e skewness dos resíduos, com tendência linear
+    const ews = psiEarlyWarning(series[name]);
+    for (let i = 0; i < series[name].length; i++) {
+      const e = ews[i];
+      if (!e) continue;
+      series[name][i].ews = {
+        variance: e.variance,
+        ar1: e.ar1,
+        skew: e.skew,
+        risingVar: e.risingVar,
+        risingAr1: e.risingAr1,
+        risingSkew: e.risingSkew,
+        risingCount: e.risingCount
+      };
+    }
+  }
+
+  const loadings = featKeys.map((k, i) => ({ key: k, loading: Math.round(v[i] * 1000) / 1000 }));
+
+  // Web of determinants (Bittencourt 2016): matriz de correlações pooled
+  // entre as features padronizadas + lista achatada de arestas significativas
+  // (|r| ≥ 0.2) para renderização em rede no front-end.
+  const p = featKeys.length;
+  const corr = Array.from({ length: p }, () => new Array(p).fill(0));
+  const traceC = C.reduce((s, r, i) => s + r[i], 0);
+  const diag = C.map((r, i) => Math.sqrt(r[i] > 0 ? r[i] : 1));
+  for (let a = 0; a < p; a++) {
+    for (let b = 0; b < p; b++) {
+      corr[a][b] = Math.round((C[a][b] / (diag[a] * diag[b])) * 1000) / 1000;
+    }
+  }
+  const edges = [];
+  for (let a = 0; a < p; a++) {
+    for (let b = a + 1; b < p; b++) {
+      const r = corr[a][b];
+      if (Math.abs(r) >= 0.2) {
+        edges.push({ a: featKeys[a], b: featKeys[b], r });
+      }
+    }
+  }
+  edges.sort((x, y) => Math.abs(y.r) - Math.abs(x.r));
+
+  const network = {
+    nodes: featKeys.map((k, i) => ({
+      key: k,
+      loading: Math.round(v[i] * 1000) / 1000,
+      degree: edges.reduce((s, e) => s + (e.a === k || e.b === k ? 1 : 0), 0)
+    })),
+    edges,
+    citation: "Bittencourt et al., Br J Sports Med 2016 (doi:10.1136/bjsports-2015-095850)"
+  };
+
+  return {
+    series,
+    loadings,
+    features: featKeys,
+    network,
+    meta: {
+      n: rows.length,
+      p: featKeys.length,
+      explained: Math.round(explained * 10000) / 100, // %
+      lambda: Math.round(lambda * 10000) / 10000,
+      mu: featKeys.map((k, i) => ({ key: k, mu: Math.round(mu[i] * 1000) / 1000 })),
+      sigma: featKeys.map((k, i) => ({ key: k, sigma: Math.round(sigma[i] * 1000) / 1000 })),
+      citation: "Fonseca et al., Sports Medicine 2020 (doi:10.1007/s40279-020-01326-4)"
+    }
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Early-warning signals (EWS) sobre os resíduos de Ψ — Fase 2.
+//
+// Seguindo Scheffer et al. 2009 (Nature) e alinhado ao passo 4 de Fonseca
+// 2020 (detecção da transição de fase), um sistema que se aproxima de uma
+// bifurcação ("critical slowing down") apresenta três assinaturas nos
+// resíduos da série temporal: variância crescente, autocorrelação lag-1
+// crescente e assimetria (skewness) crescente. Nenhum indicador é
+// suficiente sozinho — o sinal composto é contar quantos estão em
+// tendência de alta simultaneamente.
+//
+// Implementação: resíduo ε(t) = Ψ(t) − baseline_indivíduo(t). Janela móvel
+// WINDOW=7 pontos para var/AR1/skew. Em cada ponto, trend é a inclinação
+// de regressão linear dos últimos TREND_K=8 valores de cada indicador.
+// ─────────────────────────────────────────────────────────────────────────────
+function psiEarlyWarning(series) {
+  const WINDOW = 7;
+  const TREND_K = 8;
+  const round = (x, k = 1000) => Math.round(x * k) / k;
+
+  const resids = series.map(p => ({
+    date: p.date,
+    psi: p.psi,
+    baseline: p.baseline,
+    resid: (p.baseline !== null && p.baseline !== undefined) ? p.psi - p.baseline : null
+  }));
+
+  const ewsSeries = resids.map((p, i) => {
+    const w = resids.slice(Math.max(0, i - WINDOW + 1), i + 1)
+                    .map(x => x.resid)
+                    .filter(x => x !== null && Number.isFinite(x));
+    if (w.length < WINDOW) return { date: p.date, variance: null, ar1: null, skew: null };
+    const n = w.length;
+    const mean = w.reduce((a, b) => a + b, 0) / n;
+    let varNum = 0;
+    for (let j = 0; j < n; j++) varNum += (w[j] - mean) ** 2;
+    const variance = varNum / (n - 1);
+    const sd = Math.sqrt(variance);
+    let ar1Num = 0, ar1Den = 0;
+    for (let j = 1; j < n; j++) ar1Num += (w[j] - mean) * (w[j - 1] - mean);
+    for (let j = 0; j < n; j++) ar1Den += (w[j] - mean) ** 2;
+    const ar1 = ar1Den > 0 ? ar1Num / ar1Den : 0;
+    let m3 = 0;
+    for (let j = 0; j < n; j++) m3 += (w[j] - mean) ** 3;
+    m3 /= n;
+    const skew = sd > 0 ? m3 / (sd ** 3) : 0;
+    return { date: p.date, variance: round(variance), ar1: round(ar1), skew: round(skew) };
+  });
+
+  const slope = (arr) => {
+    const n = arr.length;
+    if (n < 3) return 0;
+    const xm = (n - 1) / 2;
+    const ym = arr.reduce((a, b) => a + b, 0) / n;
+    let num = 0, den = 0;
+    for (let j = 0; j < n; j++) { num += (j - xm) * (arr[j] - ym); den += (j - xm) ** 2; }
+    return den > 0 ? num / den : 0;
+  };
+
+  return ewsSeries.map((p, i) => {
+    if (p.variance === null) return { ...p, risingVar: false, risingAr1: false, risingSkew: false, risingCount: 0 };
+    const lookback = ewsSeries.slice(Math.max(0, i - TREND_K + 1), i + 1).filter(x => x.variance !== null);
+    const sVar = slope(lookback.map(x => x.variance));
+    const sAr1 = slope(lookback.map(x => x.ar1));
+    const sSkew = slope(lookback.map(x => Math.abs(x.skew))); // |skew| cresce independente do sinal
+    const risingVar = sVar > 0;
+    const risingAr1 = sAr1 > 0;
+    const risingSkew = sSkew > 0;
+    const risingCount = (risingVar ? 1 : 0) + (risingAr1 ? 1 : 0) + (risingSkew ? 1 : 0);
+    return {
+      ...p,
+      slopeVar: round(sVar, 10000),
+      slopeAr1: round(sAr1, 10000),
+      slopeSkew: round(sSkew, 10000),
+      risingVar, risingAr1, risingSkew, risingCount
+    };
+  });
+}
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -900,8 +1515,9 @@ export async function GET(request) {
 
     if (tab === "all") {
       // Buscar todas as abas em paralelo
+      // GPS: fonte primária = gps_individual (aba nova, 32 atletas, HSR >20 km/h)
       const [gpsCSV, diarioCSV, saltosCSV, questCSV, fisioCSV, lesoesCSV, cmjExtCSV, antropCSV, calendarioCSV] = await Promise.allSettled([
-        fetchSheetCSV(SHEETS_CONFIG.tabs.gps),
+        fetchSheetCSV(SHEETS_CONFIG.tabs.gps_individual),
         fetchSheetCSV(SHEETS_CONFIG.tabs.diario),
         fetchSheetCSV(SHEETS_CONFIG.tabs.saltos),
         fetchSheetCSV(SHEETS_CONFIG.tabs.questionarios),
@@ -916,12 +1532,23 @@ export async function GET(request) {
 
       if (gpsCSV.status === "fulfilled") {
         const { rows, headers } = parseCSV(gpsCSV.value);
-        result.gps = processGPS(rows);
+        result.gps = processGPSIndividual(rows);
         const gpsNameDebug = result.gps._nameDebug;
+        const gpsWeekly = result.gps._weekly;
         delete result.gps._nameDebug;
-        result._debug.gps = { rows: rows.length, headers: headers?.slice(0, 10), athletes: Object.keys(result.gps).length, nameResolution: gpsNameDebug };
+        delete result.gps._weekly;
+        result.gps_weekly = gpsWeekly || {};
+        result._debug.gps = {
+          source: "gps_individual",
+          gid: SHEETS_CONFIG.tabs.gps_individual,
+          hsrThresholdKmh: 20,
+          rows: rows.length,
+          headers: headers?.slice(0, 20),
+          athletes: Object.keys(result.gps).length,
+          nameResolution: gpsNameDebug
+        };
       } else {
-        result._debug.gps = { error: gpsCSV.reason?.message || "failed" };
+        result._debug.gps = { error: gpsCSV.reason?.message || "failed", source: "gps_individual" };
       }
       if (diarioCSV.status === "fulfilled") {
         const { rows, headers } = parseCSV(diarioCSV.value);
@@ -989,6 +1616,31 @@ export async function GET(request) {
         result._debug.calendario = { error: calendarioCSV.reason?.message || "failed" };
       }
 
+      // Parâmetro de ordem Ψ(t) — PC1 sobre features padronizadas
+      try {
+        const psi = assembleOrderParameter({
+          gps: result.gps,
+          diario: result.diario,
+          questionarios: result.questionarios,
+          saltos: result.saltos
+        });
+        if (psi) {
+          result.psi = psi;
+          result._debug.psi = {
+            n: psi.meta?.n,
+            p: psi.meta?.p,
+            explained_pct: psi.meta?.explained,
+            lambda: psi.meta?.lambda,
+            athletes: psi.series ? Object.keys(psi.series).length : 0,
+            error: psi.error || null
+          };
+        } else {
+          result._debug.psi = { error: "no_gps" };
+        }
+      } catch (e) {
+        result._debug.psi = { error: e.message };
+      }
+
       return Response.json(result, {
         headers: {
           "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
@@ -1016,6 +1668,7 @@ export async function GET(request) {
 
     switch (tab) {
       case "gps": processed = processGPS(rows); break;
+      case "gps_individual": processed = processGPSIndividual(rows); break;
       case "diario": processed = processDiario(rows); break;
       case "saltos": processed = processSaltos(rows); break;
       case "questionarios": processed = processQuestionarios(rows); break;

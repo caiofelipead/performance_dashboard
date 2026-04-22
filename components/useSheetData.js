@@ -62,6 +62,7 @@ export function useSheetData({ interval = DEFAULT_INTERVAL, enabled = true } = {
         cmj_externo: result.cmj_externo || {},
         antropometria: result.antropometria || {},
         calendario: result.calendario || [],
+        psi: result.psi || null,
         sessionAtletas,
         timestamp: result.timestamp
       });
@@ -190,8 +191,12 @@ function buildSessionData(result) {
         dist_baseline: g.dist_baseline || 0,
         hsr: g.hsr || 0,
         hsr_baseline: g.hsr_baseline || 0,
+        hsr_25: g.hsr_25 || 0,
+        hsr_25_baseline: g.hsr_25_baseline || 0,
         sprints: g.sprints || 0,
         sprints_baseline: g.sprints_baseline || 0,
+        sprints_25: g.sprints_25 || 0,
+        sprints_25_baseline: g.sprints_25_baseline || 0,
         acel: g.acel || 0,
         acel_baseline: g.acel_baseline || 0,
         acel_3: g.acel_3 || 0,

@@ -2647,10 +2647,12 @@ export default function Dashboard(){
                                 const avgDist=athleteData.filter(a=>a.gps?.dist_total>0);
                                 const avgHsr=athleteData.filter(a=>a.gps?.hsr>0);
                                 const avgSprints=athleteData.filter(a=>a.gps?.sprints>0);
+                                const avgSprints25=athleteData.filter(a=>a.gps?.sprints_25>0);
                                 return<>
                                   {avgDist.length>0&&<span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#EFF6FF",color:"#2563eb",border:"1px solid #BFDBFE"}}>Dist. Média: {Math.round(avgDist.reduce((s,a)=>s+(a.gps.dist_total||0),0)/avgDist.length)}m</span>}
                                   {avgHsr.length>0&&<span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#FEF3C7",color:"#92400E",border:"1px solid #FDE68A"}}>HSR Média: {Math.round(avgHsr.reduce((s,a)=>s+(a.gps.hsr||0),0)/avgHsr.length)}m</span>}
-                                  {avgSprints.length>0&&<span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#FEE2E2",color:"#991B1B",border:"1px solid #FECACA"}}>Sprints Média: {(avgSprints.reduce((s,a)=>s+(a.gps.sprints||0),0)/avgSprints.length).toFixed(1)}</span>}
+                                  {avgSprints.length>0&&<span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#FEE2E2",color:"#991B1B",border:"1px solid #FECACA"}}>Spr &gt;20: {(avgSprints.reduce((s,a)=>s+(a.gps.sprints||0),0)/avgSprints.length).toFixed(1)}</span>}
+                                  {avgSprints25.length>0&&<span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#F3E8FF",color:"#6D28D9",border:"1px solid #DDD6FE"}}>Spr &gt;25: {(avgSprints25.reduce((s,a)=>s+(a.gps.sprints_25||0),0)/avgSprints25.length).toFixed(1)}</span>}
                                 </>;
                               })()}
                             </div>
@@ -2661,7 +2663,8 @@ export default function Dashboard(){
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Pos</th>
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Dist (m)</th>
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>HSR (m)</th>
-                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Sprints</th>
+                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Spr &gt;20</th>
+                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Spr &gt;25</th>
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Vel. Pico</th>
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>PL</th>
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>PSE</th>
@@ -2692,6 +2695,7 @@ export default function Dashboard(){
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.dist_total||<span style={{color:t.textFaint}}>—</span>}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.hsr||<span style={{color:t.textFaint}}>—</span>}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.sprints||<span style={{color:t.textFaint}}>—</span>}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:"#7c3aed"}}>{gps.sprints_25||<span style={{color:t.textFaint}}>—</span>}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.pico_vel||<span style={{color:t.textFaint}}>—</span>}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.player_load?Math.round(gps.player_load):<span style={{color:t.textFaint}}>—</span>}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pse>7?"#DC2626":pse>5?"#CA8A04":"#16A34A"}}>{pse||<span style={{color:t.textFaint}}>—</span>}</td>
@@ -2713,6 +2717,7 @@ export default function Dashboard(){
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(athleteData,a=>a.gps?.dist_total||0)||"—"}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(athleteData,a=>a.gps?.hsr||0)||"—"}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avgF(athleteData,a=>a.gps?.sprints||0)}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:"#7c3aed"}}>{avgF(athleteData,a=>a.gps?.sprints_25||0)}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avgF(athleteData,a=>a.gps?.pico_vel||0)}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(athleteData,a=>a.gps?.player_load||0)||"—"}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avgF(athleteData,a=>a.diario?.pse||0)}</td>
@@ -3161,6 +3166,137 @@ export default function Dashboard(){
             </div>
           </div>
 
+          {/* Parâmetro de Ordem Ψ(t) — trajetória dinâmica do atleta (Fonseca 2020) */}
+          {(()=>{
+            const psi=sheetData?.psi;
+            const series=psi?.series?.[sp.n]||[];
+            if(!psi||series.length<3)return null;
+            const last=series[series.length-1];
+            const psiV=last?.psi||0;
+            const baseV=last?.baseline;
+            const sdV=last?.sd;
+            const ews=last?.ews||{};
+            const ewsCount=ews.risingCount||0;
+            // Zona combina desvio vs baseline individual + early-warning signals
+            // (Scheffer 2009 / Fonseca 2020, passo 4): 2+ indicadores subindo
+            // antecipam a transição mesmo sem desvio estático extremo.
+            let zone="#16A34A",zoneLabel="Estável",zoneDesc="Dentro do baseline individual";
+            let dev=null;
+            if(baseV!==null&&baseV!==undefined&&sdV>0){
+              dev=(psiV-baseV)/sdV;
+              zoneDesc=`${dev>=0?"+":""}${dev.toFixed(1)}σ vs baseline`;
+            }
+            if((dev!==null&&dev>=3)||(dev!==null&&dev>=1.5&&ewsCount>=2)){
+              zone="#DC2626";zoneLabel="Transição iminente";
+            }else if((dev!==null&&dev>=2)||(dev!==null&&dev>=1&&ewsCount>=2)){
+              zone="#EA580C";zoneLabel="Sinal de alerta";
+            }else if((dev!==null&&dev>=1)||ewsCount>=2){
+              zone="#CA8A04";zoneLabel=ewsCount>=2&&(dev===null||dev<1)?"Sinais precoces ativos":"Atenção";
+            }else if(ewsCount>=1){
+              zoneLabel="Estável com sinal precoce";
+            }
+            const WINDOW_DAYS=90;
+            const cutoffMs=Date.now()-WINDOW_DAYS*24*60*60*1000;
+            const parseDt=(s)=>{if(!s)return 0;if(/^\d{4}-\d{2}-\d{2}/.test(s))return new Date(s).getTime();const p=String(s).split(/[\/\-\.]/);if(p.length>=3){const[a,b,c]=p.map(Number);if(a>31)return new Date(a,b-1,c).getTime();if(c>31)return new Date(c,b-1,a).getTime();return new Date(c,a-1,b).getTime();}return 0;};
+            const chartData=series.filter(x=>parseDt(x.date)>=cutoffMs).map(x=>{const ts=parseDt(x.date);const dt=new Date(ts);return{d:`${String(dt.getDate()).padStart(2,"0")}/${String(dt.getMonth()+1).padStart(2,"0")}`,psi:x.psi,baseline:x.baseline,upper:x.baseline!==null&&x.sd>0?Math.round((x.baseline+2*x.sd)*1000)/1000:null};});
+            const topLoadings=[...(psi.loadings||[])].sort((a,b)=>Math.abs(b.loading)-Math.abs(a.loading)).slice(0,6);
+            const featLabel={dist_total:"Distância",hsr:"HSR",sprints:"Spr >20",player_load:"Player Load",pico_vel:"Vel. Pico",pse:"PSE",srpe:"sRPE",cmj:"CMJ",sono:"Sono",dor:"Dor",rec:"Recuperação"};
+            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+              <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:12,gap:16,flexWrap:"wrap"}}>
+                <div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,display:"flex",alignItems:"center",gap:6}}>
+                    <TrendingUp size={16} color={zone}/>Parâmetro de Ordem Ψ(t)
+                    <span style={{fontSize:9,padding:"2px 8px",borderRadius:5,background:zone+"15",color:zone,fontWeight:700,marginLeft:6}}>{zoneLabel}</span>
+                  </div>
+                  <div style={{fontSize:10,color:t.textFaint,marginTop:3}}>PC1 de carga, neuromuscular e wellness — {psi.meta?.explained}% da variância explicada · n={psi.meta?.n} sessões</div>
+                </div>
+                <div style={{textAlign:"right"}}>
+                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:28,fontWeight:800,color:zone,lineHeight:1}}>{psiV>=0?"+":""}{psiV.toFixed(2)}<span style={{fontSize:11,color:t.textFaint,marginLeft:4}}>σ</span></div>
+                  <div style={{fontSize:10,color:t.textMuted,marginTop:2}}>{zoneDesc}</div>
+                </div>
+              </div>
+              {chartData.length>=2&&<ResponsiveContainer width="100%" height={180}>
+                <LineChart data={chartData} margin={{top:5,right:10,left:-20,bottom:0}}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={t.border}/>
+                  <XAxis dataKey="d" tick={{fontSize:9,fill:t.textFaint}}/>
+                  <YAxis tick={{fontSize:9,fill:t.textFaint}} domain={["auto","auto"]}/>
+                  <Tooltip content={<Tip theme={t}/>}/>
+                  <ReferenceLine y={0} stroke={t.textFaint} strokeDasharray="2 4" label={{value:"média pop.",fontSize:9,fill:t.textFaint,position:"insideTopLeft"}}/>
+                  <Line type="monotone" dataKey="baseline" name="Baseline 28d" stroke="#94a3b8" strokeDasharray="4 3" dot={false} strokeWidth={1.5}/>
+                  <Line type="monotone" dataKey="upper" name="Limite +2σ" stroke="#EA580C" strokeDasharray="2 4" dot={false} strokeWidth={1}/>
+                  <Line type="monotone" dataKey="psi" name="Ψ(t)" stroke={zone} strokeWidth={2.5} dot={{r:2.5,fill:zone}}/>
+                </LineChart>
+              </ResponsiveContainer>}
+              {/* Early-warning signals — critical slowing down nos resíduos de Ψ */}
+              {ews&&ews.variance!==null&&ews.variance!==undefined&&<div style={{marginTop:10,padding:10,background:t.bgMuted,borderRadius:8,border:`1px solid ${t.borderLight}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                  <div style={{fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Early-Warning Signals (resíduos de Ψ)</div>
+                  <div style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:5,background:ewsCount>=2?"#DC262615":ewsCount>=1?"#CA8A0415":"#16A34A15",color:ewsCount>=2?"#DC2626":ewsCount>=1?"#CA8A04":"#16A34A"}}>{ewsCount}/3 indicadores em alta</div>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}}>
+                  {[
+                    {l:"Variância",v:ews.variance,rising:ews.risingVar,tip:"Amplitude dos desvios de Ψ vs baseline individual. Cresce quando o sistema fica sensível a pequenas perturbações."},
+                    {l:"Autocorr. lag-1",v:ews.ar1,rising:ews.risingAr1,tip:"Correlação de resíduos sucessivos. Cresce quando o sistema demora mais a retornar ao equilíbrio (critical slowing down)."},
+                    {l:"|Skewness|",v:Math.abs(ews.skew||0),rising:ews.risingSkew,tip:"Assimetria da distribuição de resíduos. Cresce quando o atrator começa a deformar em direção a outro regime."}
+                  ].map((m,i)=><div key={i} title={m.tip} style={{textAlign:"center",padding:"6px 4px",background:t.bgCard,borderRadius:6,border:`1px solid ${t.borderLight}`,cursor:"help"}}>
+                    <div style={{fontSize:9,color:t.textFaint,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:4}}>{m.l} <span style={{color:m.rising?"#DC2626":"#16A34A",fontWeight:700}}>{m.rising?"↑":"→"}</span></div>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:pri}}>{(m.v||0).toFixed(3)}</div>
+                  </div>)}
+                </div>
+                <div style={{fontSize:9,color:t.textFaint,marginTop:6,lineHeight:1.4}}>Scheffer et al., <em>Nature</em> 2009. Dois ou mais indicadores subindo simultaneamente ativam <em>Sinais precoces ativos</em> — a zona pode escalar mesmo sem desvio extremo de Ψ.</div>
+              </div>}
+              <div style={{marginTop:10,padding:10,background:t.bgMuted,borderRadius:8,border:`1px solid ${t.borderLight}`}}>
+                <div style={{fontSize:10,fontWeight:700,color:t.textMuted,marginBottom:6,textTransform:"uppercase",letterSpacing:.5}}>Loadings de PC1 (top 6)</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:6}}>
+                  {topLoadings.map((l,i)=>{const sign=l.loading>=0?"+":"";const c=l.loading>=0?"#DC2626":"#16A34A";return <div key={i} style={{textAlign:"center",padding:"6px 4px",background:t.bgCard,borderRadius:6,border:`1px solid ${t.borderLight}`}}>
+                    <div style={{fontSize:9,color:t.textFaint,fontWeight:600}}>{featLabel[l.key]||l.key}</div>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:c}}>{sign}{l.loading.toFixed(2)}</div>
+                  </div>;})}
+                </div>
+                <div style={{fontSize:9,color:t.textFaint,marginTop:6,lineHeight:1.4}}>Loading positivo = a feature empurra Ψ para cima (estado de risco). Loading negativo = a feature puxa Ψ para baixo (estado saudável). Ver <em>Fundamento Teórico</em> no Glossário (Fonseca 2020).</div>
+              </div>
+            </div>;
+          })()}
+
+          {/* Web de determinantes — rede de correlações entre features (Bittencourt 2016) */}
+          {(()=>{
+            const psi=sheetData?.psi;
+            const net=psi?.network;
+            if(!net||!net.nodes?.length)return null;
+            const featLabel={dist_total:"Distância",hsr:"HSR",sprints:"Spr >20",player_load:"PL",pico_vel:"Vel.Pico",pse:"PSE",srpe:"sRPE",cmj:"CMJ",sono:"Sono",dor:"Dor",rec:"Recup."};
+            const p=net.nodes.length;
+            const cx=220,cy=170,R=130;
+            // Layout circular — posições fixas por feature
+            const pos=net.nodes.map((n,i)=>{const ang=-Math.PI/2+(i*2*Math.PI/p);return{...n,x:cx+R*Math.cos(ang),y:cy+R*Math.sin(ang),ang};});
+            const byKey=Object.fromEntries(pos.map(n=>[n.key,n]));
+            const maxDeg=Math.max(1,...pos.map(n=>n.degree));
+            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,marginBottom:4,display:"flex",alignItems:"center",gap:6}}><Users size={16} color="#2563eb"/>Web de Determinantes</div>
+              <div style={{fontSize:10,color:t.textFaint,marginBottom:12}}>Correlações entre as 11 features do elenco (pooled). Arestas com |r| ≥ 0,2 visíveis. Espessura e opacidade escalam com |r|; vermelho = correlação positiva, verde = negativa.</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 260px",gap:16,alignItems:"start"}}>
+                <div style={{width:"100%",display:"flex",justifyContent:"center"}}>
+                  <svg width="440" height="340" viewBox="0 0 440 340" style={{maxWidth:"100%",height:"auto"}}>
+                    {net.edges.map((e,i)=>{const A=byKey[e.a],B=byKey[e.b];if(!A||!B)return null;const c=e.r>=0?"#DC2626":"#16A34A";const op=Math.min(1,Math.abs(e.r)*1.4);const sw=Math.max(0.6,Math.abs(e.r)*3.5);return <line key={i} x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke={c} strokeOpacity={op} strokeWidth={sw}/>;})}
+                    {pos.map((n,i)=>{const rad=8+Math.abs(n.loading)*14;const nc=n.loading>=0?"#DC2626":"#16A34A";const labelR=R+24;const lx=cx+labelR*Math.cos(n.ang);const ly=cy+labelR*Math.sin(n.ang);return <g key={i}>
+                      <circle cx={n.x} cy={n.y} r={rad} fill={nc} fillOpacity={0.18+0.5*(n.degree/maxDeg)} stroke={nc} strokeWidth={1.5}/>
+                      <text x={lx} y={ly} textAnchor="middle" dominantBaseline="middle" fontSize={10} fontWeight={700} fill={t.textMuted}>{featLabel[n.key]||n.key}</text>
+                    </g>;})}
+                  </svg>
+                </div>
+                <div>
+                  <div style={{fontSize:10,fontWeight:700,color:t.textMuted,marginBottom:6,textTransform:"uppercase",letterSpacing:.5}}>Top 6 interações</div>
+                  <div style={{display:"flex",flexDirection:"column",gap:5}}>
+                    {net.edges.slice(0,6).map((e,i)=>{const c=e.r>=0?"#DC2626":"#16A34A";return <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 8px",background:t.bgMuted,borderRadius:6,border:`1px solid ${t.borderLight}`}}>
+                      <span style={{fontSize:10,color:t.textMuted,fontWeight:600}}>{featLabel[e.a]||e.a} ↔ {featLabel[e.b]||e.b}</span>
+                      <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:c}}>{e.r>=0?"+":""}{e.r.toFixed(2)}</span>
+                    </div>;})}
+                  </div>
+                  <div style={{fontSize:9,color:t.textFaint,marginTop:10,lineHeight:1.4}}>Tamanho do nó: |loading em PC1| (contribuição para Ψ). Tom: loading positivo (vermelho) empurra Ψ para cima; negativo (verde) puxa para baixo. <em>Bittencourt et al., Br J Sports Med 2016.</em></div>
+                </div>
+              </div>
+            </div>;
+          })()}
+
           {/* Risco de Lesão + DM + Histórico */}
           {(()=>{
             const mlAlert=liveAlerts.find(a=>a.n===sp.n);
@@ -3362,7 +3498,8 @@ export default function Dashboard(){
                   {[
                     gps?.dist_total?{l:"Distância",v:Math.round(gps.dist_total)+"m",c:pri}:null,
                     gps?.hsr?{l:"HSR",v:Math.round(gps.hsr)+"m",c:"#2563eb"}:null,
-                    gps?.sprints?{l:"Sprints",v:gps.sprints,c:"#7c3aed"}:null,
+                    gps?.sprints?{l:"Spr >20",v:gps.sprints,c:"#7c3aed"}:null,
+                    gps?.sprints_25?{l:"Spr >25",v:gps.sprints_25,c:"#6D28D9"}:null,
                     gps?.pico_vel?{l:"Pico Vel.",v:gps.pico_vel.toFixed(1)+" km/h",c:"#EA580C"}:null,
                     gps?.player_load?{l:"Player Load",v:Math.round(gps.player_load),c:pri}:null,
                     diario?.pse?{l:"PSE",v:diario.pse,c:diario.pse>=7?"#DC2626":diario.pse>=5?"#CA8A04":"#16A34A"}:null,
@@ -3398,24 +3535,25 @@ export default function Dashboard(){
               const isMatch=isMatchST2(e.sessionTitle)||matchDateSet2.has(dtKey);
               if(!isMatch)return null;
               const g=e.gps||{};
-              return{date:dt,dateStr:dtKey,fmtDate:fmtDt2(dt),title:e.sessionTitle||"",dist:g.dist_total||0,hsr:g.hsr||0,sprints:g.sprints||0,pico_vel:g.pico_vel||0,player_load:g.player_load||0,acel:g.acel||0,decel:g.decel||0,acel_3:g.acel_3||0,decel_3:g.decel_3||0};
+              return{date:dt,dateStr:dtKey,fmtDate:fmtDt2(dt),title:e.sessionTitle||"",dist:g.dist_total||0,hsr:g.hsr||0,sprints:g.sprints||0,sprints_25:g.sprints_25||0,pico_vel:g.pico_vel||0,player_load:g.player_load||0,acel:g.acel||0,decel:g.decel||0,acel_3:g.acel_3||0,decel_3:g.decel_3||0};
             }).filter(Boolean).filter(s=>s.dist>2000); // Min 2km = actually played
             if(gameSessions.length<3)return null;
             // Sort by composite score (dist + hsr*3 + sprints*50) to find best games
             const scored=gameSessions.map(s=>({...s,score:s.dist+s.hsr*3+s.sprints*50+s.player_load})).sort((a,b)=>b.score-a.score);
             const top5=scored.slice(0,Math.min(5,scored.length));
             const avg5=k=>top5.length?Math.round(top5.reduce((a,s)=>a+s[k],0)/top5.length*10)/10:0;
-            const ma={dist:avg5("dist"),hsr:avg5("hsr"),sprints:avg5("sprints"),pico_vel:avg5("pico_vel"),player_load:avg5("player_load"),acel:avg5("acel"),decel:avg5("decel"),acel_3:avg5("acel_3"),decel_3:avg5("decel_3")};
+            const ma={dist:avg5("dist"),hsr:avg5("hsr"),sprints:avg5("sprints"),sprints_25:avg5("sprints_25"),pico_vel:avg5("pico_vel"),player_load:avg5("player_load"),acel:avg5("acel"),decel:avg5("decel"),acel_3:avg5("acel_3"),decel_3:avg5("decel_3")};
             // All games average for comparison
             const avgAll=k=>gameSessions.length?Math.round(gameSessions.reduce((a,s)=>a+s[k],0)/gameSessions.length*10)/10:0;
-            const allAvg={dist:avgAll("dist"),hsr:avgAll("hsr"),sprints:avgAll("sprints"),pico_vel:avgAll("pico_vel"),player_load:avgAll("player_load"),acel_3:avgAll("acel_3"),decel_3:avgAll("decel_3")};
+            const allAvg={dist:avgAll("dist"),hsr:avgAll("hsr"),sprints:avgAll("sprints"),sprints_25:avgAll("sprints_25"),pico_vel:avgAll("pico_vel"),player_load:avgAll("player_load"),acel_3:avgAll("acel_3"),decel_3:avgAll("decel_3")};
             // Last game data
             const lastGame=gameSessions.sort((a,b)=>b.date-a.date)[0];
             // Comparison bars data
             const metrics=[
               {l:"Distância (m)",last:lastGame?.dist||0,top5:ma.dist,all:allAvg.dist,unit:"m"},
               {l:"HSR (m)",last:lastGame?.hsr||0,top5:ma.hsr,all:allAvg.hsr,unit:"m"},
-              {l:"Sprints",last:lastGame?.sprints||0,top5:ma.sprints,all:allAvg.sprints,unit:""},
+              {l:"Spr >20",last:lastGame?.sprints||0,top5:ma.sprints,all:allAvg.sprints,unit:""},
+              {l:"Spr >25",last:lastGame?.sprints_25||0,top5:ma.sprints_25,all:allAvg.sprints_25,unit:""},
               {l:"Pico Vel. (km/h)",last:lastGame?.pico_vel||0,top5:ma.pico_vel,all:allAvg.pico_vel,unit:"km/h"},
               {l:"Player Load",last:lastGame?.player_load||0,top5:ma.player_load,all:allAvg.player_load,unit:""},
               {l:"Acel >3m/s²",last:lastGame?.acel_3||0,top5:ma.acel_3,all:allAvg.acel_3,unit:""},
@@ -4291,13 +4429,13 @@ export default function Dashboard(){
               <table style={{width:"100%",borderCollapse:"collapse",fontSize:10}}>
                 <thead style={{position:"sticky",top:0,zIndex:2,background:t.bgCard}}>
                   <tr style={{borderBottom:`2px solid ${t.border}`}}>
-                    {[{l:"Atleta",k:"n"},{l:"Classificação",k:"classif"},{l:"Dist (m)",k:"dist"},{l:"HSR (m)",k:"hsr"},{l:"Sprints",k:"sprints"},{l:"Acel",k:"acel"},{l:"Decel",k:"decel"},{l:"PL",k:"pl"},{l:"Vel. Pico",k:"vel"},{l:"PSE",k:"pse"},{l:"sRPE",k:"srpe"},{l:"Sono",k:"sono"},{l:"Dor",k:"dor"},{l:"Recup.",k:"rec"},{l:"CMJ (cm)",k:"cmj"}].map((h,i)=>
+                    {[{l:"Atleta",k:"n"},{l:"Classificação",k:"classif"},{l:"Dist (m)",k:"dist"},{l:"HSR (m)",k:"hsr"},{l:"Spr >20",k:"sprints"},{l:"Spr >25",k:"sprints_25"},{l:"Acel",k:"acel"},{l:"Decel",k:"decel"},{l:"PL",k:"pl"},{l:"Vel. Pico",k:"vel"},{l:"PSE",k:"pse"},{l:"sRPE",k:"srpe"},{l:"Sono",k:"sono"},{l:"Dor",k:"dor"},{l:"Recup.",k:"rec"},{l:"CMJ (cm)",k:"cmj"}].map((h,i)=>
                       <th key={i} style={{padding:"6px 8px",textAlign:i===0?"left":"center",fontWeight:700,color:sessSort.col===h.k?acc:t.textMuted,fontSize:9,whiteSpace:"nowrap",cursor:"pointer",userSelect:"none"}} onClick={()=>setSessSort(prev=>({col:h.k,dir:prev.col===h.k&&prev.dir==="asc"?"desc":"asc"}))}>{h.l}{sessSort.col===h.k?sessSort.dir==="desc"?" ↓":" ↑":""}</th>
                     )}
                   </tr>
                 </thead>
                 <tbody>
-                  {(()=>{const classOrder={vermelho:0,amarelo:1,verde:2};const allSessionPlayers=players.filter(p=>LIVE_SESSION.atletas[p.n]).map(p=>{const sess=LIVE_SESSION.atletas[p.n];return{p,sess,classif:sess.classificacao};}).sort((a,b)=>{const d=sessSort.dir==="asc"?1:-1;const col=sessSort.col;if(col==="n")return d*a.p.n.localeCompare(b.p.n);if(col==="classif")return d*(classOrder[a.classif]-classOrder[b.classif]);const gv=(x,k)=>{const s=x.sess;if(!s)return 0;if(k==="dist")return s.gps?.dist_total||0;if(k==="hsr")return s.gps?.hsr||0;if(k==="sprints")return s.gps?.sprints||0;if(k==="acel")return s.gps?.acel||0;if(k==="decel")return s.gps?.decel||0;if(k==="pl")return s.gps?.player_load||0;if(k==="vel")return s.gps?.pico_vel||0;if(k==="pse")return s.carga_interna?.srpe_sessao||0;if(k==="srpe")return s.carga_interna?.srpe_total||0;if(k==="sono")return s.fisio?.sono_noite||0;if(k==="dor")return s.fisio?.dor_pos||0;if(k==="rec")return s.fisio?.rec_percebida||0;if(k==="cmj")return s.nm_response?.cmj_pre||0;return 0;};return d*(gv(a,col)-gv(b,col));});return allSessionPlayers.map(({p,sess,classif},idx)=>{
+                  {(()=>{const classOrder={vermelho:0,amarelo:1,verde:2};const allSessionPlayers=players.filter(p=>LIVE_SESSION.atletas[p.n]).map(p=>{const sess=LIVE_SESSION.atletas[p.n];return{p,sess,classif:sess.classificacao};}).sort((a,b)=>{const d=sessSort.dir==="asc"?1:-1;const col=sessSort.col;if(col==="n")return d*a.p.n.localeCompare(b.p.n);if(col==="classif")return d*(classOrder[a.classif]-classOrder[b.classif]);const gv=(x,k)=>{const s=x.sess;if(!s)return 0;if(k==="dist")return s.gps?.dist_total||0;if(k==="hsr")return s.gps?.hsr||0;if(k==="sprints")return s.gps?.sprints||0;if(k==="sprints_25")return s.gps?.sprints_25||0;if(k==="acel")return s.gps?.acel||0;if(k==="decel")return s.gps?.decel||0;if(k==="pl")return s.gps?.player_load||0;if(k==="vel")return s.gps?.pico_vel||0;if(k==="pse")return s.carga_interna?.srpe_sessao||0;if(k==="srpe")return s.carga_interna?.srpe_total||0;if(k==="sono")return s.fisio?.sono_noite||0;if(k==="dor")return s.fisio?.dor_pos||0;if(k==="rec")return s.fisio?.rec_percebida||0;if(k==="cmj")return s.nm_response?.cmj_pre||0;return 0;};return d*(gv(a,col)-gv(b,col));});return allSessionPlayers.map(({p,sess,classif},idx)=>{
                     const classC=classif==="vermelho"?"#DC2626":classif==="amarelo"?"#CA8A04":"#16A34A";
                     const g=sess?.gps||{};const ci=sess?.carga_interna||{};const fi=sess?.fisio||{};const nm=sess?.nm_response||{};
                     const distPct=g.dist_baseline>0?Math.round((g.dist_total/g.dist_baseline)*100):0;
@@ -4316,6 +4454,7 @@ export default function Dashboard(){
                       <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.dist_total?<><span style={{color:distColor}}>{g.dist_total}</span> <span style={{fontSize:8,color:t.textFaint}}>({distPct}%)</span></>:<span style={{color:t.textFaint}}>—</span>}</td>
                       <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.hsr?<><span style={{color:hsrColor}}>{g.hsr}</span> <span style={{fontSize:8,color:t.textFaint}}>({hsrPct}%)</span></>:<span style={{color:t.textFaint}}>—</span>}</td>
                       <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.sprints||<span style={{color:t.textFaint}}>—</span>}</td>
+                      <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:"#6D28D9"}}>{g.sprints_25||<span style={{color:t.textFaint}}>—</span>}</td>
                       <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.acel||<span style={{color:t.textFaint}}>—</span>}</td>
                       <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.decel||<span style={{color:t.textFaint}}>—</span>}</td>
                       <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600}}>{g.player_load?Math.round(g.player_load):<span style={{color:t.textFaint}}>—</span>}</td>
@@ -4340,6 +4479,7 @@ export default function Dashboard(){
                     <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.dist_total)}</td>
                     <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.hsr)}</td>
                     <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.sprints)}</td>
+                    <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:"#6D28D9"}}>{avg(sessAtletas,s=>s.gps.sprints_25)}</td>
                     <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.acel)}</td>
                     <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.decel)}</td>
                     <td style={{padding:"8px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(sessAtletas,s=>s.gps.player_load)}</td>
@@ -4396,11 +4536,12 @@ export default function Dashboard(){
                   <div style={{fontSize:11,fontWeight:700,color:pri,marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
                     <Zap size={12} color="#EA580C"/> Carga Externa (GPS)
                   </div>
-                  <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:6}}>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:6}}>
                     {[
                       {l:"Dist. Total",v:g.dist_total?g.dist_total+"m":"—",bl:g.dist_baseline+"m",pct:g.dist_total?((g.dist_total/g.dist_baseline)*100).toFixed(0):0},
-                      {l:"HSR (>19 km/h)",v:g.hsr+"m",bl:g.hsr_baseline+"m",pct:g.hsr_baseline?((g.hsr/g.hsr_baseline)*100).toFixed(0):0},
-                      {l:"Sprints",v:g.sprints,bl:g.sprints_baseline,pct:g.sprints_baseline?((g.sprints/g.sprints_baseline)*100).toFixed(0):0},
+                      {l:"HSR (>20 km/h)",v:g.hsr+"m",bl:g.hsr_baseline+"m",pct:g.hsr_baseline?((g.hsr/g.hsr_baseline)*100).toFixed(0):0},
+                      {l:"Spr >20",v:g.sprints,bl:g.sprints_baseline,pct:g.sprints_baseline?((g.sprints/g.sprints_baseline)*100).toFixed(0):0},
+                      {l:"Spr >25",v:g.sprints_25||0,bl:g.sprints_25_baseline||0,pct:g.sprints_25_baseline?((g.sprints_25/g.sprints_25_baseline)*100).toFixed(0):0},
                       {l:"Acelerações",v:g.acel,bl:g.acel_baseline,pct:g.acel_baseline?((g.acel/g.acel_baseline)*100).toFixed(0):0},
                       {l:"Desacelerações",v:g.decel,bl:g.decel_baseline,pct:g.decel_baseline?((g.decel/g.decel_baseline)*100).toFixed(0):0},
                       {l:"Vel. Pico",v:g.pico_vel?g.pico_vel+" km/h":"—",bl:g.pico_vel_baseline+" km/h",pct:g.pico_vel?((g.pico_vel/g.pico_vel_baseline)*100).toFixed(0):0}
@@ -4426,9 +4567,9 @@ export default function Dashboard(){
                     {[
                       {l:"sRPE Sessão",v:ci.srpe_sessao,c:ci.srpe_sessao>7?"#DC2626":ci.srpe_sessao>5?"#CA8A04":"#16A34A"},
                       {l:"sRPE Total",v:ci.srpe_total+" UA",c:ci.srpe_total>500?"#DC2626":ci.srpe_total>400?"#CA8A04":"#16A34A"},
-                      {l:"FC Média",v:ci.hr_avg+" bpm",c:ci.hr_avg>ci.hr_baseline_avg?"#EA580C":"#16A34A"},
-                      {l:"FC Máxima",v:ci.hr_max+" bpm",c:t.textMuted},
-                      {l:"Tempo Z. Alta",v:ci.tempo_zona_alta+"min",c:ci.tempo_zona_alta>ci.tempo_zona_alta_baseline?"#DC2626":"#16A34A"}
+                      {l:"FC Média",v:ci.hr_avg?ci.hr_avg+" bpm":"—",c:ci.hr_avg&&ci.hr_baseline_avg&&ci.hr_avg>ci.hr_baseline_avg?"#EA580C":(ci.hr_avg?"#16A34A":t.textFaint)},
+                      {l:"FC Máxima",v:ci.hr_max?ci.hr_max+" bpm":"—",c:ci.hr_max?t.textMuted:t.textFaint},
+                      {l:"Tempo Z. Alta",v:ci.tempo_zona_alta?ci.tempo_zona_alta+"min":"—",c:ci.tempo_zona_alta&&ci.tempo_zona_alta_baseline&&ci.tempo_zona_alta>ci.tempo_zona_alta_baseline?"#DC2626":(ci.tempo_zona_alta?"#16A34A":t.textFaint)}
                     ].map((m,j)=>
                       <div key={j} style={{textAlign:"center",padding:"6px 4px",background:t.bgMuted,borderRadius:6}}>
                         <div style={{fontSize:8,color:t.textFaint,fontWeight:600}}>{m.l}</div>
@@ -4984,12 +5125,51 @@ export default function Dashboard(){
             <div style={{fontSize:11,color:t.textMuted}}>Definição completa de todos os termos, métricas e indicadores utilizados no Performance Dashboard</div>
           </div>
 
-          {/* Risco de Lesão — Métrica Unificada */}
+          {/* Fundamento Teórico — base científica da plataforma */}
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
-            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:"#DC2626",marginBottom:10,display:"flex",alignItems:"center",gap:6}}><AlertTriangle size={16}/>Risco de Lesão (0–100%) — Métrica Unificada</div>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,marginBottom:10,display:"flex",alignItems:"center",gap:6}}><Info size={16} color="#2563eb"/>Fundamento Teórico</div>
+            <div style={{fontSize:11,color:t.textMuted,lineHeight:1.7,marginBottom:12}}>
+              O dashboard é construído sobre a abordagem de <strong>sistemas complexos</strong> aplicada a lesões esportivas: a lesão não emerge da soma linear de fatores isolados, mas da <strong>interação não-linear entre um web de determinantes</strong> (carga, neuromuscular, bioquímica, sono, histórico, biomecânica). Por isso a plataforma evita ranquear variáveis isoladas e prioriza o reconhecimento de <strong>padrões</strong> de risco e a <strong>trajetória dinâmica</strong> do atleta ao longo do tempo.
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <div style={{padding:12,background:t.bgMuted,borderRadius:8,border:`1px solid ${t.borderLight}`}}>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:pri,marginBottom:4}}>Bittencourt et al., 2016</div>
+                <div style={{fontSize:10,color:t.textFaint,fontStyle:"italic",marginBottom:6}}>Complex systems approach for sports injuries: moving from risk factor identification to injury pattern recognition — narrative review and new concept. <strong>Br J Sports Med.</strong></div>
+                <div style={{fontSize:11,color:t.textMuted,lineHeight:1.6}}>Introduz a noção de <strong>web of determinants</strong>: lesões emergem de interações não-lineares, não da simples combinação de preditores isolados. Prescreve a migração de <em>risk factor identification</em> para <em>injury pattern recognition</em>.</div>
+                <div style={{fontSize:10,color:"#2563eb",marginTop:6,fontFamily:"'JetBrains Mono'"}}>DOI: 10.1136/bjsports-2015-095850</div>
+              </div>
+              <div style={{padding:12,background:t.bgMuted,borderRadius:8,border:`1px solid ${t.borderLight}`}}>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:pri,marginBottom:4}}>Fonseca et al., 2020</div>
+                <div style={{fontSize:10,color:t.textFaint,fontStyle:"italic",marginBottom:6}}>Sports Injury Forecasting and Complexity: A Synergetic Approach. <strong>Sports Medicine.</strong></div>
+                <div style={{fontSize:11,color:t.textMuted,lineHeight:1.6}}>Formaliza a previsão de lesão via <strong>synergetics</strong>: monitorar um <strong>parâmetro de ordem</strong> (variável de alta ordem que resume o estado dinâmico do atleta) e detectar <strong>transições de fase</strong>. Quatro passos: (1) escala temporal, (2) definição do parâmetro de ordem, (3) monitoramento, (4) detecção da transição.</div>
+                <div style={{fontSize:10,color:"#2563eb",marginTop:6,fontFamily:"'JetBrains Mono'"}}>DOI: 10.1007/s40279-020-01326-4</div>
+              </div>
+            </div>
+            <div style={{marginTop:10,padding:10,background:"#EFF6FF",borderRadius:8,border:"1px solid #BFDBFE",fontSize:10,color:"#1E40AF",lineHeight:1.5}}>
+              <strong>Como isso aparece no dashboard:</strong> (a) o <em>Risco de Lesão</em> é uma métrica única, não a soma de flags independentes; (b) o modelo ML captura interações entre domínios (carga × sono × bioquímica × histórico); (c) SHAP explicita os determinantes que estão ativos em cada atleta; (d) o roadmap inclui trajetória de parâmetro de ordem e detecção de transição de fase (Fonseca, passos 3–4).
+            </div>
+          </div>
+
+          {/* Parâmetro de Ordem Ψ(t) — métrica observável (Fonseca 2020, passos 2–3) */}
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,marginBottom:10,display:"flex",alignItems:"center",gap:6}}><TrendingUp size={16} color="#2563eb"/>Parâmetro de Ordem Ψ(t)</div>
             <div style={{padding:14,background:t.bgMuted,borderRadius:10,border:`1px solid ${t.borderLight}`}}>
               <div style={{fontSize:11,color:t.textMuted,lineHeight:1.7}}>
-                <strong>O que é:</strong> Índice único de risco de lesão nos próximos 7 dias, calculado por modelo de machine learning (XGBoost) treinado com dados históricos do clube e calibrado com Isotonic Regression + Platt Scaling.<br/>
+                <strong>O que é:</strong> Variável macroscópica que resume o estado dinâmico do atleta em um único escalar, em unidades de desvio-padrão da população. Implementa o passo 2 da síntese de <em>Fonseca 2020</em>: reduzir a dimensionalidade das múltiplas medidas diárias a um observável único que se pode acompanhar ao longo do tempo.<br/>
+                <strong>Como é calculado:</strong> Primeira componente principal (<strong>PC1</strong>) de 11 features padronizadas por sessão — <em>carga externa</em> (distância, HSR, sprints, player load, pico de velocidade), <em>carga interna</em> (PSE, sRPE), <em>neuromuscular</em> (CMJ) e <em>wellness</em> (sono, dor, recuperação). O sinal de PC1 é orientado para que valores altos correspondam ao estado de risco (carga e dor ↑, CMJ e recuperação ↓).<br/>
+                <strong>Leitura clínica:</strong> cada atleta tem um baseline individual (média móvel 28 dias). Desvios do baseline &gt; 1σ ativam <em>Atenção</em>, &gt; 2σ <em>Sinal de alerta</em>, &gt; 3σ <em>Transição iminente</em> — uma aproximação operacional dos <em>early-warning signals</em> de transição de fase descritos por Fonseca (passo 4 do roadmap).<br/>
+                <strong>Interpretabilidade:</strong> cada feature tem um <em>loading</em> em PC1. Loading positivo = puxa Ψ para cima; loading negativo = puxa para baixo. O painel do atleta exibe os 6 maiores.<br/>
+                <strong>Base teórica:</strong> Fonseca et al., <em>Sports Medicine</em> 2020 (synergetics, parâmetro de ordem) · Bittencourt et al., <em>Br J Sports Med</em> 2016 (web of determinants, pattern recognition).
+              </div>
+            </div>
+          </div>
+
+          {/* Previsão de Lesão — Métrica Supervisionada */}
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:"#DC2626",marginBottom:10,display:"flex",alignItems:"center",gap:6}}><AlertTriangle size={16}/>Previsão de Lesão (0–100%) — Métrica Supervisionada</div>
+            <div style={{padding:14,background:t.bgMuted,borderRadius:10,border:`1px solid ${t.borderLight}`}}>
+              <div style={{fontSize:11,color:t.textMuted,lineHeight:1.7}}>
+                <strong>O que é:</strong> Probabilidade estimada de lesão nos próximos 7 dias via modelo supervisionado (XGBoost) calibrado — <em>forecast</em> construído sobre o mesmo espaço de features que alimenta Ψ(t).<br/>
                 <strong>Fontes de dados integradas:</strong>
                 <ul style={{margin:"4px 0 4px 18px",padding:0}}>
                   <li><strong>Carga externa (GPS):</strong> ACWR, distância, HSR, acelerações/desacelerações, monotonia, strain.</li>
@@ -5002,7 +5182,8 @@ export default function Dashboard(){
                 <strong>Interações entre fatores:</strong> O modelo captura combinações de risco não-lineares — por exemplo, <em>ACWR alto × sono ruim × CK elevado × lesão recente</em> eleva o risco de forma exponencial, algo que regras clínicas isoladas não conseguem representar.<br/>
                 <strong>Zonas de risco:</strong> <span style={{color:"#16A34A",fontWeight:700}}>Verde</span> ({"<"}28%) · <span style={{color:"#CA8A04",fontWeight:700}}>Amarelo</span> (28–39%) · <span style={{color:"#EA580C",fontWeight:700}}>Laranja</span> (40–64%) · <span style={{color:"#DC2626",fontWeight:700}}>Vermelho</span> (≥65%).<br/>
                 <strong>Explicabilidade (SHAP):</strong> Cada predição traz os fatores que mais aumentam ou reduzem o risco individual do atleta, permitindo intervenção direcionada (dose de treino, recuperação, triagem clínica).<br/>
-                <strong>Pipeline:</strong> KNNImputer → StandardScaler → SMOTE+Tomek → LASSO (33 de 110 features) → XGBoost (Optuna) → Calibração → SHAP. AUC-ROC 0.75 · AUC calibrada 0.88 · Recall 0.97.
+                <strong>Pipeline:</strong> KNNImputer → StandardScaler → SMOTE+Tomek → LASSO (33 de 110 features) → XGBoost (Optuna) → Calibração → SHAP. AUC-ROC 0.75 · AUC calibrada 0.88 · Recall 0.97.<br/>
+                <strong>Base teórica:</strong> Bittencourt et al., <em>Br J Sports Med</em> 2016 (web of determinants / pattern recognition) · Fonseca et al., <em>Sports Medicine</em> 2020 (synergetics, parâmetro de ordem, transição de fase). Ver seção <em>Fundamento Teórico</em> acima.
               </div>
             </div>
           </div>
@@ -5018,8 +5199,9 @@ export default function Dashboard(){
               <tbody>
                 {[
                   {m:"Distância Total",u:"metros",d:"Distância total percorrida na sessão",i:"Volume geral do treino. Comparar com baseline individual."},
-                  {m:"HSR (High-Speed Running)",u:"metros",d:"Distância percorrida acima de 19.8 km/h",i:"Indicador de intensidade alta. Picos acima de 130% do baseline = alerta."},
-                  {m:"Sprints",u:"contagem",d:"Número de ações acima de 25.2 km/h",i:"Ações de máxima intensidade. Relação direta com risco de lesão muscular."},
+                  {m:"HSR (High-Speed Running)",u:"metros",d:"Distância percorrida acima de 20 km/h",i:"Indicador de intensidade alta. Picos acima de 130% do baseline = alerta."},
+                  {m:"Spr >20 (HSR-events)",u:"contagem",d:"Número de ações acima de 20 km/h",i:"Volume de eventos em alta velocidade. Proxy de demanda aeróbia intensa; pareia com o campo HSR (distância)."},
+                  {m:"Spr >25 (sprint verdadeiro)",u:"contagem",d:"Número de ações acima de 25 km/h",i:"Ações de máxima intensidade. Relação direta com risco de lesão muscular (posterior de coxa, sóleo)."},
                   {m:"Player Load",u:"UA",d:"Métrica de carga externa (acelerometria triaxial)",i:"Medida global de demanda mecânica. Unidade arbitrária."},
                   {m:"Pico de Velocidade",u:"km/h",d:"Velocidade máxima atingida na sessão",i:"Capacidade de sprint máximo. Variações indicam fadiga neuromuscular."},
                   {m:"Acelerações >2 m/s²",u:"contagem",d:"Número de acelerações acima de 2 m/s²",i:"Demanda mecânica de arranques moderados."},
@@ -5051,7 +5233,7 @@ export default function Dashboard(){
                   {m:"PSE (sRPE sessão)",f:"Escala CR-10 (0–10)",d:"Percepção Subjetiva de Esforço da sessão (Escala de Borg modificada)",i:"0 = repouso, 10 = esforço máximo. Coletado 30 min após a sessão para evitar viés do último exercício."},
                   {m:"sRPE Total",f:"PSE × Duração (min)",d:"Carga total da sessão em Unidades Arbitrárias (UA)",i:"Exemplo: PSE 7 × 90 min = 630 UA. Acima de 450 UA = sessão de alta carga. Reflete o volume de esforço percebido (Foster et al., 2001)."},
                   {m:"ACWR",f:"Carga 7d ÷ Carga 28d",d:"Acute:Chronic Workload Ratio — razão entre carga aguda e crônica",i:"Compara o que o atleta treinou recentemente com o que está acostumado. Ideal: 0.8–1.3. >1.5 = risco alto de lesão. <0.8 = subcarga/desproteção (Gabbett, 2016). Calculado por EWMA."},
-                  {m:"ACWR HSR",f:"HSR 7d ÷ HSR 28d",d:"ACWR específico para corrida de alta velocidade",i:"Foca na carga de alta intensidade (>19.8 km/h). Mais sensível para lesões musculares de sprint."},
+                  {m:"ACWR HSR",f:"HSR 7d ÷ HSR 28d",d:"ACWR específico para corrida de alta velocidade",i:"Foca na carga de alta intensidade (>20 km/h). Mais sensível para lesões musculares de sprint."},
                   {m:"Monotonia",f:"Média diária ÷ DP diário",d:"Variabilidade da carga nos últimos 7 dias",i:"Alta monotonia (>2.0) = carga repetitiva sem variação → risco de overreaching. Indica falta de periodização (Foster, 1998)."},
                   {m:"Strain",f:"Carga semanal × Monotonia",d:"Esforço acumulado ponderado pela monotonia",i:"Combina volume total com falta de variação. Valores altos indicam risco de overtraining."}
                 ].map((r,i)=><tr key={i} style={{borderBottom:`1px solid ${t.borderLight}`,background:i%2===0?"transparent":t.bgMuted}}>
