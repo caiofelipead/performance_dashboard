@@ -1248,12 +1248,12 @@ export default function Dashboard(){
     <div style={{display:"flex",padding:16,gap:16,maxWidth:1440,margin:"0 auto"}}>
       {/* SIDEBAR */}
       <aside style={{width:240,flexShrink:0}}>
-        <div style={{fontSize:10,fontWeight:700,color:t.textFaint,letterSpacing:1.5,textTransform:"uppercase",marginBottom:2,paddingLeft:4}}>Elenco — Risco</div>
-        <div style={{fontSize:8,color:t.textFaintest,marginBottom:4,paddingLeft:4}}>
-          <strong style={{color:t.textFaint}}>Risk Score (0–100):</strong> índice composto baseado em regras clínicas (ACWR, Dor, Rec. Pernas, Sono, Bem-estar). Indica o <em>nível de atenção</em> necessário com base em indicadores observáveis do dia. ≠ Probabilidade de Lesão.
+        <div style={{fontSize:10,fontWeight:700,color:t.textFaint,letterSpacing:1.5,textTransform:"uppercase",marginBottom:2,paddingLeft:4}}>Elenco — Estado do Atleta</div>
+        <div style={{fontSize:8,color:t.textFaintest,marginBottom:4,paddingLeft:4,lineHeight:1.45}}>
+          Métrica única que integra três leituras do mesmo estado: (a) <strong style={{color:t.textFaint}}>Ψ(t) observável</strong> — PCA sobre carga + neuromuscular + bem-estar (Fonseca 2020); (b) <strong style={{color:t.textFaint}}>Previsão ML 7d</strong> — XGBoost calibrado com 89 features; (c) <strong style={{color:t.textFaint}}>Risk Score clínico (0–100)</strong> — regras do dia (ACWR, Dor, Rec. Pernas, Sono, Bem-estar) usado como fallback.
         </div>
         <div style={{fontSize:7,color:t.textFaintest,marginBottom:4,paddingLeft:4,lineHeight:1.4}}>
-          <strong style={{color:t.textFaint}}>Prob. Lesão (%):</strong> estimativa do modelo XGBoost calibrado com 89 features (GPS, carga, neuromuscular, sono, histórico). Prevê a chance real de lesão nos próximos 7 dias. Disponível apenas para atletas no modelo preditivo.
+          No card de cada atleta exibimos o Risk Score clínico 0–100; no perfil individual, o score grande no header prioriza a Previsão ML quando disponível, e o card <em>Estado do Atleta</em> mostra as três leituras juntas.
         </div>
         <div style={{display:"flex",gap:4,marginBottom:4,paddingLeft:4,flexWrap:"wrap"}}>
           {[{l:"Crítico",c:"#DC2626",r:"≥65"},{l:"Alto",c:"#EA580C",r:"50–64"},{l:"Moderado",c:"#CA8A04",r:"20–49"},{l:"Ótimo",c:"#16A34A",r:"<20"}].map((z,i)=>
@@ -3145,12 +3145,56 @@ export default function Dashboard(){
           })()}
         </div>}
 
-        {tab==="player"&&sp&&<div>
+        {tab==="player"&&sp&&(()=>{
+          // Estado do Atleta — métrica única que integra:
+          //   (a) Ψ(t) — estado observável via PCA (Fonseca 2020), quando há dados suficientes
+          //   (b) Prob. Lesão ML (7d) — forecast XGBoost
+          //   (c) Risk Score 0–100 — fallback baseado em regras clínicas do dia
+          // A cor/zone prioriza a leitura mais pessimista entre (a) e (b); (c) entra se nenhuma das duas tiver dado.
+          const _psi=sheetData?.psi;
+          const _psiSeries=_psi?.series?.[sp.n]||[];
+          const _psiLast=_psiSeries.length>=3?_psiSeries[_psiSeries.length-1]:null;
+          const _psiDev=_psiLast&&_psiLast.baseline!==null&&_psiLast.baseline!==undefined&&_psiLast.sd>0
+            ?(_psiLast.psi-_psiLast.baseline)/_psiLast.sd:null;
+          const _psiEwsCount=_psiLast?.ews?.risingCount||0;
+          const _mlAlert=liveAlerts.find(a=>a.n===sp.n);
+          const _mlProb=_mlAlert?_mlAlert.prob:null;
+          const _mlPct=_mlProb!==null?Math.round(_mlProb*100):null;
+          // Zoneamento unificado: cor = pior (mais pessimista) entre Ψ e ML
+          const rank={"#16A34A":0,"#CA8A04":1,"#EA580C":2,"#DC2626":3};
+          let _zC="#16A34A",_zL="Estável";
+          if(_psiDev!==null){
+            if(_psiDev>=3||(_psiDev>=1.5&&_psiEwsCount>=2)){_zC="#DC2626";_zL="Transição iminente";}
+            else if(_psiDev>=2||(_psiDev>=1&&_psiEwsCount>=2)){_zC="#EA580C";_zL="Sinal de alerta";}
+            else if(_psiDev>=1||_psiEwsCount>=2){_zC="#CA8A04";_zL=_psiEwsCount>=2&&_psiDev<1?"Sinais precoces":"Atenção";}
+            else if(_psiEwsCount>=1){_zL="Estável c/ sinal precoce";}
+          }
+          if(_mlProb!==null){
+            const mlC=_mlProb>=0.5?"#DC2626":_mlProb>=0.3?"#EA580C":_mlProb>=0.15?"#CA8A04":"#16A34A";
+            const mlL=_mlProb>=0.5?"Risco alto":_mlProb>=0.3?"Risco moderado-alto":_mlProb>=0.15?"Risco moderado":"Risco baixo";
+            if(rank[mlC]>rank[_zC]){_zC=mlC;_zL=mlL;}
+          }
+          // Se não há Ψ nem ML, usa Risk Score clínico como fallback
+          const _hasDyn=_psiDev!==null||_mlProb!==null;
+          if(!_hasDyn){_zC=LV[sp.risk].c;_zL=LV[sp.risk].l;}
+          // Score numérico principal exibido no header
+          const _scoreVal=_mlPct!==null?_mlPct:(sp.riskScore!==undefined?sp.riskScore:0);
+          const _scoreUnit=_mlPct!==null?"%":"";
+          const _scoreSub=_mlPct!==null?"Prob. Lesão (7d)":"Risk Score clínico";
+          const _psiFmt=_psiDev!==null?`${_psiDev>=0?"+":""}${_psiDev.toFixed(1)}σ`:null;
+          return <div>
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{display:"flex",gap:20,alignItems:"center"}}>
               <PlayerPhoto theme={t} name={sp.n} sz={80}/>
+              {/* Score unificado (Estado do Atleta) — substitui o badge pequeno 'Moderado' */}
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,padding:"8px 14px",background:_zC+"0D",borderRadius:12,border:`2px solid ${_zC}`,minWidth:100}} title={`Estado do Atleta — combina observável (Ψ), previsão ML e regras clínicas. Fontes: Fonseca 2020 + XGBoost.`}>
+                <div style={{fontFamily:"'JetBrains Mono'",fontSize:34,fontWeight:900,color:_zC,lineHeight:1}}>{_scoreVal}<span style={{fontSize:16,fontWeight:700}}>{_scoreUnit}</span></div>
+                <div style={{fontSize:10,fontWeight:700,color:_zC,textTransform:"uppercase",letterSpacing:.5,marginTop:2}}>{_zL}</div>
+                <div style={{fontSize:8,color:t.textFaint,fontWeight:500}}>{_scoreSub}</div>
+                {_psiFmt&&<div style={{fontSize:8,color:t.textFaint,fontWeight:600,marginTop:1}}>Ψ {_psiFmt}</div>}
+              </div>
               <div style={{flex:1}}>
-                <div style={{fontFamily:"'Inter Tight'",fontSize:20,fontWeight:900,color:pri}}>{sp.n} <Badge level={sp.risk}/> <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:t.textFaint,fontWeight:400,marginLeft:6}}>{sp.pos} · {sp.id} anos · {sp.nc} sessões</span></div>
+                <div style={{fontFamily:"'Inter Tight'",fontSize:20,fontWeight:900,color:pri}}>{sp.n} <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:t.textFaint,fontWeight:400,marginLeft:6}}>{sp.pos} · {sp.id} anos · {sp.nc} sessões</span></div>
                 {sp.reasons.length>0&&<div style={{display:"flex",gap:6,marginTop:6,flexWrap:"wrap"}}>
                   {sp.reasons.map((r,i)=><span key={i} style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:LV[sp.risk].bg,color:LV[sp.risk].c,border:`1px solid ${LV[sp.risk].bc}`}}>{r}</span>)}
                 </div>}
@@ -3167,7 +3211,48 @@ export default function Dashboard(){
           {(()=>{
             const psi=sheetData?.psi;
             const series=psi?.series?.[sp.n]||[];
-            if(!psi||series.length<3)return null;
+            // Sem dados Ψ suficientes: renderiza o card com ML + Risk Score clínico
+            // (o score grande do header já está sendo exibido; aqui damos contexto).
+            if(!psi||series.length<3){
+              const mlAlertP=liveAlerts.find(a=>a.n===sp.n);
+              const probML=mlAlertP?mlAlertP.prob:null;
+              const probPctML=probML!==null?(probML*100).toFixed(0):null;
+              const probCML=probML>=0.5?"#DC2626":probML>=0.3?"#EA580C":probML>=0.15?"#CA8A04":"#16A34A";
+              const rsZoneC=LV[sp.risk].c,rsZoneL=LV[sp.risk].l;
+              return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri,display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                  <TrendingUp size={18} color={rsZoneC}/>Estado do Atleta
+                  <span style={{fontSize:10,padding:"3px 10px",borderRadius:6,background:rsZoneC+"15",color:rsZoneC,fontWeight:700,border:`1px solid ${rsZoneC}33`}}>{rsZoneL}</span>
+                </div>
+                <div style={{fontSize:10,color:t.textFaint,marginBottom:12}}>Métrica única que integra previsão ML, Risk Score clínico e indicadores do dia. <em>Ψ(t) observável indisponível — série curta.</em></div>
+                <div style={{display:"grid",gridTemplateColumns:probPctML!==null?"1fr 1fr":"1fr",gap:12}}>
+                  <div style={{padding:14,background:rsZoneC+"0D",borderRadius:10,border:`1px solid ${rsZoneC}33`}}>
+                    <div style={{fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5,marginBottom:6}}>Risk Score clínico (hoje)</div>
+                    <div style={{display:"flex",alignItems:"baseline",gap:8}}>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:36,fontWeight:800,color:rsZoneC,lineHeight:1}}>{sp.riskScore!==undefined?sp.riskScore:"-"}</div>
+                      <div style={{fontSize:12,color:t.textFaint,fontWeight:600}}>/100</div>
+                    </div>
+                    <div style={{fontSize:10,color:t.textFaint,marginTop:6,lineHeight:1.4}}>Regras clínicas do dia (ACWR, Dor, Recuperação, Sono, Bem-estar).</div>
+                    {sp.reasons&&sp.reasons.length>0&&<div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:8}}>
+                      {sp.reasons.slice(0,4).map((r,i)=><span key={i} style={{padding:"2px 7px",borderRadius:4,fontSize:9,fontWeight:600,background:rsZoneC+"15",color:rsZoneC,border:`1px solid ${rsZoneC}33`}}>{r}</span>)}
+                    </div>}
+                  </div>
+                  {probPctML!==null&&<div style={{padding:14,background:probCML+"0D",borderRadius:10,border:`1px solid ${probCML}33`}}>
+                    <div style={{fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5,marginBottom:6}}>Previsão de lesão (7 dias)</div>
+                    <div style={{display:"flex",alignItems:"baseline",gap:8}}>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:36,fontWeight:800,color:probCML,lineHeight:1}}>{probPctML}</div>
+                      <div style={{fontSize:18,color:probCML,fontWeight:700}}>%</div>
+                    </div>
+                    <div style={{fontSize:11,color:probCML,fontWeight:700,marginTop:4}}>{mlAlertP.zone==="VERMELHO"?"Risco alto":mlAlertP.zone==="LARANJA"?"Risco moderado-alto":mlAlertP.zone==="AMARELO"?"Risco moderado":"Risco baixo"}</div>
+                    {mlAlertP.dose&&<div style={{fontSize:10,color:t.textMuted,marginTop:6,lineHeight:1.4}}>{mlAlertP.dose}</div>}
+                    {mlAlertP.shap_pos&&mlAlertP.shap_pos.length>0&&<div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:8}}>
+                      {mlAlertP.shap_pos.slice(0,3).map((s,i)=><span key={i} style={{padding:"2px 7px",borderRadius:4,fontSize:9,fontWeight:600,background:probCML+"15",color:probCML,border:`1px solid ${probCML}33`}}>{s.f}: {s.v}</span>)}
+                    </div>}
+                  </div>}
+                </div>
+                <div style={{fontSize:9,color:t.textFaint,marginTop:10,lineHeight:1.4}}>Para habilitar a leitura Ψ(t) (observável, Fonseca 2020) o atleta precisa de ≥3 sessões com cobertura {">="}70% das features (GPS + PSE + CMJ + questionário).</div>
+              </div>;
+            }
             const last=series[series.length-1];
             const psiV=last?.psi||0;
             const baseV=last?.baseline;
@@ -4376,7 +4461,7 @@ export default function Dashboard(){
               </div>
             </div>;
           })()}
-        </div>}
+        </div>;})()}
 
         {tab==="player"&&!sp&&<div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:40,textAlign:"center",color:t.textFaint}}>
           <Users size={32} style={{marginBottom:12,opacity:.4}}/><div style={{fontSize:14,fontWeight:600}}>Selecione um atleta na barra lateral</div>
