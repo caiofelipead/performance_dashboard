@@ -4480,29 +4480,37 @@ export default function Dashboard(){
             // Get ISO week number
             const getWeek=d=>{const t2=new Date(d.getFullYear(),d.getMonth(),d.getDate());t2.setDate(t2.getDate()+3-(t2.getDay()+6)%7);const w1=new Date(t2.getFullYear(),0,4);return 1+Math.round(((t2-w1)/86400000-3+(w1.getDay()+6)%7)/7);};
             const getWeekStart=d=>{const t2=new Date(d);const day=t2.getDay();const diff=t2.getDate()-day+(day===0?-6:1);t2.setDate(diff);t2.setHours(0,0,0,0);return t2;};
-            // Group diario entries by week
+            // Map (data,wKey) → key para evitar dupla contagem entre diário e GPS.
             const weekMap={};
+            const seenSessions=new Set(); // chave dia → não conta a mesma sessão duas vezes em sRPE
+            const ensureBucket=(dt)=>{const wStart=getWeekStart(dt);const wKey=wStart.toISOString().slice(0,10);if(!weekMap[wKey])weekMap[wKey]={start:wStart,week:getWeek(dt),sessions:[],srpe_vals:[],dist_vals:[],hsr_vals:[],sono_vals:[],dor_vals:[],rec_vals:[]};return weekMap[wKey];};
+            // 1) Diário (fonte primária para sRPE quando publicado).
             for(const e of diarioAll){
               const dt=parseDtW(e.date);
               if(!dt||isNaN(dt))continue;
-              const wStart=getWeekStart(dt);
-              const wKey=wStart.toISOString().slice(0,10);
-              if(!weekMap[wKey])weekMap[wKey]={start:wStart,week:getWeek(dt),sessions:[],srpe_vals:[],dist_vals:[],hsr_vals:[],sono_vals:[],dor_vals:[],rec_vals:[]};
-              const pse=e.pse||0;
-              const dur=e.duracao||0;
+              const bucket=ensureBucket(dt);
+              const pse=e.pse||0; const dur=e.duracao||0;
               const srpe=e.spe||(pse*dur)||0;
-              weekMap[wKey].sessions.push({date:dt,pse,dur,srpe});
-              if(srpe>0)weekMap[wKey].srpe_vals.push(srpe);
+              bucket.sessions.push({date:dt,pse,dur,srpe});
+              if(srpe>0){bucket.srpe_vals.push(srpe);seenSessions.add(dt.toISOString().slice(0,10));}
             }
-            // Add GPS data per week
+            // 2) GPS individual (gid=1595283302) — também traz PSE+duração por
+            // sessão. Usado como fallback ou complemento quando o Diário está
+            // vazio ou desatualizado para a semana corrente.
             for(const e of gpsAll){
               const dt=parseDtW(e.date);
               if(!dt||isNaN(dt))continue;
-              const wStart=getWeekStart(dt);
-              const wKey=wStart.toISOString().slice(0,10);
-              if(!weekMap[wKey])weekMap[wKey]={start:wStart,week:getWeek(dt),sessions:[],srpe_vals:[],dist_vals:[],hsr_vals:[],sono_vals:[],dor_vals:[],rec_vals:[]};
-              if(e.gps?.dist_total>0)weekMap[wKey].dist_vals.push(e.gps.dist_total);
-              if(e.gps?.hsr>0)weekMap[wKey].hsr_vals.push(e.gps.hsr);
+              const bucket=ensureBucket(dt);
+              if(e.gps?.dist_total>0)bucket.dist_vals.push(e.gps.dist_total);
+              if(e.gps?.hsr>0)bucket.hsr_vals.push(e.gps.hsr);
+              const pseG=Number(e.pse)||0; const durG=Number(e.duracao)||0;
+              const srpeG=pseG*durG;
+              const dKey=dt.toISOString().slice(0,10);
+              if(srpeG>0&&!seenSessions.has(dKey)){
+                bucket.srpe_vals.push(srpeG);
+                bucket.sessions.push({date:dt,pse:pseG,dur:durG,srpe:srpeG});
+                seenSessions.add(dKey);
+              }
             }
             // Add wellness per week
             for(const e of questAll){
@@ -4725,45 +4733,9 @@ export default function Dashboard(){
                 </div>
               </div>}
 
-              {/* Temporal Trend Charts — disponível para TODOS os atletas */}
-              {hasTrends&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-                <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Fatigue Debt — 7 Dias</div>
-                  <div style={{fontSize:10,color:t.textFaint,marginBottom:6}}>Fadiga acumulada com decaimento exponencial (λ=0.1)</div>
-                  <ResponsiveContainer width="100%" height={160}>
-                    <AreaChart data={trendData}><CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/><XAxis dataKey="d" tick={{fontSize:9,fill:t.textFaint}}/><YAxis tick={{fontSize:9,fill:t.textFaint}}/><Tooltip content={<Tip theme={t}/>}/>
-                      <Area type="monotone" dataKey="fatigue_debt" name="Fatigue Debt" stroke="#EA580C" fill="#EA580C" fillOpacity={.08} strokeWidth={2.5}/>
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-                <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Bem-estar — 7 Dias</div>
-                  <div style={{fontSize:10,color:t.textFaint,marginBottom:6}}>Score composto de bem-estar (sono + rec + dor inv.)</div>
-                  <ResponsiveContainer width="100%" height={160}>
-                    <AreaChart data={trendData}><CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/><XAxis dataKey="d" tick={{fontSize:9,fill:t.textFaint}}/><YAxis tick={{fontSize:9,fill:t.textFaint}} domain={[0,10]}/><Tooltip content={<Tip theme={t}/>}/>
-                      <Area type="monotone" dataKey="wellness" name="Bem-estar" stroke="#16A34A" fill="#16A34A" fillOpacity={.08} strokeWidth={2.5}/>
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-                <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Carga Interna (sRPE) — 7 Dias</div>
-                  <div style={{fontSize:10,color:t.textFaint,marginBottom:6}}>Carga semanal acumulada (UA)</div>
-                  <ResponsiveContainer width="100%" height={160}>
-                    <AreaChart data={trendData}><CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/><XAxis dataKey="d" tick={{fontSize:9,fill:t.textFaint}}/><YAxis tick={{fontSize:9,fill:t.textFaint}}/><Tooltip content={<Tip theme={t}/>}/>
-                      <Area type="monotone" dataKey="srpe" name="sRPE" stroke="#2563eb" fill="#2563eb" fillOpacity={.08} strokeWidth={2.5}/>
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-                <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>CMJ Tendência — 7 Dias</div>
-                  <div style={{fontSize:10,color:t.textFaint,marginBottom:6}}>Potência neuromuscular (cm)</div>
-                  <ResponsiveContainer width="100%" height={160}>
-                    <LineChart data={trendData}><CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/><XAxis dataKey="d" tick={{fontSize:9,fill:t.textFaint}}/><YAxis tick={{fontSize:9,fill:t.textFaint}} domain={["dataMin-2","dataMax+2"]}/><Tooltip content={<Tip theme={t}/>}/>
-                      <Line type="monotone" dataKey="cmj" name="CMJ (cm)" stroke="#7c3aed" strokeWidth={2.5} dot={{r:3,fill:"#7c3aed",stroke:t.bgCard,strokeWidth:2}}/>
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>}
+              {/* Removidos os 4 charts "— 7 Dias" (Fatigue Debt, Bem-estar, Carga
+                  Interna sRPE, CMJ Tendência): redundantes com o Comparativo
+                  Semanal acima e com gráficos da aba Temporal/Neuromuscular. */}
             </div>;
           })()}
 
