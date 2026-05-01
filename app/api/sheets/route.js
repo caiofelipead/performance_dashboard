@@ -1729,10 +1729,9 @@ export async function GET(request) {
     const format = searchParams.get("format") || "json";
 
     if (tab === "all") {
-      // Buscar todas as abas em paralelo
-      // GPS: fonte primária = gps_individual (gid=1595283302, HSR > 20 km/h, SPR > 25 km/h)
-      // Inclui também vbt (força), bioquimico (sangue) e atletas (cadastro)
-      // — antes definidas no SHEETS_CONFIG mas não consumidas pelo Dashboard.
+      // GPS: ler EXCLUSIVAMENTE a aba gps_individual (gid=1595283302) — fonte
+      // única de verdade da temporada corrente, com thresholds HSR > 19.8 km/h
+      // e Sprint > 25.2 km/h. Aba `gps` legada não é mais consumida no tab=all.
       const [
         gpsCSV, diarioCSV, saltosCSV, questCSV, fisioCSV,
         lesoesCSV, cmjExtCSV, antropCSV, calendarioCSV,
@@ -1773,6 +1772,7 @@ export async function GET(request) {
         };
       } else {
         result._debug.gps = { error: gpsCSV.reason?.message || "failed", source: "gps_individual" };
+        result.gps = result.gps || {};
       }
       if (diarioCSV.status === "fulfilled") {
         const { rows, headers } = parseCSV(diarioCSV.value);

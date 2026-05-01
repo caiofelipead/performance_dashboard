@@ -17,18 +17,19 @@ const THEMES={
     ringBg:"#f1f5f9",
     tooltipBg:"#fff"},
   dark:{
-    // Paleta high-contrast inspirada nas referências (STATSports / Season Calendar):
-    // navy profundo, cards com tinta azulada, neons de acento.
-    bg:"#070a14",bgCard:"#0f1320",bgMuted:"#161a29",bgMuted2:"#1f2536",
-    text:"#f1f5f9",textMuted:"#c5cdd9",textFaint:"#8896a8",textFaintest:"#5e6b7d",
-    border:"#252b40",borderLight:"#1a2030",
-    scrollThumb:"#3a4258",scrollTrack:"transparent",
-    shadow:"rgba(0,0,0,.45)",shadowMd:"rgba(0,0,0,.6)",shadowLg:"rgba(0,0,0,.75)",
-    headerBg:"#0a0d18",headerShadow:"rgba(0,0,0,.65)",
-    ringBg:"#1f2536",
-    tooltipBg:"#161a29",
-    accent:"#3b82f6",        // electric blue (active states, links)
-    accentGlow:"rgba(59,130,246,.35)",
+    // Paleta alinhada ao Scouting BFSA: preto puro como bg, cards com elevação
+    // sutil (#0c0e15), bordas finas em cinza-grafite, vermelho Botafogo como
+    // acento primário. Texto branco quente, secundários elevados em luminância.
+    bg:"#000000",bgCard:"#0c0e15",bgMuted:"#13161f",bgMuted2:"#1c2030",
+    text:"#fafafa",textMuted:"#d6dae0",textFaint:"#8d96a4",textFaintest:"#5e6878",
+    border:"#262a38",borderLight:"#1a1e2a",
+    scrollThumb:"#3b4156",scrollTrack:"transparent",
+    shadow:"rgba(0,0,0,.7)",shadowMd:"rgba(0,0,0,.8)",shadowLg:"rgba(0,0,0,.9)",
+    headerBg:"#000000",headerShadow:"rgba(0,0,0,.8)",
+    ringBg:"#1c2030",
+    tooltipBg:"#13161f",
+    accent:"#dc2626",            // Vermelho Botafogo (primário)
+    accentGlow:"rgba(220,38,38,.45)",
     neonGreen:"#22c55e",
     neonYellow:"#facc15",
     neonOrange:"#fb923c",
@@ -733,121 +734,125 @@ const SERIE_B=[
 
 // Mapa Semanal — Quadro de Trabalho
 // Fonte: Departamento de Futebol Profissional — Sérgio do Prado / Fillipe Soutto / André Leite
+// Atualizado: 27/04 a 10/05/2026 (semana atual + próxima).
 const WEEK_MAPS=[
 {
-  week:"30/03 a 05/04/2026",
-  next_match:{rod:2,opponent:"América-MG",date:"01/04",time:"18:00",local:"fora",days_to:2},
+  week:"27/04 a 03/05/2026",
+  next_match:{rod:7,opponent:"Náutico",date:"02/05",time:"16:00",local:"casa",days_to:5},
   days:[
-    {d:"2ª 30",md:"MD-2",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Descanso + Treino (tarde)",local:"CT Botafogo Academy",
+    {d:"2ª 27",md:"MD-5",type:"DESCANSO + TREINO TARDE",focus:"Descanso (manhã) + Treino tarde",local:"Campo Auxiliar",
       sessions:[
-        {name:"Apresentação",time:"14:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
-        {name:"Pré Treino",time:"15:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
-        {name:"Treino",time:"16:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
-      ],
-      almoco:false,tarde:"Lanche",
-      wellness:true,cmj:false,notes:"Descanso programado pela manhã. Treino à tarde no CT Botafogo Academy. Após: Lanche."},
-    {d:"3ª 31",md:"MD-1",type:"TREINO",focus:"Treino + Viagem",local:"Estádio Santa Cruz",
-      sessions:[
-        {name:"Apresentação",time:"07:00",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
-        {name:"Treino",time:"08:00",dur:75,rpe_alvo:"4-5",content:"Treino de campo",group:"Elenco"}
-      ],
-      almoco:false,tarde:"Viagem para Belo Horizonte-MG",
-      wellness:true,cmj:false,notes:"Estádio Santa Cruz. Após: Lanche + Saída para Aeroporto. Viagem para BH."},
-    {d:"4ª 01",md:"MD",type:"JOGO",focus:"Série B R2 — América-MG x BFC",local:"Arena MRV",
-      sessions:[
-        {name:"JOGO",time:"18:00",dur:90,rpe_alvo:null,content:"Brasileiro Série B — 2ª Rodada",group:"Elenco"}
-      ],
-      almoco:false,tarde:"Descanso Programado",
-      wellness:false,cmj:false,notes:"JOGO: América-MG x Botafogo SP. Arena MRV, 18h00. Série B 2ª Rodada."},
-    {d:"5ª 02",md:"MD+1",type:"FOLGA",focus:"Descanso Programado",local:"-",
-      sessions:[],
-      almoco:false,tarde:"Descanso Programado",
-      wellness:false,cmj:false,notes:"Descanso programado pós-jogo (América-MG R2). Recuperação."},
-    {d:"6ª 03",md:"MD-2",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Descanso + Treino (tarde)",local:"Campo Auxiliar",
-      sessions:[
-        {name:"Apresentação",time:"14:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
-        {name:"Pré Treino",time:"15:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
+        {name:"Apresentação",time:"14:30",dur:null,rpe_alvo:null,content:"Apresentação",group:"Elenco"},
+        {name:"Pré Treino",time:"15:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação",group:"Elenco"},
         {name:"Treino",time:"16:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
       ],
       almoco:false,tarde:"Lanche (Sala Anexa)",
-      wellness:true,cmj:false,notes:"Descanso programado pela manhã. Treino à tarde no Campo Auxiliar. Após: Lanche."},
-    {d:"Sáb 04",md:"MD-1",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Treino + Concentração",local:"Estádio Santa Cruz",
+      wellness:true,cmj:false,notes:"Descanso programado manhã. Treino tarde no Campo Auxiliar."},
+    {d:"3ª 28",md:"MD-4",type:"TREINO",focus:"Treino manhã",local:"Campo Auxiliar",
       sessions:[
-        {name:"Apresentação",time:"14:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
-        {name:"Pré Treino",time:"15:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
-        {name:"Treino",time:"16:00",dur:60,rpe_alvo:"4-5",content:"Treino de campo — ativação pré-jogo",group:"Elenco"}
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação",group:"Elenco"},
+        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação",group:"Elenco"},
+        {name:"Treino",time:"09:00",dur:90,rpe_alvo:"6-7",content:"Treino de campo — força/intensidade",group:"Elenco"}
+      ],
+      almoco:true,tarde:"Descanso Programado",
+      wellness:true,cmj:false,notes:"Campo Auxiliar. Almoço opcional. Tarde livre."},
+    {d:"4ª 29",md:"MD-3",type:"TREINO",focus:"Treino manhã",local:"Estádio Santa Cruz",
+      sessions:[
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação",group:"Elenco"},
+        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação",group:"Elenco"},
+        {name:"Treino",time:"09:00",dur:90,rpe_alvo:"6-7",content:"Treino de campo — bloco principal",group:"Elenco"}
+      ],
+      almoco:true,tarde:"Descanso Programado",
+      wellness:true,cmj:false,notes:"Estádio Santa Cruz. Almoço opcional."},
+    {d:"5ª 30",md:"MD-2",type:"TREINO",focus:"Treino manhã",local:"Estádio Santa Cruz",
+      sessions:[
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação",group:"Elenco"},
+        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação",group:"Elenco"},
+        {name:"Treino",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino tático — pré-jogo",group:"Elenco"}
+      ],
+      almoco:true,tarde:"Descanso Programado",
+      wellness:true,cmj:false,notes:"Estádio Santa Cruz. Almoço opcional."},
+    {d:"6ª 01",md:"MD-1",type:"TREINO",focus:"Treino + Início Concentração",local:"Campo Auxiliar",
+      sessions:[
+        {name:"Apresentação",time:"08:30",dur:null,rpe_alvo:null,content:"Apresentação",group:"Elenco"},
+        {name:"Treino",time:"09:30",dur:60,rpe_alvo:"4-5",content:"Treino ativação pré-jogo",group:"Elenco"}
       ],
       almoco:false,tarde:"INÍCIO DE CONCENTRAÇÃO",
-      wellness:true,cmj:false,notes:"Estádio Santa Cruz. Após treino: INÍCIO DE CONCENTRAÇÃO."},
-    {d:"Dom 05",md:"MD",type:"JOGO",focus:"Série B R3 — BFC x São Bernardo",local:"Estádio Santa Cruz",
+      wellness:true,cmj:false,notes:"Campo Auxiliar. Após treino: INÍCIO DE CONCENTRAÇÃO."},
+    {d:"Sáb 02",md:"MD",type:"JOGO",focus:"Série B R7 — BFC x Náutico",local:"Estádio Santa Cruz",
       sessions:[
         {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação — Não Relacionados",group:"Não Relacionados"},
-        {name:"Pré Treino",time:"08:30",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Não Relacionados"},
-        {name:"Treino Não Relacionados",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo — atletas não relacionados",group:"Não Relacionados"},
-        {name:"JOGO",time:"20:30",dur:90,rpe_alvo:null,content:"Brasileiro Série B — 3ª Rodada",group:"Elenco"}
+        {name:"Treino Não Relacionados",time:"08:30",dur:75,rpe_alvo:"5-6",content:"Treino Campo Auxiliar — atletas não relacionados",group:"Não Relacionados"},
+        {name:"JOGO",time:"16:00",dur:90,rpe_alvo:null,content:"Brasileiro Série B — 7ª Rodada",group:"Elenco"}
       ],
-      almoco:true,tarde:"JOGO 20:30",
-      wellness:false,cmj:false,notes:"Manhã: Treino Não Relacionados (Campo Auxiliar). Almoço obrigatório. JOGO: BFC x São Bernardo, 20h30. Estádio Santa Cruz. Série B 3ª Rodada."}
+      almoco:true,tarde:"JOGO 16:00",
+      wellness:false,cmj:false,notes:"Manhã: Treino Não Relacionados (Campo Auxiliar). JOGO: BFC x Náutico, 16h00. Estádio Santa Cruz. Série B 7ª Rodada."},
+    {d:"Dom 03",md:"MD+1",type:"FOLGA",focus:"Descanso Programado",local:"-",
+      sessions:[],
+      almoco:false,tarde:"Descanso Programado",
+      wellness:false,cmj:false,notes:"Descanso programado pós-jogo (Náutico R7)."}
   ]
 },
 {
-  week:"06/04 a 12/04/2026",
-  next_match:{rod:4,opponent:"Criciúma",date:"10/04",time:"20:30",local:"fora",days_to:4},
+  week:"04/05 a 10/05/2026",
+  next_match:{rod:8,opponent:"Novorizontino",date:"10/05",time:"19:30",local:"fora",days_to:6},
   days:[
-    {d:"2ª 06",md:"MD+1",type:"FOLGA MANHÃ / TREINO TARDE",focus:"Descanso + Treino (tarde)",local:"Campo Auxiliar",
+    {d:"2ª 04",md:"MD-6",type:"DESCANSO + TREINO TARDE",focus:"Descanso (manhã) + Treino tarde",local:"Campo Auxiliar",
       sessions:[
-        {name:"Apresentação",time:"14:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
-        {name:"Pré Treino",time:"15:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
+        {name:"Apresentação",time:"15:00",dur:null,rpe_alvo:null,content:"Apresentação",group:"Elenco"},
+        {name:"Pré Treino",time:"15:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação",group:"Elenco"},
         {name:"Treino",time:"16:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
       ],
-      almoco:false,tarde:"Lanche",
-      wellness:true,cmj:false,notes:"Descanso programado pela manhã pós-jogo (São Bernardo R3). Treino à tarde no Campo Auxiliar. Após: Lanche."},
-    {d:"3ª 07",md:"MD+2",type:"TREINO",focus:"Treino",local:"Estádio Santa Cruz",
+      almoco:false,tarde:"Lanche (Sala Anexa)",
+      wellness:true,cmj:false,notes:"Descanso programado manhã. Treino tarde no Campo Auxiliar."},
+    {d:"3ª 05",md:"MD-5",type:"TREINO",focus:"Treino manhã",local:"Campo Auxiliar",
       sessions:[
-        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
-        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
-        {name:"Treino",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo",group:"Elenco"}
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação",group:"Elenco"},
+        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação",group:"Elenco"},
+        {name:"Treino",time:"09:00",dur:90,rpe_alvo:"6-7",content:"Treino de campo — força/intensidade",group:"Elenco"}
       ],
       almoco:true,tarde:"Descanso Programado",
-      wellness:true,cmj:false,notes:"Estádio Santa Cruz. Almoço obrigatório. Descanso programado à tarde."},
-    {d:"4ª 08",md:"MD-2",type:"TREINO",focus:"Treino + Viagem",local:"Estádio Santa Cruz",
+      wellness:true,cmj:false,notes:"Campo Auxiliar. Almoço opcional."},
+    {d:"4ª 06",md:"MD-4",type:"TREINO",focus:"Treino manhã",local:"Campo Auxiliar",
       sessions:[
-        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação do dia",group:"Elenco"},
-        {name:"Pré Treino",time:"08:00",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Elenco"},
-        {name:"Treino",time:"08:30",dur:60,rpe_alvo:"4-5",content:"Treino de campo",group:"Elenco"}
-      ],
-      almoco:false,tarde:"Viagem para Criciúma-SC",
-      wellness:true,cmj:false,notes:"Estádio Santa Cruz. Após: Lanche + Saída para Aeroporto. Viagem para Criciúma-SC."},
-    {d:"5ª 09",md:"MD-1",type:"TREINO",focus:"Treino Não Relacionados + Treino em Criciúma",local:"Campo Auxiliar / Criciúma-SC",
-      sessions:[
-        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação — Não Relacionados",group:"Não Relacionados"},
-        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Não Relacionados"},
-        {name:"Treino Não Relacionados",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo — atletas não relacionados",group:"Não Relacionados"},
-        {name:"Treino em Criciúma",time:"—",dur:null,rpe_alvo:null,content:"Treino em Criciúma-SC — relacionados",group:"Relacionados"}
-      ],
-      almoco:true,tarde:"Treino em Criciúma-SC",
-      wellness:true,cmj:false,notes:"Manhã: Treino Não Relacionados (Campo Auxiliar). Almoço obrigatório. Tarde: Treino em Criciúma-SC (relacionados)."},
-    {d:"6ª 10",md:"MD",type:"JOGO",focus:"Série B R4 — Criciúma x BFC",local:"Heriberto Hülse",
-      sessions:[
-        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação — Não Relacionados",group:"Não Relacionados"},
-        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Não Relacionados"},
-        {name:"Treino Não Relacionados",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo — atletas não relacionados",group:"Não Relacionados"},
-        {name:"JOGO",time:"20:30",dur:90,rpe_alvo:null,content:"Brasileiro Série B — 4ª Rodada",group:"Elenco"}
-      ],
-      almoco:true,tarde:"JOGO 20:30",
-      wellness:false,cmj:false,notes:"Manhã: Treino Não Relacionados (Campo Auxiliar). Almoço obrigatório. JOGO: Criciúma x BFC, 20h30. Heriberto Hülse. Série B 4ª Rodada."},
-    {d:"Sáb 11",md:"MD+1",type:"TREINO",focus:"Treino Não Relacionados",local:"Campo Auxiliar",
-      sessions:[
-        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação — Não Relacionados",group:"Não Relacionados"},
-        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação + preparação",group:"Não Relacionados"},
-        {name:"Treino Não Relacionados",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino de campo — atletas não relacionados",group:"Não Relacionados"}
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação",group:"Elenco"},
+        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação",group:"Elenco"},
+        {name:"Treino",time:"09:00",dur:90,rpe_alvo:"6-7",content:"Treino de campo",group:"Elenco"}
       ],
       almoco:true,tarde:"Descanso Programado",
-      wellness:true,cmj:false,notes:"Campo Auxiliar. Treino Não Relacionados. Almoço obrigatório. Descanso programado à tarde."},
-    {d:"Dom 12",md:"MD+2",type:"FOLGA",focus:"Descanso Programado",local:"-",
-      sessions:[],
-      almoco:false,tarde:"Descanso Programado",
-      wellness:false,cmj:false,notes:"Descanso programado."}
+      wellness:true,cmj:false,notes:"Campo Auxiliar. Almoço opcional."},
+    {d:"5ª 07",md:"MD-3",type:"TREINO TARDE",focus:"Descanso manhã + Treino tarde",local:"Estádio Santa Cruz",
+      sessions:[
+        {name:"Apresentação",time:"14:30",dur:null,rpe_alvo:null,content:"Apresentação",group:"Elenco"},
+        {name:"Pré Treino",time:"15:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação",group:"Elenco"},
+        {name:"Treino",time:"16:00",dur:75,rpe_alvo:"5-6",content:"Treino tático",group:"Elenco"}
+      ],
+      almoco:false,tarde:"Lanche (Sala Anexa)",
+      wellness:true,cmj:false,notes:"Descanso manhã. Treino tarde no Estádio Santa Cruz."},
+    {d:"6ª 08",md:"MD-2",type:"TREINO",focus:"Treino manhã",local:"Estádio Santa Cruz",
+      sessions:[
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação",group:"Elenco"},
+        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação",group:"Elenco"},
+        {name:"Treino",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino tático — pré-jogo",group:"Elenco"}
+      ],
+      almoco:true,tarde:"Descanso Programado",
+      wellness:true,cmj:false,notes:"Estádio Santa Cruz."},
+    {d:"Sáb 09",md:"MD-1",type:"TREINO + VIAGEM",focus:"Treino manhã + Viagem",local:"Campo Auxiliar",
+      sessions:[
+        {name:"Apresentação",time:"09:00",dur:null,rpe_alvo:null,content:"Apresentação",group:"Elenco"},
+        {name:"Treino",time:"10:00",dur:60,rpe_alvo:"4-5",content:"Treino ativação pré-jogo",group:"Elenco"}
+      ],
+      almoco:true,tarde:"Viagem para São José do Rio Preto-SP",
+      wellness:true,cmj:false,notes:"Campo Auxiliar. Almoço + Viagem para São José do Rio Preto-SP."},
+    {d:"Dom 10",md:"MD",type:"JOGO",focus:"Série B R8 — Novorizontino x BFC",local:"Jorge Ismael de Biasi",
+      sessions:[
+        {name:"Apresentação",time:"07:30",dur:null,rpe_alvo:null,content:"Apresentação — Não Relacionados",group:"Não Relacionados"},
+        {name:"Pré Treino",time:"08:20",dur:null,rpe_alvo:null,content:"Sala anexa — ativação",group:"Não Relacionados"},
+        {name:"Treino Não Relacionados",time:"09:00",dur:75,rpe_alvo:"5-6",content:"Treino Campo Auxiliar — atletas não relacionados",group:"Não Relacionados"},
+        {name:"JOGO",time:"19:30",dur:90,rpe_alvo:null,content:"Brasileiro Série B — 8ª Rodada",group:"Elenco"}
+      ],
+      almoco:true,tarde:"JOGO 19:30",
+      wellness:false,cmj:false,notes:"Manhã: Treino Não Relacionados (Campo Auxiliar). JOGO: Novorizontino x BFC, 19h30. Jorge Ismael de Biasi. Série B 8ª Rodada."}
   ]
 }
 ];
@@ -892,7 +897,7 @@ const score=(p)=>{
 };
 
 const LV={CRITICAL:{c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",l:"Crítico"},HIGH:{c:"#EA580C",bg:"#FFF7ED",bc:"#FED7AA",l:"Alto"},MODERATE:{c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",l:"Moderado"},LOW:{c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",l:"Ótimo"}};
-const acc="#C41E3A";
+const acc="#dc2626"; // Vermelho Botafogo (alinhado ao Scouting BFSA)
 const humorL={1:"Raiva",2:"Confuso",3:"Preocupado",4:"Confiante",5:"Tranquilo"};
 
 const Tip=({active,payload,label,theme})=>{
@@ -1052,13 +1057,84 @@ export default function Dashboard(){
     return merged;
   }, [sheetData]);
 
-  // Merge P com dados live do Google Sheets e recalcular scores
+  // Merge P com dados live do Google Sheets e recalcular scores.
+  // Também adiciona atletas presentes na aba `atletas` (cadastro) que ainda
+  // não estão no array P estático — garante que ninguém suma do Squad/Sidebar
+  // por estar fora do hard-code, atendendo à diretriz "puxar atletas da aba".
   const players=useMemo(()=>{
     const liveAtletas = sheetData?.sessionAtletas || {};
     const gpsData = sheetData?.gps || {};
-    return P.map(p=>{
+    const cadastro = sheetData?.atletas_cad || {};
+    // Helper para mapear posição macro do cadastro → sigla curta usada por P
+    // (P guarda GOL/ZAG/LAT/VOL/MEI/EXT/ATA; cadastro pode trazer "Volante" etc.)
+    const macroToShort = (macro, raw) => {
+      const m = String(macro || "").toUpperCase();
+      if (m === "GOLEIRO") return "GOL";
+      if (m === "ZAGUEIRO") return "ZAG";
+      if (m === "LATERAL") return "LAT";
+      if (m === "EXTREMO") return "EXT";
+      if (m === "ATACANTE") return "ATA";
+      if (m === "MEIO-CAMPO") {
+        // Distinguir VOL vs MEI pelo dado bruto da planilha quando possível
+        const r = String(raw || "").toUpperCase();
+        if (r.includes("VOL") || r === "DM" || r === "CM") return "VOL";
+        return "MEI";
+      }
+      return raw ? String(raw).toUpperCase().slice(0,3) : "—";
+    };
+    // Cadastro = fonte de verdade do elenco. Quando estiver carregado,
+    //   • atletas presentes em P mas AUSENTES do cadastro são removidos
+    //     (Sub-20, emprestados, ex-jogadores que ainda gravam GPS);
+    //   • atletas em cadastro fora de P são adicionados.
+    // Quando o cadastro vier vazio (API offline), faz fallback para o array
+    // P inteiro para não quebrar a UI durante carregamento.
+    const cadKeys = Object.keys(cadastro);
+    const cadastroLoaded = cadKeys.length > 0;
+    const cadSet = new Set(cadKeys);
+
+    const baseP = cadastroLoaded ? P.filter(p => cadSet.has(p.n)) : P;
+    const inP = new Set(baseP.map(p => p.n));
+    const extras = [];
+    if (cadastroLoaded) {
+      for (const [name, info] of Object.entries(cadastro)) {
+        if (inP.has(name)) continue;
+        extras.push({
+          n: name,
+          pos: macroToShort(info?.pos_macro, info?.posicao),
+          id: Math.round(info?.idade || 0),
+          h: 3, e: 3,
+          rg: 7, rp: 7, d: 0, sq: 7,
+          rpa: 7, da: 0, sa: 7,
+          nw: 0, pse: 0, sra: 0,
+          w: Math.round(info?.peso_kg || 0),
+          alt: Math.round(info?.altura_cm || 0),
+          bf: 0, mm: 0, imc: 0, nc: 0,
+          ai: 1.0, cmj: 0, ct: [], wt: null,
+          _fromAtletasTab: true,
+          _camisa: info?.camisa, _grupo: info?.grupo
+        });
+      }
+    }
+    const all = [...baseP, ...extras];
+    return all.map(p=>{
       const live = liveAtletas[p.n];
       const merged = {...p};
+      // Cadastro (aba atletas): altura/peso/idade/posição como fallback ou
+      // sobrescrita se P tem 0/vazio. Não sobrescreve dados antropométricos
+      // mais recentes que podem vir de antropometria/questionário abaixo.
+      const cad = cadastro[p.n];
+      if (cad) {
+        if (!merged.id || merged.id === 0) merged.id = Math.round(cad.idade || 0);
+        if ((!merged.alt || merged.alt === 0) && cad.altura_cm > 0)
+          merged.alt = Math.round(cad.altura_cm < 3 ? cad.altura_cm * 100 : cad.altura_cm);
+        if ((!merged.w || merged.w === 0) && cad.peso_kg > 0)
+          merged.w = Math.round(cad.peso_kg);
+        if ((!merged.pos || merged.pos === "—") && cad.posicao)
+          merged.pos = macroToShort(cad.pos_macro, cad.posicao);
+        if (cad.camisa) merged._camisa = cad.camisa;
+        if (cad.grupo) merged._grupo = cad.grupo;
+        if (cad.pe_dominante) merged._peDom = cad.pe_dominante;
+      }
       // Nº de sessões do GPS real (contagem de sessões distintas)
       const gpsEntries = gpsData[p.n];
       if(gpsEntries?.length) {
@@ -1282,7 +1358,7 @@ export default function Dashboard(){
           </div>
         </div>
         <div style={{display:"flex",gap:1,overflowX:"auto",maxWidth:"calc(100vw - 380px)",scrollbarWidth:"none",msOverflowStyle:"none"}}>
-          {tabs.map(tb=>{const Ic=tb.ic;const isActive=tab===tb.id;const glow=dark?"rgba(59,130,246,.45)":"rgba(255,255,255,.4)";return <button key={tb.id} onClick={()=>setTab(tb.id)} style={{display:"flex",alignItems:"center",gap:5,background:isActive?(dark?"#3b82f6":acc):"rgba(255,255,255,.04)",border:`1px solid ${isActive?(dark?"#60a5fa":acc):"rgba(255,255,255,.08)"}`,color:isActive?"#fff":"rgba(255,255,255,.62)",padding:"6px 11px",borderRadius:999,fontSize:10,fontWeight:700,letterSpacing:.2,cursor:"pointer",fontFamily:"inherit",transition:"all .2s",whiteSpace:"nowrap",flexShrink:0,boxShadow:isActive?`0 0 0 3px ${glow}, 0 2px 8px ${glow}`:"none"}}><Ic size={12}/>{tb.l}</button>})}
+          {tabs.map(tb=>{const Ic=tb.ic;const isActive=tab===tb.id;const glow=dark?"rgba(220,38,38,.4)":"rgba(255,255,255,.4)";return <button key={tb.id} onClick={()=>setTab(tb.id)} style={{display:"flex",alignItems:"center",gap:5,background:isActive?acc:"rgba(255,255,255,.04)",border:`1px solid ${isActive?acc:"rgba(255,255,255,.08)"}`,color:isActive?"#fff":"rgba(255,255,255,.62)",padding:"6px 11px",borderRadius:999,fontSize:10,fontWeight:700,letterSpacing:.2,cursor:"pointer",fontFamily:"inherit",transition:"all .2s",whiteSpace:"nowrap",flexShrink:0,boxShadow:isActive?`0 0 0 3px ${glow}, 0 2px 12px ${glow}`:"none"}}><Ic size={12}/>{tb.l}</button>})}
         </div>
         <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:"rgba(255,255,255,.5)",display:"flex",alignItems:"center",gap:10}}>
           {/* Live Data Indicator */}
@@ -1307,24 +1383,13 @@ export default function Dashboard(){
 
     <div style={{display:"flex",padding:16,gap:16,maxWidth:1440,margin:"0 auto"}}>
       {/* SIDEBAR */}
-      <aside style={{width:240,flexShrink:0}}>
-        <div style={{fontSize:10,fontWeight:700,color:t.textFaint,letterSpacing:1.5,textTransform:"uppercase",marginBottom:2,paddingLeft:4}}>Elenco — Estado do Atleta</div>
-        <div style={{fontSize:8,color:t.textFaintest,marginBottom:4,paddingLeft:4,lineHeight:1.45}}>
-          Métrica única que integra três leituras do mesmo estado: (a) <strong style={{color:t.textFaint}}>Ψ(t) observável</strong> — PCA sobre carga + neuromuscular + bem-estar (Fonseca 2020); (b) <strong style={{color:t.textFaint}}>Previsão ML 7d</strong> — XGBoost calibrado com 89 features; (c) <strong style={{color:t.textFaint}}>Risk Score clínico (0–100)</strong> — regras do dia (ACWR, Dor, Rec. Pernas, Sono, Bem-estar) usado como fallback.
-        </div>
-        <div style={{fontSize:7,color:t.textFaintest,marginBottom:4,paddingLeft:4,lineHeight:1.4}}>
-          No card de cada atleta exibimos o Risk Score clínico 0–100; no perfil individual, o score grande no header prioriza a Previsão ML quando disponível, e o card <em>Estado do Atleta</em> mostra as três leituras juntas.
-        </div>
-        <div style={{display:"flex",gap:4,marginBottom:4,paddingLeft:4,flexWrap:"wrap"}}>
-          {[{l:"Crítico",c:"#DC2626",r:"≥65"},{l:"Alto",c:"#EA580C",r:"50–64"},{l:"Moderado",c:"#CA8A04",r:"20–49"},{l:"Ótimo",c:"#16A34A",r:"<20"}].map((z,i)=>
-            <span key={i} style={{fontSize:7,padding:"1px 5px",borderRadius:4,background:`${z.c}12`,color:z.c,border:`1px solid ${z.c}30`,fontWeight:600}}>{z.l} ({z.r})</span>
+      <aside style={{width:230,flexShrink:0}}>
+        <div style={{fontSize:9,fontWeight:800,color:t.textFaint,letterSpacing:2,textTransform:"uppercase",marginBottom:6,paddingLeft:4}}>Elenco</div>
+        {/* Legenda compacta de zonas + tooltip detalhado oculto sob hover */}
+        <div title="Risk Score clínico 0–100 (regras do dia: ACWR, Dor, Rec. Pernas, Sono, Bem-estar). Inteira-se com Ψ(t) observável (PCA Fonseca 2020) e Previsão ML 7d (XGBoost) na ficha individual." style={{display:"flex",gap:3,marginBottom:8,paddingLeft:4,flexWrap:"wrap",cursor:"help"}}>
+          {[{l:"Crítico",c:"#DC2626"},{l:"Alto",c:"#EA580C"},{l:"Mod.",c:"#CA8A04"},{l:"Ótimo",c:"#16A34A"}].map((z,i)=>
+            <span key={i} style={{fontSize:7,padding:"1px 5px",borderRadius:3,background:`${z.c}18`,color:z.c,border:`1px solid ${z.c}40`,fontWeight:700,letterSpacing:.3}}>{z.l}</span>
           )}
-        </div>
-        <div style={{fontSize:7,color:t.textFaintest,marginBottom:2,paddingLeft:4,lineHeight:1.4}}>
-          <strong style={{color:t.textFaint}}>Déf. Biológico:</strong> (10−Sono)×0.4 + Dor×0.3 + (10−Rec)×0.3. Quanto maior, pior a recuperação. {">"}1.5 = atenção, {">"}2.0 = crítico.
-        </div>
-        <div style={{fontSize:7,color:t.textFaintest,marginBottom:8,paddingLeft:4,lineHeight:1.4}}>
-          <strong style={{color:t.textFaint}}>Monotonia:</strong> Média sRPE 7d ÷ DP sRPE 7d. Mede variabilidade da carga. {">"}2.0 = carga repetitiva sem variação → risco de overreaching (Foster, 1998).
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:4,maxHeight:"calc(100vh - 100px)",overflowY:"auto",paddingRight:4}}>
           {players.map(p=><div key={p.n} onClick={()=>{setSel(p.n);setTab("player")}} style={{background:sel===p.n?t.bgCard:"transparent",border:`1px solid ${sel===p.n?t.border:"transparent"}`,borderRadius:10,padding:"8px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,transition:"all .15s",boxShadow:sel===p.n?`0 2px 8px ${t.shadow}`:"none"}}>
@@ -1580,12 +1645,12 @@ export default function Dashboard(){
 
         {/* ═══════════ PAINEL DE CARGA & ACWR ═══════════ */}
         {tab==="carga"&&<div>
-          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
-            <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri,marginBottom:4}}>Painel de Carga & ACWR</div>
-            <div style={{fontSize:11,color:t.textMuted,marginBottom:6}}>Monitoramento de ACWR (EWMA), carga cumulativa semanal/mensal e monotonia por atleta</div>
-            <div style={{fontSize:10,color:t.textFaint,lineHeight:1.5,padding:"8px 12px",background:t.bgMuted,borderRadius:8,border:`1px solid ${t.borderLight}`}}>
-              <strong style={{color:pri}}>O que é o ACWR?</strong> O Acute:Chronic Workload Ratio compara a carga de treino recente (últimos 7 dias) com o que o atleta acumulou no último mês (28 dias). O valor mostra se houve um pico repentino de carga ({">"}1.3) ou uma queda significativa ({"<"}0.8) em relação ao habitual. Valores fora da faixa 0.8–1.3 estão associados a maior incidência de lesões (Gabbett, 2016). O cálculo usa o método EWMA (Exponentially Weighted Moving Average), que dá mais peso aos dias mais recentes, tornando o indicador mais sensível a mudanças abruptas de carga do que a média simples (Williams et al., 2017).
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:"14px 18px",marginBottom:14,display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
+            <div>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:15,color:pri,letterSpacing:-.2}}>Carga & ACWR</div>
+              <div style={{fontSize:10,color:t.textFaint,marginTop:2}}>Razão aguda:crônica (EWMA) — zona de perigo: 0.8–1.5 · Gabbett 2016</div>
             </div>
+            <span title="ACWR = carga 7d ÷ média 28d (EWMA). >1.3 = spike; <0.8 = subcarga. Faixa 0.8–1.5 acumula maior risco de lesão (Williams et al., 2017)." style={{fontSize:9,color:t.textMuted,fontWeight:600,padding:"3px 8px",borderRadius:5,background:t.bgMuted,border:`1px solid ${t.borderLight}`,cursor:"help"}}>?</span>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12,marginBottom:16}}>
             {[{l:"ACWR Médio",v:players.reduce((s,p)=>s+(p.ai||1),0)/players.length,u:"",c:players.reduce((s,p)=>s+(p.ai||1),0)/players.length>1.3?"#DC2626":"#16A34A"},
@@ -1785,12 +1850,12 @@ export default function Dashboard(){
 
         {/* ═══════════ PAINEL NEUROMUSCULAR ═══════════ */}
         {tab==="neuro"&&<div>
-          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
-            <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:16,color:pri,marginBottom:4}}>Painel Neuromuscular</div>
-            <div style={{fontSize:11,color:t.textMuted,marginBottom:6}}>CMJ, tendência neuromuscular, NME (Eficiência Neuromuscular) e assimetria bilateral</div>
-            <div style={{fontSize:10,color:t.textFaint,lineHeight:1.5,padding:"8px 12px",background:t.bgMuted,borderRadius:8,border:`1px solid ${t.borderLight}`}}>
-              <strong style={{color:pri}}>O que é o CMJ?</strong> O Counter-Movement Jump (Salto com Contramovimento) é um teste de salto vertical onde o atleta realiza uma rápida flexão de joelhos antes de saltar o mais alto possível. Mede a <strong>prontidão neuromuscular</strong> — a capacidade do sistema nervoso de recrutar fibras musculares de forma explosiva. Uma queda {">"} 5% em relação ao baseline individual indica fadiga neuromuscular acumulada; queda {">"} 8% é alerta crítico (Claudino et al., 2017). Utilizamos o <strong>melhor dos 3 saltos</strong> de cada sessão para minimizar variabilidade. O CMJ unipodal (SLCMJ) avalia assimetria entre pernas — diferenças {">"} 10% sugerem risco biomecânico. O NME (Eficiência Neuromuscular = CMJ ÷ sRPE) indica quando o atleta está produzindo menos força para o mesmo esforço percebido.
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:"14px 18px",marginBottom:14,display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
+            <div>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:15,color:pri,letterSpacing:-.2}}>Neuromuscular</div>
+              <div style={{fontSize:10,color:t.textFaint,marginTop:2}}>CMJ + tendência + NME + assimetria bilateral SLCMJ</div>
             </div>
+            <span title="CMJ = Counter-Movement Jump (melhor dos 3 saltos). Queda >5% vs baseline = fadiga; >8% = crítico (Claudino et al., 2017). SLCMJ ASI >10% = risco biomecânico." style={{fontSize:9,color:t.textMuted,fontWeight:600,padding:"3px 8px",borderRadius:5,background:t.bgMuted,border:`1px solid ${t.borderLight}`,cursor:"help"}}>?</span>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12,marginBottom:16}}>
             {[{l:"CMJ Médio Elenco",v:(players.reduce((s,p)=>s+(p.cmj||0),0)/players.filter(p=>p.cmj).length).toFixed(1),u:"cm",c:"#7c3aed"},
@@ -2638,10 +2703,14 @@ export default function Dashboard(){
               if(!gameDate)return[];
               const gDateTs=normDate(gameDate);
               const DAY_MS=86400000;
-              // Tolerância de ±1 dia (GPS pode registrar data diferente do calendário)
+              // Tolerância ±2 dias: cobre fusos diferentes, atrasos de
+              // sincronização do device GPS e jogos noturnos que registram
+              // data do dia seguinte na aba bruta.
               const dateMatch=(entryDate)=>{
                 const eTs=parseDateStr(entryDate);
-                return eTs===gDateTs||eTs===gDateTs-DAY_MS||eTs===gDateTs+DAY_MS;
+                if(!eTs) return false;
+                const diff=Math.abs(eTs-gDateTs);
+                return diff<=2*DAY_MS;
               };
               const results=[];
               const allNames=new Set([...Object.keys(gpsData),...Object.keys(diarioData)]);
@@ -4741,25 +4810,42 @@ export default function Dashboard(){
               </div>
               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                 {[{l:"Duração",v:(LIVE_SESSION.meta.duracao||"—")+"min"},{l:"Atletas",v:Object.keys(LIVE_SESSION.atletas).length}].filter(b=>b.v&&b.v!=="0min"&&b.v!=="—min").map((b,i)=>
-                  <span key={i} style={{padding:"4px 12px",borderRadius:6,fontSize:10,fontWeight:600,background:t.bgMuted,color:t.textMuted,border:`1px solid ${t.border}`}}>{b.l}: <strong style={{color:pri}}>{b.v}</strong></span>
+                  <span key={i} style={{padding:"4px 12px",borderRadius:999,fontSize:10,fontWeight:700,background:dark?"rgba(255,255,255,.04)":t.bgMuted,color:t.textMuted,border:`1px solid ${dark?"rgba(255,255,255,.08)":t.border}`}}>{b.l}: <strong style={{color:pri}}>{b.v}</strong></span>
                 )}
               </div>
             </div>
-            <div style={{marginTop:14,padding:"10px 14px",background:"#EFF6FF",borderRadius:8,border:"1px solid #BFDBFE"}}>
-              <div style={{fontSize:11,color:"#2563EB",lineHeight:1.5}}>Esta aba responde <strong>3 perguntas essenciais</strong> após cada treino: (1) qual carga o atleta recebeu, (2) como ele respondeu fisiologicamente, (3) se a sessão aumentou ou reduziu o risco de lesão.</div>
+          </div>
+
+          {/* ═══ Avatar Row — atletas presentes na sessão (STATSports SQUAD) ═══ */}
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:"12px 14px",marginBottom:14,overflowX:"auto"}}>
+            <div style={{display:"flex",gap:10,minWidth:"max-content"}}>
+              {Object.entries(LIVE_SESSION.atletas).map(([name,sess])=>{
+                const isSel=sel===name;
+                const cls=sess.classificacao;
+                const ringC=cls==="vermelho"?"#ef4444":cls==="amarelo"?"#facc15":"#22c55e";
+                const first=name.split(" ")[0];
+                return <button key={name} onClick={()=>{setSel(name);setTab("player");}} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,background:"transparent",border:"none",cursor:"pointer",padding:"4px 6px",borderRadius:8,transition:"all .15s",opacity:isSel?1:.85}}>
+                  <div style={{position:"relative",width:46,height:46}}>
+                    <div style={{position:"absolute",inset:0,borderRadius:"50%",border:`2.5px solid ${ringC}`,boxShadow:isSel?`0 0 0 3px ${ringC}33, 0 0 12px ${ringC}66`:"none"}}/>
+                    <PlayerPhoto theme={t} name={name} sz={40}/>
+                  </div>
+                  <div style={{fontSize:9,fontWeight:700,color:isSel?pri:t.textMuted,letterSpacing:.3,whiteSpace:"nowrap"}}>{first}</div>
+                </button>;
+              })}
             </div>
           </div>
 
           {/* Classification Overview */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:16}}>
             {[
-              {l:"Sessão Reduziu Risco",c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",count:Object.values(LIVE_SESSION.atletas).filter(a=>a.classificacao==="verde").length},
-              {l:"Carga Controlada",c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",count:Object.values(LIVE_SESSION.atletas).filter(a=>a.classificacao==="amarelo").length},
-              {l:"Sessão Aumentou Risco",c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",count:Object.values(LIVE_SESSION.atletas).filter(a=>a.classificacao==="vermelho").length}
+              {l:"Sessão Reduziu Risco",c:"#22c55e",bg:"#F0FDF4",bc:"#BBF7D0",count:Object.values(LIVE_SESSION.atletas).filter(a=>a.classificacao==="verde").length},
+              {l:"Carga Controlada",c:"#facc15",bg:"#FEFCE8",bc:"#FEF08A",count:Object.values(LIVE_SESSION.atletas).filter(a=>a.classificacao==="amarelo").length},
+              {l:"Sessão Aumentou Risco",c:"#ef4444",bg:"#FEF2F2",bc:"#FECACA",count:Object.values(LIVE_SESSION.atletas).filter(a=>a.classificacao==="vermelho").length}
             ].map((cat,i)=>
-              <div key={i} style={{background:cat.bg,borderRadius:12,border:`1px solid ${cat.bc}`,padding:18,textAlign:"center"}}>
-                <div style={{fontFamily:"'JetBrains Mono'",fontSize:36,fontWeight:900,color:cat.c}}>{cat.count}</div>
-                <div style={{fontSize:11,fontWeight:700,color:cat.c,marginTop:2}}>{cat.l}</div>
+              <div key={i} style={{background:dark?`${cat.c}10`:cat.bg,borderRadius:12,border:`1px solid ${dark?cat.c+"55":cat.bc}`,padding:18,textAlign:"center",boxShadow:dark?`0 0 18px ${cat.c}22, inset 0 1px 0 ${cat.c}15`:"none",position:"relative",overflow:"hidden"}}>
+                <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:cat.c,opacity:.7}}/>
+                <div style={{fontFamily:"'JetBrains Mono'",fontSize:38,fontWeight:900,color:cat.c,lineHeight:1,textShadow:dark?`0 0 16px ${cat.c}66`:"none"}}>{cat.count}</div>
+                <div style={{fontSize:10,fontWeight:800,color:cat.c,marginTop:6,letterSpacing:.5,textTransform:"uppercase"}}>{cat.l}</div>
               </div>
             )}
           </div>
