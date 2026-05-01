@@ -1142,12 +1142,9 @@ export default function Dashboard(){
       if (m === "LATERAL") return "LAT";
       if (m === "EXTREMO") return "EXT";
       if (m === "ATACANTE") return "ATA";
-      if (m === "MEIO-CAMPO") {
-        // Distinguir VOL vs MEI pelo dado bruto da planilha quando possível
-        const r = String(raw || "").toUpperCase();
-        if (r.includes("VOL") || r === "DM" || r === "CM") return "VOL";
-        return "MEI";
-      }
+      // Diretriz: volantes e meias agrupados num único rótulo MEI (Meio-Campo)
+      // para que apareçam juntos em todos os comparativos por posição.
+      if (m === "MEIO-CAMPO") return "MEI";
       return raw ? String(raw).toUpperCase().slice(0,3) : "—";
     };
     // Cadastro = fonte de verdade do elenco. Quando estiver carregado,
@@ -1187,6 +1184,9 @@ export default function Dashboard(){
     return all.map(p=>{
       const live = liveAtletas[p.n];
       const merged = {...p};
+      // Consolidação: VOL→MEI no display (volantes e meias compartilham o
+      // mesmo bucket "Meio-Campo" em todos os comparativos por posição).
+      if (merged.pos === "VOL") merged.pos = "MEI";
       // Cadastro (aba atletas) é a FONTE DE VERDADE para idade/posição/altura/
       // peso/camisa. Sobrescreve dados hard-coded em P (que pode estar
       // desatualizado para idade/posição). Antropometria/questionário ainda
@@ -1388,7 +1388,7 @@ export default function Dashboard(){
   }, [sheetData, players]);
 
   const sp=sel?players.find(p=>p.n===sel):null;
-  const tabs=[{id:"squad",l:"Squad Overview",ic:Users},{id:"alerts",l:"Alertas",ic:AlertTriangle},{id:"carga",l:"Carga & ACWR",ic:TrendingUp},{id:"neuro",l:"Neuromuscular",ic:Zap},{id:"fisio",l:"Fisiológico",ic:Heart},{id:"temporal",l:"Temporal",ic:Activity},{id:"jogos",l:"Jogos",ic:Trophy},{id:"mapa",l:"Mapa Semanal",ic:Calendar},{id:"player",l:"Individual",ic:Eye},{id:"sessao",l:"Sessão de Treino",ic:Activity},{id:"model",l:"Modelo Preditivo",ic:Brain},{id:"retro",l:"Retrospectiva",ic:Target},{id:"glossario",l:"Glossário",ic:BookOpen}];
+  const tabs=[{id:"squad",l:"Squad Overview",ic:Users},{id:"alerts",l:"Alertas",ic:AlertTriangle},{id:"carga",l:"Carga & ACWR",ic:TrendingUp},{id:"neuro",l:"Neuromuscular",ic:Zap},{id:"fisio",l:"Fisiológico",ic:Heart},{id:"jogos",l:"Jogos",ic:Trophy},{id:"mapa",l:"Mapa Semanal",ic:Calendar},{id:"player",l:"Individual",ic:Eye},{id:"sessao",l:"Sessão de Treino",ic:Activity},{id:"model",l:"Modelo Preditivo",ic:Brain},{id:"retro",l:"Retrospectiva",ic:Target},{id:"glossario",l:"Glossário",ic:BookOpen}];
 
   const radarData=sp?[{s:"Sono",v:sp.sq||0},{s:"Rec Geral",v:sp.rg||0},{s:"Rec Pernas",v:sp.rp||0},{s:"Dor (inv)",v:10-(sp.d||0)},{s:"Humor",v:(sp.h||3)*2},{s:"Energia",v:(sp.e||3)*2.5}]:[];
   const wtData=sp?.wt?sp.wt.dt.map((d,i)=>({d:sp._wtLive?d:("Mar/"+d),sono:sp.wt.s[i],rec:sp.wt.r[i],dor:sp.wt.dr[i]})):[];
@@ -3484,6 +3484,95 @@ export default function Dashboard(){
             </div>
           </div>
 
+          {/* ═══ HERO GAUGES — Último Treino × Último Jogo (estilo STATSports) ═══
+               Duas colunas paralelas mostrando as métricas-chave da última
+               sessão de treino e do último jogo do atleta. Cada KPI tem:
+               header uppercase + valor monoespaçado grande + unidade +
+               ThresholdGauge horizontal vs Gref/baseline + sub-métrica. */}
+          {(()=>{
+            const gpsAll=sheetData?.gps?.[sp.n]||[];
+            if(!gpsAll.length) return null;
+            const calendar=sheetData?.calendario||[];
+            const parseDt=s=>{if(!s)return null;const v=String(s).trim();if(/^\d{4}-\d{2}-\d{2}/.test(v))return new Date(v);const p=v.split(/[\/\-\.]/);if(p.length>=3){const[a,b,c]=p.map(Number);if(a>31)return new Date(a,b-1,c);if(c>31)return new Date(c,b-1,a);return new Date(c<100?c+2000:c,b-1,a);}return null;};
+            const isMatchST=st=>{const s=(st||"").toLowerCase().trim();return s.startsWith("j.")||s.startsWith("j ")||s.includes("jogo")||s.includes("match")||s.includes("partida");};
+            const matchDateSet=new Set();
+            for(const g of calendar){const d=parseDt(g.data);if(d&&!isNaN(d))matchDateSet.add(d.toISOString().slice(0,10));}
+            const sessions=gpsAll.map(e=>{const dt=parseDt(e.date);const k=dt&&!isNaN(dt)?dt.toISOString().slice(0,10):"";return{e,dt,k,isMatch:isMatchST(e.sessionTitle)||matchDateSet.has(k)};}).filter(s=>s.dt);
+            const games=sessions.filter(s=>s.isMatch&&(s.e.gps?.dist_total||0)>2000).sort((a,b)=>b.dt-a.dt);
+            const trainings=sessions.filter(s=>!s.isMatch&&(s.e.gps?.dist_total||0)>1500).sort((a,b)=>b.dt-a.dt);
+            const lastT=trainings[0]?.e; const lastG=games[0]?.e;
+            // Gref (top 5 jogos por output composto) — para barras "vs Gref"
+            const scoredG=games.map(s=>({...s,score:(s.e.gps?.dist_total||0)+(s.e.gps?.hsr||0)*3+(s.e.gps?.sprints||0)*50+(s.e.gps?.player_load||0)})).sort((a,b)=>b.score-a.score);
+            const top5=scoredG.slice(0,Math.min(5,scoredG.length)).map(s=>s.e);
+            const grefAvg=k=>top5.length?top5.reduce((s,e)=>s+(e.gps?.[k]||0),0)/top5.length:0;
+            const gref={dist:grefAvg("dist_total"),hsr:grefAvg("hsr"),spr:grefAvg("hsr_25"),pl:grefAvg("player_load"),acel:grefAvg("acel_3"),vel:grefAvg("pico_vel"),sprints:grefAvg("sprints")};
+            // Baseline de treino: média móvel dos últimos 14d (sem o lastT)
+            const trArr=trainings.slice(1,14);
+            const trAvg=k=>trArr.length?trArr.reduce((s,o)=>s+(o.e.gps?.[k]||0),0)/trArr.length:0;
+            const trBase={dist:trAvg("dist_total"),hsr:trAvg("hsr"),spr:trAvg("hsr_25"),pl:trAvg("player_load"),acel:trAvg("acel_3"),vel:trAvg("pico_vel"),sprints:trAvg("sprints")};
+            const fmtDate=d=>d?d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}):"—";
+            const tile=(label,val,unit,sub,subVal,baseVal,colorOk="#22c55e")=>{
+              const v=Number(val)||0; const b=Number(baseVal)||0;
+              const pct=b>0?Math.min(150,(v/b)*100):0;
+              const c=pct>=110?"#ef4444":pct>=90?"#fb923c":pct>=70?"#facc15":pct>0?colorOk:t.textFaint;
+              return {label,val:v,unit,sub,subVal,pct,c,b};
+            };
+            const renderTile=(t2,key)=>(
+              <div key={key} style={{padding:"12px 14px",background:dark?"rgba(255,255,255,.025)":t.bgMuted,borderRadius:10,border:`1px solid ${t.borderLight}`,position:"relative",overflow:"hidden"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                  <div style={{fontSize:8.5,color:t.textFaint,fontWeight:800,letterSpacing:1.2,textTransform:"uppercase"}}>{t2.label}</div>
+                  {t2.b>0&&<div style={{fontSize:8,fontWeight:700,color:t2.c,fontFamily:"'JetBrains Mono'"}}>{Math.round(t2.pct)}%</div>}
+                </div>
+                <div style={{display:"flex",alignItems:"baseline",gap:4}}>
+                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:26,fontWeight:900,color:t.text,lineHeight:1,letterSpacing:-1}}>{Math.round(t2.val)||0}</div>
+                  {t2.unit&&<div style={{fontSize:9,color:t.textFaint,fontWeight:700}}>{t2.unit}</div>}
+                </div>
+                <div style={{marginTop:8}}>
+                  <div style={{position:"relative",height:4,background:t.bgMuted2,borderRadius:2,overflow:"hidden"}}>
+                    <div style={{position:"absolute",inset:0,width:`${Math.min(100,(t2.pct/150)*100)}%`,background:t2.c,transition:"width .6s"}}/>
+                    {t2.b>0&&<div style={{position:"absolute",left:`${(100/150)*100}%`,top:-1,bottom:-1,width:1,background:t.textFaint,opacity:.5}}/>}
+                  </div>
+                </div>
+                {t2.sub&&<div style={{fontSize:8,color:t.textFaintest,fontWeight:600,marginTop:6,letterSpacing:.3}}>{t2.sub}: <span style={{color:t.textMuted,fontWeight:700}}>{t2.subVal}</span></div>}
+              </div>
+            );
+            const colTreino=lastT?[
+              tile("Distância",lastT.gps.dist_total,"m","Baseline 14d",Math.round(trBase.dist)+"m",trBase.dist),
+              tile("HSR (19.8–24.8)",lastT.gps.hsr,"m","Sprints",lastT.gps.sprints,trBase.hsr),
+              tile("SPR (>25.2)",lastT.gps.hsr_25,"m","Esforços",lastT.gps.sprints_25,trBase.spr),
+              tile("Player Load",lastT.gps.player_load,"","Vel. Pico",(lastT.gps.pico_vel||0).toFixed(1)+" km/h",trBase.pl)
+            ]:null;
+            const colJogo=lastG?[
+              tile("Distância",lastG.gps.dist_total,"m","Gref",Math.round(gref.dist)+"m",gref.dist),
+              tile("HSR (19.8–24.8)",lastG.gps.hsr,"m","Sprints",lastG.gps.sprints,gref.hsr),
+              tile("SPR (>25.2)",lastG.gps.hsr_25,"m","Esforços",lastG.gps.sprints_25,gref.spr),
+              tile("Player Load",lastG.gps.player_load,"","Vel. Pico",(lastG.gps.pico_vel||0).toFixed(1)+" km/h",gref.pl)
+            ]:null;
+            if(!colTreino&&!colJogo) return null;
+            return <div style={{display:"grid",gridTemplateColumns:colTreino&&colJogo?"1fr 1fr":"1fr",gap:14,marginBottom:16}}>
+              {colTreino&&<div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:"16px 18px"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,paddingBottom:10,borderBottom:`1px solid ${t.borderLight}`}}>
+                  <div>
+                    <div style={{fontSize:9,color:"#22d3ee",fontWeight:800,letterSpacing:1.5,textTransform:"uppercase"}}>Último Treino</div>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:t.textMuted,fontWeight:700,marginTop:1}}>{fmtDate(parseDt(lastT.date))}</div>
+                  </div>
+                  <Activity size={16} color="#22d3ee"/>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>{colTreino.map((x,i)=>renderTile(x,`tr-${i}`))}</div>
+              </div>}
+              {colJogo&&<div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:"16px 18px"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,paddingBottom:10,borderBottom:`1px solid ${t.borderLight}`}}>
+                  <div>
+                    <div style={{fontSize:9,color:"#facc15",fontWeight:800,letterSpacing:1.5,textTransform:"uppercase"}}>Último Jogo</div>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:t.textMuted,fontWeight:700,marginTop:1}}>{fmtDate(parseDt(lastG.date))} · vs Gref ({top5.length} top)</div>
+                  </div>
+                  <Trophy size={16} color="#facc15"/>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>{colJogo.map((x,i)=>renderTile(x,`jg-${i}`))}</div>
+              </div>}
+            </div>;
+          })()}
+
           {/* Estado do Atleta — métrica única que funde Risk Score e Probabilidade de Lesão.
                Ψ(t) é o estado observável (Fonseca 2020); Previsão ML é o forecast derivado (XGBoost+SHAP). */}
           {(()=>{
@@ -5161,70 +5250,31 @@ export default function Dashboard(){
         </div>}
 
         {tab==="model"&&<div>
-          {/* Model Header — 4-Layer Architecture */}
-          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-              <div>
-                <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Motor Preditivo de Lesões v4.0 — Elite</div>
-                <div style={{fontSize:12,color:t.textFaint,marginTop:2}}>110 Features · KNNImputer → LASSO+MI → Optuna → SMOTE+Tomek → XGBoost → Calibração → SHAP</div>
-                <div style={{fontSize:10,color:t.textMuted,marginTop:4}}>
-                  {ML.pipeline.architecture}
-                </div>
+          {/* Model Header — minimalista: título + métricas em linha + pipeline
+              em texto inline. Removidos os 5 boxes coloridos do pipeline,
+              os warnings SMOTE e v3.0 (changelog), e o comparativo
+              LASSO×XGBoost (todos eram ruído visual). */}
+          <div style={{background:t.bgCard,borderRadius:10,border:`1px solid ${t.border}`,padding:"18px 22px",marginBottom:16}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:24,flexWrap:"wrap"}}>
+              <div style={{flex:"1 1 280px",minWidth:0}}>
+                <div style={{fontSize:9,color:t.textFaint,fontWeight:800,letterSpacing:2,textTransform:"uppercase",marginBottom:4}}>ML · XGBoost calibrado</div>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:900,fontSize:20,color:t.text,letterSpacing:-.4,lineHeight:1.1}}>Motor Preditivo de Lesões</div>
+                <div style={{fontSize:10.5,color:t.textFaint,marginTop:6,lineHeight:1.5}}>110 features &middot; KNN &rarr; LASSO+MI &rarr; Optuna &rarr; SMOTE+Tomek &rarr; XGBoost &rarr; Calibração &rarr; SHAP</div>
               </div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}}>
+              {/* KPIs em linha — 6 métricas com tipografia plana */}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(6, minmax(60px, 1fr))",gap:14,flex:"1 1 460px"}}>
                 {[
-                  {l:"AUC-ROC (CV)",v:ML.pipeline.xgboost.metrics.auc_roc,c:"#7c3aed"},
-                  {l:"AUC Calibrado",v:ML.pipeline.xgboost.metrics.auc_calibrated,c:"#7c3aed"},
-                  {l:"F1-Score",v:ML.pipeline.xgboost.metrics.f1,c:"#2563eb"},
-                  {l:"Recall",v:ML.pipeline.xgboost.metrics.recall,c:"#EA580C"},
-                  {l:"Specificity",v:ML.pipeline.xgboost.metrics.specificity,c:"#16A34A"},
-                  {l:"MCC",v:ML.pipeline.xgboost.metrics.mcc,c:t.textMuted}
+                  {l:"AUC-ROC",v:ML.pipeline.xgboost.metrics.auc_roc},
+                  {l:"AUC Cal.",v:ML.pipeline.xgboost.metrics.auc_calibrated},
+                  {l:"F1",v:ML.pipeline.xgboost.metrics.f1},
+                  {l:"Recall",v:ML.pipeline.xgboost.metrics.recall},
+                  {l:"Spec.",v:ML.pipeline.xgboost.metrics.specificity},
+                  {l:"MCC",v:ML.pipeline.xgboost.metrics.mcc}
                 ].map((m,i)=>
-                  <div key={i} style={{textAlign:"center",padding:"4px 8px",background:t.bgMuted,borderRadius:8}}>
-                    <div style={{fontSize:8,color:t.textFaint,fontWeight:600,textTransform:"uppercase"}}>{m.l}</div>
-                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:700,color:m.c}}>{m.v}</div>
+                  <div key={i} style={{textAlign:"center"}}>
+                    <div style={{fontSize:8,color:t.textFaint,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",marginBottom:2}}>{m.l}</div>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:18,fontWeight:800,color:t.text,letterSpacing:-.5}}>{m.v}</div>
                   </div>)}
-              </div>
-            </div>
-            {/* Pipeline Architecture Diagram */}
-            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginTop:14}}>
-              {[
-                {n:"1. Ingestão",desc:"110 features · Lag + Rolling Z-Scores + ACWR + HRV + Biomecânica",detail:"34 atletas × 120 dias = 4080 registros longitudinais",c:"#7c3aed"},
-                {n:"2. KNN + LASSO + MI",desc:`KNNImputer → LASSO (α=${ML.pipeline.lasso.alpha_optimal}) + MI → ${ML.pipeline.lasso.features_selected} features`,detail:"Feature selection híbrida: L1 regularização + mutual information",c:"#2563eb"},
-                {n:"3. Optuna + XGBoost",desc:`${ML.pipeline.optuna.n_trials} trials TPE → XGBoost (d=${ML.pipeline.xgboost.hyperparams.max_depth}, spw=${ML.pipeline.xgboost.hyperparams.scale_pos_weight})`,detail:"SMOTE+Tomek no treino + scale_pos_weight automático",c:"#EA580C"},
-                {n:"4. Calibração",desc:"Platt Scaling + Isotonic → melhor selecionado automaticamente",detail:"Threshold tuning [0.20-0.50] → maximiza recall c/ precisão ≥ 0.15",c:"#CA8A04"},
-                {n:"5. SHAP + Motor",desc:"TreeExplainer → importância global + explicação individual",detail:"Risk Score → Ranking → SHAP Factors → Dosagem Operacional",c:"#16A34A"}
-              ].map((l,i)=>
-                <div key={i} style={{padding:"10px 12px",borderRadius:8,border:`1px solid ${l.c}33`,background:`${l.c}08`}}>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:11,color:l.c}}>{l.n}</div>
-                  <div style={{fontSize:10,color:t.text,marginTop:2,fontWeight:500}}>{l.desc}</div>
-                  <div style={{fontSize:9,color:t.textFaint,marginTop:2}}>{l.detail}</div>
-                </div>)}
-            </div>
-            {/* SMOTE Warning */}
-            <div style={{marginTop:10,padding:"8px 12px",background:"#FEF2F2",borderRadius:6,border:"1px solid #FECACA",fontSize:10,color:"#DC2626"}}>
-              <strong>SMOTE obrigatório:</strong> Sem SMOTE o modelo apresenta acurácia de 91% ilusória com recall de apenas 14%. Com SMOTE + calibração: recall 79% (+65pp).
-            </div>
-            <div style={{marginTop:6,padding:"8px 12px",background:"#F0FDF4",borderRadius:6,border:"1px solid #BBF7D0",fontSize:10,color:"#166534"}}>
-              <strong>v3.0:</strong> +7 features temporais (Fatigue Debt, NME, CMJ/sRPE/Sleep trends). Calibração Isotônica + Threshold Tuning automático. scale_pos_weight=4. AUC 0.847→0.878.
-            </div>
-            {/* LASSO vs XGBoost comparison */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginTop:10}}>
-              <div style={{padding:"8px 12px",background:t.bgMuted,borderRadius:6,border:`1px solid ${t.border}`}}>
-                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:10,color:t.textMuted}}>LASSO (Baseline)</div>
-                <div style={{display:"flex",gap:10,marginTop:4}}>
-                  {[{l:"AUC",v:ML.pipeline.lasso.metrics.auc_roc},{l:"F1",v:ML.pipeline.lasso.metrics.f1},{l:"Recall",v:ML.pipeline.lasso.metrics.recall},{l:"Spec",v:ML.pipeline.lasso.metrics.specificity}].map((m,j)=>
-                    <span key={j} style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textFaint}}>{m.l}: {m.v}</span>)}
-                </div>
-                <div style={{fontSize:9,color:t.textFaint,marginTop:2}}>Features eliminadas: {ML.pipeline.lasso.features_eliminated.join(", ")}</div>
-              </div>
-              <div style={{padding:"8px 12px",background:"#f0fdf4",borderRadius:6,border:"1px solid #BBF7D0"}}>
-                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:10,color:"#16A34A"}}>XGBoost (Motor Principal)</div>
-                <div style={{display:"flex",gap:10,marginTop:4}}>
-                  {[{l:"AUC",v:ML.pipeline.xgboost.metrics.auc_roc},{l:"F1",v:ML.pipeline.xgboost.metrics.f1},{l:"Recall",v:ML.pipeline.xgboost.metrics.recall},{l:"Spec",v:ML.pipeline.xgboost.metrics.specificity}].map((m,j)=>
-                    <span key={j} style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:"#166534"}}>{m.l}: {m.v}</span>)}
-                </div>
-                <div style={{fontSize:9,color:"#166534",marginTop:2}}>{ML.pipeline.xgboost.note}</div>
               </div>
             </div>
           </div>

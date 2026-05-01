@@ -34,6 +34,12 @@ const SHEETS_CONFIG = {
     fisioterapia: 1541953765,
     calendario: 460942009
   },
+  // Abas lidas por TÍTULO (gid não conhecido — usa gviz `sheet=` ou Sheets
+  // API quando service account configurado). Fonte primária quando publicada.
+  tabs_by_title: {
+    lesoes: "Lesoes",
+    epid_cadastro: "Epid_Cadastro"
+  },
   // Planilhas externas (publicadas separadamente)
   external: {
     lesoes: {
@@ -1197,6 +1203,49 @@ async function fetchSheetViaApi(spreadsheetId, gid, token) {
 //  (4) Google Visualization API (gviz)
 // Retorna o CSV cru ou lança erro com a lista de tentativas.
 // ═══════════════════════════════════════════════════════════════════════════════
+// Fetch CSV de uma aba pelo TÍTULO (não pelo gid). Útil quando o gid muda
+// entre republicações. Usa gviz `sheet=` ou Sheets API v4 quando autenticado.
+async function fetchSheetByTitle(title) {
+  if (!title) throw new Error("title vazio");
+  const errors = [];
+  const token = await getServiceAccountToken();
+
+  // (1) Sheets API v4 — encoda o título como range, retorna valores como CSV.
+  if (token) {
+    for (const id of SHEETS_CONFIG.spreadsheet_ids) {
+      try {
+        const range = encodeURIComponent(title);
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${range}?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING`;
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.values?.length) {
+            const escape = (v) => {
+              const s = v === null || v === undefined ? "" : String(v);
+              return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+            };
+            return data.values.map(row => row.map(escape).join(",")).join("\n");
+          }
+        }
+      } catch (e) { errors.push(`api(${id}): ${e.message}`); }
+    }
+  }
+
+  // (2) Google Visualization API com `sheet=` (nome da aba) — público.
+  for (const id of SHEETS_CONFIG.spreadsheet_ids) {
+    try {
+      const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(title)}`;
+      const res = await fetch(url, { next: { revalidate: 60 } });
+      if (res.ok) {
+        const text = await res.text();
+        if (text && !text.includes("<!DOCTYPE")) return text;
+      }
+    } catch (e) { errors.push(`gviz(${id}): ${e.message}`); }
+  }
+
+  throw new Error(`Falha ao buscar aba por título "${title}". Tentativas: ${errors.join("; ")}`);
+}
+
 async function fetchSheetCSV(gid = 0) {
   const errors = [];
   const pubKeys = SHEETS_CONFIG.published_keys || (SHEETS_CONFIG.published_key ? [SHEETS_CONFIG.published_key] : []);
