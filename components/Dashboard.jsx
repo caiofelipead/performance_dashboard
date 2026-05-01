@@ -17,18 +17,19 @@ const THEMES={
     ringBg:"#f1f5f9",
     tooltipBg:"#fff"},
   dark:{
-    // Paleta high-contrast inspirada nas referências (STATSports / Season Calendar):
-    // navy profundo, cards com tinta azulada, neons de acento.
-    bg:"#070a14",bgCard:"#0f1320",bgMuted:"#161a29",bgMuted2:"#1f2536",
-    text:"#f1f5f9",textMuted:"#c5cdd9",textFaint:"#8896a8",textFaintest:"#5e6b7d",
-    border:"#252b40",borderLight:"#1a2030",
-    scrollThumb:"#3a4258",scrollTrack:"transparent",
-    shadow:"rgba(0,0,0,.45)",shadowMd:"rgba(0,0,0,.6)",shadowLg:"rgba(0,0,0,.75)",
-    headerBg:"#0a0d18",headerShadow:"rgba(0,0,0,.65)",
-    ringBg:"#1f2536",
-    tooltipBg:"#161a29",
-    accent:"#3b82f6",        // electric blue (active states, links)
-    accentGlow:"rgba(59,130,246,.35)",
+    // Paleta alinhada ao Scouting BFSA: preto puro como bg, cards com elevação
+    // sutil (#0c0e15), bordas finas em cinza-grafite, vermelho Botafogo como
+    // acento primário. Texto branco quente, secundários elevados em luminância.
+    bg:"#000000",bgCard:"#0c0e15",bgMuted:"#13161f",bgMuted2:"#1c2030",
+    text:"#fafafa",textMuted:"#d6dae0",textFaint:"#8d96a4",textFaintest:"#5e6878",
+    border:"#262a38",borderLight:"#1a1e2a",
+    scrollThumb:"#3b4156",scrollTrack:"transparent",
+    shadow:"rgba(0,0,0,.7)",shadowMd:"rgba(0,0,0,.8)",shadowLg:"rgba(0,0,0,.9)",
+    headerBg:"#000000",headerShadow:"rgba(0,0,0,.8)",
+    ringBg:"#1c2030",
+    tooltipBg:"#13161f",
+    accent:"#dc2626",            // Vermelho Botafogo (primário)
+    accentGlow:"rgba(220,38,38,.45)",
     neonGreen:"#22c55e",
     neonYellow:"#facc15",
     neonOrange:"#fb923c",
@@ -892,7 +893,7 @@ const score=(p)=>{
 };
 
 const LV={CRITICAL:{c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",l:"Crítico"},HIGH:{c:"#EA580C",bg:"#FFF7ED",bc:"#FED7AA",l:"Alto"},MODERATE:{c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",l:"Moderado"},LOW:{c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",l:"Ótimo"}};
-const acc="#C41E3A";
+const acc="#dc2626"; // Vermelho Botafogo (alinhado ao Scouting BFSA)
 const humorL={1:"Raiva",2:"Confuso",3:"Preocupado",4:"Confiante",5:"Tranquilo"};
 
 const Tip=({active,payload,label,theme})=>{
@@ -1282,7 +1283,7 @@ export default function Dashboard(){
           </div>
         </div>
         <div style={{display:"flex",gap:1,overflowX:"auto",maxWidth:"calc(100vw - 380px)",scrollbarWidth:"none",msOverflowStyle:"none"}}>
-          {tabs.map(tb=>{const Ic=tb.ic;const isActive=tab===tb.id;const glow=dark?"rgba(59,130,246,.45)":"rgba(255,255,255,.4)";return <button key={tb.id} onClick={()=>setTab(tb.id)} style={{display:"flex",alignItems:"center",gap:5,background:isActive?(dark?"#3b82f6":acc):"rgba(255,255,255,.04)",border:`1px solid ${isActive?(dark?"#60a5fa":acc):"rgba(255,255,255,.08)"}`,color:isActive?"#fff":"rgba(255,255,255,.62)",padding:"6px 11px",borderRadius:999,fontSize:10,fontWeight:700,letterSpacing:.2,cursor:"pointer",fontFamily:"inherit",transition:"all .2s",whiteSpace:"nowrap",flexShrink:0,boxShadow:isActive?`0 0 0 3px ${glow}, 0 2px 8px ${glow}`:"none"}}><Ic size={12}/>{tb.l}</button>})}
+          {tabs.map(tb=>{const Ic=tb.ic;const isActive=tab===tb.id;const glow=dark?"rgba(220,38,38,.4)":"rgba(255,255,255,.4)";return <button key={tb.id} onClick={()=>setTab(tb.id)} style={{display:"flex",alignItems:"center",gap:5,background:isActive?acc:"rgba(255,255,255,.04)",border:`1px solid ${isActive?acc:"rgba(255,255,255,.08)"}`,color:isActive?"#fff":"rgba(255,255,255,.62)",padding:"6px 11px",borderRadius:999,fontSize:10,fontWeight:700,letterSpacing:.2,cursor:"pointer",fontFamily:"inherit",transition:"all .2s",whiteSpace:"nowrap",flexShrink:0,boxShadow:isActive?`0 0 0 3px ${glow}, 0 2px 12px ${glow}`:"none"}}><Ic size={12}/>{tb.l}</button>})}
         </div>
         <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:"rgba(255,255,255,.5)",display:"flex",alignItems:"center",gap:10}}>
           {/* Live Data Indicator */}
@@ -1307,24 +1308,13 @@ export default function Dashboard(){
 
     <div style={{display:"flex",padding:16,gap:16,maxWidth:1440,margin:"0 auto"}}>
       {/* SIDEBAR */}
-      <aside style={{width:240,flexShrink:0}}>
-        <div style={{fontSize:10,fontWeight:700,color:t.textFaint,letterSpacing:1.5,textTransform:"uppercase",marginBottom:2,paddingLeft:4}}>Elenco — Estado do Atleta</div>
-        <div style={{fontSize:8,color:t.textFaintest,marginBottom:4,paddingLeft:4,lineHeight:1.45}}>
-          Métrica única que integra três leituras do mesmo estado: (a) <strong style={{color:t.textFaint}}>Ψ(t) observável</strong> — PCA sobre carga + neuromuscular + bem-estar (Fonseca 2020); (b) <strong style={{color:t.textFaint}}>Previsão ML 7d</strong> — XGBoost calibrado com 89 features; (c) <strong style={{color:t.textFaint}}>Risk Score clínico (0–100)</strong> — regras do dia (ACWR, Dor, Rec. Pernas, Sono, Bem-estar) usado como fallback.
-        </div>
-        <div style={{fontSize:7,color:t.textFaintest,marginBottom:4,paddingLeft:4,lineHeight:1.4}}>
-          No card de cada atleta exibimos o Risk Score clínico 0–100; no perfil individual, o score grande no header prioriza a Previsão ML quando disponível, e o card <em>Estado do Atleta</em> mostra as três leituras juntas.
-        </div>
-        <div style={{display:"flex",gap:4,marginBottom:4,paddingLeft:4,flexWrap:"wrap"}}>
-          {[{l:"Crítico",c:"#DC2626",r:"≥65"},{l:"Alto",c:"#EA580C",r:"50–64"},{l:"Moderado",c:"#CA8A04",r:"20–49"},{l:"Ótimo",c:"#16A34A",r:"<20"}].map((z,i)=>
-            <span key={i} style={{fontSize:7,padding:"1px 5px",borderRadius:4,background:`${z.c}12`,color:z.c,border:`1px solid ${z.c}30`,fontWeight:600}}>{z.l} ({z.r})</span>
+      <aside style={{width:230,flexShrink:0}}>
+        <div style={{fontSize:9,fontWeight:800,color:t.textFaint,letterSpacing:2,textTransform:"uppercase",marginBottom:6,paddingLeft:4}}>Elenco</div>
+        {/* Legenda compacta de zonas + tooltip detalhado oculto sob hover */}
+        <div title="Risk Score clínico 0–100 (regras do dia: ACWR, Dor, Rec. Pernas, Sono, Bem-estar). Inteira-se com Ψ(t) observável (PCA Fonseca 2020) e Previsão ML 7d (XGBoost) na ficha individual." style={{display:"flex",gap:3,marginBottom:8,paddingLeft:4,flexWrap:"wrap",cursor:"help"}}>
+          {[{l:"Crítico",c:"#DC2626"},{l:"Alto",c:"#EA580C"},{l:"Mod.",c:"#CA8A04"},{l:"Ótimo",c:"#16A34A"}].map((z,i)=>
+            <span key={i} style={{fontSize:7,padding:"1px 5px",borderRadius:3,background:`${z.c}18`,color:z.c,border:`1px solid ${z.c}40`,fontWeight:700,letterSpacing:.3}}>{z.l}</span>
           )}
-        </div>
-        <div style={{fontSize:7,color:t.textFaintest,marginBottom:2,paddingLeft:4,lineHeight:1.4}}>
-          <strong style={{color:t.textFaint}}>Déf. Biológico:</strong> (10−Sono)×0.4 + Dor×0.3 + (10−Rec)×0.3. Quanto maior, pior a recuperação. {">"}1.5 = atenção, {">"}2.0 = crítico.
-        </div>
-        <div style={{fontSize:7,color:t.textFaintest,marginBottom:8,paddingLeft:4,lineHeight:1.4}}>
-          <strong style={{color:t.textFaint}}>Monotonia:</strong> Média sRPE 7d ÷ DP sRPE 7d. Mede variabilidade da carga. {">"}2.0 = carga repetitiva sem variação → risco de overreaching (Foster, 1998).
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:4,maxHeight:"calc(100vh - 100px)",overflowY:"auto",paddingRight:4}}>
           {players.map(p=><div key={p.n} onClick={()=>{setSel(p.n);setTab("player")}} style={{background:sel===p.n?t.bgCard:"transparent",border:`1px solid ${sel===p.n?t.border:"transparent"}`,borderRadius:10,padding:"8px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,transition:"all .15s",boxShadow:sel===p.n?`0 2px 8px ${t.shadow}`:"none"}}>
@@ -2638,10 +2628,14 @@ export default function Dashboard(){
               if(!gameDate)return[];
               const gDateTs=normDate(gameDate);
               const DAY_MS=86400000;
-              // Tolerância de ±1 dia (GPS pode registrar data diferente do calendário)
+              // Tolerância ±2 dias: cobre fusos diferentes, atrasos de
+              // sincronização do device GPS e jogos noturnos que registram
+              // data do dia seguinte na aba bruta.
               const dateMatch=(entryDate)=>{
                 const eTs=parseDateStr(entryDate);
-                return eTs===gDateTs||eTs===gDateTs-DAY_MS||eTs===gDateTs+DAY_MS;
+                if(!eTs) return false;
+                const diff=Math.abs(eTs-gDateTs);
+                return diff<=2*DAY_MS;
               };
               const results=[];
               const allNames=new Set([...Object.keys(gpsData),...Object.keys(diarioData)]);
