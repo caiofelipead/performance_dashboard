@@ -1729,17 +1729,14 @@ export async function GET(request) {
     const format = searchParams.get("format") || "json";
 
     if (tab === "all") {
-      // Buscar todas as abas em paralelo
-      // GPS: lê AS DUAS abas (gps legado gid=0 com splits + gps_individual
-      // gid=1595283302 com agregado por sessão) e mescla por (atleta, data)
-      // — necessário porque jogos antigos só existem no formato legado e o
-      // novo formato gps_individual cobre apenas a temporada corrente.
+      // GPS: ler EXCLUSIVAMENTE a aba gps_individual (gid=1595283302) — fonte
+      // única de verdade da temporada corrente, com thresholds HSR > 19.8 km/h
+      // e Sprint > 25.2 km/h. Aba `gps` legada não é mais consumida no tab=all.
       const [
-        gpsLegacyCSV, gpsIndCSV, diarioCSV, saltosCSV, questCSV, fisioCSV,
+        gpsCSV, diarioCSV, saltosCSV, questCSV, fisioCSV,
         lesoesCSV, cmjExtCSV, antropCSV, calendarioCSV,
         vbtCSV, bioCSV, atletasCSV
       ] = await Promise.allSettled([
-        fetchSheetCSV(SHEETS_CONFIG.tabs.gps),
         fetchSheetCSV(SHEETS_CONFIG.tabs.gps_individual),
         fetchSheetCSV(SHEETS_CONFIG.tabs.diario),
         fetchSheetCSV(SHEETS_CONFIG.tabs.saltos),
@@ -1753,9 +1750,6 @@ export async function GET(request) {
         fetchSheetCSV(SHEETS_CONFIG.tabs.bioquimico),
         fetchSheetCSV(SHEETS_CONFIG.tabs.atletas)
       ]);
-      // Compatibilidade com o bloco antigo abaixo: gpsCSV passa a representar
-      // a fonte primária (gps_individual). gpsLegacyCSV é mesclado depois.
-      const gpsCSV = gpsIndCSV;
 
       const result = { ok: true, timestamp: new Date().toISOString(), _debug: {} };
 
@@ -1779,61 +1773,6 @@ export async function GET(request) {
       } else {
         result._debug.gps = { error: gpsCSV.reason?.message || "failed", source: "gps_individual" };
         result.gps = result.gps || {};
-      }
-
-      // Merge com GPS legado (gid=0) — preenche jogos/sessões anteriores que
-      // não estão na aba gps_individual (ex.: temporada Paulistão pré-Maio).
-      // Estratégia: para cada atleta, adicionar entradas legadas com chave
-      // (date, sessionTitle) que ainda não existam no resultado primário.
-      if (gpsLegacyCSV.status === "fulfilled") {
-        try {
-          const { rows: legacyRows, headers: legacyHeaders } = parseCSV(gpsLegacyCSV.value);
-          const legacy = processGPS(legacyRows);
-          delete legacy._nameDebug;
-          let merged = 0; let added = 0;
-          for (const [name, entries] of Object.entries(legacy)) {
-            if (!Array.isArray(entries) || !entries.length) continue;
-            if (!result.gps[name]) result.gps[name] = [];
-            const seen = new Set(result.gps[name].map(e => `${e.date}||${(e.sessionTitle||"").trim()}`));
-            for (const e of entries) {
-              const k = `${e.date}||${(e.sessionTitle||"").trim()}`;
-              if (seen.has(k)) { merged++; continue; }
-              result.gps[name].push(e);
-              seen.add(k);
-              added++;
-            }
-            // Reordenar por data ascendente após merge
-            result.gps[name].sort((a, b) => {
-              const pd = (s) => {
-                if (!s) return 0;
-                const v = String(s).trim();
-                if (/^\d{4}-\d{2}-\d{2}/.test(v)) return new Date(v).getTime();
-                const p = v.split(/[\/\-\.]/);
-                if (p.length >= 3) {
-                  const [a, b2, c] = p.map(Number);
-                  if (a > 31) return new Date(a, b2 - 1, c).getTime();
-                  if (c > 31) return new Date(c, b2 - 1, a).getTime();
-                  return new Date(c, a - 1, b2).getTime();
-                }
-                return new Date(v).getTime() || 0;
-              };
-              return pd(a.date) - pd(b.date);
-            });
-          }
-          result._debug.gps_legacy = {
-            source: "gps",
-            gid: SHEETS_CONFIG.tabs.gps,
-            rows: legacyRows.length,
-            headers: legacyHeaders?.slice(0, 20),
-            athletes_legacy: Object.keys(legacy).length,
-            merged_existing: merged,
-            added_new: added
-          };
-        } catch (e) {
-          result._debug.gps_legacy = { error: e.message };
-        }
-      } else {
-        result._debug.gps_legacy = { error: gpsLegacyCSV.reason?.message || "failed" };
       }
       if (diarioCSV.status === "fulfilled") {
         const { rows, headers } = parseCSV(diarioCSV.value);
