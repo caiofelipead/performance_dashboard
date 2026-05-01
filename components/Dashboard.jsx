@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { BarChart, Bar, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, AreaChart, Cell, ReferenceLine, LineChart, Line } from "recharts";
 import { Activity, TrendingUp, AlertTriangle, CheckCircle2, ChevronRight, ChevronDown, Heart, Zap, Shield, Users, Eye, Brain, Target, Calendar, RefreshCw, Wifi, WifiOff, Moon, Sun, Trophy, BookOpen, Info } from "lucide-react";
 import { useSheetData } from "./useSheetData";
@@ -17,15 +17,73 @@ const THEMES={
     ringBg:"#f1f5f9",
     tooltipBg:"#fff"},
   dark:{
-    bg:"#0c0e14",bgCard:"#181b25",bgMuted:"#1e2230",bgMuted2:"#282d3c",
-    text:"#f1f5f9",textMuted:"#b8c4d0",textFaint:"#8896a8",textFaintest:"#5e6b7d",
-    border:"#353b50",borderLight:"#2a2f40",
-    scrollThumb:"#4a5268",scrollTrack:"transparent",
-    shadow:"rgba(0,0,0,.35)",shadowMd:"rgba(0,0,0,.45)",shadowLg:"rgba(0,0,0,.55)",
-    headerBg:"#10121a",headerShadow:"rgba(0,0,0,.5)",
-    ringBg:"#282d3c",
-    tooltipBg:"#1e2230"}
+    // Paleta high-contrast inspirada nas referências (STATSports / Season Calendar):
+    // navy profundo, cards com tinta azulada, neons de acento.
+    bg:"#070a14",bgCard:"#0f1320",bgMuted:"#161a29",bgMuted2:"#1f2536",
+    text:"#f1f5f9",textMuted:"#c5cdd9",textFaint:"#8896a8",textFaintest:"#5e6b7d",
+    border:"#252b40",borderLight:"#1a2030",
+    scrollThumb:"#3a4258",scrollTrack:"transparent",
+    shadow:"rgba(0,0,0,.45)",shadowMd:"rgba(0,0,0,.6)",shadowLg:"rgba(0,0,0,.75)",
+    headerBg:"#0a0d18",headerShadow:"rgba(0,0,0,.65)",
+    ringBg:"#1f2536",
+    tooltipBg:"#161a29",
+    accent:"#3b82f6",        // electric blue (active states, links)
+    accentGlow:"rgba(59,130,246,.35)",
+    neonGreen:"#22c55e",
+    neonYellow:"#facc15",
+    neonOrange:"#fb923c",
+    neonRed:"#ef4444",
+    pitchGreen:"#16a34a"}
 };
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ThresholdGauge — barra horizontal verde→amarelo→vermelho com marker da posição
+// (referência: STATSports Player view). Uso: <ThresholdGauge value={pct} theme={t}/>
+// `value` é tratado como % (0–150). Zonas:
+//   0–60% verde  · 60–85% amarelo · 85–115% laranja · >115% vermelho.
+// `bands` permite override custom (ex: ACWR usa 0–0.8 / 0.8–1.5 / >1.5).
+// ═══════════════════════════════════════════════════════════════════════════════
+function ThresholdGauge({ value, max = 150, theme, bands, height = 6 }) {
+  const t = theme || THEMES.light;
+  const v = Number.isFinite(value) ? value : 0;
+  const pct = Math.min(100, Math.max(0, (v / max) * 100));
+  const grad = bands || "linear-gradient(to right, #22c55e 0%, #22c55e 40%, #facc15 60%, #fb923c 80%, #ef4444 100%)";
+  return (
+    <div style={{position:"relative",height,background:t.bgMuted2,borderRadius:height/2,overflow:"hidden",border:`1px solid ${t.borderLight}`}}>
+      <div style={{position:"absolute",inset:0,background:grad,opacity:.85}}/>
+      {/* Marker da posição atual */}
+      <div style={{position:"absolute",left:`calc(${pct}% - 4px)`,top:-2,width:8,height:height+4,background:"#fff",borderRadius:2,boxShadow:"0 0 6px rgba(255,255,255,.7)",border:`1px solid ${t.border}`}}/>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Macro-grupos de posição — diretiva técnica (Maio/2026)
+// Agrega todas as variações de meio-campistas (MEI, VOL, MD, W-MD, MC, MO, ME,
+// AM, DM, CM e variações) num único bucket "Meio-Campo". Mantém Goleiro,
+// Zagueiro, Lateral, Extremo, Atacante separados. Use `posGroup(pos)` em todo
+// agrupamento por posição (médias, filtros, sort).
+// ═══════════════════════════════════════════════════════════════════════════════
+const POS_GROUP_ORDER = { "Goleiro": 0, "Zagueiro": 1, "Lateral": 2, "Meio-Campo": 3, "Extremo": 4, "Atacante": 5 };
+function posGroup(pos) {
+  const p = String(pos || "").toUpperCase().trim();
+  if (!p) return "-";
+  if (p === "GOL" || p === "GK" || p.includes("GOLEIR")) return "Goleiro";
+  if (p === "ZAG" || p === "CB" || p.includes("ZAGUEIR")) return "Zagueiro";
+  if (p === "LAT" || p === "LE" || p === "LD" || p === "LB" || p === "RB" ||
+      p.startsWith("LAT")) return "Lateral";
+  if (p === "ATA" || p === "CF" || p === "9" || p.includes("ATACA") ||
+      p.includes("CENTROAVANTE")) return "Atacante";
+  if (p === "EXT" || p === "PE" || p === "PD" || p === "LW" || p === "RW" ||
+      p.includes("PONTA") || p.includes("EXTREM")) return "Extremo";
+  // Meio-Campo: VOL, MEI, MD, W-MD, MC, MO, ME, AM, DM, CM e variações.
+  if (p === "VOL" || p === "MEI" || p === "MC" || p === "MO" || p === "MD" ||
+      p === "ME" || p === "DM" || p === "CM" || p === "AM" ||
+      p.startsWith("W-M") || p.startsWith("WM") ||
+      p.includes("MEI") || p.includes("MD") || p.includes("MC") ||
+      p.includes("VOLANT")) return "Meio-Campo";
+  return p;
+}
 
 const P=[{n:"ADRIANO",pos:"GOL",id:19,h:5,e:4,rg:7,rp:6,d:2,sq:7,rpa:7,da:1.6,sa:7.3,nw:39,pse:3,sra:331,w:82.7,alt:183,bf:12.4,mm:38.2,imc:24.2,nc:60,ai:1.24,cmj:49.6,ct:[54.2,50.3,48.5,51.4,52,52.2,52.6,49.6],wt:{dt:["02","03","07","09","10","11","12"],s:[10,8,7,7,8,7,7],r:[8,6,6,8,8,7,6],dr:[1,1,1,1,2,1,2]}},{n:"BRENNO",pos:"GOL",id:23,h:4,e:4,rg:8,rp:8,d:3,sq:7,rpa:7.3,da:1.3,sa:7.3,nw:50,pse:4,sra:310,w:90.8,alt:191,bf:13.8,mm:41.5,imc:24.9,nc:75,ai:1.17,cmj:44.6,ct:[45,47.8,49.3,48,47.6,49.3,46.2,44.6],wt:{dt:["04","05","06","07","09","10","11"],s:[7,7,7,6,10,8,7],r:[7,7,8,5,8,7,8],dr:[0,0,0,0,0,2,3]}},{n:"CARLOS EDUARDO",pos:"ZAG",id:25,h:5,e:3,rg:8,rp:8,d:2,sq:8,rpa:7.9,da:1,sa:9.2,nw:57,pse:3,sra:391,w:85.9,alt:186,bf:11.9,mm:39.8,imc:24.6,nc:75,ai:1.07,cmj:46.7,ct:[49.1,44,47.1,44.5,48.8,46.5,52.6,46.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,9,8,8,9,10,8],r:[9,5,6,9,8,6,8],dr:[1,1,0,0,0,2,2]}},{n:"DARLAN",pos:"ZAG",id:20,h:4,e:3,rg:9,rp:8,d:0,sq:8,rpa:7.8,da:.7,sa:7.8,nw:17,pse:5,sra:317,w:80.2,alt:186,bf:10.5,mm:37.1,imc:25.3,nc:20,ai:.95,cmj:31.1,ct:[31.1]},{n:"ERICSON",pos:"ZAG",id:26,h:5,e:3,rg:10,rp:9,d:3,sq:9,rpa:6.7,da:1.1,sa:8.8,nw:51,pse:0,sra:431,w:91.6,alt:184,bf:13.2,mm:42.0,imc:25.4,nc:75,ai:.64,cmj:43.1,ct:[44.3,47.4,42.4,47.1,50.9,50.9,55.5,43.1],wt:{dt:["26","27","28","02","03","04","06"],s:[9,9,9,7,9,8,9],r:[6,6,5,8,7,9,9],dr:[1,1,1,1,4,3,3]}},{n:"ERIK",pos:"VOL",id:20,h:5,e:4,rg:7,rp:7,d:0,sq:9,rpa:7.2,da:.2,sa:9.3,nw:22,pse:6,sra:308,w:75.5,alt:176,bf:9.8,mm:35.4,imc:24.4,nc:59,ai:1.97,ct:[54.1,52.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,8,8,10,10,9],r:[7,8,7,10,7,7,7],dr:[0,0,0,0,0,0,0]}},{n:"FELIPE VIEIRA",pos:"LAT",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.2,da:.3,sa:8.2,nw:27,pse:7,sra:385,w:77,alt:176,bf:7.7,mm:35.8,imc:24.9,nc:27,ai:1.0,cmj:39.3,ct:[45.0,39.3],wt:{dt:["03","04","05","06","07","09","10"],s:[7,7,8,9,6,5,7],r:[7,7,7,8,6,5,7],dr:[0,0,0,0,0,0,0]}},{n:"GABRIEL INOCENCIO",pos:"LAT",id:31,h:4,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.8,da:.4,sa:7.2,nw:58,pse:3,sra:407,w:78.5,alt:177,bf:10.8,mm:36.5,imc:25.1,nc:75,ai:.97,cmj:48.2,ct:[48.2,52.3,45.3,48.9,53.6,49.3,50.8,48.2],wt:{dt:["04","05","06","09","10","11","12"],s:[8,9,8,8,7,7,8],r:[7,7,7,8,8,8,8],dr:[1,2,7,2,2,2,1]}},{n:"GUI MARIANO",pos:"ZAG",id:26,h:5,e:4,rg:8,rp:8,d:4,sq:8,rpa:7.6,da:.3,sa:8.2,nw:59,pse:7,sra:476,w:89.7,alt:191,bf:12.7,mm:41.0,imc:25.1,nc:75,ai:1.1,cmj:53.1,ct:[52.4,52.2,52,55.1,47.5,53.7,53.5,53.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,9,9,8,8],r:[7,7,5,10,8,6,8],dr:[0,0,0,0,0,0,4]}},{n:"GUILHERME QUEIROZ",pos:"ATA",id:35,h:5,e:3,rg:7,rp:7,d:2,sq:8,rpa:7.3,da:1.5,sa:6.9,nw:56,pse:6,sra:369,w:87.9,alt:180,bf:13.1,mm:40.2,imc:24.9,nc:75,ai:1.14,cmj:46,ct:[43.3,43.3,46.2,47.4,44.7,48.3,48,46],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,7,7,5,8],r:[10,7,6,8,6,7,7],dr:[0,0,1,0,1,1,2]}},{n:"GUSTAVO VILAR",pos:"ZAG",id:25,h:5,e:3,rg:6,rp:6,d:0,sq:7,rpa:6.5,da:.2,sa:7.7,nw:55,pse:5,sra:410,w:86.4,alt:189,bf:12.9,mm:39.5,imc:25.8,nc:75,ai:1.07,cmj:43.5,ct:[43.3,42.9,47.9,42.8,43.1,44,44.8,43.5]},{n:"HEBERT",pos:"ZAG",id:20,h:5,e:3,rg:8,rp:7,d:0,sq:7,rpa:6.7,da:.1,sa:7.7,nw:46,pse:5,sra:366,w:88.1,alt:187,bf:12.5,mm:40.8,imc:25.5,nc:59,ai:1.04,cmj:46.9,ct:[50.1,49.8,50,52.5,48.6,51.2,53.3,46.9]},{n:"HENRIQUE TELES",pos:"LAT",id:19,h:5,e:4,rg:8,rp:8,d:2,sq:8,rpa:7,da:1.4,sa:7.7,nw:54,pse:6,sra:415,w:80.1,alt:179,bf:11.3,mm:37.2,imc:24.7,nc:69,ai:1.14,cmj:45.5,ct:[53.1,55.5,49.8,54.9,51.6,50.8,55.1,45.5],wt:{dt:["04","05","07","09","10","11","12"],s:[8,9,6,9,8,9,8],r:[6,8,6,10,8,9,8],dr:[2,1,7,5,3,3,2]}},{n:"HYGOR",pos:"ATA",id:33,h:5,e:4,rg:10,rp:8,d:2,sq:7,rpa:8.8,da:1.6,sa:9.2,nw:57,pse:4,sra:387,w:83.3,alt:183,bf:11.6,mm:38.6,imc:25.2,nc:75,ai:1.12,cmj:42.1,ct:[40.8,44.5,39.9,44.2,43.5,42.4,41.9,42.1],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,10,10,10,10,7],r:[10,6,8,10,8,8,8],dr:[0,2,0,0,0,3,2]}},{n:"JEFFERSON NEM",pos:"EXT",id:29,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:7.1,da:.8,sa:7.9,nw:57,pse:7,sra:423,w:72.5,alt:166,bf:10.1,mm:33.8,imc:23.9,nc:75,ai:.97,cmj:47.5,ct:[44,48.2,44.5,50.4,50,44.1,47.2,47.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,7],r:[7,6,7,8,8,7,7],dr:[0,0,0,0,0,0,2]}},{n:"JONATHAN",pos:"LAT",id:33,h:5,e:4,rg:5,rp:5,d:4,sq:7,rpa:5.8,da:2.9,sa:5.9,nw:51,pse:4,sra:333,w:73.7,alt:177,bf:10.9,mm:34.3,imc:24.1,nc:75,ai:1.14,cmj:42.8,ct:[46.4,46.8,46.9,37.3,45,44.7,45,42.8],wt:{dt:["04","05","07","09","10","11","12"],s:[5,7,6,6,6,6,7],r:[6,7,4,7,5,6,5],dr:[3,3,3,2,3,3,4]}},{n:"JORDAN",pos:"GOL",id:28,h:5,e:3,rg:7,rp:7,d:0,sq:9,rpa:8,da:.7,sa:8,nw:60,pse:4,sra:418,w:92.2,alt:189,bf:12.0,mm:42.8,imc:25.0,nc:75,ai:1.1,cmj:54.1,ct:[52.2,53.4,53.4,53.2,54.5,56,55.7,54.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,9],r:[8,8,6,8,8,7,7],dr:[1,0,0,0,0,0,0]}},{n:"KELVIN",pos:"EXT",id:28,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:6.9,da:3,sa:7.4,nw:49,pse:3,sra:288,w:74.6,alt:170,bf:10.3,mm:34.8,imc:23.8,nc:67,ai:.86,cmj:38.4,ct:[40.4,38.3,40.8,40.2,40.6,39.5,42.3,38.4],wt:{dt:["04","05","06","09","10","11","12"],s:[7,9,8,9,9,8,7],r:[7,7,7,10,10,9,7],dr:[3,3,3,0,0,2,2]}},{n:"LEANDRO MACIEL",pos:"VOL",id:30,h:4,e:3,rg:8,rp:8,d:0,sq:9,rpa:7.7,da:.5,sa:8.6,nw:57,pse:4,sra:399,w:91.3,alt:175,bf:13.5,mm:41.6,imc:25.8,nc:75,ai:1.08,cmj:43.8,ct:[41.7,47.4,40.5,46.2,47.8,44.3,50.4,43.8],wt:{dt:["05","06","07","09","10","11","12"],s:[8,7,9,8,8,8,9],r:[8,7,8,8,7,7,8],dr:[0,1,0,0,0,1,0]}},{n:"MARANHAO",pos:"EXT",id:26,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:6.9,da:1,sa:6.8,nw:58,pse:4,sra:339,w:75.1,alt:171,bf:11.0,mm:34.9,imc:24.2,nc:75,ai:.95,cmj:42.2,ct:[45.2,45.2,44.4,48.8,44.9,43.8,54.1,42.2],wt:{dt:["05","06","07","09","10","11","12"],s:[7,5,6,7,7,7,7],r:[7,6,5,7,7,7,7],dr:[1,1,1,1,1,1,1]}},{n:"MARCO ANTONIO",pos:"VOL",id:22,h:5,e:4,rg:7,rp:7,d:1,sq:8,rpa:7.0,da:.5,sa:7.5,nw:45,pse:5,sra:350,w:74.4,alt:180,bf:10.2,mm:34.5,imc:23.0,nc:55,ai:1.1,cmj:42.0,ct:[43.5,44.1,42.8,43.2,42.5,41.9,43.0,42.0],wt:{dt:["05","06","07","09","10","11","12"],s:[8,7,8,8,7,8,7],r:[7,7,7,8,7,7,7],dr:[0,1,0,0,1,0,1]}},{n:"MARQUINHO JR.",pos:"MEI",id:23,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.4,da:0,sa:8.1,nw:58,pse:5,sra:360,w:64.9,alt:182,bf:9.2,mm:30.8,imc:22.5,nc:75,ai:1.17,cmj:41.3,ct:[44.4,45.7,42.6,46.7,43.1,42.5,47.6,41.3]},{n:"MATHEUS SALES",pos:"VOL",id:30,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:7.2,da:.6,sa:6.8,nw:58,pse:7,sra:454,w:80.1,alt:176,bf:11.7,mm:37.0,imc:24.7,nc:75,ai:1.06,cmj:44.3,ct:[47.4,47.9,46.1,47.3,44.3,49.1,49.8,44.3],wt:{dt:["05","06","07","09","10","11","12"],s:[6,4,8,7,7,5,7],r:[7,4,5,8,8,7,7],dr:[1,2,1,0,1,2,1]}},{n:"MORELLI",pos:"VOL",id:28,h:5,e:3,rg:6,rp:7,d:0,sq:8,rpa:7,da:.5,sa:7.4,nw:56,pse:3,sra:356,w:82.4,alt:181,bf:12.1,mm:38.0,imc:24.6,nc:75,ai:1.07,cmj:43.8,ct:[46,50.6,44.9,44.8,43.8,38.1,46.6,43.8]},{n:"PATRICK BREY",pos:"LAT",id:28,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.9,da:2,sa:7.3,nw:33,pse:3,sra:385,w:73.5,alt:176,bf:10.0,mm:34.5,imc:24.0,nc:63,ai:1.3,ct:[43.2,42.6,42.3,41.9,41,45.8,42.8,45.1],wt:{dt:["05","06","07","09","10","11","12"],s:[4,7,2,9,8,7,8],r:[4,5,3,9,8,7,8],dr:[3,2,4,0,0,3,1]}},{n:"PEDRINHO",pos:"LAT",id:19,h:5,e:3,rg:8,rp:8,d:0,sq:10,rpa:7.3,da:.4,sa:9.9,nw:44,pse:6,sra:343,w:67.5,alt:175,bf:9.5,mm:31.9,imc:22.8,nc:52,ai:1.02,cmj:45.5,ct:[41.6,42.6,38.6,42.9,44.9,40.1,44,45.5]},{n:"PEDRO TORTELLO",pos:"VOL",id:21,h:5,e:3,rg:7,rp:7,d:0,sq:10,rpa:8.4,da:.3,sa:9.2,nw:56,pse:4,sra:381,w:75.1,alt:176,bf:10.6,mm:35.0,imc:23.7,nc:75,ai:1.14,cmj:41,ct:[40.6,47.6,41.3,43.7,39.2,41.6,44,41]},{n:"RAFAEL GAVA",pos:"MEI",id:32,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:6.2,da:1,sa:5.8,nw:55,pse:7,sra:364,w:78.3,alt:178,bf:11.4,mm:36.3,imc:24.4,nc:75,ai:1.1,ct:[36.2,38.9,33.8,33.6,39.2,35.3,36.7,38.7],wt:{dt:["05","06","07","09","10","11","12"],s:[4,4,6,4,5,6,8],r:[5,5,6,4,7,7,7],dr:[1,1,1,0,0,0,0]}},{n:"THALLES",pos:"ATA",id:20,h:5,e:4,rg:10,rp:10,d:2,sq:7,rpa:5.7,da:.5,sa:7.4,dpo:1,nw:60,pse:3,sra:409,w:83.9,alt:178,bf:12.2,mm:38.7,imc:24.8,nc:75,ai:1.19,cmj:43.3,ct:[46.4,44.1,44,45.1,43,47.4,44.9,43.3],wt:{dt:["04","05","06","07","09","11","12"],s:[7,7,10,6,7,8,7],r:[5,5,7,4,7,10,10],dr:[3,0,0,3,3,3,2]}},{n:"THIAGUINHO",pos:"VOL",id:27,h:3,e:4,rg:7,rp:7,d:0,sq:7,rpa:6.5,da:.2,sa:7.4,nw:17,pse:7,sra:390,w:64.5,alt:176,bf:7.7,mm:30.0,imc:20.8,nc:17,ai:1.0,cmj:41.5,ct:[41.5],wt:{dt:["03","04","05","06","07","09","10"],s:[7,6,7,8,5,9,6],r:[7,6,7,7,5,8,6],dr:[0,0,0,0,0,0,0]}},{n:"VICTOR SOUZA",pos:"GOL",id:33,h:4,e:3,rg:7,rp:7,d:0,sq:6,rpa:7.2,da:.5,sa:6.1,nw:57,pse:3,sra:473,w:92.8,alt:187,bf:14.1,mm:42.2,imc:24.9,nc:75,ai:1.04,cmj:46.9,ct:[55.4,56.5,60.9,57.9,58.7,53.2,59.5,46.9]},{n:"WALLACE",pos:"ZAG",id:31,h:4,e:3,rg:7,rp:7,d:0,sq:8,rpa:6.7,da:.8,sa:7.8,nw:47,pse:5,sra:305,w:91.6,alt:192,bf:14.0,mm:41.3,imc:26.5,nc:75,ai:.98,cmj:40.8,ct:[43.6,38.3,40.3,39.4,40.8],wt:{dt:["04","05","06","09","10","11","12"],s:[8,8,8,8,8,8,8],r:[7,8,5,8,7,7,7],dr:[2,2,2,0,2,2,0]}},{n:"YURI",pos:"VOL",id:19,h:4,e:4,rg:8,rp:8,d:0,sq:8,rpa:7.9,da:0,sa:8.1,nw:49,pse:6,sra:320,w:66.4,alt:172,bf:9.0,mm:31.5,imc:23.2,nc:69,ai:1.16,cmj:41.5,ct:[40.8,44.9,43.8,43.2,42.8,42.9,43.5,41.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,8,8,8],r:[9,8,7,8,7,8,8],dr:[0,0,0,0,0,0,0]}},{n:"WESLEY",pos:"EXT",id:25,h:5,e:4,rg:8,rp:7,d:1,sq:8,rpa:7.4,da:.6,sa:7.8,nw:52,pse:5,sra:378,w:76.8,alt:185,bf:10.4,mm:35.8,imc:24.2,nc:68,ai:1.08,cmj:43.2,ct:[44.8,45.1,43.5,44.2,42.8,43.9,44.5,43.2],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,7,8,8],r:[8,7,7,8,8,7,7],dr:[0,0,1,0,1,1,0]}},{n:"LUIZAO",pos:"ATA",id:23,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:7.5,da:.4,sa:8.0,nw:55,pse:4,sra:395,w:88.5,alt:183,bf:12.8,mm:40.6,imc:25.0,nc:72,ai:1.05,cmj:45.2,ct:[46.8,44.5,47.2,45.8,46.1,44.9,45.6,45.2],wt:{dt:["05","06","07","09","10","11","12"],s:[9,8,8,8,9,8,8],r:[8,7,7,9,8,7,8],dr:[0,1,0,0,0,1,1]}},{n:"ZE HUGO",pos:"EXT",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.6,da:.3,sa:8.2,nw:48,pse:5,sra:342,w:72.1,alt:178,bf:9.6,mm:33.6,imc:23.5,nc:62,ai:1.12,cmj:42.5,ct:[43.8,44.2,41.9,43.5,42.8,43.1,42.6,42.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,8,8,7,8],r:[8,8,7,9,7,8,7],dr:[0,0,0,0,0,0,0]}}];
 
@@ -892,7 +950,9 @@ export default function Dashboard(){
   const [excludedAthletes,setExcludedAthletes]=useState(new Set());
   const [expandedGames,setExpandedGames]=useState(new Set());
   const [showAthleteFilter,setShowAthleteFilter]=useState(false);
-  const [dark,setDark]=useState(()=>{if(typeof window!=="undefined"){const s=localStorage.getItem("theme");if(s)return s==="dark";return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches||false;}return false;});
+  // Dark Mode é o padrão visual (alta-contraste, sports analytics).
+  // Tema claro continua disponível via toggle, mas inicializa em "dark".
+  const [dark,setDark]=useState(()=>{if(typeof window!=="undefined"){const s=localStorage.getItem("theme");if(s)return s==="dark";}return true;});
   const [todayStr]=useState(()=>{try{return todayStr;}catch{return"";}});
   const [todayFull]=useState(()=>{try{return todayFull;}catch{return"";}});
   const t=THEMES[dark?"dark":"light"];
@@ -1185,7 +1245,7 @@ export default function Dashboard(){
   }, [sheetData, players]);
 
   const sp=sel?players.find(p=>p.n===sel):null;
-  const tabs=[{id:"squad",l:"Squad Overview",ic:Users},{id:"alerts",l:"Alertas",ic:AlertTriangle},{id:"carga",l:"Carga & ACWR",ic:TrendingUp},{id:"neuro",l:"Neuromuscular",ic:Zap},{id:"fisio",l:"Fisiológico",ic:Heart},{id:"temporal",l:"Temporal",ic:Activity},{id:"fisioterapia",l:"Fisioterapia",ic:Shield},{id:"jogos",l:"Jogos",ic:Trophy},{id:"mapa",l:"Mapa Semanal",ic:Calendar},{id:"player",l:"Individual",ic:Eye},{id:"sessao",l:"Sessão de Treino",ic:Activity},{id:"model",l:"Modelo Preditivo",ic:Brain},{id:"retro",l:"Retrospectiva",ic:Target},{id:"glossario",l:"Glossário",ic:BookOpen}];
+  const tabs=[{id:"squad",l:"Squad Overview",ic:Users},{id:"alerts",l:"Alertas",ic:AlertTriangle},{id:"carga",l:"Carga & ACWR",ic:TrendingUp},{id:"neuro",l:"Neuromuscular",ic:Zap},{id:"fisio",l:"Fisiológico",ic:Heart},{id:"temporal",l:"Temporal",ic:Activity},{id:"jogos",l:"Jogos",ic:Trophy},{id:"mapa",l:"Mapa Semanal",ic:Calendar},{id:"player",l:"Individual",ic:Eye},{id:"sessao",l:"Sessão de Treino",ic:Activity},{id:"model",l:"Modelo Preditivo",ic:Brain},{id:"retro",l:"Retrospectiva",ic:Target},{id:"glossario",l:"Glossário",ic:BookOpen}];
 
   const radarData=sp?[{s:"Sono",v:sp.sq||0},{s:"Rec Geral",v:sp.rg||0},{s:"Rec Pernas",v:sp.rp||0},{s:"Dor (inv)",v:10-(sp.d||0)},{s:"Humor",v:(sp.h||3)*2},{s:"Energia",v:(sp.e||3)*2.5}]:[];
   const wtData=sp?.wt?sp.wt.dt.map((d,i)=>({d:sp._wtLive?d:("Mar/"+d),sono:sp.wt.s[i],rec:sp.wt.r[i],dor:sp.wt.dr[i]})):[];
@@ -1222,7 +1282,7 @@ export default function Dashboard(){
           </div>
         </div>
         <div style={{display:"flex",gap:1,overflowX:"auto",maxWidth:"calc(100vw - 380px)",scrollbarWidth:"none",msOverflowStyle:"none"}}>
-          {tabs.map(t=>{const Ic=t.ic;return <button key={t.id} onClick={()=>setTab(t.id)} style={{display:"flex",alignItems:"center",gap:4,background:tab===t.id?acc:"transparent",border:`1px solid ${tab===t.id?acc:"transparent"}`,color:tab===t.id?t.bgCard:"rgba(255,255,255,.5)",padding:"5px 8px",borderRadius:6,fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .2s",whiteSpace:"nowrap",flexShrink:0}}><Ic size={12}/>{t.l}</button>})}
+          {tabs.map(tb=>{const Ic=tb.ic;const isActive=tab===tb.id;const glow=dark?"rgba(59,130,246,.45)":"rgba(255,255,255,.4)";return <button key={tb.id} onClick={()=>setTab(tb.id)} style={{display:"flex",alignItems:"center",gap:5,background:isActive?(dark?"#3b82f6":acc):"rgba(255,255,255,.04)",border:`1px solid ${isActive?(dark?"#60a5fa":acc):"rgba(255,255,255,.08)"}`,color:isActive?"#fff":"rgba(255,255,255,.62)",padding:"6px 11px",borderRadius:999,fontSize:10,fontWeight:700,letterSpacing:.2,cursor:"pointer",fontFamily:"inherit",transition:"all .2s",whiteSpace:"nowrap",flexShrink:0,boxShadow:isActive?`0 0 0 3px ${glow}, 0 2px 8px ${glow}`:"none"}}><Ic size={12}/>{tb.l}</button>})}
         </div>
         <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:"rgba(255,255,255,.5)",display:"flex",alignItems:"center",gap:10}}>
           {/* Live Data Indicator */}
@@ -1294,22 +1354,27 @@ export default function Dashboard(){
               {l:"Ótimos",desc:"Risco score < 20",v:players.filter(p=>p.risk==="LOW").length,total:players.length,c:"#16A34A",bg:"#F0FDF4",bgDark:"#0f2418",bc:"#BBF7D0",ic:CheckCircle2}
             ];
             return <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,marginBottom:16}}>
-              {kpis.map((k,i)=>{const Ic=k.ic;const pct=k.total?Math.round((k.v/k.total)*100):0;return <div key={i} style={{background:t.bgCard,borderRadius:14,border:`1px solid ${t.border}`,padding:0,boxShadow:`0 1px 4px ${t.shadow}`,overflow:"hidden",transition:"box-shadow .2s"}}>
-                <div style={{borderTop:`3px solid ${k.c}`,padding:"14px 16px 12px"}}>
+              {kpis.map((k,i)=>{const Ic=k.ic;const pct=k.total?Math.round((k.v/k.total)*100):0;
+                const isAlert=k.l==="Críticos"||k.l==="Alto Risco"||k.l==="Bem-estar Baixo";
+                const glow=dark?(isAlert&&k.v>0?`${k.c}55`:"transparent"):"transparent";
+                return <div key={i} style={{background:t.bgCard,borderRadius:14,border:`1px solid ${dark?"rgba(255,255,255,.06)":t.border}`,padding:0,boxShadow:dark?`0 4px 16px rgba(0,0,0,.35), 0 0 0 1px ${glow}`:`0 1px 4px ${t.shadow}`,overflow:"hidden",transition:"box-shadow .2s",position:"relative"}}>
+                {/* Faixa neon no topo */}
+                <div style={{height:3,background:`linear-gradient(90deg, ${k.c} 0%, ${k.c}88 100%)`,boxShadow:dark?`0 0 8px ${k.c}66`:"none"}}/>
+                <div style={{padding:"14px 16px 12px"}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                    <div style={{fontSize:11,color:t.textFaint,fontWeight:600,letterSpacing:.3}}>{k.l}</div>
-                    <div style={{width:32,height:32,borderRadius:10,background:dark?k.bgDark:k.bg,display:"flex",alignItems:"center",justifyContent:"center",border:`1px solid ${k.c}20`}}>
-                      <Ic size={16} color={k.c}/>
+                    <div style={{fontSize:10,color:t.textFaint,fontWeight:700,letterSpacing:.5,textTransform:"uppercase"}}>{k.l}</div>
+                    <div style={{width:30,height:30,borderRadius:9,background:dark?`${k.c}1A`:k.bg,display:"flex",alignItems:"center",justifyContent:"center",border:`1px solid ${k.c}33`}}>
+                      <Ic size={15} color={k.c}/>
                     </div>
                   </div>
-                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:32,fontWeight:800,color:k.c,lineHeight:1}}>{k.v}</div>
-                  <div style={{display:"flex",alignItems:"center",gap:6,marginTop:8}}>
-                    <div style={{flex:1,height:4,background:t.bgMuted2,borderRadius:4,overflow:"hidden"}}>
-                      <div style={{height:"100%",width:`${pct}%`,background:k.c,borderRadius:4,opacity:.7,transition:"width .6s"}}/>
-                    </div>
-                    <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:t.textFaint,fontWeight:600,whiteSpace:"nowrap"}}>{k.v}/{k.total}</span>
+                  <div style={{display:"flex",alignItems:"baseline",gap:6}}>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:34,fontWeight:900,color:k.c,lineHeight:1,letterSpacing:-1,textShadow:dark?`0 0 12px ${k.c}55`:"none"}}>{k.v}</div>
+                    <div style={{fontSize:11,color:t.textFaint,fontWeight:600}}>/ {k.total}</div>
                   </div>
-                  <div style={{fontSize:9,color:t.textFaintest,marginTop:4,fontWeight:500}}>{k.desc}</div>
+                  <div style={{marginTop:10}}>
+                    <ThresholdGauge value={pct} max={100} theme={t} height={5} bands={`linear-gradient(90deg, ${k.c}AA 0%, ${k.c} 100%)`}/>
+                  </div>
+                  <div style={{fontSize:9,color:t.textFaintest,marginTop:6,fontWeight:500,letterSpacing:.2}}>{k.desc}</div>
                 </div>
               </div>})}
             </div>;
@@ -1557,6 +1622,149 @@ export default function Dashboard(){
               })}
             </div>
           </div>
+          {/* ═══ ACWR Individualizado por Métrica — Diretiva Maio/2026 ═══
+                Razão = carga (semana atual) ÷ média (4 semanas anteriores).
+                Calculado para Distância Total, HSR (19.8–24.8 km/h), SPR
+                (>25.2 km/h), Acelerações ≥3 m/s² e Desacelerações ≤-3 m/s².
+                ACWR Global = média aritmética dos 5 ratios individuais.
+                Zona de Perigo (alerta cromático): ACWR ∈ [0.8, 1.5]
+                — limite superior corresponde ao "spike" de Gabbett 2016. */}
+          {(()=>{
+            const gpsAll=sheetData?.gps||{};
+            if(!Object.keys(gpsAll).length) return null;
+
+            const parseDt=(d)=>{
+              if(!d) return 0;
+              const s=String(d).trim();
+              if(/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s).getTime();
+              const p=s.split(/[\/\-\.]/);
+              if(p.length>=3){const[a,b,c]=p.map(Number);if(a>31)return new Date(a,b-1,c).getTime();if(c>31)return new Date(c,b-1,a).getTime();return new Date(c,a-1,b).getTime();}
+              return new Date(s).getTime()||0;
+            };
+            const now=Date.now();
+            const WEEK=7*24*3600*1000;
+            // Para cada atleta, somar carga em 5 janelas de 7 dias.
+            const computeAcwr=(entries,key)=>{
+              if(!entries?.length) return null;
+              const buckets=[0,0,0,0,0]; // 0 = última semana, 1..4 = 4 anteriores
+              const counts=[0,0,0,0,0];
+              for(const e of entries){
+                const ts=parseDt(e.date); if(!ts) continue;
+                const ageWk=Math.floor((now-ts)/WEEK);
+                if(ageWk<0||ageWk>=5) continue;
+                const v=Number(e.gps?.[key]||0);
+                if(!Number.isFinite(v)||v<=0) continue;
+                buckets[ageWk]+=v; counts[ageWk]++;
+              }
+              const acute=buckets[0];
+              const chronicSum=buckets[1]+buckets[2]+buckets[3]+buckets[4];
+              const chronicWeeks=[1,2,3,4].filter(i=>counts[i]>0).length;
+              if(!chronicWeeks||!acute) return null;
+              const chronic=chronicSum/chronicWeeks;
+              return chronic>0?Math.round((acute/chronic)*100)/100:null;
+            };
+
+            const variables=[
+              {key:"dist_total", label:"Distância Total",          unit:"m"},
+              {key:"hsr",        label:"HSR (19.8–24.8 km/h)",     unit:"m"},
+              {key:"hsr_25",     label:"SPR (>25.2 km/h)",         unit:"m"},
+              {key:"acel_3",     label:"Acelerações ≥3 m/s²",      unit:"#"},
+              {key:"decel_3",    label:"Desacelerações ≤-3 m/s²",  unit:"#"}
+            ];
+
+            // Linhas: uma por atleta com 5 ratios + média global.
+            const rows=[];
+            for(const [name,entries] of Object.entries(gpsAll)){
+              const r={name};
+              const ratios=[];
+              for(const v of variables){
+                const ac=computeAcwr(entries,v.key);
+                r[v.key]=ac;
+                if(ac!==null) ratios.push(ac);
+              }
+              r._global=ratios.length?Math.round((ratios.reduce((a,b)=>a+b,0)/ratios.length)*100)/100:null;
+              if(ratios.length>=2) rows.push(r); // exige cobertura mínima
+            }
+            if(!rows.length) return null;
+
+            rows.sort((a,b)=>(b._global||0)-(a._global||0));
+
+            // Heurística de cor: zona de perigo (Gabbett 2016) = 0.8 ≤ ACWR ≤ 1.5
+            // mapeada para gradiente verde→amarelo→laranja→vermelho.
+            const zoneColor=(v)=>{
+              if(v===null||v===undefined) return t.textFaint;
+              if(v>=1.5) return "#DC2626";          // Sweet-spot rompido (alto risco)
+              if(v>=1.3) return "#EA580C";          // Topo da zona de perigo
+              if(v>=0.8) return "#FACC15";          // Dentro da janela de risco
+              return "#22D3EE";                      // Subcarga
+            };
+            const zoneLabel=(v)=>{
+              if(v===null||v===undefined) return "—";
+              if(v>=1.5) return "ACIMA";
+              if(v>=0.8) return "ZONA DE PERIGO";
+              return "SUB";
+            };
+            const teamGlobal=(()=>{const arr=rows.map(r=>r._global).filter(v=>v!==null);return arr.length?Math.round((arr.reduce((a,b)=>a+b,0)/arr.length)*100)/100:null;})();
+            const inZone=rows.filter(r=>r._global!==null&&r._global>=0.8&&r._global<=1.5).length;
+
+            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+              <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,flexWrap:"wrap",marginBottom:10}}>
+                <div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:15,color:pri}}>ACWR Individualizado por Variável</div>
+                  <div style={{fontSize:10,color:t.textFaint,marginTop:2,maxWidth:680,lineHeight:1.5}}>
+                    Razão = carga (semana atual) ÷ média (4 semanas anteriores) — fonte: aba GPS individual (gid=1595283302).
+                    Aplicada para 5 variáveis individualmente; o <strong>ACWR Global</strong> é a média aritmética entre elas.
+                    Faixa <span style={{color:"#FACC15",fontWeight:700}}>0.8 ≤ ACWR ≤ 1.5</span> = <strong>Zona de Perigo</strong> (Gabbett 2016).
+                  </div>
+                </div>
+                <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                  <div style={{padding:"6px 12px",borderRadius:8,background:zoneColor(teamGlobal)+"20",border:`1px solid ${zoneColor(teamGlobal)}55`}}>
+                    <div style={{fontSize:8,fontWeight:700,color:t.textFaint,textTransform:"uppercase",letterSpacing:.5}}>ACWR Global · Equipe</div>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:18,fontWeight:900,color:zoneColor(teamGlobal)}}>{teamGlobal??"—"}</div>
+                  </div>
+                  <div style={{padding:"6px 12px",borderRadius:8,background:"#FACC1520",border:`1px solid #FACC1555`}}>
+                    <div style={{fontSize:8,fontWeight:700,color:t.textFaint,textTransform:"uppercase",letterSpacing:.5}}>Em zona perigo</div>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:18,fontWeight:900,color:"#FACC15"}}>{inZone}<span style={{fontSize:11,color:t.textFaint,fontWeight:600}}> / {rows.length}</span></div>
+                  </div>
+                </div>
+              </div>
+              <div style={{overflowX:"auto"}}>
+                <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,minWidth:760}}>
+                  <thead>
+                    <tr style={{background:t.bgMuted}}>
+                      <th style={{padding:"7px 10px",textAlign:"left",fontSize:9,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5,fontWeight:700}}>Atleta</th>
+                      {variables.map(v=><th key={v.key} style={{padding:"7px 6px",textAlign:"center",fontSize:9,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5,fontWeight:700}}>{v.label}</th>)}
+                      <th style={{padding:"7px 8px",textAlign:"center",fontSize:9,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5,fontWeight:700}}>Global</th>
+                      <th style={{padding:"7px 8px",textAlign:"center",fontSize:9,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5,fontWeight:700}}>Zona</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.slice(0,18).map((r,i)=>{
+                      const c=zoneColor(r._global);
+                      return <tr key={i} style={{borderBottom:`1px solid ${t.borderLight}`,background:i%2===0?"transparent":t.bgMuted+"33",cursor:"pointer"}} onClick={()=>{setSel(r.name);setTab("player")}}>
+                        <td style={{padding:"7px 10px",fontWeight:700,color:pri}}>
+                          <div style={{display:"flex",alignItems:"center",gap:6}}>
+                            <PlayerPhoto theme={t} name={r.name} sz={22}/>
+                            {r.name}
+                          </div>
+                        </td>
+                        {variables.map(v=>{
+                          const val=r[v.key];
+                          const c2=zoneColor(val);
+                          return <td key={v.key} style={{padding:"7px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:700,color:c2}}>{val??"—"}</td>;
+                        })}
+                        <td style={{padding:"7px 8px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:900,color:c,fontSize:13}}>{r._global??"—"}</td>
+                        <td style={{padding:"7px 8px",textAlign:"center"}}>
+                          <span style={{padding:"2px 8px",borderRadius:5,fontSize:9,fontWeight:700,background:c+"22",color:c,border:`1px solid ${c}55`}}>{zoneLabel(r._global)}</span>
+                        </td>
+                      </tr>;
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>;
+          })()}
+
           {/* Carga Acumulada semanal */}
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:4}}>Carga Semanal sRPE (Top 10 atletas)</div>
@@ -1803,144 +2011,9 @@ export default function Dashboard(){
           </div>
         </div>}
 
-        {/* ═══════════ PAINEL FISIOTERAPIA ═══════════ */}
-        {tab==="fisioterapia"&&<div>
-          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
-              <div>
-                <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri}}>Fisioterapia — Atendimentos</div>
-                <div style={{fontSize:12,color:t.textFaint}}>{todayStr} · Registro de procedimentos e acompanhamento</div>
-              </div>
-              {isLive&&<span style={{padding:"4px 10px",borderRadius:6,fontSize:10,fontWeight:700,background:"#F0FDF4",color:"#16A34A",border:"1px solid #BBF7D0"}}>LIVE</span>}
-            </div>
-            {(()=>{
-              const fisioData = sheetData?.fisioterapia || {};
-              const allEntries = [];
-              for(const [name, entries] of Object.entries(fisioData)){
-                for(const e of entries) allEntries.push({...e, name});
-              }
-              // Agrupar por data (mais recentes primeiro)
-              const byDate = {};
-              for(const e of allEntries){
-                const d = e.date || "Sem data";
-                if(!byDate[d]) byDate[d]=[];
-                byDate[d].push(e);
-              }
-              const sortedDates = Object.keys(byDate).sort((a,b)=>{
-                const [da,ma,ya] = a.split("/"); const [db,mb,yb] = b.split("/");
-                const dateA = new Date(ya,ma-1,da); const dateB = new Date(yb,mb-1,db);
-                return dateB - dateA;
-              });
-
-              // Estatísticas gerais
-              const atletasAtendidos = new Set(allEntries.map(e=>e.name));
-              const totalAtend = allEntries.length;
-              const last7 = allEntries.filter(e=>{
-                const d=new Date(e.date?.split("/").reverse().join("-")||"");
-                return (Date.now()-d.getTime())<7*86400000;
-              });
-              const atletasRecentes = new Set(last7.map(e=>e.name));
-
-              // Contagem por atleta (top frequentadores)
-              const countByAthlete = {};
-              for(const e of allEntries){
-                countByAthlete[e.name]=(countByAthlete[e.name]||0)+1;
-              }
-              const topAtletas = Object.entries(countByAthlete).sort((a,b)=>b[1]-a[1]).slice(0,10);
-
-              // Procedimentos mais comuns
-              const procCount = {};
-              for(const e of allEntries){
-                const proc = (e.procedimento||"").toLowerCase().trim();
-                if(proc) procCount[proc]=(procCount[proc]||0)+1;
-              }
-              const topProc = Object.entries(procCount).sort((a,b)=>b[1]-a[1]).slice(0,8);
-
-              if(totalAtend===0) return <div style={{textAlign:"center",padding:40,color:t.textFaint,fontSize:13}}>Nenhum dado de fisioterapia disponível. Verifique a conexão com o Google Sheets.</div>;
-
-              return <>
-                {/* KPIs */}
-                <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:16}}>
-                  {[{l:"Total Atendimentos",v:totalAtend,c:"#7c3aed"},
-                    {l:"Atletas Atendidos",v:atletasAtendidos.size,c:"#2563eb"},
-                    {l:"Atend. Últimos 7d",v:last7.length,c:"#EA580C"},
-                    {l:"Atletas Recentes (7d)",v:atletasRecentes.size,c:"#16A34A"}
-                  ].map((m,i)=><div key={i} style={{background:t.bgCard,borderRadius:10,border:`1px solid ${t.border}`,padding:14,textAlign:"center"}}>
-                    <div style={{fontSize:10,color:t.textFaint,fontWeight:600,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{m.l}</div>
-                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:24,fontWeight:700,color:m.c}}>{m.v}</div>
-                  </div>)}
-                </div>
-
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
-                  {/* Top atletas — mais atendimentos */}
-                  <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-                    <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Atletas — Frequência de Atendimentos</div>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <BarChart data={topAtletas.map(([n,c])=>({n:n.split(" ")[0],count:c}))} layout="vertical" margin={{left:80}}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
-                        <XAxis type="number" tick={{fontSize:10,fill:t.textFaint}}/>
-                        <YAxis type="category" dataKey="n" tick={{fontSize:10,fill:t.textMuted}} width={75}/>
-                        <Tooltip content={<TT theme={t}/>}/>
-                        <Bar dataKey="count" name="Atendimentos" radius={[0,6,6,0]}>
-                          {topAtletas.map(([n,c],i)=><Cell key={i} fill={c>15?"#DC2626":c>8?"#EA580C":"#2563eb"}/>)}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  {/* Procedimentos mais comuns */}
-                  <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-                    <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Procedimentos Mais Frequentes</div>
-                    <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                      {topProc.map(([proc,count],i)=>{
-                        const maxC = topProc[0]?.[1]||1;
-                        return <div key={i}>
-                          <div style={{display:"flex",justifyContent:"space-between",marginBottom:2}}>
-                            <span style={{fontSize:11,color:t.textMuted,fontWeight:500,textTransform:"capitalize"}}>{proc}</span>
-                            <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:"#7c3aed"}}>{count}</span>
-                          </div>
-                          <div style={{height:4,background:t.bgMuted2,borderRadius:4}}>
-                            <div style={{height:"100%",width:`${(count/maxC)*100}%`,background:"#7c3aed",borderRadius:4,transition:"width .6s"}}/>
-                          </div>
-                        </div>;
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Timeline de atendimentos (últimos 5 dias) */}
-                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:8}}>Histórico de Atendimentos</div>
-                {sortedDates.slice(0,7).map((date,di)=>{
-                  const entries = byDate[date];
-                  return <div key={di} style={{marginBottom:12}}>
-                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:"#7c3aed",marginBottom:6,padding:"4px 10px",background:"#F5F3FF",borderRadius:6,display:"inline-block"}}>{date} · {entries.length} atendimento{entries.length>1?"s":""}</div>
-                    <div style={{overflowX:"auto"}}>
-                    <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,minWidth:700}}>
-                      <thead>
-                        <tr style={{borderBottom:`1px solid ${t.border}`}}>
-                          {["Atleta","Período","Chegada","Saída","Procedimento","Responsável"].map((h,i)=>
-                            <th key={i} style={{padding:"6px 8px",textAlign:"left",fontSize:9,color:t.textFaint,fontWeight:700,textTransform:"uppercase"}}>{h}</th>
-                          )}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {entries.map((e,ei)=><tr key={ei} style={{borderBottom:"1px solid #f1f5f9"}}>
-                          <td style={{padding:"6px 8px",fontWeight:600,color:t.text}}>{e.name}</td>
-                          <td style={{padding:"6px 8px",color:t.textMuted}}>{e.periodo}</td>
-                          <td style={{padding:"6px 8px",fontFamily:"'JetBrains Mono'",color:t.textMuted}}>{e.chegada}</td>
-                          <td style={{padding:"6px 8px",fontFamily:"'JetBrains Mono'",color:t.textMuted}}>{e.saida}</td>
-                          <td style={{padding:"6px 8px",color:t.text}}>{e.procedimento}</td>
-                          <td style={{padding:"6px 8px",color:t.textMuted}}>{e.responsavel}</td>
-                        </tr>)}
-                      </tbody>
-                    </table>
-                    </div>
-                  </div>;
-                })}
-              </>;
-            })()}
-          </div>
-        </div>}
+        {/* Painel "Fisioterapia" removido — atendimentos clínicos saem da visão tática.
+            A lógica de auto-exclusão por reabilitação (_fisioSessao) permanece ativa
+            no Radar Individual, lendo sheetData.fisioterapia silenciosamente. */}
 
         {tab==="jogos"&&<div>
           {/* Jogos Header */}
@@ -1956,12 +2029,83 @@ export default function Dashboard(){
                   return ["Todos","Paulistão","Série B"].map((f,i)=>{
                     const filterVal = f==="Todos"?null:f==="Paulistão"?"Paulistão":"Série B";
                     const count = filterVal ? jogosCalendario.filter(g=>(g.comp||"").toLowerCase().includes(filterVal.toLowerCase())).length : jogosCalendario.length;
-                    return <span key={i} style={{padding:"4px 12px",borderRadius:6,fontSize:10,fontWeight:600,background:t.bgMuted,color:t.textMuted,border:`1px solid ${t.border}`,cursor:"default"}}>{f} ({count})</span>;
+                    return <span key={i} style={{padding:"5px 14px",borderRadius:999,fontSize:10,fontWeight:700,background:dark?"rgba(255,255,255,.04)":t.bgMuted,color:t.textMuted,border:`1px solid ${dark?"rgba(255,255,255,.08)":t.border}`,cursor:"default"}}>{f} ({count})</span>;
                   });
                 })()}
               </div>
             </div>
           </div>
+
+          {/* ═══ HERO CARD — Próximo Jogo (estilo Season Calendar) ═══ */}
+          {(()=>{
+            const games=sheetData?.calendario||[];
+            if(!games.length) return null;
+            const parseGD=s=>{if(!s)return null;const v=String(s).trim();if(/^\d{4}-\d{2}-\d{2}/.test(v))return new Date(v);const p=v.split(/[\/\-\.]/);if(p.length>=3){const[a,b,c]=p.map(Number);if(c>100)return new Date(c,b-1,a);if(a>100)return new Date(a,b-1,c);return new Date(2026,b-1,a);}return null;};
+            const today=new Date(); today.setHours(0,0,0,0);
+            const upcoming=games.map(g=>({g,d:parseGD(g.data)})).filter(x=>x.d&&x.d>=today).sort((a,b)=>a.d-b.d);
+            if(!upcoming.length) return null;
+            const next=upcoming[0];
+            const g=next.g; const d=next.d;
+            const ms=d.getTime()-Date.now();
+            const days=Math.max(0,Math.floor(ms/86400000));
+            const hours=Math.max(0,Math.floor((ms%86400000)/3600000));
+            const mins=Math.max(0,Math.floor((ms%3600000)/60000));
+            const isHome=(g.local||"").toUpperCase()==="C";
+            const dateStr=d.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"short"});
+            const timeStr=d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})||"—";
+
+            // Botafogo SP (assets/public placeholder do escudo)
+            const botaShield="/icon.png";
+            const advShield=g.escudo&&(g.escudo.startsWith("http")||g.escudo.startsWith("/"))?g.escudo:null;
+
+            return <div style={{borderRadius:16,padding:0,marginBottom:18,overflow:"hidden",position:"relative",background:dark?"linear-gradient(135deg, rgba(15,19,32,.92) 0%, rgba(7,10,20,.96) 60%, rgba(15,19,32,.92) 100%)":"linear-gradient(135deg, #f8fafb 0%, #fff 100%)",border:`1px solid ${t.border}`,boxShadow:dark?"0 8px 32px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05)":"0 4px 20px rgba(0,0,0,.08)"}}>
+              {/* Faixa decorativa neon */}
+              <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg, transparent 0%, #3b82f6 30%, #22c55e 70%, transparent 100%)",opacity:.7}}/>
+              <div style={{display:"grid",gridTemplateColumns:"1fr auto 1fr",gap:24,alignItems:"center",padding:"32px 40px"}}>
+                {/* Time da casa (Botafogo SP) */}
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
+                  <div style={{width:84,height:84,borderRadius:"50%",background:dark?"rgba(255,255,255,.05)":"#fff",border:`2px solid ${dark?"rgba(255,255,255,.1)":t.border}`,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",boxShadow:dark?"0 4px 16px rgba(0,0,0,.4)":"0 2px 8px rgba(0,0,0,.1)"}}>
+                    <img src={botaShield} alt="Botafogo SP" style={{width:64,height:64,objectFit:"contain"}}/>
+                  </div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:13,color:pri,textAlign:"center",letterSpacing:.3}}>{isHome?"BOTAFOGO SP":g.adversario||"—"}</div>
+                  <span style={{padding:"3px 10px",borderRadius:999,fontSize:9,fontWeight:700,background:isHome?"rgba(34,197,94,.15)":"rgba(239,68,68,.15)",color:isHome?"#22c55e":"#ef4444",border:`1px solid ${isHome?"#22c55e":"#ef4444"}66`}}>{isHome?"CASA":"FORA"}</span>
+                </div>
+
+                {/* Coluna central: data + countdown + horário */}
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10,minWidth:280}}>
+                  <span style={{padding:"4px 14px",borderRadius:999,fontSize:10,fontWeight:800,background:"#3b82f6",color:"#fff",letterSpacing:.5,textTransform:"uppercase",boxShadow:"0 0 0 3px rgba(59,130,246,.25)"}}>Próximo Jogo · {g.comp||"—"}</span>
+                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:t.textFaint,fontWeight:600,letterSpacing:.5}}>{dateStr.toUpperCase()}</div>
+                  {/* Countdown estilo Season Calendar */}
+                  <div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",background:dark?"rgba(255,255,255,.03)":t.bgMuted,borderRadius:12,border:`1px solid ${dark?"rgba(255,255,255,.06)":t.borderLight}`}}>
+                    {[{v:days,l:"Dias"},{v:hours,l:"Horas"},{v:mins,l:"Min"}].map((u,i)=><React.Fragment key={i}>
+                      {i>0&&<span style={{fontSize:18,color:t.textFaint,fontWeight:300}}>:</span>}
+                      <div style={{textAlign:"center"}}>
+                        <div style={{fontFamily:"'JetBrains Mono'",fontSize:24,fontWeight:900,color:pri,lineHeight:1}}>{String(u.v).padStart(2,"0")}</div>
+                        <div style={{fontSize:8,color:t.textFaint,fontWeight:700,letterSpacing:.5,textTransform:"uppercase",marginTop:2}}>{u.l}</div>
+                      </div>
+                    </React.Fragment>)}
+                  </div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:900,fontSize:32,color:pri,letterSpacing:-.5,marginTop:4}}>{timeStr}</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>{g.rodada||""}</div>
+                </div>
+
+                {/* Adversário ou Botafogo conforme local */}
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
+                  <div style={{width:84,height:84,borderRadius:"50%",background:dark?"rgba(255,255,255,.05)":"#fff",border:`2px solid ${dark?"rgba(255,255,255,.1)":t.border}`,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",boxShadow:dark?"0 4px 16px rgba(0,0,0,.4)":"0 2px 8px rgba(0,0,0,.1)"}}>
+                    {advShield?<img src={advShield} alt={g.adversario} style={{width:64,height:64,objectFit:"contain"}} onError={e=>{e.target.style.display="none"}}/>
+                    :<div style={{fontSize:28,fontWeight:900,color:t.textFaint}}>{(g.adversario||"?").charAt(0).toUpperCase()}</div>}
+                  </div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:13,color:pri,textAlign:"center",letterSpacing:.3}}>{isHome?(g.adversario||"—").toUpperCase():"BOTAFOGO SP"}</div>
+                  <span style={{padding:"3px 10px",borderRadius:999,fontSize:9,fontWeight:700,background:isHome?"rgba(239,68,68,.15)":"rgba(34,197,94,.15)",color:isHome?"#ef4444":"#22c55e",border:`1px solid ${isHome?"#ef4444":"#22c55e"}66`}}>{isHome?"FORA":"CASA"}</span>
+                </div>
+              </div>
+              {/* Rodapé com infos */}
+              {upcoming.length>1&&<div style={{padding:"10px 28px",borderTop:`1px solid ${t.borderLight}`,background:dark?"rgba(0,0,0,.18)":t.bgMuted,fontSize:10,color:t.textFaint,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <span><strong style={{color:pri}}>{upcoming.length-1}</strong> jogo{upcoming.length>2?"s":""} agendado{upcoming.length>2?"s":""} adiante</span>
+                <span style={{fontFamily:"'JetBrains Mono'"}}>Próximo após: {upcoming[1].g.adversario} · {upcoming[1].d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})}</span>
+              </div>}
+            </div>;
+          })()}
 
           {/* Insights Panel — Performance vs Resultado */}
           {(()=>{
@@ -2066,9 +2210,10 @@ export default function Dashboard(){
                 const gameTimeCt=allSplits.filter(sp=>isGameTimeSplit2(sp)).length;
                 const hasPeriods=hasTimePeriods2(allSplits);
                 const hasSession=hasSessionSplit2(allSplits);
-                // Filtro: splits de período real OU "Session" com dist >= 4000m
-                const played=(hasPeriods&&gameTimeCt>=2)||(hasSession&&stIsMatch&&dist>=4000)||(hasPeriods&&gameTimeCt>=1&&dist>=2000);
-                if(!played)continue;
+                // Suporta dois formatos: (A) legado com splits / (B) gps_individual sem splits.
+                const playedLegacy=(hasPeriods&&gameTimeCt>=2)||(hasSession&&stIsMatch&&dist>=4000)||(hasPeriods&&gameTimeCt>=1&&dist>=2000);
+                const playedIndividual=!allSplits.length&&stIsMatch&&dist>=2000;
+                if(!playedLegacy&&!playedIndividual) continue;
                 if(dist>0)distArr.push(dist);
                 if(gps?.hsr>0)hsrArr.push(gps.hsr);
                 if(gps?.sprints>0)sprintArr.push(gps.sprints);
@@ -2454,32 +2599,38 @@ export default function Dashboard(){
               return splits.filter(sp=>isGameTimeSplit(sp)).length;
             };
 
-            // Match adversário do calendário com session title do GPS
-            // Ex: adversário="Fortaleza" → session title "J.BOTxFOR" contém "FOR"
+            // Match adversário do calendário com session title do GPS.
+            // Cobre dois formatos: legado "J.BOTxFOR" e o novo gps_individual
+            // ("Jogo Fortaleza Casa (V)"), além de variações com Sub-20 etc.
             const matchesOpponent=(sessionTitle,adversario)=>{
               if(!sessionTitle||!adversario)return false;
-              const st=sessionTitle.toUpperCase().replace(/\s+/g,"");
-              const adv=adversario.toUpperCase().replace(/\s+/g,"");
-              // Tentar match direto (nome sem espaços, 4+ chars)
+              const stRaw=sessionTitle.toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+              const advRaw=adversario.toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+              const st=stRaw.replace(/\s+/g,""); const adv=advRaw.replace(/\s+/g,"");
+              // Match direto (>=4 chars contidos)
               if(adv.length>=4&&st.includes(adv.substring(0,4)))return true;
-              // Extrair siglas do session title: "J.BOTxFOR" → ["BOT","FOR"]
+              // Formato legado "J.BOTxFOR" → siglas
               const m=st.match(/J[.\s]*([A-Z]{2,})X([A-Z]{2,})/i);
               if(m){
                 const t1=m[1],t2=m[2];
                 if(adv.startsWith(t1)||adv.startsWith(t2))return true;
                 if(t1.length>=3&&adv.substring(0,3)===t1.substring(0,3))return true;
                 if(t2.length>=3&&adv.substring(0,3)===t2.substring(0,3))return true;
-                // Tentar match com cada palavra do adversário (ex: "Red Bull Bragantino" → tentar "RED","BULL","BRAGANTINO")
-                const advWords=adversario.toUpperCase().split(/\s+/).filter(w=>w.length>=3);
+                const advWords=advRaw.split(/\s+/).filter(w=>w.length>=3);
                 for(const w of advWords){
                   if(t1.length>=3&&w.substring(0,3)===t1.substring(0,3))return true;
                   if(t2.length>=3&&w.substring(0,3)===t2.substring(0,3))return true;
                   if(w.length>=4&&(t1.includes(w.substring(0,4))||t2.includes(w.substring(0,4))))return true;
                 }
               }
-              // Fallback: tentar cada palavra do adversário (3+ chars) contra o session title
-              const words=adversario.toUpperCase().split(/\s+/).filter(w=>w.length>=3);
-              for(const w of words){if(w.length>=4&&st.includes(w.substring(0,4)))return true;}
+              // Novo formato: "JOGO FORTALEZA CASA (V)" — testa cada palavra
+              // do adversário contra o session title (também sem acentos).
+              const stWords=stRaw.split(/\s+/);
+              const advWords=advRaw.split(/\s+/).filter(w=>w.length>=3);
+              for(const w of advWords){
+                if(w.length>=4&&stRaw.includes(w))return true;
+                if(stWords.some(sw=>sw.length>=4&&sw.startsWith(w.substring(0,4))))return true;
+              }
               return false;
             };
 
@@ -2535,38 +2686,43 @@ export default function Dashboard(){
                 results.push({name,pos:pInfo?.pos||diario.pos||"",gps,diario,quest,cmj:cmjBest,pInfo,sessionTitle,tags,allSplits,splitsDetail});
               }
 
-              // Filtrar: só quem jogou de fato
-              // Critério principal: ter splits de tempo real de jogo (ex: "30.40min", "0.10min 2T", "40mais")
-              // Splits de aquecimento reserva (.0-Aquec R, G-Aquec) NÃO contam
+              // Critério "jogou de fato" — combina dois formatos:
+              //   (A) gps legado: requer splits de tempo de jogo (30.40min, 2T)
+              //   (B) gps_individual (atual): 1 linha agregada por sessão; usa
+              //       sessionTitle "Jogo … (resultado)" + distância mínima.
               const filtered=results.filter(a=>{
                 const dist=a.gps?.dist_total||0;
+                const dur=a.gps?.duracao||a.duracao||0;
                 const stIsMatch=isMatchTitle(a.sessionTitle);
-                const gameTimeSplits=countGameTimeSplits(a.allSplits);
-                const nonGameSplits=a.allSplits.filter(sp=>isNonGameSplit(sp)).length;
-                const hasTimePeriodSplits=a.allSplits.some(sp=>{const s=(sp||"").toLowerCase();return/\d+[.\-]\d+\s*min/.test(s)||/\d+\s*mais/.test(s)||/\b[12]t\b/.test(s);});
-                const hasSessionSplit=a.allSplits.some(sp=>(sp||"").toLowerCase().trim()==="session"||sp.toLowerCase().trim()==="sessão");
+                const splits=Array.isArray(a.allSplits)?a.allSplits:[];
+                const gameTimeSplits=splits.length?countGameTimeSplits(splits):0;
+                const hasTimePeriodSplits=splits.some(sp=>{const s=(sp||"").toLowerCase();return/\d+[.\-]\d+\s*min/.test(s)||/\d+\s*mais/.test(s)||/\b[12]t\b/.test(s);});
+                const hasSessionSplit=splits.some(sp=>{const s=(sp||"").toLowerCase().trim();return s==="session"||s==="sessão"||s==="sessao";});
 
-                // Critério 1: tem splits com períodos de tempo (30.40min, 0.10min 2T, 40mais) — formato detalhado
+                // (A) Formato legado com splits detalhados.
                 if(hasTimePeriodSplits&&gameTimeSplits>=2)return true;
-
-                // Critério 2: formato "Session" (sem breakdown por período)
-                // Neste caso, usar distância como filtro: quem jogou tem dist >> quem só aqueceu
-                // Outfield jogando ≥ ~4000m, GK ≥ ~3500m, reserva aquecimento < 2500m
                 if(hasSessionSplit&&stIsMatch&&dist>=4000)return true;
+                if(hasTimePeriodSplits&&gameTimeSplits>=1&&dist>=2000)return true;
 
-                // Critério 3: diário marca que jogou + distância mínima
+                // (B) gps_individual: sem splits — usa sessionTitle + dist.
+                if(!splits.length){
+                  // Title contém "Jogo" e distância >= 4000m → titular.
+                  if(stIsMatch&&dist>=4000)return true;
+                  // Suplente que entrou: dist >= 2000m com title de jogo.
+                  if(stIsMatch&&dist>=2000)return true;
+                  // Ainda sem split nem title: confiar em duração>30min e dist>3500m.
+                  if(!stIsMatch&&dur>=30&&dist>=3500)return true;
+                }
+
+                // (C) Fallback diário marca "Sim" para Partida.
                 const partida=(a.diario?.partida||"").toLowerCase();
                 const playedDiario=partida.includes("sim")||partida==="1"||partida==="s"||partida==="x";
                 if(playedDiario&&dist>2000)return true;
 
-                // Critério 4: substituto que entrou no final (tem pelo menos 1 split de período + dist razoável)
-                if(hasTimePeriodSplits&&gameTimeSplits>=1&&dist>=2000)return true;
-
-                // Sem critérios atendidos → não jogou
                 return false;
               });
 
-              filtered.sort((a,b)=>{const posOrder={GOL:0,ZAG:1,LAT:2,VOL:3,MEI:4,EXT:5,ATA:6};return(posOrder[a.pos]??9)-(posOrder[b.pos]??9);});
+              filtered.sort((a,b)=>(POS_GROUP_ORDER[posGroup(a.pos)]??9)-(POS_GROUP_ORDER[posGroup(b.pos)]??9));
               return filtered;
             };
 
@@ -3664,7 +3820,7 @@ export default function Dashboard(){
                     <Trophy size={14} color="#CA8A04"/>
                     Média Móvel — Top {top5.length} Melhores Jogos
                   </div>
-                  <div style={{fontSize:10,color:t.textFaint}}>Baseline de pico individual · {gameSessions.length} jogos com GPS · Último: {lastGame?.fmtDate||"—"}</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>Baseline de pico individual (Gref) · {gameSessions.length} jogos com GPS · Último: {lastGame?.fmtDate||"—"}</div>
                 </div>
                 <div style={{textAlign:"center",padding:"4px 14px",background:pctColor(overallPct)+"15",borderRadius:8,border:`1px solid ${pctColor(overallPct)}33`}}>
                   <div style={{fontFamily:"'JetBrains Mono'",fontSize:18,fontWeight:900,color:pctColor(overallPct)}}>{overallPct}%</div>
@@ -3739,8 +3895,8 @@ export default function Dashboard(){
             const sessDate=liveAth?._sessionDate||lastGpsEntry?.date||null;
             const sessDateFmt=sessDate?(()=>{try{const d=new Date(sessDate);return isNaN(d)?sessDate:d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"})}catch(e){return sessDate}})():null;
             const sessTitle=liveAth?._sessionTitle||lastGpsEntry?.sessionTitle||"";
-            // Mapeamento de posição para grupo do relatório
-            const posGroup=(pos)=>{const m={GOL:"Goleiro",ZAG:"Zagueiro",VOL:"Volante",MEI:"Meia",LAT:"Lateral",LE:"Lateral",LD:"Lateral",EXT:"Extremo",ATA:"Atacante"};return m[pos]||pos;};
+            // posGroup é a função top-level (definida no topo do arquivo).
+            // Meio-Campo agrega VOL, MEI, MD, W-MD, MC, MO, ME e variações.
             const myGroup=posGroup(sp.pos);
             // Todos os atletas da posição na sessão (para filtro UI)
             const allSessAtletas=LIVE_SESSION.atletas;
@@ -3790,14 +3946,22 @@ export default function Dashboard(){
             const pct=(v,avg)=>avg>0?Math.round((v/avg)*100):0;
             const athleteAcel=lastGps[acelKey]||lastGps.acel||0;
             const athleteDecel=lastGps[decelKey]||lastGps.decel||0;
+            // Métricas de Sprint (>25.2 km/h) — pedido da diretoria técnica.
+            // hsr_25 = distância percorrida >25 km/h (m); sprints_25 = nº de
+            // esforços nessa zona. Aproximação prática para o limiar 25.2 km/h
+            // dado que a planilha disponibiliza a coluna "> 25 km/h".
+            const avgSprDist=posAvg("hsr_25");
+            const avgSprEffs=posAvg("sprints_25");
             const gpsRadarData=[
-              {s:"Distância",v:pct(lastGps.dist_total,avgDist),raw:`${(lastGps.dist_total||0).toFixed(0)}m`,avg:`${Math.round(avgDist)}m`},
-              {s:"Dist >20km/h",v:pct(lastGps.hsr,avgHsr),raw:`${(lastGps.hsr||0).toFixed(0)}m`,avg:`${Math.round(avgHsr)}m`},
-              {s:"Sprints",v:pct(lastGps.sprints,avgSprints),raw:`${lastGps.sprints||0}`,avg:`${Math.round(avgSprints)}`},
+              {s:"Distância",v:pct(lastGps.dist_total,avgDist),raw:`${(lastGps.dist_total||0).toFixed(0)} m`,avg:`${Math.round(avgDist)} m`},
+              {s:"HSR (19.8–24.8 km/h)",v:pct(lastGps.hsr,avgHsr),raw:`${(lastGps.hsr||0).toFixed(0)} m`,avg:`${Math.round(avgHsr)} m`},
+              {s:"Sprints >19.8 km/h",v:pct(lastGps.sprints,avgSprints),raw:`${lastGps.sprints||0}`,avg:`${Math.round(avgSprints)}`},
+              {s:"Dist. SPR (>25.2 km/h)",v:pct(lastGps.hsr_25,avgSprDist),raw:`${(lastGps.hsr_25||0).toFixed(0)} m`,avg:`${Math.round(avgSprDist)} m`},
+              {s:"Esforços SPR (>25.2 km/h)",v:pct(lastGps.sprints_25,avgSprEffs),raw:`${lastGps.sprints_25||0}`,avg:`${Math.round(avgSprEffs)}`},
               {s:acelLabel,v:pct(athleteAcel,avgAcel),raw:`${athleteAcel}`,avg:`${Math.round(avgAcel)}`},
               {s:decelLabel,v:pct(athleteDecel,avgDecel),raw:`${athleteDecel}`,avg:`${Math.round(avgDecel)}`},
               {s:"Player Load",v:pct(lastGps.player_load,avgPlayerLoad),raw:`${(lastGps.player_load||0).toFixed(0)}`,avg:`${Math.round(avgPlayerLoad)}`},
-              {s:"Pico Vel.",v:pct(lastGps.pico_vel,avgPicoVel),raw:`${(lastGps.pico_vel||0).toFixed(1)} km/h`,avg:`${avgPicoVel.toFixed(1)}`},
+              {s:"Pico Vel.",v:pct(lastGps.pico_vel,avgPicoVel),raw:`${(lastGps.pico_vel||0).toFixed(1)} km/h`,avg:`${avgPicoVel.toFixed(1)} km/h`},
             ];
             const maxPct=Math.max(...gpsRadarData.map(d=>d.v),100);
             const radarDomain=Math.ceil(maxPct/25)*25;
@@ -3876,6 +4040,99 @@ export default function Dashboard(){
                     </div>;
                   })}
                 </div>
+              </div>
+            </div>;
+          })()}
+
+          {/* ═══ TREINO vs JOGO — Comparação Relacional contra Gref ═══
+                Gref = média dos 5 melhores registros em partidas oficiais (cima).
+                Para cada métrica de carga externa, mostra qual percentual da
+                exigência de jogo a última sessão de treino representou. Útil
+                para periodização tática (ex: MD-3 deve ficar em ~75–90% Gref). */}
+          {(()=>{
+            const liveAth=LIVE_SESSION.atletas[sp.n];
+            const gpsRaw=sheetData?.gps?.[sp.n]||[];
+            if(gpsRaw.length<3) return null;
+            const calendar=sheetData?.calendario||[];
+            const parseDt=s=>{if(!s)return null;const pts=String(s).trim().split(/[\/\-\.]/);if(pts.length>=3){const[a,b,c]=pts.map(Number);if(a>31)return new Date(a,b-1,c);if(c>31)return new Date(c,b-1,a);return new Date(c<100?c+2000:c,b-1,a);}return new Date(s)||null;};
+            const isMatchST=st=>{const s=(st||"").toLowerCase().trim();return s.startsWith("j.")||s.startsWith("j ")||s.includes("jogo")||s.includes("match")||s.includes("partida");};
+            const matchDateSet=new Set();
+            for(const g of calendar){const d=parseDt(g.data);if(d&&!isNaN(d))matchDateSet.add(d.toISOString().slice(0,10));}
+            const games=gpsRaw.filter(e=>{const dt=parseDt(e.date);const k=dt&&!isNaN(dt)?dt.toISOString().slice(0,10):"";return (isMatchST(e.sessionTitle)||matchDateSet.has(k))&&(e.gps?.dist_total||0)>2000;});
+            if(games.length<3) return null;
+            const trainings=gpsRaw.filter(e=>{const dt=parseDt(e.date);const k=dt&&!isNaN(dt)?dt.toISOString().slice(0,10):"";return !(isMatchST(e.sessionTitle)||matchDateSet.has(k));}).sort((a,b)=>{const dA=parseDt(a.date),dB=parseDt(b.date);return (dB?.getTime()||0)-(dA?.getTime()||0);});
+
+            // Gref: média dos 5 melhores (composto)
+            const scored=games.map(e=>({...e,_score:(e.gps.dist_total||0)+(e.gps.hsr||0)*3+(e.gps.sprints||0)*50+(e.gps.player_load||0)})).sort((a,b)=>b._score-a._score);
+            const top5=scored.slice(0,Math.min(5,scored.length));
+            const avg=k=>top5.length?top5.reduce((s,e)=>s+(e.gps[k]||0),0)/top5.length:0;
+            const gref={dist:avg("dist_total"),hsr:avg("hsr"),sprints:avg("sprints"),hsr_25:avg("hsr_25"),sprints_25:avg("sprints_25"),pl:avg("player_load"),acel_3:avg("acel_3"),decel_3:avg("decel_3")};
+            // Última sessão de treino (não-jogo) com dist relevante
+            const lastTr=trainings.find(e=>(e.gps?.dist_total||0)>1500)||trainings[0];
+            if(!lastTr) return null;
+            const tr={dist:lastTr.gps.dist_total||0,hsr:lastTr.gps.hsr||0,sprints:lastTr.gps.sprints||0,hsr_25:lastTr.gps.hsr_25||0,sprints_25:lastTr.gps.sprints_25||0,pl:lastTr.gps.player_load||0,acel_3:lastTr.gps.acel_3||0,decel_3:lastTr.gps.decel_3||0};
+            const trDateFmt=(()=>{try{const d=parseDt(lastTr.date);return d&&!isNaN(d)?d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}):lastTr.date}catch{return lastTr.date}})();
+            const rows=[
+              {l:"Distância",  k:"dist",     unit:"m"},
+              {l:"HSR (19.8–24.8 km/h)", k:"hsr",   unit:"m"},
+              {l:"Sprints >19.8 km/h",   k:"sprints", unit:""},
+              {l:"Dist. SPR >25.2 km/h", k:"hsr_25",  unit:"m"},
+              {l:"Esforços SPR >25.2 km/h", k:"sprints_25", unit:""},
+              {l:"Player Load", k:"pl",     unit:""},
+              {l:"Acel ≥3 m/s²", k:"acel_3", unit:""},
+              {l:"Desacel ≤-3 m/s²", k:"decel_3", unit:""}
+            ];
+            const pctC=(p)=>p>=110?"#DC2626":p>=90?"#EA580C":p>=70?"#FACC15":p>=50?"#22D3EE":"#94A3B8";
+            const overall=(()=>{const ps=rows.map(r=>gref[r.k]>0?(tr[r.k]/gref[r.k])*100:null).filter(v=>v!==null&&Number.isFinite(v));return ps.length?Math.round(ps.reduce((a,b)=>a+b,0)/ps.length):0;})();
+            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+              <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10,flexWrap:"wrap",marginBottom:10}}>
+                <div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:14,color:pri,display:"flex",alignItems:"center",gap:6}}>
+                    <Activity size={14} color="#22D3EE"/>Treino vs. Jogo (Gref)
+                  </div>
+                  <div style={{fontSize:10,color:t.textFaint,marginTop:2}}>
+                    Última sessão de treino ({trDateFmt}) comparada à <strong style={{color:"#CA8A04"}}>Gref</strong> (média dos top {top5.length} jogos).
+                    Cada % indica qual fração da exigência de jogo o atleta atingiu no treino.
+                  </div>
+                </div>
+                <div style={{textAlign:"center",padding:"6px 14px",background:pctC(overall)+"22",borderRadius:8,border:`1px solid ${pctC(overall)}55`}}>
+                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:20,fontWeight:900,color:pctC(overall)}}>{overall}%</div>
+                  <div style={{fontSize:8,color:t.textFaint,fontWeight:700,letterSpacing:.5}}>vs Gref · MÉDIA</div>
+                </div>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+                <ResponsiveContainer width="100%" height={240}>
+                  <BarChart data={rows.map(r=>({n:r.l.split(" ")[0],pctTr:gref[r.k]>0?Math.round((tr[r.k]/gref[r.k])*100):0,pctG:100,rawTr:Math.round(tr[r.k]),rawG:Math.round(gref[r.k])}))} layout="vertical" margin={{left:10,right:10}}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
+                    <XAxis type="number" domain={[0,150]} tickFormatter={v=>`${v}%`} tick={{fontSize:9,fill:t.textFaint}}/>
+                    <YAxis type="category" dataKey="n" tick={{fontSize:9,fill:t.textMuted}} width={80}/>
+                    <ReferenceLine x={100} stroke="#CA8A04" strokeDasharray="3 3" label={{value:"Gref 100%",fontSize:9,fill:"#CA8A04",position:"insideTopRight"}}/>
+                    <Tooltip content={({active,payload,label})=>{if(!active||!payload?.length)return null;const d=payload[0]?.payload||{};return <div style={{background:t.tooltipBg,border:`1px solid ${t.border}`,borderRadius:8,padding:"8px 12px"}}><div style={{fontWeight:700,fontSize:11,color:t.text,marginBottom:4}}>{label}</div><div style={{fontSize:10,color:"#22D3EE"}}>Treino: <strong>{d.rawTr}</strong> · {d.pctTr}%</div><div style={{fontSize:10,color:"#CA8A04"}}>Gref: <strong>{d.rawG}</strong></div></div>;}}/>
+                    <Bar dataKey="pctTr" name="Treino vs Gref" radius={[0,4,4,0]} barSize={12}>
+                      {rows.map((r,i)=>{const v=gref[r.k]>0?(tr[r.k]/gref[r.k])*100:0;return <Cell key={i} fill={pctC(v)}/>;})}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+                <div style={{display:"flex",flexDirection:"column",justifyContent:"center",gap:4}}>
+                  <div style={{display:"flex",alignItems:"center",gap:4,padding:"3px 8px"}}>
+                    <div style={{flex:1,fontSize:9,color:t.textFaint,fontWeight:700,textTransform:"uppercase"}}>Variável</div>
+                    <div style={{fontSize:9,color:"#22D3EE",fontWeight:700,minWidth:50,textAlign:"right"}}>Treino</div>
+                    <div style={{fontSize:9,color:"#CA8A04",fontWeight:700,minWidth:50,textAlign:"right"}}>Gref</div>
+                    <div style={{fontSize:9,color:t.textFaint,fontWeight:700,minWidth:38,textAlign:"right"}}>%</div>
+                  </div>
+                  {rows.map((r,i)=>{
+                    const trv=tr[r.k]||0; const gv=gref[r.k]||0; const p=gv>0?Math.round((trv/gv)*100):0;
+                    return <div key={i} style={{display:"flex",alignItems:"center",gap:4,padding:"5px 8px",background:i%2===0?t.bgMuted:"transparent",borderRadius:5}}>
+                      <div style={{flex:1,fontSize:10,fontWeight:600,color:t.text}}>{r.l}</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:"#22D3EE",minWidth:50,textAlign:"right"}}>{Math.round(trv)}{r.unit&&<span style={{fontSize:7,marginLeft:1}}>{r.unit}</span>}</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:"#CA8A04",minWidth:50,textAlign:"right"}}>{Math.round(gv)}{r.unit&&<span style={{fontSize:7,marginLeft:1}}>{r.unit}</span>}</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:800,color:pctC(p),minWidth:38,textAlign:"right"}}>{p}%</div>
+                    </div>;
+                  })}
+                </div>
+              </div>
+              <div style={{marginTop:8,padding:"8px 12px",background:t.bgMuted,borderRadius:8,fontSize:9,color:t.textFaint,lineHeight:1.5}}>
+                <strong style={{color:pri}}>Leitura:</strong> %&lt;50 = subcarga (regenerativo); 50–70% = MD+1/MD-3; 70–90% = MD-2/MD-1 ideal; 90–110% = stress de jogo; &gt;110% = sobrecarga (Malone et al., 2015).
               </div>
             </div>;
           })()}
@@ -5051,6 +5308,272 @@ export default function Dashboard(){
               })}
             </div>
           </div>
+
+          {/* ═══════════════════════════════════════════════════════════════
+                CICLO DE FADIGA → RECUPERAÇÃO (Matriz de Correlação D / D+1)
+                ═══════════════════════════════════════════════════════════════
+                Cruza carga externa do dia D (Distância, HSR, SPR, PL) com
+                wellness/PSE do dia D+1 (sono, dor, recuperação geral, PSE
+                pré-treino) e carga externa do D+1. Pearson pareado por atleta
+                + pool. r ∈ [-1,1]. Gradient cromático: forte+ = vermelho neon,
+                forte- = azul neon. Fundamento: residual fatigue model
+                (Banister & Calvert, 1980; Halson, 2014).
+                ═══════════════════════════════════════════════════════════════ */}
+          {(()=>{
+            const gpsAll=sheetData?.gps||{};
+            const questAll=sheetData?.questionarios||{};
+            const diarioAll=sheetData?.diario||{};
+            const names=Object.keys(gpsAll);
+            if(!names.length) return null;
+
+            const parseDt=s=>{if(!s)return 0;const v=String(s).trim();if(/^\d{4}-\d{2}-\d{2}/.test(v))return new Date(v).getTime();const p=v.split(/[\/\-\.]/);if(p.length>=3){const[a,b,c]=p.map(Number);if(a>31)return new Date(a,b-1,c).getTime();if(c>31)return new Date(c,b-1,a).getTime();return new Date(c,a-1,b).getTime();}return new Date(v).getTime()||0;};
+            const dayKey=ts=>{if(!ts)return"";const d=new Date(ts);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;};
+
+            // Construir pares (D, D+1) por atleta.
+            const dPairs=[]; // cada par: { dDist, dHsr, dSpr, dPl, dPse, d1Sono, d1Dor, d1Rec, d1Pse, d1Dist, d1Hsr }
+            for(const name of names){
+              const gpsByDay={}; for(const e of gpsAll[name]||[]){const k=dayKey(parseDt(e.date));if(k)gpsByDay[k]=e;}
+              const qByDay={};   for(const e of questAll[name]||[]){const k=dayKey(parseDt(e.date));if(k)qByDay[k]=e;}
+              const diaByDay={}; for(const e of diarioAll[name]||[]){const k=dayKey(parseDt(e.date));if(k)diaByDay[k]=e;}
+              const sortedKeys=Object.keys(gpsByDay).sort();
+              for(let i=0;i<sortedKeys.length-1;i++){
+                const kD=sortedKeys[i];
+                const dDate=new Date(kD); const next=new Date(dDate); next.setDate(next.getDate()+1);
+                const kD1=dayKey(next.getTime());
+                const gD=gpsByDay[kD]; const gD1=gpsByDay[kD1];
+                if(!gD||!gD1) continue;
+                const qD1=qByDay[kD1]; const diaD=diaByDay[kD]; const diaD1=diaByDay[kD1];
+                dPairs.push({
+                  dDist:gD.gps?.dist_total||0, dHsr:gD.gps?.hsr||0, dSpr:gD.gps?.hsr_25||0,
+                  dPl:gD.gps?.player_load||0,  dPse:Number(gD.pse)||Number(diaD?.pse)||0,
+                  d1Sono:Number(qD1?.sono_qualidade)||0, d1Dor:Number(qD1?.dor)||0,
+                  d1Rec:Number(qD1?.recuperacao_geral)||0, d1Pse:Number(diaD1?.pse)||Number(gD1.pse)||0,
+                  d1Dist:gD1.gps?.dist_total||0, d1Hsr:gD1.gps?.hsr||0
+                });
+              }
+            }
+            if(dPairs.length<6) return null;
+
+            const cols=[
+              {k:"dDist",   l:"D · Dist"},
+              {k:"dHsr",    l:"D · HSR"},
+              {k:"dSpr",    l:"D · SPR"},
+              {k:"dPl",     l:"D · PL"},
+              {k:"dPse",    l:"D · PSE"}
+            ];
+            const rowsM=[
+              {k:"d1Sono", l:"D+1 · Sono",  inv:true},
+              {k:"d1Dor",  l:"D+1 · Dor",   inv:false},
+              {k:"d1Rec",  l:"D+1 · Rec.",  inv:true},
+              {k:"d1Pse",  l:"D+1 · PSE",   inv:false},
+              {k:"d1Dist", l:"D+1 · Dist",  inv:false},
+              {k:"d1Hsr",  l:"D+1 · HSR",   inv:false}
+            ];
+            const pearson=(xs,ys)=>{
+              const n=xs.length; if(n<3) return null;
+              const mx=xs.reduce((a,b)=>a+b,0)/n; const my=ys.reduce((a,b)=>a+b,0)/n;
+              let num=0,dx=0,dy=0;
+              for(let i=0;i<n;i++){num+=(xs[i]-mx)*(ys[i]-my);dx+=(xs[i]-mx)**2;dy+=(ys[i]-my)**2;}
+              const den=Math.sqrt(dx*dy);
+              return den>0?Math.round((num/den)*1000)/1000:null;
+            };
+            // Matriz r
+            const matrix=rowsM.map(r=>cols.map(c=>{
+              const xs=[],ys=[];
+              for(const p of dPairs){
+                const x=Number(p[c.k]); const y=Number(p[r.k]);
+                if(Number.isFinite(x)&&Number.isFinite(y)&&x>0&&y>0){xs.push(x);ys.push(y);}
+              }
+              return {r:pearson(xs,ys),n:xs.length};
+            }));
+            const rColor=(v)=>{
+              if(v===null||v===undefined||!Number.isFinite(v)) return t.bgMuted;
+              const a=Math.min(1,Math.abs(v));
+              if(v>=0) return `rgba(220, 38, 38, ${a})`;       // vermelho
+              return `rgba(34, 211, 238, ${a})`;                // ciano
+            };
+
+            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:14,color:pri,display:"flex",alignItems:"center",gap:6,marginBottom:6}}>
+                <Brain size={14} color="#DC2626"/>
+                Ciclo Fadiga → Recuperação · Matriz de Correlação (D / D+1)
+              </div>
+              <div style={{fontSize:10,color:t.textFaint,marginBottom:10,maxWidth:780,lineHeight:1.5}}>
+                Pearson pareado em <strong>{dPairs.length}</strong> pares (atleta × dia consecutivo).
+                Linha = resposta no D+1 (wellness, PSE, carga); coluna = carga externa no D.
+                <span style={{color:"#DC2626"}}> Vermelho</span> = correlação positiva forte (mais carga em D → mais sintoma em D+1);
+                <span style={{color:"#22D3EE"}}> azul/ciano</span> = correlação negativa.
+              </div>
+              <div style={{overflowX:"auto"}}>
+                <table style={{borderCollapse:"separate",borderSpacing:2,fontFamily:"'JetBrains Mono'",fontSize:11}}>
+                  <thead>
+                    <tr>
+                      <th style={{padding:"4px 8px",fontSize:9,color:t.textFaint}}></th>
+                      {cols.map((c,i)=><th key={i} style={{padding:"4px 6px",fontSize:9,color:t.textMuted,fontWeight:700,textAlign:"center"}}>{c.l}</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {matrix.map((row,i)=><tr key={i}>
+                      <th style={{padding:"4px 8px",fontSize:10,color:t.text,fontWeight:700,textAlign:"left",whiteSpace:"nowrap"}}>{rowsM[i].l}</th>
+                      {row.map((cell,j)=>{
+                        const r=cell.r;
+                        const v=r==null?"—":(r>=0?"+":"")+r.toFixed(2);
+                        const c=rColor(r);
+                        const tx=r==null?t.textFaint:Math.abs(r)>0.4?"#fff":pri;
+                        return <td key={j} title={`r=${v} · n=${cell.n}`} style={{padding:"6px 12px",background:c,borderRadius:6,color:tx,fontWeight:800,textAlign:"center",minWidth:60,border:`1px solid ${t.borderLight}`}}>{v}</td>;
+                      })}
+                    </tr>)}
+                  </tbody>
+                </table>
+              </div>
+              <div style={{marginTop:8,fontSize:9,color:t.textFaint,lineHeight:1.5}}>
+                Interpretação: |r| ≥ 0.30 ⇒ correlação relevante (Cohen, 1988). Coluna SPR / Dist com Dor e PSE em D+1 são os marcadores de carryover de fadiga mais sensíveis em futebolistas (Halson, 2014).
+              </div>
+            </div>;
+          })()}
+
+          {/* ═══════════════════════════════════════════════════════════════
+                REGRESSÃO LOGÍSTICA — PROBABILIDADE DE LESÃO 7d
+                ═══════════════════════════════════════════════════════════════
+                Modelo paralelo (transparente) ao XGBoost. Usa picos de carga
+                mecânica (max 7d de Dist, HSR, SPR, Acel/Decel >3 m/s²) +
+                ACWR Global como features. Coeficientes via gradient ascent
+                em log-likelihood (Newton-Raphson aproximado, 200 iters).
+                Vetor de probabilidade individual + odds ratio explicativo.
+                ═══════════════════════════════════════════════════════════════ */}
+          {(()=>{
+            const gpsAll=sheetData?.gps||{};
+            const inj=liveInjuries||[];
+            const names=Object.keys(gpsAll);
+            if(!names.length) return null;
+
+            const parseDt=s=>{if(!s)return 0;const v=String(s).trim();if(/^\d{4}-\d{2}-\d{2}/.test(v))return new Date(v).getTime();const p=v.split(/[\/\-\.]/);if(p.length>=3){const[a,b,c]=p.map(Number);if(a>31)return new Date(a,b-1,c).getTime();if(c>31)return new Date(c,b-1,a).getTime();return new Date(c,a-1,b).getTime();}return new Date(v).getTime()||0;};
+
+            // Construção do dataset: para cada (atleta, semana epidemiológica)
+            // calcular features de pico 7d e label = ocorreu lesão em [t, t+7d]?
+            const rowsX=[]; const labelsY=[]; const meta=[];
+            for(const name of names){
+              const entries=(gpsAll[name]||[]).slice().sort((a,b)=>parseDt(a.date)-parseDt(b.date));
+              if(entries.length<5) continue;
+              const injDates=inj.filter(x=>x.n===name).map(x=>parseDt(x.date)).filter(Boolean);
+              const stride=3*86400000;
+              const t0=parseDt(entries[0].date), tN=parseDt(entries[entries.length-1].date);
+              for(let cur=t0;cur<=tN;cur+=stride){
+                const win7=entries.filter(e=>{const ts=parseDt(e.date);return ts>=cur-7*86400000&&ts<=cur;});
+                if(win7.length<2) continue;
+                const peak=(k)=>Math.max(0,...win7.map(e=>e.gps?.[k]||0));
+                const sum=(k)=>win7.reduce((s,e)=>s+(e.gps?.[k]||0),0);
+                // ACWR Global aproximado para a feature
+                const win28=entries.filter(e=>{const ts=parseDt(e.date);return ts>=cur-28*86400000&&ts<cur-7*86400000;});
+                const acwrK=(k)=>{const aS=sum(k);const cS=win28.reduce((s,e)=>s+(e.gps?.[k]||0),0);const cMean=win28.length?cS/(win28.length/3):0;return cMean>0?aS/cMean:1;};
+                const x=[
+                  peak("dist_total")/1000,        // pico distância (km)
+                  peak("hsr")/100,                 // pico HSR (centenas m)
+                  peak("hsr_25")/50,                // pico SPR (50m)
+                  peak("acel_3"),                   // pico Acel ≥3 m/s²
+                  peak("decel_3"),                  // pico Decel ≤-3 m/s²
+                  Math.min(3,Math.max(0,acwrK("dist_total"))) // ACWR clipado
+                ];
+                const y=injDates.some(d=>d>cur&&d<=cur+7*86400000)?1:0;
+                rowsX.push(x); labelsY.push(y); meta.push({name,cur});
+              }
+            }
+            if(rowsX.length<30) return null;
+            const positives=labelsY.reduce((a,b)=>a+b,0);
+            if(positives<2) return null; // amostra insuficiente
+
+            // Padronizar por z-score (estabiliza Newton-Raphson)
+            const p=rowsX[0].length;
+            const mu=new Array(p).fill(0); const sd=new Array(p).fill(0);
+            for(const r of rowsX) for(let j=0;j<p;j++) mu[j]+=r[j];
+            for(let j=0;j<p;j++) mu[j]/=rowsX.length;
+            for(const r of rowsX) for(let j=0;j<p;j++) sd[j]+=(r[j]-mu[j])**2;
+            for(let j=0;j<p;j++) sd[j]=Math.sqrt(sd[j]/Math.max(rowsX.length-1,1))||1;
+            const Z=rowsX.map(r=>r.map((v,j)=>(v-mu[j])/sd[j]));
+
+            // Gradient ascent em log-likelihood logístico (regularização L2 leve λ=0.1)
+            const sigm=z=>1/(1+Math.exp(-Math.max(-30,Math.min(30,z))));
+            const beta=new Array(p+1).fill(0); // [intercept, ...coefs]
+            const lr=0.05; const lambda=0.1; const iters=400;
+            for(let it=0;it<iters;it++){
+              const grad=new Array(p+1).fill(0);
+              for(let i=0;i<Z.length;i++){
+                const z=beta[0]+Z[i].reduce((s,x,j)=>s+beta[j+1]*x,0);
+                const pred=sigm(z); const err=labelsY[i]-pred;
+                grad[0]+=err;
+                for(let j=0;j<p;j++) grad[j+1]+=err*Z[i][j];
+              }
+              beta[0]+=lr*grad[0]/Z.length;
+              for(let j=0;j<p;j++) beta[j+1]+=lr*(grad[j+1]/Z.length-lambda*beta[j+1]);
+            }
+            // Odds ratio (exp do coeficiente padronizado): >1 = fator de risco
+            const featLabels=["Pico Dist (km)","Pico HSR (×100m)","Pico SPR (×50m)","Pico Acel ≥3","Pico Decel ≤-3","ACWR Dist"];
+            const oddsRatios=beta.slice(1).map((c,i)=>({label:featLabels[i],coef:Math.round(c*1000)/1000,or:Math.round(Math.exp(c)*1000)/1000}));
+            oddsRatios.sort((a,b)=>Math.abs(Math.log(b.or||1))-Math.abs(Math.log(a.or||1)));
+
+            // Acurácia in-sample (apenas referência — overfit possível em N pequeno)
+            let correct=0,truePos=0,falsePos=0,falseNeg=0;
+            for(let i=0;i<Z.length;i++){
+              const z=beta[0]+Z[i].reduce((s,x,j)=>s+beta[j+1]*x,0);
+              const pred=sigm(z)>=0.3?1:0;
+              if(pred===labelsY[i]) correct++;
+              if(pred===1&&labelsY[i]===1) truePos++;
+              if(pred===1&&labelsY[i]===0) falsePos++;
+              if(pred===0&&labelsY[i]===1) falseNeg++;
+            }
+            const acc=Math.round((correct/Z.length)*1000)/10;
+            const recall=truePos+falseNeg>0?Math.round((truePos/(truePos+falseNeg))*1000)/10:0;
+
+            // Probabilidades atuais por atleta (último ponto disponível por atleta)
+            const lastPerAth={};
+            for(let i=Z.length-1;i>=0;i--){const m=meta[i];if(!lastPerAth[m.name]) lastPerAth[m.name]=i;}
+            const currentProbs=Object.entries(lastPerAth).map(([name,i])=>{
+              const z=beta[0]+Z[i].reduce((s,x,j)=>s+beta[j+1]*x,0);
+              return {name,prob:Math.round(sigm(z)*1000)/10};
+            }).sort((a,b)=>b.prob-a.prob).slice(0,10);
+
+            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+              <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:14,color:pri,display:"flex",alignItems:"center",gap:6,marginBottom:6}}>
+                <TrendingUp size={14} color="#DC2626"/>
+                Regressão Logística · Vetor de Probabilidade de Lesão (7 dias)
+              </div>
+              <div style={{fontSize:10,color:t.textFaint,marginBottom:12,maxWidth:780,lineHeight:1.5}}>
+                Modelo paralelo (transparente) treinado em <strong>{rowsX.length} amostras</strong> ({positives} positivos).
+                Picos de carga mecânica e ACWR como features padronizadas. Coeficientes ajustados via gradient ascent
+                (lr=0.05, L2 λ=0.1, 400 iters). In-sample: <strong>acc {acc}%</strong> · <strong>recall {recall}%</strong>
+                — métricas de validação cruzada residem no pipeline XGBoost (model/injury_prediction_pipeline.py).
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+                <div>
+                  <div style={{fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",marginBottom:6}}>Odds Ratios (exp(β) padronizado)</div>
+                  {oddsRatios.map((o,i)=>{
+                    const isRisk=o.or>1.05; const isProtective=o.or<0.95;
+                    const c=isRisk?"#DC2626":isProtective?"#22D3EE":t.textFaint;
+                    return <div key={i} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 8px",background:i%2===0?t.bgMuted:"transparent",borderRadius:5}}>
+                      <div style={{flex:1,fontSize:10,fontWeight:600,color:t.text}}>{o.label}</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textFaint,minWidth:60,textAlign:"right"}}>β={o.coef}</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:800,color:c,minWidth:60,textAlign:"right"}}>OR {o.or}×</div>
+                    </div>;
+                  })}
+                </div>
+                <div>
+                  <div style={{fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",marginBottom:6}}>Top 10 · Probabilidade Atual</div>
+                  {currentProbs.map((cp,i)=>{
+                    const c=cp.prob>=30?"#DC2626":cp.prob>=15?"#EA580C":cp.prob>=8?"#FACC15":"#22D3EE";
+                    return <div key={i} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 8px",background:i%2===0?t.bgMuted:"transparent",borderRadius:5,cursor:"pointer"}} onClick={()=>{setSel(cp.name);setTab("player")}}>
+                      <span style={{fontSize:9,color:t.textFaint,fontFamily:"'JetBrains Mono'",minWidth:18}}>#{i+1}</span>
+                      <div style={{flex:1,fontSize:10,fontWeight:700,color:pri}}>{cp.name}</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:800,color:c}}>{cp.prob}%</div>
+                      <div style={{width:60,height:5,background:t.bgMuted2,borderRadius:3}}>
+                        <div style={{width:`${Math.min(100,cp.prob*2)}%`,height:"100%",background:c,borderRadius:3}}/>
+                      </div>
+                    </div>;
+                  })}
+                </div>
+              </div>
+            </div>;
+          })()}
+
         </div>}
 
         {tab==="retro"&&<div>

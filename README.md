@@ -590,7 +590,14 @@ npm i -g vercel
 vercel
 ```
 
-Nenhuma variavel de ambiente e necessaria.
+#### Variaveis de ambiente (opcionais mas recomendadas)
+
+| Variavel | Descricao |
+|---|---|
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | JSON completo da chave do service account `scouting-sheets-reader@jovial-current-274412.iam.gserviceaccount.com`. Quando setada, a API `/api/sheets` autentica via JWT e usa Sheets API v4 (mais robusto que CSV publicado). Quando ausente, a API cai automaticamente para os links `pub?output=csv`. |
+| `GCP_SERVICE_ACCOUNT` | Alias de `GOOGLE_SERVICE_ACCOUNT_JSON`. |
+
+Para configurar na Vercel, cole o conteudo do JSON do service account (sem aspas externas adicionais) em `Settings -> Environment Variables -> GOOGLE_SERVICE_ACCOUNT_JSON`. A planilha precisa estar compartilhada com o e-mail do service account em modo "Leitor".
 
 ### Docker
 

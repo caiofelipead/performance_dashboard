@@ -6,9 +6,15 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const SHEETS_CONFIG = {
-  // URL publicada (pubhtml → CSV) — chave pública
-  published_key: "2PACX-1vQSxRZObs5anHZcJH7LsETalW7vY1U5A066mLFpWVZMWgHNWL28PWSnhjJHWtznCQ2R8AV5YYdlt6AP",
-  // IDs das planilhas editáveis (principal + fallback)
+  // Chaves publicadas (pubhtml → CSV). A primeira é a republicação atual
+  // (Maio/2026, fornecida pela diretoria); a segunda fica como fallback
+  // histórico para sessões anteriores que ainda apontam para o link antigo.
+  published_keys: [
+    "2PACX-1vT_4OS_TyohN9mfUF3kguQwYktr8BuVbc-gldu4Uo4CTzyO2x-9pZminGeatmwYmFsTYLbDRGZwJH-a",
+    "2PACX-1vQSxRZObs5anHZcJH7LsETalW7vY1U5A066mLFpWVZMWgHNWL28PWSnhjJHWtznCQ2R8AV5YYdlt6AP"
+  ],
+  // IDs das planilhas editáveis (principal + fallback) — usadas via export
+  // direto quando autenticado (service account scouting-sheets-reader).
   spreadsheet_ids: [
     "1yUQ2faGfJOsWYWqxG3E5p2ksrvFr3jxmPNRccwR3mLo",
     "1f4j4Qj0o3BYZPZ5YOTKoG0mk3H7UUCiK8gw2Ywv2LPU",
@@ -642,6 +648,108 @@ function processGPSIndividual(rows) {
   return result;
 }
 
+// VBT (Velocity-Based Training): registros de exercício de força com
+// velocidade média/máxima por série. Colunas típicas: Data, Atleta,
+// Exercício, Carga, Reps, Vel Média (m/s), Vel Pico (m/s), Potência (W).
+function processVBT(rows) {
+  const result = {};
+  for (const row of rows) {
+    const athlete = findCol(row, "atleta", "atletas", "nome", "athlete") || "";
+    if (!athlete) continue;
+    const name = resolveName(athlete);
+    if (!name) continue;
+    if (!result[name]) result[name] = [];
+    result[name].push({
+      date: findCol(row, "data", "data_", "date") || "",
+      exercicio: findCol(row, "exercicio", "exercício", "exercise", "movimento") || "",
+      carga: toNum(findCol(row, "carga", "carga_kg", "peso_kg", "load")),
+      reps: toNum(findCol(row, "reps", "repeticoes", "rep")),
+      vel_media: toNum(findCol(row, "vel_media", "velocidade_media", "mean_velocity", "vmed")),
+      vel_pico: toNum(findCol(row, "vel_pico", "velocidade_pico", "peak_velocity", "vmax")),
+      potencia: toNum(findCol(row, "potencia", "potência", "power_w", "power")),
+      perda_vel_pct: toNum(findCol(row, "perda_de_velocidade", "perda_vel", "vel_loss", "velocity_loss"))
+    });
+  }
+  return result;
+}
+
+// Bioquímico: marcadores sanguíneos (CK, lactato, hemoglobina, ureia,
+// testosterona, cortisol, T:C ratio). Painel para detectar overreaching.
+function processBioquimico(rows) {
+  const result = {};
+  for (const row of rows) {
+    const athlete = findCol(row, "atleta", "atletas", "nome") || "";
+    if (!athlete) continue;
+    const name = resolveName(athlete);
+    if (!name) continue;
+    if (!result[name]) result[name] = [];
+    const ck = toNum(findCol(row, "ck", "creatina_quinase", "cpk"));
+    const lact = toNum(findCol(row, "lactato", "lactate"));
+    const ureia = toNum(findCol(row, "ureia", "urea"));
+    const test = toNum(findCol(row, "testosterona", "testosterone"));
+    const cort = toNum(findCol(row, "cortisol"));
+    const tc = test > 0 && cort > 0 ? Math.round((test / cort) * 1000) / 1000 : 0;
+    result[name].push({
+      date: findCol(row, "data", "data_", "date") || "",
+      ck, lactato: lact, ureia, testosterona: test, cortisol: cort,
+      t_c_ratio: tc,
+      hemoglobina: toNum(findCol(row, "hemoglobina", "hb")),
+      hematocrito: toNum(findCol(row, "hematocrito", "hct")),
+      glicemia: toNum(findCol(row, "glicemia", "glicose", "glucose"))
+    });
+  }
+  return result;
+}
+
+// Atletas: cadastro com posição oficial, altura, peso, data de nascimento,
+// número da camisa e grupo (Profissional/Sub-20). Fonte de verdade da
+// classificação posicional (deduzida da MD/W-MD/Volante etc.).
+function processAtletas(rows) {
+  const result = {};
+  for (const row of rows) {
+    const athlete = findCol(row, "nome", "atleta", "atletas") || "";
+    if (!athlete) continue;
+    const name = resolveName(athlete);
+    if (!name) continue;
+    const posicao = String(findCol(row, "posicao", "posição", "position", "pos") || "").toUpperCase().trim();
+    result[name] = {
+      posicao,
+      pos_macro: macroPosition(posicao),
+      altura_cm: toNum(findCol(row, "altura", "altura_cm", "estatura", "height")),
+      peso_kg: toNum(findCol(row, "peso", "peso_kg", "weight")),
+      idade: toNum(findCol(row, "idade", "age")),
+      data_nasc: findCol(row, "data_de_nascimento", "data_nascimento", "nascimento", "birth"),
+      camisa: toNum(findCol(row, "camisa", "numero", "n_camisa", "shirt_number")),
+      grupo: findCol(row, "grupo", "categoria", "team") || "",
+      pe_dominante: findCol(row, "pe_dominante", "pé_dominante", "dominant_foot", "lateralidade") || ""
+    };
+  }
+  return result;
+}
+
+// Macro-categoria de posição: agrupa MD, W-MD, Volante, Meia, MO etc.
+// numa única classe "Meio-Campo" (recomendação da diretoria técnica).
+// Goleiro / Zagueiro / Lateral / Meio-Campo / Extremo / Atacante.
+function macroPosition(pos) {
+  const p = String(pos || "").toUpperCase().trim();
+  if (!p) return "";
+  if (p === "GOL" || p === "GK" || p.includes("GOLEIR")) return "Goleiro";
+  if (p === "ZAG" || p === "CB" || p.includes("ZAGUEIR")) return "Zagueiro";
+  if (p === "LAT" || p === "LE" || p === "LD" || p === "LB" || p === "RB" ||
+      p.startsWith("LAT")) return "Lateral";
+  if (p === "ATA" || p === "CF" || p === "9" || p.includes("ATACA") ||
+      p.includes("CENTROAVANTE")) return "Atacante";
+  if (p === "EXT" || p === "PE" || p === "PD" || p === "LW" || p === "RW" ||
+      p.includes("PONTA") || p.includes("EXTREM")) return "Extremo";
+  // Meio-Campo: VOL, MEI, MD, W-MD, MC, MO, ME, AM, DM, CM e variações.
+  if (p === "VOL" || p === "MEI" || p === "MC" || p === "MO" || p === "MD" ||
+      p === "ME" || p === "DM" || p === "CM" || p === "AM" ||
+      p.startsWith("W-M") || p.startsWith("WM") ||
+      p.includes("MEI") || p.includes("MD") || p.includes("MC") ||
+      p.includes("VOLANT")) return "Meio-Campo";
+  return p;
+}
+
 // Diário: PSE, Duração, sPE, CK, Peso
 // Colunas: Data, Semana, Dia_da_Semana, Periodo, Atletas, Posição, Grupo,
 // Atividade, DPJ, JNS, Local, Tags, Partida, PSE, Duração, sPE,
@@ -1001,22 +1109,122 @@ function toNum(v) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Fetch CSV de uma aba da planilha (3 estratégias de fallback)
+// Service Account (Google Sheets API v4) — autenticação JWT via env var
+// GOOGLE_SERVICE_ACCOUNT_JSON. Preferível quando configurado, pois lê abas
+// privadas e tem rate-limit muito superior ao do CSV publicado.
+// ═══════════════════════════════════════════════════════════════════════════════
+let _gsaTokenCache = null;
+async function getServiceAccountToken() {
+  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON || process.env.GCP_SERVICE_ACCOUNT;
+  if (!raw) return null;
+  try {
+    const creds = typeof raw === "string" ? JSON.parse(raw) : raw;
+    if (!creds.client_email || !creds.private_key) return null;
+    if (_gsaTokenCache && _gsaTokenCache.exp > Date.now() / 1000 + 60) return _gsaTokenCache.token;
+
+    const crypto = await import("crypto");
+    const header = { alg: "RS256", typ: "JWT" };
+    const now = Math.floor(Date.now() / 1000);
+    const payload = {
+      iss: creds.client_email,
+      scope: "https://www.googleapis.com/auth/spreadsheets.readonly",
+      aud: "https://oauth2.googleapis.com/token",
+      exp: now + 3600,
+      iat: now
+    };
+    const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
+    const unsigned = `${b64(header)}.${b64(payload)}`;
+    const signer = crypto.createSign("RSA-SHA256");
+    signer.update(unsigned);
+    signer.end();
+    const signature = signer.sign(creds.private_key.replace(/\\n/g, "\n")).toString("base64url");
+    const jwt = `${unsigned}.${signature}`;
+
+    const res = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    _gsaTokenCache = { token: data.access_token, exp: now + (data.expires_in || 3600) };
+    return data.access_token;
+  } catch (e) {
+    console.warn("[sheets] service-account JWT failed:", e.message);
+    return null;
+  }
+}
+
+// Lê o título da aba de um gid via Sheets API (sheets.spreadsheets.get).
+// Cache em memória para evitar round-trips.
+const _gidTitleCache = new Map();
+async function gidToTitle(spreadsheetId, gid, token) {
+  const cacheKey = `${spreadsheetId}:${gid}`;
+  if (_gidTitleCache.has(cacheKey)) return _gidTitleCache.get(cacheKey);
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties(sheetId,title)`;
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) return null;
+  const data = await res.json();
+  for (const s of data.sheets || []) {
+    const props = s.properties || {};
+    _gidTitleCache.set(`${spreadsheetId}:${props.sheetId}`, props.title);
+  }
+  return _gidTitleCache.get(cacheKey) || null;
+}
+
+async function fetchSheetViaApi(spreadsheetId, gid, token) {
+  const title = await gidToTitle(spreadsheetId, gid, token);
+  if (!title) return null;
+  const range = encodeURIComponent(title);
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING`;
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (!data.values?.length) return null;
+  // Converte matriz de valores → CSV (escape básico de aspas e vírgulas).
+  const escape = (v) => {
+    const s = v === null || v === undefined ? "" : String(v);
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  return data.values.map(row => row.map(escape).join(",")).join("\n");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Fetch CSV de uma aba da planilha — tenta, em ordem:
+//  (1) Sheets API v4 com service account, se GOOGLE_SERVICE_ACCOUNT_JSON setado
+//  (2) Cada published_key (pub CSV)
+//  (3) Export direto por spreadsheet_id
+//  (4) Google Visualization API (gviz)
+// Retorna o CSV cru ou lança erro com a lista de tentativas.
 // ═══════════════════════════════════════════════════════════════════════════════
 async function fetchSheetCSV(gid = 0) {
   const errors = [];
+  const pubKeys = SHEETS_CONFIG.published_keys || (SHEETS_CONFIG.published_key ? [SHEETS_CONFIG.published_key] : []);
 
-  // Estratégia 1: URL publicada (pub CSV)
-  try {
-    const pubUrl = `https://docs.google.com/spreadsheets/d/e/${SHEETS_CONFIG.published_key}/pub?gid=${gid}&single=true&output=csv`;
-    const res = await fetch(pubUrl, { next: { revalidate: 60 } });
-    if (res.ok) {
-      const text = await res.text();
-      if (text && !text.includes("<!DOCTYPE")) return text;
+  // (1) Service Account API — quando configurado
+  const token = await getServiceAccountToken();
+  if (token) {
+    for (const id of SHEETS_CONFIG.spreadsheet_ids) {
+      try {
+        const csv = await fetchSheetViaApi(id, gid, token);
+        if (csv) return csv;
+      } catch (e) { errors.push(`api(${id}): ${e.message}`); }
     }
-  } catch (e) { errors.push(`pub: ${e.message}`); }
+  }
 
-  // Estratégia 2: Export direto
+  // (2) URL publicada (pub CSV) — todas as chaves disponíveis
+  for (const key of pubKeys) {
+    try {
+      const pubUrl = `https://docs.google.com/spreadsheets/d/e/${key}/pub?gid=${gid}&single=true&output=csv`;
+      const res = await fetch(pubUrl, { next: { revalidate: 60 } });
+      if (res.ok) {
+        const text = await res.text();
+        if (text && !text.includes("<!DOCTYPE")) return text;
+      }
+    } catch (e) { errors.push(`pub(${key.slice(-8)}): ${e.message}`); }
+  }
+
+  // (3) Export direto por spreadsheet_id
   for (const id of SHEETS_CONFIG.spreadsheet_ids) {
     try {
       const url = `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}`;
@@ -1028,7 +1236,7 @@ async function fetchSheetCSV(gid = 0) {
     } catch (e) { errors.push(`export(${id}): ${e.message}`); }
   }
 
-  // Estratégia 3: Google Visualization API
+  // (4) Google Visualization API
   for (const id of SHEETS_CONFIG.spreadsheet_ids) {
     try {
       const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&gid=${gid}`;
@@ -1522,8 +1730,14 @@ export async function GET(request) {
 
     if (tab === "all") {
       // Buscar todas as abas em paralelo
-      // GPS: fonte primária = gps_individual (aba nova, 32 atletas, HSR >20 km/h)
-      const [gpsCSV, diarioCSV, saltosCSV, questCSV, fisioCSV, lesoesCSV, cmjExtCSV, antropCSV, calendarioCSV] = await Promise.allSettled([
+      // GPS: fonte primária = gps_individual (gid=1595283302, HSR > 20 km/h, SPR > 25 km/h)
+      // Inclui também vbt (força), bioquimico (sangue) e atletas (cadastro)
+      // — antes definidas no SHEETS_CONFIG mas não consumidas pelo Dashboard.
+      const [
+        gpsCSV, diarioCSV, saltosCSV, questCSV, fisioCSV,
+        lesoesCSV, cmjExtCSV, antropCSV, calendarioCSV,
+        vbtCSV, bioCSV, atletasCSV
+      ] = await Promise.allSettled([
         fetchSheetCSV(SHEETS_CONFIG.tabs.gps_individual),
         fetchSheetCSV(SHEETS_CONFIG.tabs.diario),
         fetchSheetCSV(SHEETS_CONFIG.tabs.saltos),
@@ -1532,7 +1746,10 @@ export async function GET(request) {
         fetchExternalCSV(SHEETS_CONFIG.external.lesoes),
         fetchExternalCSV(SHEETS_CONFIG.external.cmj),
         fetchSheetCSV(SHEETS_CONFIG.tabs.antropometria),
-        fetchSheetCSV(SHEETS_CONFIG.tabs.calendario)
+        fetchSheetCSV(SHEETS_CONFIG.tabs.calendario),
+        fetchSheetCSV(SHEETS_CONFIG.tabs.vbt),
+        fetchSheetCSV(SHEETS_CONFIG.tabs.bioquimico),
+        fetchSheetCSV(SHEETS_CONFIG.tabs.atletas)
       ]);
 
       const result = { ok: true, timestamp: new Date().toISOString(), _debug: {} };
@@ -1623,6 +1840,30 @@ export async function GET(request) {
         result._debug.calendario = { error: calendarioCSV.reason?.message || "failed" };
       }
 
+      if (vbtCSV.status === "fulfilled") {
+        const { rows, headers } = parseCSV(vbtCSV.value);
+        result.vbt = processVBT(rows);
+        result._debug.vbt = { rows: rows.length, headers: headers?.slice(0, 14), athletes: Object.keys(result.vbt).length };
+      } else {
+        result._debug.vbt = { error: vbtCSV.reason?.message || "failed" };
+      }
+
+      if (bioCSV.status === "fulfilled") {
+        const { rows, headers } = parseCSV(bioCSV.value);
+        result.bioquimico = processBioquimico(rows);
+        result._debug.bioquimico = { rows: rows.length, headers: headers?.slice(0, 14), athletes: Object.keys(result.bioquimico).length };
+      } else {
+        result._debug.bioquimico = { error: bioCSV.reason?.message || "failed" };
+      }
+
+      if (atletasCSV.status === "fulfilled") {
+        const { rows, headers } = parseCSV(atletasCSV.value);
+        result.atletas = processAtletas(rows);
+        result._debug.atletas = { rows: rows.length, headers: headers?.slice(0, 14), athletes: Object.keys(result.atletas).length };
+      } else {
+        result._debug.atletas = { error: atletasCSV.reason?.message || "failed" };
+      }
+
       // Parâmetro de ordem Ψ(t) — PC1 sobre features padronizadas
       try {
         const psi = assembleOrderParameter({
@@ -1682,6 +1923,9 @@ export async function GET(request) {
       case "fisioterapia": processed = processFisioterapia(rows); break;
       case "antropometria": processed = processAntropometria(rows); break;
       case "calendario": processed = processCalendario(rows); break;
+      case "vbt": processed = processVBT(rows); break;
+      case "bioquimico": processed = processBioquimico(rows); break;
+      case "atletas": processed = processAtletas(rows); break;
       default: processed = rows;
     }
 

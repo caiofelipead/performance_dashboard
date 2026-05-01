@@ -38,15 +38,14 @@ export function useSheetData({ interval = DEFAULT_INTERVAL, enabled = true } = {
 
       console.log("[useSheetData] Dados recebidos:", {
         gps: Object.keys(result.gps || {}).length + " atletas",
-        gps_names: Object.keys(result.gps || {}),
         diario: Object.keys(result.diario || {}).length + " atletas",
         saltos: Object.keys(result.saltos || {}).length + " atletas",
         questionarios: Object.keys(result.questionarios || {}).length + " atletas",
-        questionarios_names: Object.keys(result.questionarios || {}),
         fisioterapia: Object.keys(result.fisioterapia || {}).length + " atletas",
         antropometria: Object.keys(result.antropometria || {}).length + " atletas",
-        antropometria_names: Object.keys(result.antropometria || {}),
-        antropometria_sample: Object.entries(result.antropometria || {}).slice(0,2).map(([k,v])=>({name:k,last:v[v.length-1]})),
+        vbt: Object.keys(result.vbt || {}).length + " atletas",
+        bioquimico: Object.keys(result.bioquimico || {}).length + " atletas",
+        atletas_cad: Object.keys(result.atletas || {}).length + " atletas",
         sessionAtletas: Object.keys(sessionAtletas).length + " atletas mergeados",
         _debug: result._debug
       });
@@ -54,6 +53,7 @@ export function useSheetData({ interval = DEFAULT_INTERVAL, enabled = true } = {
       setSheetData({
         raw: result,
         gps: result.gps || {},
+        gps_weekly: result.gps_weekly || {},
         diario: result.diario || {},
         saltos: result.saltos || {},
         questionarios: result.questionarios || {},
@@ -62,6 +62,9 @@ export function useSheetData({ interval = DEFAULT_INTERVAL, enabled = true } = {
         cmj_externo: result.cmj_externo || {},
         antropometria: result.antropometria || {},
         calendario: result.calendario || [],
+        vbt: result.vbt || {},
+        bioquimico: result.bioquimico || {},
+        atletas_cad: result.atletas || {},
         psi: result.psi || null,
         sessionAtletas,
         timestamp: result.timestamp
