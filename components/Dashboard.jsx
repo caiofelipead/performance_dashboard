@@ -38,6 +38,69 @@ const THEMES={
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// CircularGauge — gauge circular para Risk Score / Probabilidade. Estilo
+// "Pro Score" do STATSports. Renderiza um arco SVG com gradient cromático
+// (verde→amarelo→laranja→vermelho) e o valor central monoespaçado.
+// Props: value (0-100), max=100, size=110, theme, label, c (cor opcional).
+// ═══════════════════════════════════════════════════════════════════════════════
+function CircularGauge({ value, max = 100, size = 110, stroke = 9, theme, label, c, sub }) {
+  const t = theme || THEMES.light;
+  const v = Math.max(0, Math.min(max, Number(value) || 0));
+  const pct = v / max;
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const dash = pct * circ;
+  const auto = pct > 0.65 ? "#ef4444" : pct > 0.5 ? "#fb923c" : pct > 0.35 ? "#facc15" : pct > 0.2 ? "#22c55e" : "#22c55e";
+  const color = c || auto;
+  return (
+    <div style={{ position: "relative", width: size, height: size, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={t.bgMuted2} strokeWidth={stroke} />
+        <circle
+          cx={size / 2} cy={size / 2} r={r} fill="none"
+          stroke={color} strokeWidth={stroke} strokeLinecap="round"
+          strokeDasharray={`${dash} ${circ}`}
+          style={{ transition: "stroke-dasharray .8s ease, stroke .3s" }}
+        />
+      </svg>
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0 }}>
+        <div style={{ fontFamily: "'JetBrains Mono'", fontSize: size * 0.32, fontWeight: 900, color, lineHeight: 1, letterSpacing: -1 }}>{Math.round(v)}</div>
+        {label && <div style={{ fontSize: size * 0.075, color: t.textFaint, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginTop: 2 }}>{label}</div>}
+        {sub && <div style={{ fontSize: size * 0.07, color: t.textFaintest, fontWeight: 600, marginTop: 1 }}>{sub}</div>}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SectionHeader — cabeçalho editorial uppercase com linha decorativa.
+// Padroniza a tipografia em todas as abas: kicker 9px tracking 2 + título 18px
+// peso 900 + linha de gradient embaixo. Uso: <SectionHeader kicker="ACWR"
+// title="Carga Aguda Crônica" subtitle="..." theme={t} accent={acc}/>
+// ═══════════════════════════════════════════════════════════════════════════════
+function SectionHeader({ kicker, title, subtitle, theme, accent, right }) {
+  const t = theme || THEMES.light;
+  const a = accent || "#dc2626";
+  return (
+    <div style={{ marginBottom: 14, paddingBottom: 12, borderBottom: `1px solid ${t.border}` }}>
+      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          {kicker && (
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+              <span style={{ width: 14, height: 2, background: a, borderRadius: 1 }} />
+              <span style={{ fontSize: 9, color: a, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase" }}>{kicker}</span>
+            </div>
+          )}
+          <div style={{ fontFamily: "'Inter Tight',sans-serif", fontWeight: 900, fontSize: 18, color: t.text, letterSpacing: -.4, lineHeight: 1.1 }}>{title}</div>
+          {subtitle && <div style={{ fontSize: 10.5, color: t.textFaint, marginTop: 4, fontWeight: 500 }}>{subtitle}</div>}
+        </div>
+        {right}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // ThresholdGauge — barra horizontal verde→amarelo→vermelho com marker da posição
 // (referência: STATSports Player view). Uso: <ThresholdGauge value={pct} theme={t}/>
 // `value` é tratado como % (0–150). Zonas:
@@ -952,17 +1015,22 @@ export default function Dashboard(){
   const [tab,setTab]=useState("squad");
   const [riskSort,setRiskSort]=useState({col:"riskScore",dir:"desc"});
   const [sessSort,setSessSort]=useState({col:"classif",dir:"asc"});
+  // Toggle de período da aba Sessão de Treino: "last" (última sessão LIVE)
+  // ou "week" (agregação dos últimos 7 dias para todos os atletas que
+  // participaram em pelo menos uma sessão do período).
+  const [sessRange,setSessRange]=useState("last");
   const [excludedAthletes,setExcludedAthletes]=useState(new Set());
   const [expandedGames,setExpandedGames]=useState(new Set());
   const [showAthleteFilter,setShowAthleteFilter]=useState(false);
   // Dark Mode é o padrão visual (alta-contraste, sports analytics).
-  // Tema claro continua disponível via toggle, mas inicializa em "dark".
-  const [dark,setDark]=useState(()=>{if(typeof window!=="undefined"){const s=localStorage.getItem("theme");if(s)return s==="dark";}return true;});
+  // Usa a chave `theme_v2` para invalidar preferências antigas (`theme=light`)
+  // que ficaram salvas antes da virada para dark-by-default.
+  const [dark,setDark]=useState(()=>{if(typeof window!=="undefined"){const s=localStorage.getItem("theme_v2");if(s)return s==="dark";}return true;});
   const [todayStr]=useState(()=>{try{return todayStr;}catch{return"";}});
   const [todayFull]=useState(()=>{try{return todayFull;}catch{return"";}});
   const t=THEMES[dark?"dark":"light"];
   const pri=dark?"#f1f5f9":"#1A1A1A";
-  useEffect(()=>{localStorage.setItem("theme",dark?"dark":"light");},[dark]);
+  useEffect(()=>{localStorage.setItem("theme_v2",dark?"dark":"light");},[dark]);
 
   // ═══ Google Sheets — dados em tempo real ═══
   const { sheetData, loading: sheetLoading, error: sheetError, lastUpdate, refresh: refreshSheet, isLive } = useSheetData({ interval: 120_000, enabled: true });
@@ -1347,16 +1415,13 @@ export default function Dashboard(){
     @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
 
     {/* HEADER */}
-    <header style={{background:t.headerBg,borderBottom:`1px solid ${acc}`,padding:"0 28px",position:"sticky",top:0,zIndex:100,boxShadow:dark?`0 2px 24px ${acc}22, 0 1px 0 rgba(255,255,255,.04)`:`0 2px 8px ${t.headerShadow}`}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",height:60}}>
-        <div style={{display:"flex",alignItems:"center",gap:14}}>
-          <div style={{position:"relative",width:38,height:38,display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <div style={{position:"absolute",inset:-2,borderRadius:"50%",background:`radial-gradient(circle, ${acc}33 0%, transparent 70%)`}}/>
-            <img src="https://www.ogol.com.br/img/logos/equipas/3154_imgbank_1685113109.png" alt="Botafogo-SP" style={{width:36,height:36,objectFit:"contain",position:"relative",filter:dark?`drop-shadow(0 0 4px ${acc}88)`:"none"}}/>
-          </div>
+    <header style={{background:t.headerBg,borderBottom:`1px solid ${dark?"rgba(255,255,255,.06)":t.border}`,padding:"0 28px",position:"sticky",top:0,zIndex:100}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",height:54}}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <img src="https://www.ogol.com.br/img/logos/equipas/3154_imgbank_1685113109.png" alt="Botafogo-SP" style={{width:32,height:32,objectFit:"contain"}}/>
           <div>
-            <div style={{fontFamily:"'Inter Tight'",fontWeight:900,fontSize:15,color:"#fff",letterSpacing:-.4}}>Saúde &amp; Performance</div>
-            <div style={{fontSize:9,color:"rgba(255,255,255,.55)",fontWeight:700,letterSpacing:1.2,textTransform:"uppercase"}}>Botafogo-SP FSA · 2026</div>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:13,color:"#fff",letterSpacing:-.2}}>Saúde &amp; Performance</div>
+            <div style={{fontSize:8.5,color:"rgba(255,255,255,.45)",fontWeight:600,letterSpacing:1,textTransform:"uppercase"}}>Botafogo-SP · 2026</div>
           </div>
         </div>
         <div style={{display:"flex",gap:1,overflowX:"auto",maxWidth:"calc(100vw - 380px)",scrollbarWidth:"none",msOverflowStyle:"none"}}>
@@ -1420,31 +1485,23 @@ export default function Dashboard(){
               {l:"Bem-estar Baixo",desc:"Bem-estar < 6.5",v:players.filter(p=>p.rpa&&p.rpa<6.5).length,total:players.length,c:"#DC2626",bg:"#FEF2F2",bgDark:"#2a1215",bc:"#FECACA",ic:Activity},
               {l:"Ótimos",desc:"Risco score < 20",v:players.filter(p=>p.risk==="LOW").length,total:players.length,c:"#16A34A",bg:"#F0FDF4",bgDark:"#0f2418",bc:"#BBF7D0",ic:CheckCircle2}
             ];
-            return <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,marginBottom:18}}>
+            return <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10,marginBottom:18}}>
               {kpis.map((k,i)=>{const Ic=k.ic;const pct=k.total?Math.round((k.v/k.total)*100):0;
-                const isHot=k.v>0&&(k.l==="Críticos"||k.l==="Alto Risco"||k.l==="Bem-estar Baixo");
-                return <div key={i} style={{background:dark?`linear-gradient(180deg, ${k.c}10 0%, ${t.bgCard} 70%)`:t.bgCard,borderRadius:16,border:`1px solid ${dark?(isHot?k.c+"66":"rgba(255,255,255,.07)"):t.border}`,padding:0,boxShadow:dark?(isHot?`0 0 24px ${k.c}33, 0 4px 16px rgba(0,0,0,.5)`:"0 4px 16px rgba(0,0,0,.4)"):`0 1px 4px ${t.shadow}`,overflow:"hidden",transition:"transform .2s, box-shadow .2s",position:"relative"}}>
-                {/* Faixa neon glow no topo */}
-                <div style={{height:4,background:`linear-gradient(90deg, ${k.c} 0%, ${k.c}aa 100%)`,boxShadow:dark?`0 0 14px ${k.c}88`:"none"}}/>
-                <div style={{padding:"16px 18px 14px"}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
-                    <div style={{fontSize:9,color:t.textMuted,fontWeight:800,letterSpacing:1,textTransform:"uppercase"}}>{k.l}</div>
-                    <div style={{width:34,height:34,borderRadius:10,background:dark?`${k.c}22`:k.bg,display:"flex",alignItems:"center",justifyContent:"center",border:`1px solid ${k.c}55`,boxShadow:dark?`0 0 8px ${k.c}33`:"none"}}>
-                      <Ic size={17} color={k.c}/>
-                    </div>
-                  </div>
-                  <div style={{display:"flex",alignItems:"baseline",gap:8}}>
-                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:48,fontWeight:900,color:k.c,lineHeight:1,letterSpacing:-2,textShadow:dark?`0 0 18px ${k.c}66`:"none"}}>{k.v}</div>
-                    <div style={{fontSize:13,color:t.textFaint,fontWeight:700,letterSpacing:.5}}>/{k.total}</div>
-                  </div>
-                  <div style={{marginTop:14}}>
-                    <ThresholdGauge value={pct} max={100} theme={t} height={6} bands={`linear-gradient(90deg, ${k.c}88 0%, ${k.c} 100%)`}/>
-                  </div>
-                  <div style={{display:"flex",justifyContent:"space-between",marginTop:8}}>
-                    <div style={{fontSize:8,color:t.textFaintest,fontWeight:600,letterSpacing:.3,textTransform:"uppercase"}}>{k.desc}</div>
-                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:k.c,fontWeight:800}}>{pct}%</div>
-                  </div>
+                return <div key={i} style={{background:t.bgCard,borderRadius:10,border:`1px solid ${t.border}`,padding:"16px 18px",position:"relative"}}>
+                {/* Linha vertical sutil de cor à esquerda — único acento decorativo */}
+                <div style={{position:"absolute",left:0,top:14,bottom:14,width:2,background:k.c,borderRadius:2}}/>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+                  <div style={{fontSize:9,color:t.textFaint,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase"}}>{k.l}</div>
+                  <Ic size={14} color={t.textFaint}/>
                 </div>
+                <div style={{display:"flex",alignItems:"baseline",gap:6}}>
+                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:38,fontWeight:800,color:t.text,lineHeight:1,letterSpacing:-1.5}}>{k.v}</div>
+                  <div style={{fontSize:11,color:t.textFaintest,fontWeight:600}}>/ {k.total}</div>
+                </div>
+                <div style={{marginTop:10,height:3,background:t.bgMuted2,borderRadius:2,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:`${pct}%`,background:k.c,transition:"width .6s"}}/>
+                </div>
+                <div style={{fontSize:8.5,color:t.textFaintest,marginTop:6,fontWeight:500,letterSpacing:.2}}>{k.desc}</div>
               </div>})}
             </div>;
           })()}
@@ -2257,16 +2314,12 @@ export default function Dashboard(){
                 const gpsEntries=(gpsData[name]||[]).filter(e=>dateMatch2(e.date));
                 const diarioEntries=(diarioData[name]||[]).filter(e=>dateMatch2(e.date));
                 const questEntries=(questData[name]||[]).filter(e=>dateMatch2(e.date));
-                // 1. Filtrar por adversário (session title match)
+                // Prioridade na escolha (date já filtrou): adversário > match > não-compl > tudo.
+                // Não descarta atletas só porque o título não cita o adversário.
                 const opponentE=adversario?gpsEntries.filter(e=>matchesOpponent2(e.sessionTitle,adversario)):[];
                 const matchE=gpsEntries.filter(e=>isMatchTitle2(e.sessionTitle));
                 const nonCompE=gpsEntries.filter(e=>!isComplementTitle2(e.sessionTitle));
                 const pool=opponentE.length?opponentE:(matchE.length?matchE:(nonCompE.length?nonCompE:gpsEntries));
-                // Se tem sessão de jogo mas nenhuma bate com este adversário → jogou outro jogo
-                if(adversario&&opponentE.length===0&&matchE.length>0){
-                  const anyMatch=matchE.some(e=>matchesOpponent2(e.sessionTitle,adversario));
-                  if(!anyMatch)continue;
-                }
                 let bestGps=null;
                 if(pool.length>1){bestGps=pool.reduce((b,e)=>(e.gps?.dist_total||0)>(b?.gps?.dist_total||0)?e:b,pool[0]);}
                 else if(pool.length===1){bestGps=pool[0];}
@@ -2729,22 +2782,19 @@ export default function Dashboard(){
                 const questEntries=(questData[name]||[]).filter(e=>dateMatch(e.date));
                 if(!gpsEntries.length&&!diarioEntries.length)continue;
 
-                // 1. Filtrar por session title que bate com o adversário do jogo
+                // Prioridade na escolha da entrada GPS do jogo:
+                //   1. Match por adversário no sessionTitle (formato legado "J.BOTxFOR")
+                //   2. Sessão tem palavra-chave de jogo ("Jogo", "Match", "Partida")
+                //   3. Sessão não-complemento (qualquer coisa que não seja aquecimento)
+                //   4. Qualquer entrada da data
+                // IMPORTANTE: o filtro de DATA já restringiu o universo. Não
+                // descartamos atletas só porque o sessionTitle ("Jogo Casa (V)"
+                // do gps_individual) não cita o adversário — confiar na data.
                 const opponentEntries=adversario?gpsEntries.filter(e=>matchesOpponent(e.sessionTitle,adversario)):[];
-                // 2. Fallback: sessões de jogo genéricas (J.xxx)
                 const matchEntries=gpsEntries.filter(e=>isMatchTitle(e.sessionTitle));
-                // 3. Excluir complemento
                 const nonComplEntries=gpsEntries.filter(e=>!isComplementTitle(e.sessionTitle));
-                // Prioridade: opponent match > match genérico > não-complemento > tudo
                 const pool=opponentEntries.length?opponentEntries:(matchEntries.length?matchEntries:(nonComplEntries.length?nonComplEntries:gpsEntries));
                 let bestGpsEntry=pool.length>1?pool.reduce((b,e)=>(e.gps?.dist_total||0)>(b.gps?.dist_total||0)?e:b,pool[0]):pool[0]||null;
-
-                // Se o atleta só aparece em sessões que NÃO batem com o adversário, pular
-                if(adversario&&opponentEntries.length===0&&matchEntries.length>0){
-                  // Tem sessão de jogo mas nenhuma bate com este adversário → jogou outro jogo (ex: Sub-20)
-                  const anyMatchesOpp=matchEntries.some(e=>matchesOpponent(e.sessionTitle,adversario));
-                  if(!anyMatchesOpp)continue;
-                }
 
                 const gps=bestGpsEntry?bestGpsEntry.gps||bestGpsEntry:{};
                 const diario=diarioEntries.length?diarioEntries[diarioEntries.length-1]:{};
@@ -3415,12 +3465,11 @@ export default function Dashboard(){
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{display:"flex",gap:20,alignItems:"center"}}>
               <PlayerPhoto theme={t} name={sp.n} sz={80}/>
-              {/* Score unificado (Estado do Atleta) — substitui o badge pequeno 'Moderado' */}
-              <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,padding:"8px 14px",background:_zC+"0D",borderRadius:12,border:`2px solid ${_zC}`,minWidth:100}} title={`Estado do Atleta — combina observável (Ψ), previsão ML e regras clínicas. Fontes: Fonseca 2020 + XGBoost.`}>
-                <div style={{fontFamily:"'JetBrains Mono'",fontSize:34,fontWeight:900,color:_zC,lineHeight:1}}>{_scoreVal}<span style={{fontSize:16,fontWeight:700}}>{_scoreUnit}</span></div>
-                <div style={{fontSize:10,fontWeight:700,color:_zC,textTransform:"uppercase",letterSpacing:.5,marginTop:2}}>{_zL}</div>
-                <div style={{fontSize:8,color:t.textFaint,fontWeight:500}}>{_scoreSub}</div>
-                {_psiFmt&&<div style={{fontSize:8,color:t.textFaint,fontWeight:600,marginTop:1}}>Ψ {_psiFmt}</div>}
+              {/* Gauge circular (Pro Score style) — visual mais limpo que o
+                  badge sólido. Cor segue zoneamento _zC, valor central monoespaçado. */}
+              <div title={`Estado do Atleta — combina Ψ observável, previsão ML e regras clínicas. ${_zL}.`} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+                <CircularGauge value={_scoreVal} max={_scoreUnit==="%"?100:100} size={104} stroke={9} theme={t} c={_zC} label={_zL}/>
+                <div style={{fontSize:8.5,color:t.textFaint,fontWeight:600,letterSpacing:.3,textAlign:"center",maxWidth:120}}>{_scoreSub}{_psiFmt&&<> · Ψ {_psiFmt}</>}</div>
               </div>
               <div style={{flex:1}}>
                 <div style={{fontFamily:"'Inter Tight'",fontSize:20,fontWeight:900,color:pri}}>{sp.n} <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:t.textFaint,fontWeight:400,marginLeft:6}}>{sp.pos} · {sp.id} anos · {sp.nc} sessões</span></div>
@@ -3901,70 +3950,55 @@ export default function Dashboard(){
             const pctOfTop5=m=>m.top5>0?Math.round((m.last/m.top5)*100):0;
             const overallPct=metrics.length?Math.round(metrics.reduce((a,m)=>a+pctOfTop5(m),0)/metrics.length):0;
             const pctColor=v=>v>=100?"#16A34A":v>=85?"#2563eb":v>=70?"#CA8A04":"#DC2626";
-            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                <div>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,display:"flex",alignItems:"center",gap:6}}>
-                    <Trophy size={14} color="#CA8A04"/>
-                    Média Móvel — Top {top5.length} Melhores Jogos
-                  </div>
-                  <div style={{fontSize:10,color:t.textFaint}}>Baseline de pico individual (Gref) · {gameSessions.length} jogos com GPS · Último: {lastGame?.fmtDate||"—"}</div>
+            // Layout minimalista: uma linha por métrica com (a) label + valor
+            // do último jogo, (b) barra de progresso única indo até o pico
+            // (Gref = 100%), (c) % à direita. Removidos o gráfico duplicado e
+            // a coluna de "Média Geral".
+            const _refRow=(m,i)=>{
+              const pct=pctOfTop5(m);
+              const c=pctColor(pct);
+              const pctClamped=Math.min(125,Math.max(0,pct));
+              return <div key={i} style={{display:"grid",gridTemplateColumns:"160px 1fr 80px 50px",alignItems:"center",gap:12,padding:"10px 0",borderBottom:i<metrics.length-1?`1px solid ${t.borderLight}`:"none"}}>
+                <div style={{fontSize:11,fontWeight:600,color:t.text}}>{m.l}</div>
+                {/* Trilha + barra (até 100% = Gref). Marcador em 100% para
+                    legibilidade da exigência de jogo. Valores >100% extrapolam
+                    visualmente (clamp em 125%). */}
+                <div style={{position:"relative",height:6,background:t.bgMuted2,borderRadius:3,overflow:"hidden"}}>
+                  <div style={{position:"absolute",inset:0,width:`${pctClamped*0.8}%`,background:c,borderRadius:3,transition:"width .6s"}}/>
+                  <div style={{position:"absolute",left:"80%",top:-2,bottom:-2,width:1,background:t.textFaint,opacity:.6}}/>
                 </div>
-                <div style={{textAlign:"center",padding:"4px 14px",background:pctColor(overallPct)+"15",borderRadius:8,border:`1px solid ${pctColor(overallPct)}33`}}>
-                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:18,fontWeight:900,color:pctColor(overallPct)}}>{overallPct}%</div>
-                  <div style={{fontSize:8,color:t.textFaint,fontWeight:600}}>vs Top {top5.length}</div>
+                <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:t.textMuted,textAlign:"right"}}>
+                  <span style={{color:t.text,fontWeight:700}}>{Math.round(m.last)}</span>
+                  <span style={{color:t.textFaintest,margin:"0 4px"}}>/</span>
+                  <span>{Math.round(m.top5)}</span>
+                  {m.unit&&<span style={{fontSize:8,marginLeft:2,color:t.textFaintest}}>{m.unit}</span>}
+                </div>
+                <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:800,color:c,textAlign:"right"}}>{pct}%</div>
+              </div>;
+            };
+            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:"18px 22px",marginBottom:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",gap:12,marginBottom:14,paddingBottom:12,borderBottom:`1px solid ${t.borderLight}`}}>
+                <div>
+                  <div style={{fontSize:9,color:t.textFaint,fontWeight:800,letterSpacing:2,textTransform:"uppercase",marginBottom:2}}>Gref · Demanda de Pico</div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:900,fontSize:17,color:t.text,letterSpacing:-.3}}>Média dos {top5.length} melhores jogos</div>
+                  <div style={{fontSize:10,color:t.textFaint,marginTop:3}}>{gameSessions.length} jogos oficiais com GPS · último em {lastGame?.fmtDate||"—"}</div>
+                </div>
+                <div style={{textAlign:"right"}}>
+                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:28,fontWeight:900,color:pctColor(overallPct),lineHeight:1}}>{overallPct}<span style={{fontSize:14,color:t.textFaint}}>%</span></div>
+                  <div style={{fontSize:9,color:t.textFaintest,fontWeight:700,letterSpacing:.5,textTransform:"uppercase",marginTop:2}}>Último vs Gref</div>
                 </div>
               </div>
-              {/* Comparison Bars */}
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-                <div>
-                  <ResponsiveContainer width="100%" height={220}>
-                    <BarChart data={chartData} layout="vertical" margin={{left:10,right:10}}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight}/>
-                      <XAxis type="number" domain={[0,100]} tickFormatter={v=>`${v}%`} tick={{fontSize:8,fill:t.textFaint}}/>
-                      <YAxis type="category" dataKey="name" tick={{fontSize:9,fill:t.textMuted}} width={70}/>
-                      <Tooltip content={({active,payload,label})=>{
-                        if(!active||!payload?.length)return null;
-                        const d=payload[0]?.payload||{};
-                        const rawMap={top5:d.rawTop5,last:d.rawLast,avg:d.rawAvg};
-                        return <div style={{background:t.tooltipBg,border:`1px solid ${t.border}`,borderRadius:8,padding:"8px 12px",boxShadow:`0 2px 8px ${t.shadowLg}`}}>
-                          <div style={{fontWeight:700,fontSize:11,color:t.text,marginBottom:4}}>{label}</div>
-                          {payload.map((p,i)=><div key={i} style={{fontSize:10,color:p.color||t.textMuted}}>{p.name}: <strong>{rawMap[p.dataKey]!=null?rawMap[p.dataKey]:p.value}</strong></div>)}
-                        </div>;
-                      }}/>
-                      <Bar dataKey="top5" name={`Top ${top5.length} Jogos`} fill="#CA8A04" radius={[0,3,3,0]} barSize={10}/>
-                      <Bar dataKey="last" name="Último Jogo" fill="#2563eb" radius={[0,3,3,0]} barSize={10}/>
-                      <Bar dataKey="avg" name="Média Geral" fill={t.textFaint} radius={[0,3,3,0]} barSize={10} fillOpacity={0.4}/>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <div style={{display:"flex",flexDirection:"column",justifyContent:"center",gap:6}}>
-                  <div style={{display:"flex",alignItems:"center",gap:4,padding:"4px 10px",marginBottom:2}}>
-                    <div style={{flex:1,fontSize:9,color:t.textFaint,fontWeight:700}}>Métrica</div>
-                    <div style={{fontSize:9,color:t.textFaint,fontWeight:700,minWidth:44,textAlign:"right"}}>Último</div>
-                    <div style={{fontSize:9,color:"#CA8A04",fontWeight:700,minWidth:44,textAlign:"right"}}>Top {top5.length}</div>
-                    <div style={{fontSize:9,color:t.textFaint,fontWeight:700,minWidth:36,textAlign:"right"}}>%</div>
-                  </div>
-                  {metrics.map((m,i)=>{
-                    const pct=pctOfTop5(m);
-                    return <div key={i} style={{display:"flex",alignItems:"center",gap:4,padding:"5px 10px",background:i%2===0?t.bgMuted:"transparent",borderRadius:6}}>
-                      <div style={{flex:1,fontSize:10,fontWeight:600,color:t.text}}>{m.l}</div>
-                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:"#2563eb",minWidth:44,textAlign:"right"}}>{Math.round(m.last)}{m.unit&&<span style={{fontSize:7}}>{m.unit}</span>}</div>
-                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:"#CA8A04",minWidth:44,textAlign:"right"}}>{Math.round(m.top5)}{m.unit&&<span style={{fontSize:7}}>{m.unit}</span>}</div>
-                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:800,color:pctColor(pct),minWidth:36,textAlign:"right"}}>{pct}%</div>
-                    </div>;
-                  })}
-                  <div style={{marginTop:6,padding:"6px 10px",background:t.bgMuted,borderRadius:6,fontSize:9,color:t.textFaint,lineHeight:1.4}}>
-                    <strong style={{color:pri}}>Top {top5.length}:</strong> média dos {top5.length} jogos com maior output composto (dist + HSR×3 + sprints×50 + PL). Referência: demanda de pico individual (Malone et al., 2015).
-                  </div>
-                </div>
+              <div>{metrics.map((m,i)=>_refRow(m,i))}</div>
+              {/* Lista de jogos do Top N — formato denso e neutro */}
+              <div style={{marginTop:14,paddingTop:12,borderTop:`1px solid ${t.borderLight}`,display:"flex",flexWrap:"wrap",gap:10,alignItems:"center"}}>
+                <span style={{fontSize:9,color:t.textFaintest,fontWeight:800,letterSpacing:1.5,textTransform:"uppercase"}}>Compõem Gref</span>
+                {top5.map((g,i)=><span key={i} style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:t.textMuted}}>
+                  {g.fmtDate} <span style={{color:t.textFaintest,margin:"0 4px"}}>·</span> {Math.round(g.dist)}m
+                </span>).reduce((acc,el,i,arr)=>{acc.push(el);if(i<arr.length-1)acc.push(<span key={`sep-${i}`} style={{color:t.textFaintest}}>•</span>);return acc;},[])}
               </div>
-              {/* Top 5 games list */}
-              <div style={{marginTop:12,borderTop:`1px solid ${t.borderLight}`,paddingTop:10}}>
-                <div style={{fontSize:9,fontWeight:700,color:t.textFaint,textTransform:"uppercase",marginBottom:6}}>Jogos que compõem o Top {top5.length}</div>
-                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                  {top5.map((g,i)=><span key={i} style={{padding:"3px 8px",borderRadius:5,fontSize:9,fontWeight:600,background:"#CA8A0410",color:"#CA8A04",border:"1px solid #CA8A0425"}}>{g.fmtDate} — {Math.round(g.dist)}m · {Math.round(g.hsr)}m HSR · {g.pico_vel.toFixed(1)}km/h</span>)}
-                </div>
+              {/* Citação Ravé 2020 — único parágrafo metodológico, fonte 9px */}
+              <div style={{marginTop:10,fontSize:9,color:t.textFaintest,lineHeight:1.5,fontStyle:"italic"}}>
+                Ravé G., Granacher U., Boullosa D., Hackney A.C., Zouhal H. (2020). <em>How to Use GPS Data to Monitor Training Load in the "Real World" of Elite Soccer.</em> Front. Physiol. 11:944.
               </div>
             </div>;
           })()}
@@ -4132,12 +4166,10 @@ export default function Dashboard(){
             </div>;
           })()}
 
-          {/* ═══ TREINO vs JOGO — Comparação Relacional contra Gref ═══
-                Gref = média dos 5 melhores registros em partidas oficiais (cima).
-                Para cada métrica de carga externa, mostra qual percentual da
-                exigência de jogo a última sessão de treino representou. Útil
-                para periodização tática (ex: MD-3 deve ficar em ~75–90% Gref). */}
-          {(()=>{
+          {/* Painel "Treino vs Jogo (Gref)" removido — informação redundante
+              com o painel "Média Móvel — Top X" abaixo, que já compara o
+              último jogo contra o pico individual. */}
+          {false&&(()=>{
             const liveAth=LIVE_SESSION.atletas[sp.n];
             const gpsRaw=sheetData?.gps?.[sp.n]||[];
             if(gpsRaw.length<3) return null;
