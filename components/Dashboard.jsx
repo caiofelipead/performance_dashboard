@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { BarChart, Bar, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, AreaChart, Cell, ReferenceLine, LineChart, Line } from "recharts";
 import { Activity, TrendingUp, AlertTriangle, CheckCircle2, ChevronRight, ChevronDown, Heart, Zap, Shield, Users, Eye, Brain, Target, Calendar, RefreshCw, Wifi, WifiOff, Moon, Sun, Trophy, BookOpen, Info } from "lucide-react";
 import { useSheetData } from "./useSheetData";
@@ -17,15 +17,45 @@ const THEMES={
     ringBg:"#f1f5f9",
     tooltipBg:"#fff"},
   dark:{
-    bg:"#0c0e14",bgCard:"#181b25",bgMuted:"#1e2230",bgMuted2:"#282d3c",
-    text:"#f1f5f9",textMuted:"#b8c4d0",textFaint:"#8896a8",textFaintest:"#5e6b7d",
-    border:"#353b50",borderLight:"#2a2f40",
-    scrollThumb:"#4a5268",scrollTrack:"transparent",
-    shadow:"rgba(0,0,0,.35)",shadowMd:"rgba(0,0,0,.45)",shadowLg:"rgba(0,0,0,.55)",
-    headerBg:"#10121a",headerShadow:"rgba(0,0,0,.5)",
-    ringBg:"#282d3c",
-    tooltipBg:"#1e2230"}
+    // Paleta high-contrast inspirada nas referências (STATSports / Season Calendar):
+    // navy profundo, cards com tinta azulada, neons de acento.
+    bg:"#070a14",bgCard:"#0f1320",bgMuted:"#161a29",bgMuted2:"#1f2536",
+    text:"#f1f5f9",textMuted:"#c5cdd9",textFaint:"#8896a8",textFaintest:"#5e6b7d",
+    border:"#252b40",borderLight:"#1a2030",
+    scrollThumb:"#3a4258",scrollTrack:"transparent",
+    shadow:"rgba(0,0,0,.45)",shadowMd:"rgba(0,0,0,.6)",shadowLg:"rgba(0,0,0,.75)",
+    headerBg:"#0a0d18",headerShadow:"rgba(0,0,0,.65)",
+    ringBg:"#1f2536",
+    tooltipBg:"#161a29",
+    accent:"#3b82f6",        // electric blue (active states, links)
+    accentGlow:"rgba(59,130,246,.35)",
+    neonGreen:"#22c55e",
+    neonYellow:"#facc15",
+    neonOrange:"#fb923c",
+    neonRed:"#ef4444",
+    pitchGreen:"#16a34a"}
 };
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ThresholdGauge — barra horizontal verde→amarelo→vermelho com marker da posição
+// (referência: STATSports Player view). Uso: <ThresholdGauge value={pct} theme={t}/>
+// `value` é tratado como % (0–150). Zonas:
+//   0–60% verde  · 60–85% amarelo · 85–115% laranja · >115% vermelho.
+// `bands` permite override custom (ex: ACWR usa 0–0.8 / 0.8–1.5 / >1.5).
+// ═══════════════════════════════════════════════════════════════════════════════
+function ThresholdGauge({ value, max = 150, theme, bands, height = 6 }) {
+  const t = theme || THEMES.light;
+  const v = Number.isFinite(value) ? value : 0;
+  const pct = Math.min(100, Math.max(0, (v / max) * 100));
+  const grad = bands || "linear-gradient(to right, #22c55e 0%, #22c55e 40%, #facc15 60%, #fb923c 80%, #ef4444 100%)";
+  return (
+    <div style={{position:"relative",height,background:t.bgMuted2,borderRadius:height/2,overflow:"hidden",border:`1px solid ${t.borderLight}`}}>
+      <div style={{position:"absolute",inset:0,background:grad,opacity:.85}}/>
+      {/* Marker da posição atual */}
+      <div style={{position:"absolute",left:`calc(${pct}% - 4px)`,top:-2,width:8,height:height+4,background:"#fff",borderRadius:2,boxShadow:"0 0 6px rgba(255,255,255,.7)",border:`1px solid ${t.border}`}}/>
+    </div>
+  );
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Macro-grupos de posição — diretiva técnica (Maio/2026)
@@ -1252,7 +1282,7 @@ export default function Dashboard(){
           </div>
         </div>
         <div style={{display:"flex",gap:1,overflowX:"auto",maxWidth:"calc(100vw - 380px)",scrollbarWidth:"none",msOverflowStyle:"none"}}>
-          {tabs.map(t=>{const Ic=t.ic;return <button key={t.id} onClick={()=>setTab(t.id)} style={{display:"flex",alignItems:"center",gap:4,background:tab===t.id?acc:"transparent",border:`1px solid ${tab===t.id?acc:"transparent"}`,color:tab===t.id?t.bgCard:"rgba(255,255,255,.5)",padding:"5px 8px",borderRadius:6,fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .2s",whiteSpace:"nowrap",flexShrink:0}}><Ic size={12}/>{t.l}</button>})}
+          {tabs.map(tb=>{const Ic=tb.ic;const isActive=tab===tb.id;const glow=dark?"rgba(59,130,246,.45)":"rgba(255,255,255,.4)";return <button key={tb.id} onClick={()=>setTab(tb.id)} style={{display:"flex",alignItems:"center",gap:5,background:isActive?(dark?"#3b82f6":acc):"rgba(255,255,255,.04)",border:`1px solid ${isActive?(dark?"#60a5fa":acc):"rgba(255,255,255,.08)"}`,color:isActive?"#fff":"rgba(255,255,255,.62)",padding:"6px 11px",borderRadius:999,fontSize:10,fontWeight:700,letterSpacing:.2,cursor:"pointer",fontFamily:"inherit",transition:"all .2s",whiteSpace:"nowrap",flexShrink:0,boxShadow:isActive?`0 0 0 3px ${glow}, 0 2px 8px ${glow}`:"none"}}><Ic size={12}/>{tb.l}</button>})}
         </div>
         <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:"rgba(255,255,255,.5)",display:"flex",alignItems:"center",gap:10}}>
           {/* Live Data Indicator */}
@@ -1324,22 +1354,27 @@ export default function Dashboard(){
               {l:"Ótimos",desc:"Risco score < 20",v:players.filter(p=>p.risk==="LOW").length,total:players.length,c:"#16A34A",bg:"#F0FDF4",bgDark:"#0f2418",bc:"#BBF7D0",ic:CheckCircle2}
             ];
             return <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,marginBottom:16}}>
-              {kpis.map((k,i)=>{const Ic=k.ic;const pct=k.total?Math.round((k.v/k.total)*100):0;return <div key={i} style={{background:t.bgCard,borderRadius:14,border:`1px solid ${t.border}`,padding:0,boxShadow:`0 1px 4px ${t.shadow}`,overflow:"hidden",transition:"box-shadow .2s"}}>
-                <div style={{borderTop:`3px solid ${k.c}`,padding:"14px 16px 12px"}}>
+              {kpis.map((k,i)=>{const Ic=k.ic;const pct=k.total?Math.round((k.v/k.total)*100):0;
+                const isAlert=k.l==="Críticos"||k.l==="Alto Risco"||k.l==="Bem-estar Baixo";
+                const glow=dark?(isAlert&&k.v>0?`${k.c}55`:"transparent"):"transparent";
+                return <div key={i} style={{background:t.bgCard,borderRadius:14,border:`1px solid ${dark?"rgba(255,255,255,.06)":t.border}`,padding:0,boxShadow:dark?`0 4px 16px rgba(0,0,0,.35), 0 0 0 1px ${glow}`:`0 1px 4px ${t.shadow}`,overflow:"hidden",transition:"box-shadow .2s",position:"relative"}}>
+                {/* Faixa neon no topo */}
+                <div style={{height:3,background:`linear-gradient(90deg, ${k.c} 0%, ${k.c}88 100%)`,boxShadow:dark?`0 0 8px ${k.c}66`:"none"}}/>
+                <div style={{padding:"14px 16px 12px"}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                    <div style={{fontSize:11,color:t.textFaint,fontWeight:600,letterSpacing:.3}}>{k.l}</div>
-                    <div style={{width:32,height:32,borderRadius:10,background:dark?k.bgDark:k.bg,display:"flex",alignItems:"center",justifyContent:"center",border:`1px solid ${k.c}20`}}>
-                      <Ic size={16} color={k.c}/>
+                    <div style={{fontSize:10,color:t.textFaint,fontWeight:700,letterSpacing:.5,textTransform:"uppercase"}}>{k.l}</div>
+                    <div style={{width:30,height:30,borderRadius:9,background:dark?`${k.c}1A`:k.bg,display:"flex",alignItems:"center",justifyContent:"center",border:`1px solid ${k.c}33`}}>
+                      <Ic size={15} color={k.c}/>
                     </div>
                   </div>
-                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:32,fontWeight:800,color:k.c,lineHeight:1}}>{k.v}</div>
-                  <div style={{display:"flex",alignItems:"center",gap:6,marginTop:8}}>
-                    <div style={{flex:1,height:4,background:t.bgMuted2,borderRadius:4,overflow:"hidden"}}>
-                      <div style={{height:"100%",width:`${pct}%`,background:k.c,borderRadius:4,opacity:.7,transition:"width .6s"}}/>
-                    </div>
-                    <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:t.textFaint,fontWeight:600,whiteSpace:"nowrap"}}>{k.v}/{k.total}</span>
+                  <div style={{display:"flex",alignItems:"baseline",gap:6}}>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:34,fontWeight:900,color:k.c,lineHeight:1,letterSpacing:-1,textShadow:dark?`0 0 12px ${k.c}55`:"none"}}>{k.v}</div>
+                    <div style={{fontSize:11,color:t.textFaint,fontWeight:600}}>/ {k.total}</div>
                   </div>
-                  <div style={{fontSize:9,color:t.textFaintest,marginTop:4,fontWeight:500}}>{k.desc}</div>
+                  <div style={{marginTop:10}}>
+                    <ThresholdGauge value={pct} max={100} theme={t} height={5} bands={`linear-gradient(90deg, ${k.c}AA 0%, ${k.c} 100%)`}/>
+                  </div>
+                  <div style={{fontSize:9,color:t.textFaintest,marginTop:6,fontWeight:500,letterSpacing:.2}}>{k.desc}</div>
                 </div>
               </div>})}
             </div>;
@@ -1994,12 +2029,83 @@ export default function Dashboard(){
                   return ["Todos","Paulistão","Série B"].map((f,i)=>{
                     const filterVal = f==="Todos"?null:f==="Paulistão"?"Paulistão":"Série B";
                     const count = filterVal ? jogosCalendario.filter(g=>(g.comp||"").toLowerCase().includes(filterVal.toLowerCase())).length : jogosCalendario.length;
-                    return <span key={i} style={{padding:"4px 12px",borderRadius:6,fontSize:10,fontWeight:600,background:t.bgMuted,color:t.textMuted,border:`1px solid ${t.border}`,cursor:"default"}}>{f} ({count})</span>;
+                    return <span key={i} style={{padding:"5px 14px",borderRadius:999,fontSize:10,fontWeight:700,background:dark?"rgba(255,255,255,.04)":t.bgMuted,color:t.textMuted,border:`1px solid ${dark?"rgba(255,255,255,.08)":t.border}`,cursor:"default"}}>{f} ({count})</span>;
                   });
                 })()}
               </div>
             </div>
           </div>
+
+          {/* ═══ HERO CARD — Próximo Jogo (estilo Season Calendar) ═══ */}
+          {(()=>{
+            const games=sheetData?.calendario||[];
+            if(!games.length) return null;
+            const parseGD=s=>{if(!s)return null;const v=String(s).trim();if(/^\d{4}-\d{2}-\d{2}/.test(v))return new Date(v);const p=v.split(/[\/\-\.]/);if(p.length>=3){const[a,b,c]=p.map(Number);if(c>100)return new Date(c,b-1,a);if(a>100)return new Date(a,b-1,c);return new Date(2026,b-1,a);}return null;};
+            const today=new Date(); today.setHours(0,0,0,0);
+            const upcoming=games.map(g=>({g,d:parseGD(g.data)})).filter(x=>x.d&&x.d>=today).sort((a,b)=>a.d-b.d);
+            if(!upcoming.length) return null;
+            const next=upcoming[0];
+            const g=next.g; const d=next.d;
+            const ms=d.getTime()-Date.now();
+            const days=Math.max(0,Math.floor(ms/86400000));
+            const hours=Math.max(0,Math.floor((ms%86400000)/3600000));
+            const mins=Math.max(0,Math.floor((ms%3600000)/60000));
+            const isHome=(g.local||"").toUpperCase()==="C";
+            const dateStr=d.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"short"});
+            const timeStr=d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})||"—";
+
+            // Botafogo SP (assets/public placeholder do escudo)
+            const botaShield="/icon.png";
+            const advShield=g.escudo&&(g.escudo.startsWith("http")||g.escudo.startsWith("/"))?g.escudo:null;
+
+            return <div style={{borderRadius:16,padding:0,marginBottom:18,overflow:"hidden",position:"relative",background:dark?"linear-gradient(135deg, rgba(15,19,32,.92) 0%, rgba(7,10,20,.96) 60%, rgba(15,19,32,.92) 100%)":"linear-gradient(135deg, #f8fafb 0%, #fff 100%)",border:`1px solid ${t.border}`,boxShadow:dark?"0 8px 32px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05)":"0 4px 20px rgba(0,0,0,.08)"}}>
+              {/* Faixa decorativa neon */}
+              <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg, transparent 0%, #3b82f6 30%, #22c55e 70%, transparent 100%)",opacity:.7}}/>
+              <div style={{display:"grid",gridTemplateColumns:"1fr auto 1fr",gap:24,alignItems:"center",padding:"32px 40px"}}>
+                {/* Time da casa (Botafogo SP) */}
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
+                  <div style={{width:84,height:84,borderRadius:"50%",background:dark?"rgba(255,255,255,.05)":"#fff",border:`2px solid ${dark?"rgba(255,255,255,.1)":t.border}`,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",boxShadow:dark?"0 4px 16px rgba(0,0,0,.4)":"0 2px 8px rgba(0,0,0,.1)"}}>
+                    <img src={botaShield} alt="Botafogo SP" style={{width:64,height:64,objectFit:"contain"}}/>
+                  </div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:13,color:pri,textAlign:"center",letterSpacing:.3}}>{isHome?"BOTAFOGO SP":g.adversario||"—"}</div>
+                  <span style={{padding:"3px 10px",borderRadius:999,fontSize:9,fontWeight:700,background:isHome?"rgba(34,197,94,.15)":"rgba(239,68,68,.15)",color:isHome?"#22c55e":"#ef4444",border:`1px solid ${isHome?"#22c55e":"#ef4444"}66`}}>{isHome?"CASA":"FORA"}</span>
+                </div>
+
+                {/* Coluna central: data + countdown + horário */}
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10,minWidth:280}}>
+                  <span style={{padding:"4px 14px",borderRadius:999,fontSize:10,fontWeight:800,background:"#3b82f6",color:"#fff",letterSpacing:.5,textTransform:"uppercase",boxShadow:"0 0 0 3px rgba(59,130,246,.25)"}}>Próximo Jogo · {g.comp||"—"}</span>
+                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:t.textFaint,fontWeight:600,letterSpacing:.5}}>{dateStr.toUpperCase()}</div>
+                  {/* Countdown estilo Season Calendar */}
+                  <div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",background:dark?"rgba(255,255,255,.03)":t.bgMuted,borderRadius:12,border:`1px solid ${dark?"rgba(255,255,255,.06)":t.borderLight}`}}>
+                    {[{v:days,l:"Dias"},{v:hours,l:"Horas"},{v:mins,l:"Min"}].map((u,i)=><React.Fragment key={i}>
+                      {i>0&&<span style={{fontSize:18,color:t.textFaint,fontWeight:300}}>:</span>}
+                      <div style={{textAlign:"center"}}>
+                        <div style={{fontFamily:"'JetBrains Mono'",fontSize:24,fontWeight:900,color:pri,lineHeight:1}}>{String(u.v).padStart(2,"0")}</div>
+                        <div style={{fontSize:8,color:t.textFaint,fontWeight:700,letterSpacing:.5,textTransform:"uppercase",marginTop:2}}>{u.l}</div>
+                      </div>
+                    </React.Fragment>)}
+                  </div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:900,fontSize:32,color:pri,letterSpacing:-.5,marginTop:4}}>{timeStr}</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>{g.rodada||""}</div>
+                </div>
+
+                {/* Adversário ou Botafogo conforme local */}
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
+                  <div style={{width:84,height:84,borderRadius:"50%",background:dark?"rgba(255,255,255,.05)":"#fff",border:`2px solid ${dark?"rgba(255,255,255,.1)":t.border}`,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",boxShadow:dark?"0 4px 16px rgba(0,0,0,.4)":"0 2px 8px rgba(0,0,0,.1)"}}>
+                    {advShield?<img src={advShield} alt={g.adversario} style={{width:64,height:64,objectFit:"contain"}} onError={e=>{e.target.style.display="none"}}/>
+                    :<div style={{fontSize:28,fontWeight:900,color:t.textFaint}}>{(g.adversario||"?").charAt(0).toUpperCase()}</div>}
+                  </div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:13,color:pri,textAlign:"center",letterSpacing:.3}}>{isHome?(g.adversario||"—").toUpperCase():"BOTAFOGO SP"}</div>
+                  <span style={{padding:"3px 10px",borderRadius:999,fontSize:9,fontWeight:700,background:isHome?"rgba(239,68,68,.15)":"rgba(34,197,94,.15)",color:isHome?"#ef4444":"#22c55e",border:`1px solid ${isHome?"#ef4444":"#22c55e"}66`}}>{isHome?"FORA":"CASA"}</span>
+                </div>
+              </div>
+              {/* Rodapé com infos */}
+              {upcoming.length>1&&<div style={{padding:"10px 28px",borderTop:`1px solid ${t.borderLight}`,background:dark?"rgba(0,0,0,.18)":t.bgMuted,fontSize:10,color:t.textFaint,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <span><strong style={{color:pri}}>{upcoming.length-1}</strong> jogo{upcoming.length>2?"s":""} agendado{upcoming.length>2?"s":""} adiante</span>
+                <span style={{fontFamily:"'JetBrains Mono'"}}>Próximo após: {upcoming[1].g.adversario} · {upcoming[1].d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})}</span>
+              </div>}
+            </div>;
+          })()}
 
           {/* Insights Panel — Performance vs Resultado */}
           {(()=>{
