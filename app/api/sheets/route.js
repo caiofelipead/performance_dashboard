@@ -34,6 +34,12 @@ const SHEETS_CONFIG = {
     fisioterapia: 1541953765,
     calendario: 460942009
   },
+  // Abas lidas por TÍTULO (gid não conhecido — usa gviz `sheet=` ou Sheets
+  // API quando service account configurado). Fonte primária quando publicada.
+  tabs_by_title: {
+    lesoes: "Lesoes",
+    epid_cadastro: "Epid_Cadastro"
+  },
   // Planilhas externas (publicadas separadamente)
   external: {
     lesoes: {
@@ -981,22 +987,41 @@ function processLesoes(rows) {
       return "";
     };
 
-    const dateStr = findField(row, "data_lesao", "data_da_lesao", "data", "date", "data_inicio", "inicio");
-    const saidaDm = findField(row, "saida_dm", "saida_do_dm", "data_saida", "saida");
+    // Schema NOVO da aba `Lesoes` interna (planilha unificada Maio/2026):
+    //   Od. | Data da Entrada | Data da Cirurgia | Data Saída do DM/FISIO |
+    //   Estágio 1 | Estágio 2 | Estágio 3 | Início Transição |
+    //   Final Transição | CalculoDiasDM | CalculoDiasTransicao | ...
+    // Schema LEGADO externo (planilha pública antiga):
+    //   data_lesao, saida_dm, inicio_transicao, fim_transicao, etc.
+    // findField busca por substring de chave normalizada — cobre ambos.
+    const dateStr = findField(row, "data_da_entrada", "data_entrada", "data_lesao", "data_da_lesao", "data_inicio", "inicio", "data");
+    const dataCirurgia = findField(row, "data_da_cirurgia", "data_cirurgia", "cirurgia");
+    const saidaDm = findField(row, "data_saida_do_dm", "saida_do_dm", "data_saida_dm", "data_saida_do_dm_fisio", "saida_dm", "data_saida", "saida");
+    const estagio1 = findField(row, "estagio_1", "estagio1");
+    const estagio2 = findField(row, "estagio_2", "estagio2");
+    const estagio3 = findField(row, "estagio_3", "estagio3");
     const iniTrans = findField(row, "inicio_transicao", "ini_trans", "ini_transicao", "data_transicao", "transicao");
-    const fimTrans = findField(row, "fim_transicao", "fim_trans", "data_retorno", "retorno", "data_fim", "fim", "alta");
+    const fimTrans = findField(row, "final_transicao", "fim_transicao", "fim_trans", "data_retorno", "retorno", "data_fim", "fim", "alta");
     const prognostico = findField(row, "prognostico", "previsao", "previsao_retorno", "data_prognostico");
+
+    // dias_dm prefere CalculoDiasDM (planilha calcula diretamente) sobre legado
+    const diasDmCalc = toNum(findField(row, "calculodiasdm", "dias_dm", "dias_afastado", "dias_departamento_medico"));
+    const diasTransCalc = toNum(findField(row, "calculodiastransicao", "dias_trans", "dias_transicao"));
 
     result.push({
       n: name,
       pos: findField(row, "posicao", "pos", "position") || "",
       date: dateStr,
+      data_cirurgia: dataCirurgia,
       saida_dm: saidaDm,
+      estagio_1: estagio1,
+      estagio_2: estagio2,
+      estagio_3: estagio3,
       ini_trans: iniTrans,
       fim_trans: fimTrans,
-      dias_dm: toNum(findField(row, "dias_dm", "dias_afastado", "dias_departamento_medico")),
-      dias_trans: toNum(findField(row, "dias_trans", "dias_transicao")),
-      total: toNum(findField(row, "total", "total_dias", "dias_total")),
+      dias_dm: diasDmCalc,
+      dias_trans: diasTransCalc,
+      total: toNum(findField(row, "total", "total_dias", "dias_total")) || (diasDmCalc + diasTransCalc),
       classif: findField(row, "classificacao", "classif", "grau", "gravidade", "tipo") || "",
       regiao: findField(row, "regiao", "regiao_lesao", "local", "area") || "",
       lado: findField(row, "lado", "lateralidade") || "",
@@ -1197,6 +1222,49 @@ async function fetchSheetViaApi(spreadsheetId, gid, token) {
 //  (4) Google Visualization API (gviz)
 // Retorna o CSV cru ou lança erro com a lista de tentativas.
 // ═══════════════════════════════════════════════════════════════════════════════
+// Fetch CSV de uma aba pelo TÍTULO (não pelo gid). Útil quando o gid muda
+// entre republicações. Usa gviz `sheet=` ou Sheets API v4 quando autenticado.
+async function fetchSheetByTitle(title) {
+  if (!title) throw new Error("title vazio");
+  const errors = [];
+  const token = await getServiceAccountToken();
+
+  // (1) Sheets API v4 — encoda o título como range, retorna valores como CSV.
+  if (token) {
+    for (const id of SHEETS_CONFIG.spreadsheet_ids) {
+      try {
+        const range = encodeURIComponent(title);
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${range}?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING`;
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.values?.length) {
+            const escape = (v) => {
+              const s = v === null || v === undefined ? "" : String(v);
+              return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+            };
+            return data.values.map(row => row.map(escape).join(",")).join("\n");
+          }
+        }
+      } catch (e) { errors.push(`api(${id}): ${e.message}`); }
+    }
+  }
+
+  // (2) Google Visualization API com `sheet=` (nome da aba) — público.
+  for (const id of SHEETS_CONFIG.spreadsheet_ids) {
+    try {
+      const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(title)}`;
+      const res = await fetch(url, { next: { revalidate: 60 } });
+      if (res.ok) {
+        const text = await res.text();
+        if (text && !text.includes("<!DOCTYPE")) return text;
+      }
+    } catch (e) { errors.push(`gviz(${id}): ${e.message}`); }
+  }
+
+  throw new Error(`Falha ao buscar aba por título "${title}". Tentativas: ${errors.join("; ")}`);
+}
+
 async function fetchSheetCSV(gid = 0) {
   const errors = [];
   const pubKeys = SHEETS_CONFIG.published_keys || (SHEETS_CONFIG.published_key ? [SHEETS_CONFIG.published_key] : []);
@@ -1732,6 +1800,21 @@ export async function GET(request) {
       // GPS: ler EXCLUSIVAMENTE a aba gps_individual (gid=1595283302) — fonte
       // única de verdade da temporada corrente, com thresholds HSR > 19.8 km/h
       // e Sprint > 25.2 km/h. Aba `gps` legada não é mais consumida no tab=all.
+      // Lesões: tenta primeiro a aba interna `Lesoes` da planilha unificada
+      // (mais atualizada, sob controle do clube). Cai para o CSV externo
+      // legado quando a aba interna falha (sem service account ou aba
+      // ainda não publicada).
+      const lesoesInternalP = fetchSheetByTitle(SHEETS_CONFIG.tabs_by_title.lesoes)
+        .then(csv => ({ source: "internal", csv }))
+        .catch(async (errInt) => {
+          try {
+            const csv = await fetchExternalCSV(SHEETS_CONFIG.external.lesoes);
+            return { source: "external_fallback", csv, internalError: errInt?.message };
+          } catch (errExt) {
+            throw new Error(`internal: ${errInt?.message}; external: ${errExt?.message}`);
+          }
+        });
+
       const [
         gpsCSV, diarioCSV, saltosCSV, questCSV, fisioCSV,
         lesoesCSV, cmjExtCSV, antropCSV, calendarioCSV,
@@ -1742,7 +1825,7 @@ export async function GET(request) {
         fetchSheetCSV(SHEETS_CONFIG.tabs.saltos),
         fetchSheetCSV(SHEETS_CONFIG.tabs.questionarios),
         fetchSheetCSV(SHEETS_CONFIG.tabs.fisioterapia),
-        fetchExternalCSV(SHEETS_CONFIG.external.lesoes),
+        lesoesInternalP,
         fetchExternalCSV(SHEETS_CONFIG.external.cmj),
         fetchSheetCSV(SHEETS_CONFIG.tabs.antropometria),
         fetchSheetCSV(SHEETS_CONFIG.tabs.calendario),
@@ -1805,9 +1888,18 @@ export async function GET(request) {
         result._debug.fisioterapia = { error: fisioCSV.reason?.message || "failed" };
       }
       if (lesoesCSV.status === "fulfilled") {
-        const { rows, headers } = parseCSV(lesoesCSV.value);
+        // Envelope { source: "internal" | "external_fallback", csv, internalError? }
+        const env = lesoesCSV.value || {};
+        const rawCsv = env.csv || env; // tolerância: csv puro também aceito
+        const { rows, headers } = parseCSV(rawCsv);
         result.lesoes = processLesoes(rows);
-        result._debug.lesoes = { rows: rows.length, headers: headers, total: result.lesoes.length };
+        result._debug.lesoes = {
+          source: env.source || "external",
+          rows: rows.length,
+          headers: headers?.slice(0, 25),
+          total: result.lesoes.length,
+          internalError: env.internalError
+        };
       } else {
         result._debug.lesoes = { error: lesoesCSV.reason?.message || "failed" };
       }
