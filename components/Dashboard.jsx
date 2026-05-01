@@ -2333,8 +2333,10 @@ export default function Dashboard(){
                 const hasPeriods=hasTimePeriods2(allSplits);
                 const hasSession=hasSessionSplit2(allSplits);
                 // Suporta dois formatos: (A) legado com splits / (B) gps_individual sem splits.
+                // Como o universo já está filtrado pela data do jogo, distâncias altas
+                // implicam jogo mesmo sem palavra-chave no título.
                 const playedLegacy=(hasPeriods&&gameTimeCt>=2)||(hasSession&&stIsMatch&&dist>=4000)||(hasPeriods&&gameTimeCt>=1&&dist>=2000);
-                const playedIndividual=!allSplits.length&&stIsMatch&&dist>=2000;
+                const playedIndividual=!allSplits.length&&((stIsMatch&&dist>=2000)||dist>=4000);
                 if(!playedLegacy&&!playedIndividual) continue;
                 if(dist>0)distArr.push(dist);
                 if(gps?.hsr>0)hsrArr.push(gps.hsr);
@@ -2828,13 +2830,17 @@ export default function Dashboard(){
                 if(hasTimePeriodSplits&&gameTimeSplits>=1&&dist>=2000)return true;
 
                 // (B) gps_individual: sem splits — usa sessionTitle + dist.
+                // Universo já restrito à data do jogo (dateMatch ±2d), então
+                // ausência de palavra-chave "Jogo" no título não exclui o atleta.
                 if(!splits.length){
                   // Title contém "Jogo" e distância >= 4000m → titular.
                   if(stIsMatch&&dist>=4000)return true;
                   // Suplente que entrou: dist >= 2000m com title de jogo.
                   if(stIsMatch&&dist>=2000)return true;
-                  // Ainda sem split nem title: confiar em duração>30min e dist>3500m.
-                  if(!stIsMatch&&dur>=30&&dist>=3500)return true;
+                  // Sem title de jogo: distância >= 4000m basta (provável titular).
+                  if(!stIsMatch&&dist>=4000)return true;
+                  // Sem title nem dist alta: duração>30min com dist>3000m.
+                  if(!stIsMatch&&dur>=30&&dist>=3000)return true;
                 }
 
                 // (C) Fallback diário marca "Sim" para Partida.
@@ -3476,9 +3482,49 @@ export default function Dashboard(){
                 {sp.reasons.length>0&&<div style={{display:"flex",gap:6,marginTop:6,flexWrap:"wrap"}}>
                   {sp.reasons.map((r,i)=><span key={i} style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:LV[sp.risk].bg,color:LV[sp.risk].c,border:`1px solid ${LV[sp.risk].bc}`}}>{r}</span>)}
                 </div>}
-                <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:12,marginTop:12}}>
-                  {[{l:"ACWR Int",v:sp.ai?.toFixed(2)||"-",tip:"Acute:Chronic Workload Ratio — carga aguda (7d) ÷ crônica (28d). Ideal: 0.8–1.3"},{l:"PSE",v:sp.pse,tip:"Percepção Subjetiva de Esforço da sessão (escala CR-10 de Borg, 0–10)"},{l:"sRPE Total",v:sp.sra,tip:"Carga total da sessão = PSE × Duração (min). Representa o volume de esforço em Unidades Arbitrárias (UA)"},{l:"CMJ Atual",v:sp.ct&&sp.ct.length?sp.ct[sp.ct.length-1].toFixed(1):sp.cmj||"-",tip:"Counter-Movement Jump atual (cm) — último teste registrado. Indicador de prontidão neuromuscular"},{l:"CMJ Record",v:sp.ct&&sp.ct.length?Math.max(...sp.ct).toFixed(1):sp.cmj||"-",tip:"Maior CMJ registrado do atleta (cm) — melhor salto histórico. Referência de potência máxima individual"},{l:"Humor",v:humorL[sp.h],tip:"Estado de humor pré-treino (1=Raiva, 5=Tranquilo)"},{l:"Energia",v:sp.e<=2?"Baixa":"OK",tip:"Nível de energia pré-treino (1–4)"}].map((m,i)=>
-                    <div key={i} style={{textAlign:"center",cursor:"help"}} title={m.tip}><div style={{fontSize:9,color:t.textFaint,fontWeight:500}}>{m.l}</div><div style={{fontFamily:"'JetBrains Mono'",fontSize:15,fontWeight:700,color:pri,marginTop:1}}>{m.v}</div></div>)}
+                <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:10,marginTop:14}}>
+                  {(()=>{
+                    // Cada KPI traz: valor, posição relativa (0–100%) na escala
+                    // operacional, e cor da zona — para renderizar mini-gauge.
+                    const ai=sp.ai||0;
+                    const pse=Number(sp.pse)||0;
+                    const sra=Number(sp.sra)||0;
+                    const cmjArr=Array.isArray(sp.ct)?sp.ct.filter(v=>v>0):[];
+                    const cmjAtual=cmjArr.length?cmjArr[cmjArr.length-1]:Number(sp.cmj)||0;
+                    const cmjRecord=cmjArr.length?Math.max(...cmjArr):Number(sp.cmj)||0;
+                    const cmjPct=cmjRecord>0?Math.min(100,Math.round((cmjAtual/cmjRecord)*100)):0;
+                    const cmjC=cmjPct>=95?"#22c55e":cmjPct>=88?"#facc15":cmjPct>=80?"#fb923c":"#ef4444";
+                    // ACWR: 0.8–1.3 sweet spot (verde); 1.3–1.5 atenção; >1.5 ou <0.8 perigo
+                    const acwrPct=Math.min(100,Math.max(0,(ai/2)*100));
+                    const acwrC=ai>1.5?"#ef4444":ai>1.3?"#fb923c":ai>=0.8?"#22c55e":ai>0?"#facc15":"#6b7280";
+                    // PSE: 0–10
+                    const psePct=Math.min(100,(pse/10)*100);
+                    const pseC=pse>=8?"#ef4444":pse>=6?"#fb923c":pse>=3?"#22c55e":"#facc15";
+                    // sRPE Total semana: faixa operacional 0–500
+                    const sraPct=Math.min(100,(sra/500)*100);
+                    const sraC=sra>=450?"#ef4444":sra>=350?"#fb923c":sra>=200?"#22c55e":"#facc15";
+                    // Humor 1–5; Energia 1–4
+                    const humor=Number(sp.h)||0; const energia=Number(sp.e)||0;
+                    const humorC=humor>=4?"#22c55e":humor>=3?"#facc15":"#ef4444";
+                    const energiaC=energia>=3?"#22c55e":energia>=2?"#facc15":"#ef4444";
+
+                    const items=[
+                      {l:"ACWR Int", v:ai>0?ai.toFixed(2):"—", pct:acwrPct, c:acwrC, tip:"Acute:Chronic Workload Ratio (sRPE 7d ÷ 28d EWMA). Sweet spot: 0.8–1.3 (Gabbett, 2016)."},
+                      {l:"PSE",      v:pse>0?pse:"—",          pct:psePct,  c:pseC,  tip:"Percepção Subjetiva de Esforço (CR-10 Borg, 0–10)."},
+                      {l:"sRPE Total",v:sra>0?sra:"—",         pct:sraPct,  c:sraC,  tip:"Carga total da sessão = PSE × Duração (UA). >450 = sessão de alta carga (Foster, 2001)."},
+                      {l:"CMJ Atual",v:cmjAtual>0?cmjAtual.toFixed(1):"—", pct:cmjPct, c:cmjC, tip:"Counter-Movement Jump atual (cm). Mostra % vs record individual — queda >5% = fadiga NM (Claudino et al., 2017)."},
+                      {l:"CMJ Record",v:cmjRecord>0?cmjRecord.toFixed(1):"—", pct:100, c:"#a855f7", tip:"Maior CMJ histórico do atleta — referência de potência máxima."},
+                      {l:"Humor",    v:humor>0?humorL[humor]:"—",  pct:(humor/5)*100, c:humorC, tip:"Estado de humor pré-treino (1=Raiva, 5=Tranquilo)."},
+                      {l:"Energia",  v:energia>0?(energia<=2?"Baixa":"OK"):"—",pct:(energia/4)*100, c:energiaC, tip:"Nível de energia pré-treino (1–4)."}
+                    ];
+                    return items.map((m,i)=>
+                      <div key={i} style={{padding:"8px 10px",background:dark?"rgba(255,255,255,.025)":t.bgMuted,borderRadius:8,border:`1px solid ${dark?"rgba(255,255,255,.06)":t.borderLight}`,cursor:"help"}} title={m.tip}>
+                        <div style={{fontSize:8,color:t.textFaint,fontWeight:700,textTransform:"uppercase",letterSpacing:.5,marginBottom:3}}>{m.l}</div>
+                        <div style={{fontFamily:"'JetBrains Mono'",fontSize:16,fontWeight:800,color:m.c,lineHeight:1,marginBottom:6}}>{m.v}</div>
+                        <ThresholdGauge value={m.pct} max={100} theme={t} height={4} bands={`linear-gradient(90deg, ${m.c}66 0%, ${m.c} 100%)`}/>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
