@@ -1057,13 +1057,84 @@ export default function Dashboard(){
     return merged;
   }, [sheetData]);
 
-  // Merge P com dados live do Google Sheets e recalcular scores
+  // Merge P com dados live do Google Sheets e recalcular scores.
+  // Também adiciona atletas presentes na aba `atletas` (cadastro) que ainda
+  // não estão no array P estático — garante que ninguém suma do Squad/Sidebar
+  // por estar fora do hard-code, atendendo à diretriz "puxar atletas da aba".
   const players=useMemo(()=>{
     const liveAtletas = sheetData?.sessionAtletas || {};
     const gpsData = sheetData?.gps || {};
-    return P.map(p=>{
+    const cadastro = sheetData?.atletas_cad || {};
+    // Helper para mapear posição macro do cadastro → sigla curta usada por P
+    // (P guarda GOL/ZAG/LAT/VOL/MEI/EXT/ATA; cadastro pode trazer "Volante" etc.)
+    const macroToShort = (macro, raw) => {
+      const m = String(macro || "").toUpperCase();
+      if (m === "GOLEIRO") return "GOL";
+      if (m === "ZAGUEIRO") return "ZAG";
+      if (m === "LATERAL") return "LAT";
+      if (m === "EXTREMO") return "EXT";
+      if (m === "ATACANTE") return "ATA";
+      if (m === "MEIO-CAMPO") {
+        // Distinguir VOL vs MEI pelo dado bruto da planilha quando possível
+        const r = String(raw || "").toUpperCase();
+        if (r.includes("VOL") || r === "DM" || r === "CM") return "VOL";
+        return "MEI";
+      }
+      return raw ? String(raw).toUpperCase().slice(0,3) : "—";
+    };
+    // Cadastro = fonte de verdade do elenco. Quando estiver carregado,
+    //   • atletas presentes em P mas AUSENTES do cadastro são removidos
+    //     (Sub-20, emprestados, ex-jogadores que ainda gravam GPS);
+    //   • atletas em cadastro fora de P são adicionados.
+    // Quando o cadastro vier vazio (API offline), faz fallback para o array
+    // P inteiro para não quebrar a UI durante carregamento.
+    const cadKeys = Object.keys(cadastro);
+    const cadastroLoaded = cadKeys.length > 0;
+    const cadSet = new Set(cadKeys);
+
+    const baseP = cadastroLoaded ? P.filter(p => cadSet.has(p.n)) : P;
+    const inP = new Set(baseP.map(p => p.n));
+    const extras = [];
+    if (cadastroLoaded) {
+      for (const [name, info] of Object.entries(cadastro)) {
+        if (inP.has(name)) continue;
+        extras.push({
+          n: name,
+          pos: macroToShort(info?.pos_macro, info?.posicao),
+          id: Math.round(info?.idade || 0),
+          h: 3, e: 3,
+          rg: 7, rp: 7, d: 0, sq: 7,
+          rpa: 7, da: 0, sa: 7,
+          nw: 0, pse: 0, sra: 0,
+          w: Math.round(info?.peso_kg || 0),
+          alt: Math.round(info?.altura_cm || 0),
+          bf: 0, mm: 0, imc: 0, nc: 0,
+          ai: 1.0, cmj: 0, ct: [], wt: null,
+          _fromAtletasTab: true,
+          _camisa: info?.camisa, _grupo: info?.grupo
+        });
+      }
+    }
+    const all = [...baseP, ...extras];
+    return all.map(p=>{
       const live = liveAtletas[p.n];
       const merged = {...p};
+      // Cadastro (aba atletas): altura/peso/idade/posição como fallback ou
+      // sobrescrita se P tem 0/vazio. Não sobrescreve dados antropométricos
+      // mais recentes que podem vir de antropometria/questionário abaixo.
+      const cad = cadastro[p.n];
+      if (cad) {
+        if (!merged.id || merged.id === 0) merged.id = Math.round(cad.idade || 0);
+        if ((!merged.alt || merged.alt === 0) && cad.altura_cm > 0)
+          merged.alt = Math.round(cad.altura_cm < 3 ? cad.altura_cm * 100 : cad.altura_cm);
+        if ((!merged.w || merged.w === 0) && cad.peso_kg > 0)
+          merged.w = Math.round(cad.peso_kg);
+        if ((!merged.pos || merged.pos === "—") && cad.posicao)
+          merged.pos = macroToShort(cad.pos_macro, cad.posicao);
+        if (cad.camisa) merged._camisa = cad.camisa;
+        if (cad.grupo) merged._grupo = cad.grupo;
+        if (cad.pe_dominante) merged._peDom = cad.pe_dominante;
+      }
       // Nº de sessões do GPS real (contagem de sessões distintas)
       const gpsEntries = gpsData[p.n];
       if(gpsEntries?.length) {
