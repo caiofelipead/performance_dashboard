@@ -1119,18 +1119,17 @@ export default function Dashboard(){
     return all.map(p=>{
       const live = liveAtletas[p.n];
       const merged = {...p};
-      // Cadastro (aba atletas): altura/peso/idade/posição como fallback ou
-      // sobrescrita se P tem 0/vazio. Não sobrescreve dados antropométricos
-      // mais recentes que podem vir de antropometria/questionário abaixo.
+      // Cadastro (aba atletas) é a FONTE DE VERDADE para idade/posição/altura/
+      // peso/camisa. Sobrescreve dados hard-coded em P (que pode estar
+      // desatualizado para idade/posição). Antropometria/questionário ainda
+      // podem refinar peso/altura abaixo com leituras mais recentes.
       const cad = cadastro[p.n];
       if (cad) {
-        if (!merged.id || merged.id === 0) merged.id = Math.round(cad.idade || 0);
-        if ((!merged.alt || merged.alt === 0) && cad.altura_cm > 0)
+        if (cad.idade > 0) merged.id = Math.round(cad.idade);
+        if (cad.altura_cm > 0)
           merged.alt = Math.round(cad.altura_cm < 3 ? cad.altura_cm * 100 : cad.altura_cm);
-        if ((!merged.w || merged.w === 0) && cad.peso_kg > 0)
-          merged.w = Math.round(cad.peso_kg);
-        if ((!merged.pos || merged.pos === "—") && cad.posicao)
-          merged.pos = macroToShort(cad.pos_macro, cad.posicao);
+        if (cad.peso_kg > 0) merged.w = Math.round(cad.peso_kg);
+        if (cad.posicao) merged.pos = macroToShort(cad.pos_macro, cad.posicao);
         if (cad.camisa) merged._camisa = cad.camisa;
         if (cad.grupo) merged._grupo = cad.grupo;
         if (cad.pe_dominante) merged._peDom = cad.pe_dominante;
@@ -1348,13 +1347,16 @@ export default function Dashboard(){
     @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
 
     {/* HEADER */}
-    <header style={{background:t.headerBg,borderBottom:"2px solid "+acc,padding:"0 28px",position:"sticky",top:0,zIndex:100,boxShadow:`0 2px 8px ${t.headerShadow}`}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",height:56}}>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <img src="https://www.ogol.com.br/img/logos/equipas/3154_imgbank_1685113109.png" alt="Botafogo-SP" style={{width:36,height:36,objectFit:"contain"}}/>
+    <header style={{background:t.headerBg,borderBottom:`1px solid ${acc}`,padding:"0 28px",position:"sticky",top:0,zIndex:100,boxShadow:dark?`0 2px 24px ${acc}22, 0 1px 0 rgba(255,255,255,.04)`:`0 2px 8px ${t.headerShadow}`}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",height:60}}>
+        <div style={{display:"flex",alignItems:"center",gap:14}}>
+          <div style={{position:"relative",width:38,height:38,display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <div style={{position:"absolute",inset:-2,borderRadius:"50%",background:`radial-gradient(circle, ${acc}33 0%, transparent 70%)`}}/>
+            <img src="https://www.ogol.com.br/img/logos/equipas/3154_imgbank_1685113109.png" alt="Botafogo-SP" style={{width:36,height:36,objectFit:"contain",position:"relative",filter:dark?`drop-shadow(0 0 4px ${acc}88)`:"none"}}/>
+          </div>
           <div>
-            <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:14,color:t.bgCard,letterSpacing:-.3}}>Saúde e Performance</div>
-            <div style={{fontSize:10,color:"rgba(255,255,255,.5)",fontWeight:500}}>Botafogo-SP FSA · 2026</div>
+            <div style={{fontFamily:"'Inter Tight'",fontWeight:900,fontSize:15,color:"#fff",letterSpacing:-.4}}>Saúde &amp; Performance</div>
+            <div style={{fontSize:9,color:"rgba(255,255,255,.55)",fontWeight:700,letterSpacing:1.2,textTransform:"uppercase"}}>Botafogo-SP FSA · 2026</div>
           </div>
         </div>
         <div style={{display:"flex",gap:1,overflowX:"auto",maxWidth:"calc(100vw - 380px)",scrollbarWidth:"none",msOverflowStyle:"none"}}>
@@ -1418,28 +1420,30 @@ export default function Dashboard(){
               {l:"Bem-estar Baixo",desc:"Bem-estar < 6.5",v:players.filter(p=>p.rpa&&p.rpa<6.5).length,total:players.length,c:"#DC2626",bg:"#FEF2F2",bgDark:"#2a1215",bc:"#FECACA",ic:Activity},
               {l:"Ótimos",desc:"Risco score < 20",v:players.filter(p=>p.risk==="LOW").length,total:players.length,c:"#16A34A",bg:"#F0FDF4",bgDark:"#0f2418",bc:"#BBF7D0",ic:CheckCircle2}
             ];
-            return <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,marginBottom:16}}>
+            return <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,marginBottom:18}}>
               {kpis.map((k,i)=>{const Ic=k.ic;const pct=k.total?Math.round((k.v/k.total)*100):0;
-                const isAlert=k.l==="Críticos"||k.l==="Alto Risco"||k.l==="Bem-estar Baixo";
-                const glow=dark?(isAlert&&k.v>0?`${k.c}55`:"transparent"):"transparent";
-                return <div key={i} style={{background:t.bgCard,borderRadius:14,border:`1px solid ${dark?"rgba(255,255,255,.06)":t.border}`,padding:0,boxShadow:dark?`0 4px 16px rgba(0,0,0,.35), 0 0 0 1px ${glow}`:`0 1px 4px ${t.shadow}`,overflow:"hidden",transition:"box-shadow .2s",position:"relative"}}>
-                {/* Faixa neon no topo */}
-                <div style={{height:3,background:`linear-gradient(90deg, ${k.c} 0%, ${k.c}88 100%)`,boxShadow:dark?`0 0 8px ${k.c}66`:"none"}}/>
-                <div style={{padding:"14px 16px 12px"}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                    <div style={{fontSize:10,color:t.textFaint,fontWeight:700,letterSpacing:.5,textTransform:"uppercase"}}>{k.l}</div>
-                    <div style={{width:30,height:30,borderRadius:9,background:dark?`${k.c}1A`:k.bg,display:"flex",alignItems:"center",justifyContent:"center",border:`1px solid ${k.c}33`}}>
-                      <Ic size={15} color={k.c}/>
+                const isHot=k.v>0&&(k.l==="Críticos"||k.l==="Alto Risco"||k.l==="Bem-estar Baixo");
+                return <div key={i} style={{background:dark?`linear-gradient(180deg, ${k.c}10 0%, ${t.bgCard} 70%)`:t.bgCard,borderRadius:16,border:`1px solid ${dark?(isHot?k.c+"66":"rgba(255,255,255,.07)"):t.border}`,padding:0,boxShadow:dark?(isHot?`0 0 24px ${k.c}33, 0 4px 16px rgba(0,0,0,.5)`:"0 4px 16px rgba(0,0,0,.4)"):`0 1px 4px ${t.shadow}`,overflow:"hidden",transition:"transform .2s, box-shadow .2s",position:"relative"}}>
+                {/* Faixa neon glow no topo */}
+                <div style={{height:4,background:`linear-gradient(90deg, ${k.c} 0%, ${k.c}aa 100%)`,boxShadow:dark?`0 0 14px ${k.c}88`:"none"}}/>
+                <div style={{padding:"16px 18px 14px"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+                    <div style={{fontSize:9,color:t.textMuted,fontWeight:800,letterSpacing:1,textTransform:"uppercase"}}>{k.l}</div>
+                    <div style={{width:34,height:34,borderRadius:10,background:dark?`${k.c}22`:k.bg,display:"flex",alignItems:"center",justifyContent:"center",border:`1px solid ${k.c}55`,boxShadow:dark?`0 0 8px ${k.c}33`:"none"}}>
+                      <Ic size={17} color={k.c}/>
                     </div>
                   </div>
-                  <div style={{display:"flex",alignItems:"baseline",gap:6}}>
-                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:34,fontWeight:900,color:k.c,lineHeight:1,letterSpacing:-1,textShadow:dark?`0 0 12px ${k.c}55`:"none"}}>{k.v}</div>
-                    <div style={{fontSize:11,color:t.textFaint,fontWeight:600}}>/ {k.total}</div>
+                  <div style={{display:"flex",alignItems:"baseline",gap:8}}>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:48,fontWeight:900,color:k.c,lineHeight:1,letterSpacing:-2,textShadow:dark?`0 0 18px ${k.c}66`:"none"}}>{k.v}</div>
+                    <div style={{fontSize:13,color:t.textFaint,fontWeight:700,letterSpacing:.5}}>/{k.total}</div>
                   </div>
-                  <div style={{marginTop:10}}>
-                    <ThresholdGauge value={pct} max={100} theme={t} height={5} bands={`linear-gradient(90deg, ${k.c}AA 0%, ${k.c} 100%)`}/>
+                  <div style={{marginTop:14}}>
+                    <ThresholdGauge value={pct} max={100} theme={t} height={6} bands={`linear-gradient(90deg, ${k.c}88 0%, ${k.c} 100%)`}/>
                   </div>
-                  <div style={{fontSize:9,color:t.textFaintest,marginTop:6,fontWeight:500,letterSpacing:.2}}>{k.desc}</div>
+                  <div style={{display:"flex",justifyContent:"space-between",marginTop:8}}>
+                    <div style={{fontSize:8,color:t.textFaintest,fontWeight:600,letterSpacing:.3,textTransform:"uppercase"}}>{k.desc}</div>
+                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:k.c,fontWeight:800}}>{pct}%</div>
+                  </div>
                 </div>
               </div>})}
             </div>;
@@ -3582,16 +3586,22 @@ export default function Dashboard(){
                 </div>
                 <div style={{fontSize:9,color:t.textFaint,marginTop:6,lineHeight:1.4}}>Scheffer et al., <em>Nature</em> 2009. Dois ou mais indicadores subindo simultaneamente ativam <em>Sinais precoces ativos</em> — a zona pode escalar mesmo sem desvio extremo de Ψ.</div>
               </div>}
-              <div style={{marginTop:10,padding:10,background:t.bgMuted,borderRadius:8,border:`1px solid ${t.borderLight}`}}>
-                <div style={{fontSize:10,fontWeight:700,color:t.textMuted,marginBottom:6,textTransform:"uppercase",letterSpacing:.5}}>Loadings de PC1 (top 6)</div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:6}}>
-                  {topLoadings.map((l,i)=>{const sign=l.loading>=0?"+":"";const c=l.loading>=0?"#DC2626":"#16A34A";return <div key={i} style={{textAlign:"center",padding:"6px 4px",background:t.bgCard,borderRadius:6,border:`1px solid ${t.borderLight}`}}>
-                    <div style={{fontSize:9,color:t.textFaint,fontWeight:600}}>{featLabel[l.key]||l.key}</div>
-                    <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:c}}>{sign}{l.loading.toFixed(2)}</div>
-                  </div>;})}
+              {/* Loadings PC1 colapsados por padrão — análise técnica para
+                   o auditor da metodologia, não para a leitura clínica diária. */}
+              <details style={{marginTop:10}}>
+                <summary style={{cursor:"pointer",listStyle:"none",fontSize:10,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5,padding:"6px 10px",background:t.bgMuted,borderRadius:8,border:`1px solid ${t.borderLight}`,display:"inline-flex",alignItems:"center",gap:6}}>
+                  <ChevronRight size={11}/> Loadings PC1 (análise técnica)
+                </summary>
+                <div style={{padding:10,background:t.bgMuted,borderRadius:8,border:`1px solid ${t.borderLight}`,marginTop:6}}>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:6}}>
+                    {topLoadings.map((l,i)=>{const sign=l.loading>=0?"+":"";const c=l.loading>=0?"#DC2626":"#16A34A";return <div key={i} style={{textAlign:"center",padding:"6px 4px",background:t.bgCard,borderRadius:6,border:`1px solid ${t.borderLight}`}}>
+                      <div style={{fontSize:9,color:t.textFaint,fontWeight:600}}>{featLabel[l.key]||l.key}</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:12,fontWeight:700,color:c}}>{sign}{l.loading.toFixed(2)}</div>
+                    </div>;})}
+                  </div>
+                  <div style={{fontSize:9,color:t.textFaint,marginTop:6,lineHeight:1.4}}>Loading positivo = feature empurra Ψ para cima (risco). Negativo = puxa para baixo (saudável). Fonseca 2020.</div>
                 </div>
-                <div style={{fontSize:9,color:t.textFaint,marginTop:6,lineHeight:1.4}}>Loading positivo = a feature empurra Ψ para cima (estado de risco). Loading negativo = a feature puxa Ψ para baixo (estado saudável). Ver <em>Fundamento Teórico</em> no Glossário (Fonseca 2020).</div>
-              </div>
+              </details>
             </div>;
           })()}
 
@@ -3612,8 +3622,16 @@ export default function Dashboard(){
             // Top positive e top negative pares para leitura em linguagem natural
             const posPairs=[...net.edges].filter(e=>e.r>0).sort((a,b)=>b.r-a.r).slice(0,3);
             const negPairs=[...net.edges].filter(e=>e.r<0).sort((a,b)=>a.r-b.r).slice(0,3);
-            return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
-              <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,marginBottom:4,display:"flex",alignItems:"center",gap:6}}><Users size={16} color="#2563eb"/>Como as variáveis se relacionam</div>
+            return <details style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:0,marginBottom:16}}>
+              <summary style={{cursor:"pointer",listStyle:"none",padding:"14px 18px",display:"flex",alignItems:"center",gap:8,justifyContent:"space-between"}}>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <ChevronRight size={14} color={t.textFaint}/>
+                  <Users size={15} color={acc}/>
+                  <span style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:13,color:pri}}>Web de Determinantes <span style={{fontSize:10,color:t.textFaint,fontWeight:600,marginLeft:6}}>matriz de correlações + rede</span></span>
+                </div>
+                <span style={{fontSize:9,color:t.textFaint,fontWeight:700,letterSpacing:.5,textTransform:"uppercase"}}>Análise avançada</span>
+              </summary>
+              <div style={{padding:"0 18px 18px"}}>
               <div style={{fontSize:10,color:t.textFaint,marginBottom:12,lineHeight:1.5}}>Cada célula mostra como duas variáveis se movem juntas no elenco. <strong style={{color:"#DC2626"}}>Vermelho</strong> = sobem juntas (quando uma aumenta, a outra tende a aumentar). <strong style={{color:"#16A34A"}}>Verde</strong> = se comportam de forma oposta. Quanto mais forte a cor, mais forte a ligação.</div>
               {/* Resumo em linguagem natural */}
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
@@ -3651,8 +3669,9 @@ export default function Dashboard(){
                 </div>
                 <span style={{color:"#DC2626",fontWeight:700}}>+1.0</span>
               </div>
-              <div style={{fontSize:9,color:t.textFaint,marginTop:8,lineHeight:1.5,textAlign:"center"}}>Cada valor é a correlação de Pearson calculada sobre todas as sessões do elenco. Passe o mouse sobre uma célula para ver o par. <em>Bittencourt et al., Br J Sports Med 2016 — web of determinants.</em></div>
-            </div>;
+              <div style={{fontSize:9,color:t.textFaint,marginTop:8,lineHeight:1.5,textAlign:"center"}}>Cada valor é a correlação de Pearson calculada sobre todas as sessões do elenco. <em>Bittencourt et al., Br J Sports Med 2016.</em></div>
+              </div>
+            </details>;
           })()}
 
           {/* Risco de Lesão + DM + Histórico */}
