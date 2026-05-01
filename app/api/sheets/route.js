@@ -707,29 +707,78 @@ function processBioquimico(rows) {
   return result;
 }
 
-// Atletas: cadastro com posição oficial, altura, peso, data de nascimento,
-// número da camisa e grupo (Profissional/Sub-20). Fonte de verdade da
-// classificação posicional (deduzida da MD/W-MD/Volante etc.).
+// Atletas (Player_Rosters): cadastro oficial do elenco. Colunas reais:
+//   Nomes_Completos · Atletas (curto, key primária) · Posição · Data_Nascimento ·
+//   PD (D/E) · PE · Altura (em metros, vírgula decimal: 1,83) · Idade
+// A coluna B "Atletas" é o nome curto que casa com a key de NAME_MAP
+// (ex.: "Adriano A" → "ADRIANO"). Usar essa coluna como nome principal
+// em vez de "Nomes_Completos" — o full name pode resolver para uma chave
+// errada (ex.: "Felipe Penha" colidiria com "Felipe Vieira" via firstName).
 function processAtletas(rows) {
   const result = {};
+  const _debug = { rawNames: [], resolvedMap: {}, skipped: [] };
   for (const row of rows) {
-    const athlete = findCol(row, "nome", "atleta", "atletas") || "";
-    if (!athlete) continue;
-    const name = resolveName(athlete);
-    if (!name) continue;
-    const posicao = String(findCol(row, "posicao", "posição", "position", "pos") || "").toUpperCase().trim();
+    // Prioridade: "Atletas" (curto) > "Nomes_Completos" (longo) > genérico
+    const shortName = (row.atletas || row.atleta || "").toString().trim();
+    const fullName = (row.nomes_completos || row.nome_completo || row.nome || "").toString().trim();
+    const athleteRaw = shortName || fullName;
+    if (!athleteRaw) continue;
+    _debug.rawNames.push(athleteRaw);
+    const name = resolveName(athleteRaw);
+    if (!name) { _debug.skipped.push({ raw: athleteRaw, reason: "resolveName=null" }); continue; }
+    _debug.resolvedMap[athleteRaw] = name;
+
+    const posicaoRaw = String(findCol(row, "posicao", "posição", "position", "pos") || "").trim();
+    const altura = toNum(findCol(row, "altura", "altura_cm", "estatura", "height"));
+    // Altura na planilha vem em metros com vírgula (1,83). toNum já converte
+    // vírgula → ponto. Aqui detectamos a escala: < 3 = metros, >= 3 = cm.
+    const altura_cm = altura > 0 && altura < 3 ? Math.round(altura * 100) : Math.round(altura);
+
+    // Idade: prefere a coluna "Idade" se preenchida; senão calcula da data
+    // de nascimento (formato DD/MM/YYYY). Resultado é inteiro em anos.
+    let idade = toNum(findCol(row, "idade", "age"));
+    const dataNasc = String(findCol(row, "data_nascimento", "data_de_nascimento", "nascimento", "birth", "data_nasc") || "").trim();
+    if (!idade && dataNasc) {
+      const m = dataNasc.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/);
+      if (m) {
+        const [_, d, mo, y] = m;
+        const year = Number(y) < 100 ? 1900 + Number(y) : Number(y);
+        const birth = new Date(year, Number(mo) - 1, Number(d));
+        const now = new Date();
+        let age = now.getFullYear() - birth.getFullYear();
+        const monthDiff = now.getMonth() - birth.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) age--;
+        idade = age;
+      }
+    }
+
+    // PD (pé dominante): coluna específica "PD" com valores D/E.
+    const pdRaw = String(findCol(row, "pd", "pe_dominante", "pé_dominante", "dominant_foot", "lateralidade") || "").trim().toUpperCase();
+    const pe_dominante = pdRaw === "D" ? "Direito" : pdRaw === "E" ? "Esquerdo" : pdRaw;
+
+    // Sanity check: ignora linhas claramente incompletas (sem posição E sem
+    // data de nascimento E sem altura). Evita que linhas de espaçador,
+    // separador ou cabeçalhos sub-categoria virem entradas fantasmas.
+    if (!posicaoRaw && !dataNasc && altura_cm <= 0) {
+      _debug.skipped.push({ raw: athleteRaw, reason: "incompleto (sem posição/data_nasc/altura)" });
+      continue;
+    }
+
     result[name] = {
-      posicao,
-      pos_macro: macroPosition(posicao),
-      altura_cm: toNum(findCol(row, "altura", "altura_cm", "estatura", "height")),
+      nome_completo: fullName,
+      nome_curto: shortName,
+      posicao: posicaoRaw,
+      pos_macro: macroPosition(posicaoRaw),
+      altura_cm,
       peso_kg: toNum(findCol(row, "peso", "peso_kg", "weight")),
-      idade: toNum(findCol(row, "idade", "age")),
-      data_nasc: findCol(row, "data_de_nascimento", "data_nascimento", "nascimento", "birth"),
+      idade: idade > 0 ? idade : 0,
+      data_nasc: dataNasc,
       camisa: toNum(findCol(row, "camisa", "numero", "n_camisa", "shirt_number")),
       grupo: findCol(row, "grupo", "categoria", "team") || "",
-      pe_dominante: findCol(row, "pe_dominante", "pé_dominante", "dominant_foot", "lateralidade") || ""
+      pe_dominante
     };
   }
+  result._debug = _debug;
   return result;
 }
 
@@ -1951,7 +2000,16 @@ export async function GET(request) {
       if (atletasCSV.status === "fulfilled") {
         const { rows, headers } = parseCSV(atletasCSV.value);
         result.atletas = processAtletas(rows);
-        result._debug.atletas = { rows: rows.length, headers: headers?.slice(0, 14), athletes: Object.keys(result.atletas).length };
+        const atDebug = result.atletas._debug;
+        delete result.atletas._debug;
+        result._debug.atletas = {
+          rows: rows.length,
+          headers: headers?.slice(0, 14),
+          athletes: Object.keys(result.atletas).length,
+          rawNames: atDebug?.rawNames,
+          resolvedMap: atDebug?.resolvedMap,
+          skipped: atDebug?.skipped
+        };
       } else {
         result._debug.atletas = { error: atletasCSV.reason?.message || "failed" };
       }
