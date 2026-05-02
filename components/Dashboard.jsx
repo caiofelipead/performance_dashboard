@@ -2785,17 +2785,23 @@ export default function Dashboard(){
                 if(!gpsEntries.length&&!diarioEntries.length)continue;
 
                 // Prioridade na escolha da entrada GPS do jogo:
-                //   1. Match por adversário no sessionTitle (formato legado "J.BOTxFOR")
-                //   2. Sessão tem palavra-chave de jogo ("Jogo", "Match", "Partida")
-                //   3. Sessão não-complemento (qualquer coisa que não seja aquecimento)
-                //   4. Qualquer entrada da data
+                //   1. Linha com RESULTADO preenchido (V/E/D) — sinal definitivo
+                //      de jogo no formato gps_individual atual
+                //   2. Match por adversário no sessionTitle (formato legado "J.BOTxFOR")
+                //   3. Sessão tem palavra-chave de jogo ("Jogo", "Match", "Partida")
+                //   4. Sessão não-complemento (qualquer coisa que não seja aquecimento)
+                //   5. Qualquer entrada da data
                 // IMPORTANTE: o filtro de DATA já restringiu o universo. Não
                 // descartamos atletas só porque o sessionTitle ("Jogo Casa (V)"
                 // do gps_individual) não cita o adversário — confiar na data.
+                // Sem essa prioridade, um atleta que treinou no dia do jogo
+                // (não-relacionado) podia ter o treino selecionado em vez
+                // do jogo, contaminando a metragem exibida.
+                const resultadoEntries=gpsEntries.filter(e=>String(e.resultado||"").trim().length>0);
                 const opponentEntries=adversario?gpsEntries.filter(e=>matchesOpponent(e.sessionTitle,adversario)):[];
                 const matchEntries=gpsEntries.filter(e=>isMatchTitle(e.sessionTitle));
                 const nonComplEntries=gpsEntries.filter(e=>!isComplementTitle(e.sessionTitle));
-                const pool=opponentEntries.length?opponentEntries:(matchEntries.length?matchEntries:(nonComplEntries.length?nonComplEntries:gpsEntries));
+                const pool=resultadoEntries.length?resultadoEntries:(opponentEntries.length?opponentEntries:(matchEntries.length?matchEntries:(nonComplEntries.length?nonComplEntries:gpsEntries)));
                 let bestGpsEntry=pool.length>1?pool.reduce((b,e)=>(e.gps?.dist_total||0)>(b.gps?.dist_total||0)?e:b,pool[0]):pool[0]||null;
 
                 const gps=bestGpsEntry?bestGpsEntry.gps||bestGpsEntry:{};
@@ -2808,16 +2814,27 @@ export default function Dashboard(){
                 const tags=bestGpsEntry?.tags||diario?.tags||"";
                 const allSplits=bestGpsEntry?.allSplits||[];
                 const splitsDetail=bestGpsEntry?.splitsDetail||[];
-                results.push({name,pos:pInfo?.pos||diario.pos||"",gps,diario,quest,cmj:cmjBest,pInfo,sessionTitle,tags,allSplits,splitsDetail});
+                // Campos top-level do gps_individual que NÃO estão dentro de gps:
+                // duração e RESULTADO são essenciais para o filtro "jogou de fato"
+                // capturar suplentes que entraram poucos minutos.
+                const duracao=bestGpsEntry?.duracao||0;
+                const resultado=bestGpsEntry?.resultado||"";
+                const local=bestGpsEntry?.local||"";
+                const obs=bestGpsEntry?.obs||"";
+                results.push({name,pos:pInfo?.pos||diario.pos||"",gps,diario,quest,cmj:cmjBest,pInfo,sessionTitle,tags,allSplits,splitsDetail,duracao,resultado,local,obs});
               }
 
               // Critério "jogou de fato" — combina dois formatos:
               //   (A) gps legado: requer splits de tempo de jogo (30.40min, 2T)
-              //   (B) gps_individual (atual): 1 linha agregada por sessão; usa
-              //       sessionTitle "Jogo … (resultado)" + distância mínima.
+              //   (B) gps_individual (atual): 1 linha agregada por sessão.
+              //       Sinal mais forte = coluna RESULTADO preenchida (V/E/D).
+              //       Suplentes com pouca distância (M Maranhao 11min/1.282m,
+              //       Gabriel I 18min/1.867m) precisam ser capturados — antes
+              //       o limiar fixo de 2.000m os excluía indevidamente.
               const filtered=results.filter(a=>{
                 const dist=a.gps?.dist_total||0;
-                const dur=a.gps?.duracao||a.duracao||0;
+                const dur=Number(a.duracao)||Number(a.gps?.duracao)||0;
+                const resultadoFilled=String(a.resultado||"").trim().length>0;
                 const stIsMatch=isMatchTitle(a.sessionTitle);
                 const splits=Array.isArray(a.allSplits)?a.allSplits:[];
                 const gameTimeSplits=splits.length?countGameTimeSplits(splits):0;
@@ -2829,24 +2846,27 @@ export default function Dashboard(){
                 if(hasSessionSplit&&stIsMatch&&dist>=4000)return true;
                 if(hasTimePeriodSplits&&gameTimeSplits>=1&&dist>=2000)return true;
 
-                // (B) gps_individual: sem splits — usa sessionTitle + dist.
-                // Universo já restrito à data do jogo (dateMatch ±2d), então
-                // ausência de palavra-chave "Jogo" no título não exclui o atleta.
+                // (B) gps_individual: sem splits.
                 if(!splits.length){
-                  // Title contém "Jogo" e distância >= 4000m → titular.
-                  if(stIsMatch&&dist>=4000)return true;
-                  // Suplente que entrou: dist >= 2000m com title de jogo.
-                  if(stIsMatch&&dist>=2000)return true;
-                  // Sem title de jogo: distância >= 4000m basta (provável titular).
-                  if(!stIsMatch&&dist>=4000)return true;
-                  // Sem title nem dist alta: duração>30min com dist>3000m.
-                  if(!stIsMatch&&dur>=30&&dist>=3000)return true;
+                  // (B.1) RESULTADO preenchido = jogo confirmado pela comissão.
+                  // Aceita qualquer registro GPS (mesmo curto) — é a fonte da
+                  // verdade para "atleta esteve em campo".
+                  if(resultadoFilled&&(dist>0||dur>0))return true;
+                  // (B.2) sessionTitle "Jogo …" — mesmo sem RESULTADO, indica
+                  // que o atleta foi escalado. Mínimos baixos para capturar
+                  // suplente que entrou pouco tempo (Maranhão: 11min/1.282m).
+                  if(stIsMatch&&(dist>=800||dur>=5))return true;
+                  // (B.3) Sem RESULTADO nem title de jogo: precisa distância
+                  // E duração consistentes com tempo de jogo, para evitar
+                  // capturar treino de não-relacionado feito no mesmo dia.
+                  if(!stIsMatch&&!resultadoFilled&&dur>=60&&dist>=5000)return true;
+                  if(!stIsMatch&&!resultadoFilled&&dist>=7000)return true;
                 }
 
                 // (C) Fallback diário marca "Sim" para Partida.
                 const partida=(a.diario?.partida||"").toLowerCase();
                 const playedDiario=partida.includes("sim")||partida==="1"||partida==="s"||partida==="x";
-                if(playedDiario&&dist>2000)return true;
+                if(playedDiario&&(dist>1000||dur>=5))return true;
 
                 return false;
               });
@@ -2946,6 +2966,7 @@ export default function Dashboard(){
                                 <tr style={{background:t.bgMuted}}>
                                   <th style={{padding:"8px 10px",textAlign:"left",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Atleta</th>
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Pos</th>
+                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Min</th>
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Dist (m)</th>
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>HSR (m)</th>
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Spr &gt;20</th>
@@ -2966,6 +2987,11 @@ export default function Dashboard(){
                                   const pse=a.diario?.pse||0;
                                   const duracao=a.diario?.duracao||0;
                                   const srpe=a.diario?.spe||(pse*duracao)||0;
+                                  // Minutos em campo: prioriza duração da linha
+                                  // do GPS individual (col Duração min), com
+                                  // fallback para o diário caso o GPS legado
+                                  // não tenha esse dado.
+                                  const minJogo=Number(a.duracao)||Number(a.gps?.duracao)||duracao||0;
                                   const sono=a.quest?.sono_qualidade||0;
                                   const dor=a.quest?.dor||0;
                                   const rec=a.quest?.recuperacao_geral||0;
@@ -2977,6 +3003,7 @@ export default function Dashboard(){
                                       </div>
                                     </td>
                                     <td style={{padding:"8px 6px",textAlign:"center"}}><span style={{fontSize:9,color:t.textMuted,fontWeight:600}}>{a.pos}</span></td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{minJogo>0?minJogo:<span style={{color:t.textFaint}}>—</span>}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.dist_total||<span style={{color:t.textFaint}}>—</span>}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.hsr||<span style={{color:t.textFaint}}>—</span>}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.sprints||<span style={{color:t.textFaint}}>—</span>}</td>
@@ -2999,6 +3026,7 @@ export default function Dashboard(){
                                   const avg=(arr,fn)=>{const vals=arr.map(fn).filter(v=>v>0);return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;};
                                   const avgF=(arr,fn)=>{const vals=arr.map(fn).filter(v=>v>0);return vals.length?(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1):"—";};
                                   return<>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(athleteData,a=>Number(a.duracao)||Number(a.gps?.duracao)||a.diario?.duracao||0)||"—"}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(athleteData,a=>a.gps?.dist_total||0)||"—"}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(athleteData,a=>a.gps?.hsr||0)||"—"}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avgF(athleteData,a=>a.gps?.sprints||0)}</td>
