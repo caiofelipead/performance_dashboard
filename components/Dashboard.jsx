@@ -1132,6 +1132,8 @@ export default function Dashboard(){
   const players=useMemo(()=>{
     const liveAtletas = sheetData?.sessionAtletas || {};
     const gpsData = sheetData?.gps || {};
+    const fisioData = sheetData?.fisioterapia || {};
+    const diarioData = sheetData?.diario || {};
     const cadastro = sheetData?.atletas_cad || {};
     // Helper para mapear posição macro do cadastro → sigla curta usada por P
     // (P guarda GOL/ZAG/LAT/VOL/MEI/EXT/ATA; cadastro pode trazer "Volante" etc.)
@@ -1157,12 +1159,57 @@ export default function Dashboard(){
     const cadastroLoaded = cadKeys.length > 0;
     const cadSet = new Set(cadKeys);
 
-    const baseP = cadastroLoaded ? P.filter(p => cadSet.has(p.n)) : P;
+    // Filtro de atividade recente: ex-jogadores (saídos, devolvidos,
+    // transferidos) podem permanecer no cadastro mas sem coleta há semanas.
+    // Considera ativo quem tem GPS, diário ou fisio nos últimos 45 dias.
+    // Lesionados em fisio contínua passam pelo critério fisio.
+    // Fallback: se ninguém estiver "ativo" (entre temporadas, dados
+    // desatualizados), o filtro é desligado para não sumir com o elenco.
+    const ACTIVITY_WINDOW_DAYS = 45;
+    const ACTIVITY_WINDOW_MS = ACTIVITY_WINDOW_DAYS * 86400000;
+    const nowTs = Date.now();
+    const parseActDate = (d) => {
+      if (!d) return 0;
+      const s = String(d).trim();
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s).getTime();
+      const parts = s.split(/[\/\-\.]/);
+      if (parts.length >= 3) {
+        const [a,b,c] = parts.map(Number);
+        if (a > 31) return new Date(a, b-1, c).getTime();
+        if (c > 31) return new Date(c, b-1, a).getTime();
+        return new Date(c, a-1, b).getTime();
+      }
+      return new Date(s).getTime() || 0;
+    };
+    const lastActivity = (name) => {
+      let max = 0;
+      const sources = [gpsData[name], fisioData[name], diarioData[name]];
+      for (const arr of sources) {
+        if (!arr?.length) continue;
+        for (const e of arr) {
+          const ts = parseActDate(e.date);
+          if (ts > max) max = ts;
+        }
+      }
+      return max;
+    };
+    const someoneRecentlyActive = cadKeys.some(n => {
+      const ts = lastActivity(n);
+      return ts > 0 && (nowTs - ts) <= ACTIVITY_WINDOW_MS;
+    });
+    const isRecentlyActive = (name) => {
+      if (!someoneRecentlyActive) return true; // fallback: sem dados recentes, não filtra
+      const ts = lastActivity(name);
+      return ts > 0 && (nowTs - ts) <= ACTIVITY_WINDOW_MS;
+    };
+
+    const baseP = cadastroLoaded ? P.filter(p => cadSet.has(p.n) && isRecentlyActive(p.n)) : P;
     const inP = new Set(baseP.map(p => p.n));
     const extras = [];
     if (cadastroLoaded) {
       for (const [name, info] of Object.entries(cadastro)) {
         if (inP.has(name)) continue;
+        if (!isRecentlyActive(name)) continue;
         extras.push({
           n: name,
           pos: macroToShort(info?.pos_macro, info?.posicao),
@@ -2831,6 +2878,17 @@ export default function Dashboard(){
               //       Suplentes com pouca distância (M Maranhao 11min/1.282m,
               //       Gabriel I 18min/1.867m) precisam ser capturados — antes
               //       o limiar fixo de 2.000m os excluía indevidamente.
+              // Pace mínimo (30 m/min) para "atleta jogou de fato".
+              // Banco/aquecimento prolongado gera ~20-25 m/min; atleta em
+              // campo (mesmo goleiro com ~3500m/90min ≈ 39 m/min) sustenta
+              // >= 30 m/min. Filtra Maranhão 75min/1873m (25 m/min, banco
+              // prolongado com aquecimento) sem cortar suplente legítimo de
+              // 11min/1282m (116 m/min) ou Gabriel I 18min/1867m (104 m/min).
+              const MIN_PACE_M_PER_MIN = 30;
+              const meetsPlayPace = (dist, dur) => {
+                if (dur < 3 || dist < 300) return false;
+                return dist >= dur * MIN_PACE_M_PER_MIN;
+              };
               const filtered=results.filter(a=>{
                 const dist=a.gps?.dist_total||0;
                 const dur=Number(a.duracao)||Number(a.gps?.duracao)||0;
@@ -2849,13 +2907,13 @@ export default function Dashboard(){
                 // (B) gps_individual: sem splits.
                 if(!splits.length){
                   // (B.1) RESULTADO preenchido = jogo confirmado pela comissão.
-                  // Aceita qualquer registro GPS (mesmo curto) — é a fonte da
-                  // verdade para "atleta esteve em campo".
-                  if(resultadoFilled&&(dist>0||dur>0))return true;
-                  // (B.2) sessionTitle "Jogo …" — mesmo sem RESULTADO, indica
-                  // que o atleta foi escalado. Mínimos baixos para capturar
-                  // suplente que entrou pouco tempo (Maranhão: 11min/1.282m).
-                  if(stIsMatch&&(dist>=800||dur>=5))return true;
+                  // Mesmo confirmado, exige pace de jogo (≥30 m/min) — atletas
+                  // que ficaram no banco com aquecimento prolongado teriam
+                  // RESULTADO preenchido por consolidação da equipe mas pace
+                  // muito baixo (Maranhão 75min/1873m = 25 m/min).
+                  if(resultadoFilled&&meetsPlayPace(dist,dur))return true;
+                  // (B.2) sessionTitle "Jogo …" — também exige pace de jogo.
+                  if(stIsMatch&&meetsPlayPace(dist,dur))return true;
                   // (B.3) Sem RESULTADO nem title de jogo: precisa distância
                   // E duração consistentes com tempo de jogo, para evitar
                   // capturar treino de não-relacionado feito no mesmo dia.
@@ -2866,7 +2924,7 @@ export default function Dashboard(){
                 // (C) Fallback diário marca "Sim" para Partida.
                 const partida=(a.diario?.partida||"").toLowerCase();
                 const playedDiario=partida.includes("sim")||partida==="1"||partida==="s"||partida==="x";
-                if(playedDiario&&(dist>1000||dur>=5))return true;
+                if(playedDiario&&meetsPlayPace(dist,dur))return true;
 
                 return false;
               });
@@ -2960,6 +3018,15 @@ export default function Dashboard(){
                                 const avgSprints25=athleteData.filter(a=>a.gps?.sprints_25>0);
                                 return<>
                                   {avgDist.length>0&&<span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#EFF6FF",color:"#2563eb",border:"1px solid #BFDBFE"}}>Dist. Média: {Math.round(avgDist.reduce((s,a)=>s+(a.gps.dist_total||0),0)/avgDist.length)}m</span>}
+                                  {(()=>{
+                                    // Pace médio do jogo (m/min) — proporcional ao tempo em campo,
+                                    // melhor indicador de intensidade que distância absoluta porque
+                                    // normaliza titulares (90min) e suplentes (15min).
+                                    const paceArr=athleteData.map(a=>{const d=a.gps?.dist_total||0;const m=Number(a.duracao)||Number(a.gps?.duracao)||a.diario?.duracao||0;return m>0&&d>0?d/m:0;}).filter(v=>v>0);
+                                    if(!paceArr.length)return null;
+                                    const avgPace=Math.round(paceArr.reduce((s,v)=>s+v,0)/paceArr.length);
+                                    return <span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#ECFEFF",color:"#0891b2",border:"1px solid #A5F3FC"}}>m/min Médio: {avgPace}</span>;
+                                  })()}
                                   {avgHsr.length>0&&<span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#FEF3C7",color:"#92400E",border:"1px solid #FDE68A"}}>HSR Média: {Math.round(avgHsr.reduce((s,a)=>s+(a.gps.hsr||0),0)/avgHsr.length)}m</span>}
                                   {avgSprints.length>0&&<span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#FEE2E2",color:"#991B1B",border:"1px solid #FECACA"}}>Spr &gt;20: {(avgSprints.reduce((s,a)=>s+(a.gps.sprints||0),0)/avgSprints.length).toFixed(1)}</span>}
                                   {avgSprints25.length>0&&<span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:"#F3E8FF",color:"#6D28D9",border:"1px solid #DDD6FE"}}>Spr &gt;25: {(avgSprints25.reduce((s,a)=>s+(a.gps.sprints_25||0),0)/avgSprints25.length).toFixed(1)}</span>}
@@ -2973,6 +3040,7 @@ export default function Dashboard(){
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Pos</th>
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Min</th>
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Dist (m)</th>
+                                  <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>m/min</th>
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>HSR (m)</th>
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Spr &gt;20</th>
                                   <th style={{padding:"8px 6px",textAlign:"center",fontSize:9,fontWeight:700,color:t.textMuted,textTransform:"uppercase",letterSpacing:.5}}>Spr &gt;25</th>
@@ -3010,6 +3078,7 @@ export default function Dashboard(){
                                     <td style={{padding:"8px 6px",textAlign:"center"}}><span style={{fontSize:9,color:t.textMuted,fontWeight:600}}>{a.pos}</span></td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{minJogo>0?minJogo:<span style={{color:t.textFaint}}>—</span>}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.dist_total||<span style={{color:t.textFaint}}>—</span>}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:"#0891b2"}}>{(()=>{const d=gps.dist_total||0;const m=minJogo;return m>0&&d>0?Math.round(d/m):<span style={{color:t.textFaint}}>—</span>;})()}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.hsr||<span style={{color:t.textFaint}}>—</span>}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:pri}}>{gps.sprints||<span style={{color:t.textFaint}}>—</span>}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",fontWeight:600,color:"#7c3aed"}}>{gps.sprints_25||<span style={{color:t.textFaint}}>—</span>}</td>
@@ -3033,6 +3102,7 @@ export default function Dashboard(){
                                   return<>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(athleteData,a=>Number(a.duracao)||Number(a.gps?.duracao)||a.diario?.duracao||0)||"—"}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(athleteData,a=>a.gps?.dist_total||0)||"—"}</td>
+                                    <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:"#0891b2"}}>{(()=>{const arr=athleteData.map(a=>{const d=a.gps?.dist_total||0;const m=Number(a.duracao)||Number(a.gps?.duracao)||a.diario?.duracao||0;return m>0&&d>0?d/m:0;}).filter(v=>v>0);return arr.length?Math.round(arr.reduce((s,v)=>s+v,0)/arr.length):"—";})()}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avg(athleteData,a=>a.gps?.hsr||0)||"—"}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:pri}}>{avgF(athleteData,a=>a.gps?.sprints||0)}</td>
                                     <td style={{padding:"8px 6px",textAlign:"center",fontFamily:"'JetBrains Mono'",color:"#7c3aed"}}>{avgF(athleteData,a=>a.gps?.sprints_25||0)}</td>
@@ -3979,20 +4049,33 @@ export default function Dashboard(){
           {/* ═══ ÚLTIMO JOGO — Dados do atleta na última partida ═══ */}
           {(()=>{
             const calendario=sheetData?.calendario||[];
-            const gamesPlayed=calendario.filter(g=>{
-              const r=(g.resultado||"").toUpperCase().trim();
-              return r==="V"||r==="E"||r==="D";
-            }).sort((a,b)=>{
-              const pD=s=>{if(!s)return 0;const pts=String(s).split(/[\/\-\.]/);if(pts.length>=3){const[d,m,y]=pts.map(Number);if(d>31)return new Date(d,m-1,y).getTime();return new Date(y<100?y+2000:y,m-1,d).getTime();}return new Date(s).getTime()||0;};
-              return pD(b.data)-pD(a.data);
-            });
-            if(!gamesPlayed.length)return null;
-            const lastGame=gamesPlayed[0];
+            // "Último Jogo" = jogo mais recente já passado (data <= hoje),
+            // independente de RESULTADO estar preenchido. Em jogos recentes
+            // o V/E/D pode não ter sido digitado ainda na planilha — mesmo
+            // assim os dados GPS já estão disponíveis e devem ser exibidos.
+            const todayMid=new Date();todayMid.setHours(0,0,0,0);
+            const todayTs=todayMid.getTime();
+            const pD=s=>{if(!s)return 0;const pts=String(s).split(/[\/\-\.]/);if(pts.length>=3){const[d,m,y]=pts.map(Number);if(d>31)return new Date(d,m-1,y).getTime();return new Date(y<100?y+2000:y,m-1,d).getTime();}return new Date(s).getTime()||0;};
+            const pastGames=calendario.filter(g=>{const ts=pD(g.data);return ts>0&&ts<=todayTs;}).sort((a,b)=>pD(b.data)-pD(a.data));
+            if(!pastGames.length)return null;
+            const lastGame=pastGames[0];
+            // Classifica V/E/D pelo campo RESULTADO ou, se vazio, pelos gols.
+            // Se nenhum estiver preenchido ainda, exibe estado "AGUARDANDO".
             const resRaw=(lastGame.resultado||"").toUpperCase().trim();
-            const resLabel=resRaw==="V"?"VITÓRIA":resRaw==="D"?"DERROTA":"EMPATE";
-            const resColor=resRaw==="V"?"#16A34A":resRaw==="D"?"#DC2626":"#CA8A04";
-            const resBg=resRaw==="V"?"#F0FDF4":resRaw==="D"?"#FEF2F2":"#FEFCE8";
-            const resBc=resRaw==="V"?"#BBF7D0":resRaw==="D"?"#FECACA":"#FEF08A";
+            let res=null;
+            if(resRaw==="V"||resRaw==="VITÓRIA"||resRaw==="VITORIA")res="V";
+            else if(resRaw==="D"||resRaw==="DERROTA")res="D";
+            else if(resRaw==="E"||resRaw==="EMPATE")res="E";
+            else{
+              const gp=Number(lastGame.gols_pro),gc=Number(lastGame.gols_contra);
+              if(!isNaN(gp)&&!isNaN(gc)&&(lastGame.gols_pro!==""||lastGame.gols_contra!=="")){
+                res=gp>gc?"V":gp===gc?"E":"D";
+              }
+            }
+            const resLabel=res==="V"?"VITÓRIA":res==="D"?"DERROTA":res==="E"?"EMPATE":"AGUARDANDO RESULTADO";
+            const resColor=res==="V"?"#16A34A":res==="D"?"#DC2626":res==="E"?"#CA8A04":"#64748b";
+            const resBg=res==="V"?"#F0FDF4":res==="D"?"#FEF2F2":res==="E"?"#FEFCE8":"#F8FAFC";
+            const resBc=res==="V"?"#BBF7D0":res==="D"?"#FECACA":res==="E"?"#FEF08A":"#E2E8F0";
             // Find player GPS data for the game date — verify player actually played
             // parseDateGame retorna Date|null. Entradas com date vazio (placeholders
             // que sobreviveram ao filtro do API) precisam ser ignoradas no match,
@@ -4057,6 +4140,10 @@ export default function Dashboard(){
             const dur=Number(bestGps?.duracao)||Number(bestGps?.gps?.duracao)||0;
             const stIsMatch=isMatchT(bestGps?.sessionTitle);
             const resultadoFilled=String(bestGps?.resultado||"").trim().length>0;
+            // Pace mínimo (≥30 m/min) para "jogou de fato". Banco com aquecimento
+            // gera ~25 m/min; em campo (até goleiro) sustenta ≥30 m/min.
+            const MIN_PACE_M_PER_MIN=30;
+            const meetsPlayPace=(d,t)=>(t>=3&&d>=300&&d>=t*MIN_PACE_M_PER_MIN);
             let playerPlayed=false;
             // (A) Formato legado com splits detalhados.
             if(hasPeriods&&gameTimeCt>=2)playerPlayed=true;
@@ -4064,12 +4151,13 @@ export default function Dashboard(){
             else if(hasPeriods&&gameTimeCt>=1&&dist>=2000)playerPlayed=true;
             // (B) gps_individual: sem splits.
             else if(!allSplits.length){
-              // (B.1) RESULTADO preenchido = jogo confirmado pela comissão.
-              // Aceita qualquer registro GPS (mesmo curto) — fonte da verdade.
-              if(resultadoFilled&&(dist>0||dur>0))playerPlayed=true;
-              // (B.2) sessionTitle "Jogo …" mesmo sem RESULTADO — mínimos baixos
-              // para capturar suplentes (Maranhão: 11min/1.282m).
-              else if(stIsMatch&&(dist>=800||dur>=5))playerPlayed=true;
+              // (B.1) RESULTADO preenchido + pace de jogo. Confirmação da
+              // comissão isolada não basta — atletas no banco com aquecimento
+              // prolongado (Maranhão 75min/1873m = 25 m/min) também acabam com
+              // RESULTADO preenchido pela consolidação da equipe.
+              if(resultadoFilled&&meetsPlayPace(dist,dur))playerPlayed=true;
+              // (B.2) sessionTitle "Jogo …" + pace de jogo.
+              else if(stIsMatch&&meetsPlayPace(dist,dur))playerPlayed=true;
               // (B.3) Sem RESULTADO nem title de jogo: distância/duração
               // consistentes com tempo de jogo, para evitar capturar treino
               // de não-relacionado feito no mesmo dia.
@@ -4080,7 +4168,7 @@ export default function Dashboard(){
             if(!playerPlayed){
               const partida=String(matchDiario.length?matchDiario[matchDiario.length-1]?.partida||"":"").toLowerCase();
               const playedDiario=partida.includes("sim")||partida==="1"||partida==="s"||partida==="x";
-              if(playedDiario&&(dist>1000||dur>=5))playerPlayed=true;
+              if(playedDiario&&meetsPlayPace(dist,dur))playerPlayed=true;
             }
             const gps=playerPlayed?bestGps?.gps||null:null;
             const quest=matchQuest.length?matchQuest[matchQuest.length-1]:null;
@@ -4109,6 +4197,11 @@ export default function Dashboard(){
                 <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
                   {[
                     gps?.dist_total?{l:"Distância",v:Math.round(gps.dist_total)+"m",c:pri}:null,
+                    // m/min normaliza titulares (~110 m/min em 90min) e
+                    // suplentes (~115 m/min em 15min) no mesmo eixo de
+                    // intensidade. Útil quando o tempo em campo varia muito.
+                    (gps?.dist_total&&dur>0)?{l:"m/min",v:Math.round(gps.dist_total/dur)+" m/min",c:"#0891b2"}:null,
+                    (dur>0)?{l:"Min em campo",v:Math.round(dur)+" min",c:pri}:null,
                     gps?.hsr?{l:"HSR",v:Math.round(gps.hsr)+"m",c:"#2563eb"}:null,
                     gps?.sprints?{l:"Spr >20",v:gps.sprints,c:"#7c3aed"}:null,
                     gps?.sprints_25?{l:"Spr >25",v:gps.sprints_25,c:"#6D28D9"}:null,
