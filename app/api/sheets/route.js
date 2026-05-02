@@ -78,13 +78,10 @@ const NAME_MAP = {
   "Hygor C": "HYGOR",
   "J Nem": "JEFFERSON NEM",
   "Jeferson C": "JEFERSON",
-  "J Costa": "J COSTA",
-  "Jonas Toró": "JONAS TORO",
   "Jonathan F": "JONATHAN",
   "Jordan E": "JORDAN",
   "Kelvin G": "KELVIN",
   "L Maciel": "LEANDRO MACIEL",
-  "Leo Gamalho": "LEO GAMALHO",
   "M Sales": "MATHEUS SALES",
   "M Maranhao": "MARANHAO",
   "Marco Antonio": "MARCO ANTONIO",
@@ -103,7 +100,6 @@ const NAME_MAP = {
   "Luizao G": "LUIZAO",
   "Ze Hugo": "ZE HUGO",
   "Ruan R": "RUAN",
-  "Caua F": "CAUA",
   // Nomes truncados da aba Fisioterapia
   "CARLOS EDUA": "CARLOS EDUARDO",
   "CARLOS EDUARDO": "CARLOS EDUARDO",
@@ -120,10 +116,6 @@ const NAME_MAP = {
   "MARQUINHO JR.": "MARQUINHO JR.",
   "VICTOR SOUZA": "VICTOR SOUZA",
   "RAFAEL GAVA": "RAFAEL GAVA",
-  "LÉO GAMALHO": "LEO GAMALHO",
-  "LEO GAMALHO": "LEO GAMALHO",
-  "JOÃO COSTA": "J COSTA",
-  "JOAO COSTA": "J COSTA",
   "WALLACE": "WALLACE",
   "JORDAN": "JORDAN",
   "ERICSON": "ERICSON",
@@ -147,9 +139,34 @@ const NAME_MAP = {
   "DARLAN": "DARLAN"
 };
 
+// Atletas que saíram do elenco — qualquer linha cujo nome resolveria para
+// um destes valores é descartada (resolveName retorna null), evitando que
+// dados antigos da planilha continuem aparecendo no dashboard. Comparação
+// ignora caixa, acentos e espaços; basta o nome canônico (ou parte dele)
+// coincidir.
+const EXCLUDED_NAMES = new Set([
+  "CAUA", "CAUA L", "CAUA F", "CAUA LUCAS",
+  "JONAS", "JONAS T", "JONAS TORO",
+  "GAMALHO", "LEO GAMALHO",
+  "J COSTA", "JOAO COSTA"
+]);
+
 function resolveName(sheetName) {
   if (!sheetName) return null;
   const trimmed = sheetName.trim();
+
+  // Curto-circuita atletas que saíram: testa o nome inteiro, o primeiro
+  // nome, o último nome e os dois primeiros tokens contra EXCLUDED_NAMES.
+  const _u = (s) => s.toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const _tk = trimmed.split(/\s+/).filter(Boolean);
+  const _cand = [
+    _u(trimmed),
+    _u(_tk[0] || ""),
+    _u(_tk[_tk.length - 1] || ""),
+    _u(_tk.slice(0, 2).join(" "))
+  ];
+  if (_cand.some(c => c && EXCLUDED_NAMES.has(c))) return null;
+
   // Busca direta
   if (NAME_MAP[trimmed]) return NAME_MAP[trimmed];
   // Normalizar acentos para comparação

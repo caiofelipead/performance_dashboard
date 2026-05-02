@@ -2287,22 +2287,16 @@ export default function Dashboard(){
             const diarioData=sheetData?.diario||{};
             const questData=sheetData?.questionarios||{};
 
+            // Parse local-midnight (vide comentário em parseGameDate acima).
             const parseGameDate2=(d)=>{
               if(!d)return null;
               const s=String(d).trim();
-              if(/^\d{4}-\d{2}-\d{2}/.test(s))return new Date(s);
               const parts=s.split(/[\/\-\.]/);
-              if(parts.length>=3){const[a,b,c]=parts.map(Number);if(c>100)return new Date(c,b-1,a);if(a>100)return new Date(a,b-1,c);return new Date(2026,b-1,a);}
-              return null;
+              if(parts.length>=3){const[a,b,c]=parts.map(Number);if(a>31)return new Date(a,b-1,c);if(c>31)return new Date(c,b-1,a);return new Date(c<100?c+2000:c,b-1,a);}
+              const fb=new Date(s);return isNaN(fb.getTime())?null:fb;
             };
             const normDate2=(d)=>{if(!d)return 0;const dt=new Date(d);dt.setHours(0,0,0,0);return dt.getTime();};
-            const parseDateStr2=(d)=>{
-              if(!d)return 0;const s=String(d).trim();
-              if(/^\d{4}-\d{2}-\d{2}/.test(s))return normDate2(new Date(s));
-              const parts=s.split(/[\/\-\.]/);
-              if(parts.length>=3){const[a,b,c]=parts.map(Number);if(a>31)return normDate2(new Date(a,b-1,c));if(c>31)return normDate2(new Date(c,b-1,a));return normDate2(new Date(c,a-1,b));}
-              return new Date(s).getTime()||0;
-            };
+            const parseDateStr2=(d)=>{const dt=parseGameDate2(d);return dt?normDate2(dt):0;};
 
             const classifyResult=(g)=>{
               const r=String(g.resultado||"").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
@@ -2354,7 +2348,10 @@ export default function Dashboard(){
               if(!gameDate)return null;
               const gDateTs=normDate2(gameDate);
               const DAY_MS2=86400000;
-              const dateMatch2=(entryDate)=>{const eTs=parseDateStr2(entryDate);return eTs===gDateTs||eTs===gDateTs-DAY_MS2||eTs===gDateTs+DAY_MS2;};
+              // Tolerância ±2 dias (alinha com getAthletesForDate da aba Jogos):
+              // jogos noturnos podem registrar data do dia seguinte na aba bruta
+              // e fusos diferentes podem deslocar 1d a interpretação ISO.
+              const dateMatch2=(entryDate)=>{const eTs=parseDateStr2(entryDate);if(!eTs)return false;return Math.abs(eTs-gDateTs)<=2*DAY_MS2;};
               const allNames=new Set([...Object.keys(gpsData),...Object.keys(diarioData)]);
               let distArr=[],hsrArr=[],sprintArr=[],pseArr=[],sonoArr=[],dorArr=[],recArr=[];
               for(const name of allNames){
@@ -2700,32 +2697,26 @@ export default function Dashboard(){
               <div style={{fontSize:11,color:t.textFaintest,marginTop:4}}>Verifique se a aba "Calendário" está publicada na planilha</div>
             </div>;
 
+            // Parse local-midnight Date (sem fuso). `new Date("2026-04-26")`
+            // é UTC e em BRT (UTC-3) cai no dia 25 — quebrava o match do jogo
+            // R6 26/04/2026 quando a planilha publicava data no formato ISO.
             const parseGameDate=(d)=>{
               if(!d)return null;
               const s=String(d).trim();
-              if(/^\d{4}-\d{2}-\d{2}/.test(s))return new Date(s);
               const parts=s.split(/[\/\-\.]/);
               if(parts.length>=3){
                 const[a,b,c]=parts.map(Number);
-                if(c>100)return new Date(c,b-1,a);
-                if(a>100)return new Date(a,b-1,c);
-                return new Date(2026,b-1,a);
+                if(a>31)return new Date(a,b-1,c);            // YYYY-MM-DD
+                if(c>31)return new Date(c,b-1,a);            // DD/MM/YYYY
+                return new Date(c<100?c+2000:c,b-1,a);       // ano de 2 dígitos
               }
-              return null;
+              const fb=new Date(s);
+              return isNaN(fb.getTime())?null:fb;
             };
             const normDate=(d)=>{if(!d)return 0;const dt=new Date(d);dt.setHours(0,0,0,0);return dt.getTime();};
             const parseDateStr=(d)=>{
-              if(!d)return 0;
-              const s=String(d).trim();
-              if(/^\d{4}-\d{2}-\d{2}/.test(s))return normDate(new Date(s));
-              const parts=s.split(/[\/\-\.]/);
-              if(parts.length>=3){
-                const[a,b,c]=parts.map(Number);
-                if(a>31)return normDate(new Date(a,b-1,c));
-                if(c>31)return normDate(new Date(c,b-1,a));
-                return normDate(new Date(c,a-1,b));
-              }
-              return new Date(s).getTime()||0;
+              const dt=parseGameDate(d);
+              return dt?normDate(dt):0;
             };
             const today=new Date();
             today.setHours(0,0,0,0);
@@ -2820,10 +2811,16 @@ export default function Dashboard(){
               };
               const results=[];
               const allNames=new Set([...Object.keys(gpsData),...Object.keys(diarioData)]);
+              // Normaliza para casar nomes mesmo com espaços extras, caixa diferente
+              // ou variações de acento entre o cadastro do elenco (P) e a chave que
+              // a planilha de GPS produziu — não custa nada e evita falsos negativos
+              // como "ADRIANO " (com trailing space) caindo fora do squad.
+              const norm=s=>String(s||"").trim().toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+              const squadSet=new Set(P.map(p=>norm(p.n)));
 
               for(const name of allNames){
                 // Filtrar: só atletas do elenco profissional (exclui Sub-20, emprestados, etc.)
-                const inSquad=P.some(p=>p.n===name);
+                const inSquad=squadSet.has(norm(name));
                 if(!inSquad)continue;
                 const gpsEntries=(gpsData[name]||[]).filter(e=>dateMatch(e.date));
                 const diarioEntries=(diarioData[name]||[]).filter(e=>dateMatch(e.date));
@@ -2924,11 +2921,15 @@ export default function Dashboard(){
                   if(resultadoFilled&&meetsPlayPace(dist,dur))return true;
                   // (B.2) sessionTitle "Jogo …" — também exige pace de jogo.
                   if(stIsMatch&&meetsPlayPace(dist,dur))return true;
-                  // (B.3) Sem RESULTADO nem title de jogo: precisa distância
-                  // E duração consistentes com tempo de jogo, para evitar
-                  // capturar treino de não-relacionado feito no mesmo dia.
-                  if(!stIsMatch&&!resultadoFilled&&dur>=60&&dist>=5000)return true;
-                  if(!stIsMatch&&!resultadoFilled&&dist>=7000)return true;
+                  // (B.3) Jogos "Realizado" sem RESULTADO/G1-G3 ainda preenchidos
+                  // (caso R6 26/04/2026): o universo já foi filtrado pela data do
+                  // jogo no calendário, então qualquer atleta com pace de jogo
+                  // (≥30 m/min) representa minutos em campo. Suplentes que entraram
+                  // 11min/1.282m (116 m/min) eram cortados pelos antigos limiares
+                  // fixos de 60min+5.000m / 7.000m. Treino de não-relacionados
+                  // costuma sustentar pace mais baixo (≤25 m/min) e ainda é
+                  // descartado pelo meetsPlayPace.
+                  if(!stIsMatch&&!resultadoFilled&&meetsPlayPace(dist,dur))return true;
                 }
 
                 // (C) Fallback diário marca "Sim" para Partida.
@@ -4184,11 +4185,14 @@ export default function Dashboard(){
               if(resultadoFilled&&meetsPlayPace(dist,dur))playerPlayed=true;
               // (B.2) sessionTitle "Jogo …" + pace de jogo.
               else if(stIsMatch&&meetsPlayPace(dist,dur))playerPlayed=true;
-              // (B.3) Sem RESULTADO nem title de jogo: distância/duração
-              // consistentes com tempo de jogo, para evitar capturar treino
-              // de não-relacionado feito no mesmo dia.
-              else if(!stIsMatch&&!resultadoFilled&&dur>=60&&dist>=5000)playerPlayed=true;
-              else if(!stIsMatch&&!resultadoFilled&&dist>=7000)playerPlayed=true;
+              // (B.3) Jogos "Realizado" sem RESULTADO/G1-G3 ainda preenchidos
+              // (caso R6 26/04/2026): a data do jogo do calendário já restringiu
+              // o universo, então qualquer atleta com pace de jogo (≥30 m/min)
+              // representa minutos em campo. Suplentes 11min/1.282m (116 m/min)
+              // eram cortados pelos antigos limiares fixos de 60min+5.000m /
+              // 7.000m. Treino de não-relacionados sustenta pace mais baixo
+              // (≤25 m/min) e ainda é descartado pelo meetsPlayPace.
+              else if(!stIsMatch&&!resultadoFilled&&meetsPlayPace(dist,dur))playerPlayed=true;
             }
             // (C) Fallback: diário marca "Sim" para Partida.
             if(!playerPlayed&&rosterStatus!=="G3"){
