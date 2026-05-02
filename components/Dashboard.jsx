@@ -3961,14 +3961,18 @@ export default function Dashboard(){
             const resBg=resRaw==="V"?"#F0FDF4":resRaw==="D"?"#FEF2F2":"#FEFCE8";
             const resBc=resRaw==="V"?"#BBF7D0":resRaw==="D"?"#FECACA":"#FEF08A";
             // Find player GPS data for the game date — verify player actually played
-            const parseDateGame=s=>{if(!s)return 0;const pts=String(s).split(/[\/\-\.]/);if(pts.length>=3){const[d,m,y]=pts.map(Number);if(d>31)return new Date(d,m-1,y);return new Date(y<100?y+2000:y,m-1,d);}return new Date(s);};
+            // parseDateGame retorna Date|null. Entradas com date vazio (placeholders
+            // que sobreviveram ao filtro do API) precisam ser ignoradas no match,
+            // não passadas adiante — caso contrário .getTime() crasha o perfil.
+            const parseDateGame=s=>{if(!s)return null;const pts=String(s).split(/[\/\-\.]/);if(pts.length>=3){const[d,m,y]=pts.map(Number);if(d>31)return new Date(d,m-1,y);return new Date(y<100?y+2000:y,m-1,d);}const d=new Date(s);return isNaN(d.getTime())?null:d;};
             const gameDate=parseDateGame(lastGame.data);
+            if(!gameDate||isNaN(gameDate.getTime()))return null;
             const gameDateTs=gameDate.getTime();
             const DAY=86400000;
             const gpsEntries=sheetData?.gps?.[sp.n]||[];
             const questEntries=sheetData?.questionarios?.[sp.n]||[];
             const diarioEntries=sheetData?.diario?.[sp.n]||[];
-            const dateMatch=e=>{const eD=parseDateGame(e.date).getTime();return Math.abs(eD-gameDateTs)<=DAY;};
+            const dateMatch=e=>{const eD=parseDateGame(e.date);if(!eD)return false;return Math.abs(eD.getTime()-gameDateTs)<=DAY;};
             const matchGps=gpsEntries.filter(dateMatch);
             const matchQuest=questEntries.filter(dateMatch);
             const matchDiario=diarioEntries.filter(dateMatch);
