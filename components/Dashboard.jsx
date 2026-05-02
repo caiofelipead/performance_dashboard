@@ -2868,7 +2868,10 @@ export default function Dashboard(){
                 const resultado=bestGpsEntry?.resultado||"";
                 const local=bestGpsEntry?.local||"";
                 const obs=bestGpsEntry?.obs||"";
-                results.push({name,pos:pInfo?.pos||diario.pos||"",gps,diario,quest,cmj:cmjBest,pInfo,sessionTitle,tags,allSplits,splitsDetail,duracao,resultado,local,obs});
+                // rosterStatus extraído da OBS na API: G1=titular, G2=entrou, G3=banco.
+                // Sinal definitivo da comissão técnica para "atleta participou".
+                const rosterStatus=bestGpsEntry?.rosterStatus||"";
+                results.push({name,pos:pInfo?.pos||diario.pos||"",gps,diario,quest,cmj:cmjBest,pInfo,sessionTitle,tags,allSplits,splitsDetail,duracao,resultado,local,obs,rosterStatus});
               }
 
               // Critério "jogou de fato" — combina dois formatos:
@@ -2898,6 +2901,13 @@ export default function Dashboard(){
                 const gameTimeSplits=splits.length?countGameTimeSplits(splits):0;
                 const hasTimePeriodSplits=splits.some(sp=>{const s=(sp||"").toLowerCase();return/\d+[.\-]\d+\s*min/.test(s)||/\d+\s*mais/.test(s)||/\b[12]t\b/.test(s);});
                 const hasSessionSplit=splits.some(sp=>{const s=(sp||"").toLowerCase().trim();return s==="session"||s==="sessão"||s==="sessao";});
+
+                // (0) rosterStatus da OBS é fonte de verdade da comissão técnica.
+                // G1 (titular) e G2 (entrou) = jogou; G3 (banco) = não jogou.
+                // Sobrepõe heurísticas (B/C) abaixo quando preenchido.
+                const roster=String(a.rosterStatus||"").toUpperCase();
+                if(roster==="G3")return false;
+                if(roster==="G1"||roster==="G2")return true;
 
                 // (A) Formato legado com splits detalhados.
                 if(hasTimePeriodSplits&&gameTimeSplits>=2)return true;
@@ -3068,11 +3078,16 @@ export default function Dashboard(){
                                   const sono=a.quest?.sono_qualidade||0;
                                   const dor=a.quest?.dor||0;
                                   const rec=a.quest?.recuperacao_geral||0;
+                                  // Status do atleta no jogo (OBS: G1=titular, G2=entrou).
+                                  // G3 já foi filtrado fora do array athleteData.
+                                  const rs=String(a.rosterStatus||"").toUpperCase();
+                                  const rosterTag=rs==="G1"?{l:"T",full:"Titular",bg:"#DCFCE7",c:"#166534",bc:"#86EFAC"}:rs==="G2"?{l:"R",full:"Reserva (entrou)",bg:"#DBEAFE",c:"#1E40AF",bc:"#93C5FD"}:null;
                                   return <tr key={ai} style={{borderBottom:`1px solid ${t.borderLight}`,background:ai%2===0?"transparent":t.bgMuted+"44",cursor:"pointer"}} onClick={()=>{setSel(a.name);setTab("player");}}>
                                     <td style={{padding:"8px 10px",fontWeight:700,color:pri,whiteSpace:"nowrap"}}>
                                       <div style={{display:"flex",alignItems:"center",gap:6}}>
                                         <PlayerPhoto theme={t} name={a.name} sz={22}/>
-                                        {a.name}
+                                        <span>{a.name}</span>
+                                        {rosterTag&&<span title={rosterTag.full} style={{padding:"1px 5px",borderRadius:4,fontSize:8,fontWeight:800,background:rosterTag.bg,color:rosterTag.c,border:`1px solid ${rosterTag.bc}`,letterSpacing:.3}}>{rosterTag.l}</span>}
                                       </div>
                                     </td>
                                     <td style={{padding:"8px 6px",textAlign:"center"}}><span style={{fontSize:9,color:t.textMuted,fontWeight:600}}>{a.pos}</span></td>
@@ -4140,13 +4155,19 @@ export default function Dashboard(){
             const dur=Number(bestGps?.duracao)||Number(bestGps?.gps?.duracao)||0;
             const stIsMatch=isMatchT(bestGps?.sessionTitle);
             const resultadoFilled=String(bestGps?.resultado||"").trim().length>0;
+            // rosterStatus extraído da OBS na API: G1/G2/G3 (titular/entrou/banco).
+            // Sinal definitivo da comissão técnica.
+            const rosterStatus=String(bestGps?.rosterStatus||"").toUpperCase();
             // Pace mínimo (≥30 m/min) para "jogou de fato". Banco com aquecimento
             // gera ~25 m/min; em campo (até goleiro) sustenta ≥30 m/min.
             const MIN_PACE_M_PER_MIN=30;
             const meetsPlayPace=(d,t)=>(t>=3&&d>=300&&d>=t*MIN_PACE_M_PER_MIN);
             let playerPlayed=false;
+            // (0) rosterStatus sobrepõe heurísticas: G1/G2 = jogou; G3 = não jogou.
+            if(rosterStatus==="G1"||rosterStatus==="G2")playerPlayed=true;
+            else if(rosterStatus==="G3")playerPlayed=false;
             // (A) Formato legado com splits detalhados.
-            if(hasPeriods&&gameTimeCt>=2)playerPlayed=true;
+            else if(hasPeriods&&gameTimeCt>=2)playerPlayed=true;
             else if(hasSession&&stIsMatch&&dist>=4000)playerPlayed=true;
             else if(hasPeriods&&gameTimeCt>=1&&dist>=2000)playerPlayed=true;
             // (B) gps_individual: sem splits.
@@ -4165,7 +4186,7 @@ export default function Dashboard(){
               else if(!stIsMatch&&!resultadoFilled&&dist>=7000)playerPlayed=true;
             }
             // (C) Fallback: diário marca "Sim" para Partida.
-            if(!playerPlayed){
+            if(!playerPlayed&&rosterStatus!=="G3"){
               const partida=String(matchDiario.length?matchDiario[matchDiario.length-1]?.partida||"":"").toLowerCase();
               const playedDiario=partida.includes("sim")||partida==="1"||partida==="s"||partida==="x";
               if(playedDiario&&meetsPlayPace(dist,dur))playerPlayed=true;
@@ -4175,13 +4196,18 @@ export default function Dashboard(){
             const diario=matchDiario.length?matchDiario[matchDiario.length-1]:null;
             const gameDateFmt=gameDate instanceof Date&&!isNaN(gameDate)?gameDate.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"}):(lastGame.data||"—");
             const placar=lastGame.gols_pro!=null&&lastGame.gols_contra!=null?`${lastGame.gols_pro} x ${lastGame.gols_contra}`:(lastGame.placar||"—");
+            // Badge de status do atleta (G1=titular, G2=entrou, G3=banco).
+            const rosterBadge=rosterStatus==="G1"?{l:"TITULAR",bg:"#DCFCE7",bc:"#86EFAC",c:"#166534"}:rosterStatus==="G2"?{l:"ENTROU NO JOGO",bg:"#DBEAFE",bc:"#93C5FD",c:"#1E40AF"}:rosterStatus==="G3"?{l:"NÃO ENTROU EM CAMPO",bg:"#F1F5F9",bc:"#CBD5E1",c:"#64748b"}:null;
             return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${resBc}`,padding:18,marginBottom:16}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
                 <div>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Último Jogo</div>
                   <div style={{fontSize:10,color:t.textFaint}}>{lastGame.comp||""} · {lastGame.rodada||""} · {gameDateFmt}</div>
                 </div>
-                <span style={{padding:"4px 14px",borderRadius:6,fontSize:12,fontWeight:800,background:resBg,color:resColor,border:`2px solid ${resBc}`}}>{resLabel}</span>
+                <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                  {rosterBadge&&<span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:800,background:rosterBadge.bg,color:rosterBadge.c,border:`1px solid ${rosterBadge.bc}`,letterSpacing:.3}}>{rosterBadge.l}</span>}
+                  <span style={{padding:"4px 14px",borderRadius:6,fontSize:12,fontWeight:800,background:resBg,color:resColor,border:`2px solid ${resBc}`}}>{resLabel}</span>
+                </div>
               </div>
               <div style={{display:"flex",alignItems:"center",gap:14,padding:"12px 16px",background:resBg,borderRadius:10,border:`1px solid ${resBc}`,marginBottom:14}}>
                 {lastGame.escudo&&<img src={lastGame.escudo} alt="" style={{width:32,height:32,objectFit:"contain"}} onError={e=>{e.target.style.display="none"}}/>}
@@ -4219,8 +4245,9 @@ export default function Dashboard(){
                 </div>
               </div>:
               <div style={{textAlign:"center",padding:"12px 0",color:t.textFaint,fontSize:11}}>
-                <div style={{fontWeight:600}}>{bestGps&&!playerPlayed?"Atleta não participou desta partida":matchGps.length?"Sem dados individuais de GPS/wellness para esta partida":"Sem dados de GPS/wellness importados para esta data"}</div>
-                {!matchGps.length&&<div style={{fontSize:9,color:t.textFaintest||t.textFaint,marginTop:3}}>Busca em ±2 dias de {gameDateFmt}. Dados podem estar pendentes de upload.</div>}
+                <div style={{fontWeight:600}}>{rosterStatus==="G3"?"Suplente não utilizado nesta partida (G3)":bestGps&&!playerPlayed?"Atleta não participou desta partida":matchGps.length?"Sem dados individuais de GPS/wellness para esta partida":"Sem dados de GPS/wellness importados para esta data"}</div>
+                {rosterStatus==="G3"&&<div style={{fontSize:9,color:t.textFaintest||t.textFaint,marginTop:3}}>Atleta no banco · Sem dados de tempo em campo.</div>}
+                {!matchGps.length&&rosterStatus!=="G3"&&<div style={{fontSize:9,color:t.textFaintest||t.textFaint,marginTop:3}}>Busca em ±2 dias de {gameDateFmt}. Dados podem estar pendentes de upload.</div>}
               </div>}
             </div>;
           })()}

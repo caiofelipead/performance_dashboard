@@ -555,6 +555,16 @@ function processGPSIndividual(rows) {
     const resultado  = col(row, "resultado") || "";
     const obs        = col(row, "obs") || "";
 
+    // Status do atleta no jogo, extraído da coluna OBS:
+    //   • G1 = titular (jogou os 90+ min)
+    //   • G2 = suplente que entrou
+    //   • G3 = suplente que NÃO entrou (ficou no banco/aquecimento)
+    // Esta é a fonte de verdade da comissão técnica para "atleta participou".
+    // Usamos \b...\b para não confundir com outras siglas dentro de OBS livre.
+    const obsStr = String(obs);
+    const rosterMatch = obsStr.match(/\bG\s*([123])\b/i);
+    const rosterStatus = rosterMatch ? `G${rosterMatch[1]}` : "";
+
     // sessionTitle compatível com matchesOpponent* / isMatchTitle do Dashboard:
     //   - se há RESULTADO, marca como "Jogo" para isMatchTitle acertar
     //   - anexa OBS para que matchesOpp (substring) acerte o adversário
@@ -580,6 +590,7 @@ function processGPSIndividual(rows) {
       local: String(localV),
       resultado: String(resultado),
       obs: String(obs),
+      rosterStatus,
       pse: Math.round(pse * 10) / 10,
       duracao: Math.round(duracao),
       gps: {
