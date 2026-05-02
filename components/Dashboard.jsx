@@ -2849,7 +2849,7 @@ export default function Dashboard(){
                 const resultadoEntries=gpsEntries.filter(e=>String(e.resultado||"").trim().length>0);
                 const opponentEntries=adversario?gpsEntries.filter(e=>matchesOpponent(e.sessionTitle,adversario)):[];
                 const matchEntries=gpsEntries.filter(e=>isMatchTitle(e.sessionTitle));
-                const sameDateNonComp=gpsEntries.filter(e=>{const eTs=parseDateStr(e.date);return eTs&&!isComplementTitle(e.sessionTitle)&&Math.abs(eTs-gDateTs)<=DAY_MS;});
+                const sameDateNonComp=gpsEntries.filter(e=>{const eTs=parseDateStr(e.date);return eTs&&!isComplementTitle(e.sessionTitle)&&Math.abs(eTs-gDateTs)<DAY_MS;});
                 const nonComplEntries=gpsEntries.filter(e=>!isComplementTitle(e.sessionTitle));
                 const pool=rosterEntries.length?rosterEntries:(resultadoEntries.length?resultadoEntries:(opponentEntries.length?opponentEntries:(matchEntries.length?matchEntries:(sameDateNonComp.length?sameDateNonComp:(nonComplEntries.length?nonComplEntries:gpsEntries)))));
                 let bestGpsEntry=pool.length>1?pool.reduce((b,e)=>(e.gps?.dist_total||0)>(b.gps?.dist_total||0)?e:b,pool[0]):pool[0]||null;
@@ -2940,7 +2940,7 @@ export default function Dashboard(){
                   // R6 Cuiabá — treino 24/04 6397m/59min era exibido como 26/04).
                   if(!stIsMatch&&!resultadoFilled&&meetsPlayPace(dist,dur)){
                     const eTs=parseDateStr(a.gpsEntryDate);
-                    if(eTs&&Math.abs(eTs-gDateTs)<=DAY_MS)return true;
+                    if(eTs&&Math.abs(eTs-gDateTs)<DAY_MS)return true;
                   }
                 }
 
@@ -4162,7 +4162,7 @@ export default function Dashboard(){
             const resultadoEntries=matchGps.filter(e=>String(e.resultado||"").trim().length>0);
             const oppEntries=lastGame.adversario?matchGps.filter(e=>matchesOpp(e.sessionTitle,lastGame.adversario)):[];
             const matchTitleEntries=matchGps.filter(e=>isMatchT(e.sessionTitle));
-            const sameDateNonComp=matchGps.filter(e=>{const eD=parseDateGame(e.date);return eD&&!isComplement(e.sessionTitle)&&Math.abs(eD.getTime()-gameDateTs)<=DAY;});
+            const sameDateNonComp=matchGps.filter(e=>{const eD=parseDateGame(e.date);return eD&&!isComplement(e.sessionTitle)&&Math.abs(eD.getTime()-gameDateTs)<DAY;});
             const nonCompEntries=matchGps.filter(e=>!isComplement(e.sessionTitle));
             const pool=rosterEntries.length?rosterEntries:(resultadoEntries.length?resultadoEntries:(oppEntries.length?oppEntries:(matchTitleEntries.length?matchTitleEntries:(sameDateNonComp.length?sameDateNonComp:(nonCompEntries.length?nonCompEntries:matchGps)))));
             const bestGps=pool.length>1?pool.reduce((b,e)=>(e.gps?.dist_total||0)>(b.gps?.dist_total||0)?e:b,pool[0]):pool[0]||null;
@@ -4215,7 +4215,7 @@ export default function Dashboard(){
               // de 24/04 6397m/59min era exibido como dado do jogo de 26/04).
               else if(!stIsMatch&&!resultadoFilled&&meetsPlayPace(dist,dur)){
                 const entryDate=parseDateGame(bestGps.date);
-                if(entryDate&&Math.abs(entryDate.getTime()-gameDateTs)<=DAY)playerPlayed=true;
+                if(entryDate&&Math.abs(entryDate.getTime()-gameDateTs)<DAY)playerPlayed=true;
               }
             }
             // (C) Fallback: diário marca "Sim" para Partida.

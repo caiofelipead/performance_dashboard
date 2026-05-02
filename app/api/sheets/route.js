@@ -1357,19 +1357,12 @@ async function fetchSheetCSV(gid = 0) {
     }
   }
 
-  // (2) URL publicada (pub CSV) — todas as chaves disponíveis
-  for (const key of pubKeys) {
-    try {
-      const pubUrl = `https://docs.google.com/spreadsheets/d/e/${key}/pub?gid=${gid}&single=true&output=csv`;
-      const res = await fetch(pubUrl, { next: { revalidate: 30 } });
-      if (res.ok) {
-        const text = await res.text();
-        if (text && !text.includes("<!DOCTYPE")) return text;
-      }
-    } catch (e) { errors.push(`pub(${key.slice(-8)}): ${e.message}`); }
-  }
-
-  // (3) Export direto por spreadsheet_id
+  // (2) Export direto por spreadsheet_id — fonte ao vivo (real-time).
+  // Preferida sobre /pub porque /pub é a "Publish to web" do Google e cacheia
+  // o snapshot de 5–15 min no lado da Google. Edições recentes na planilha
+  // (ex.: preencher RESULTADO/Gols de jogos novos) só apareciam depois desse
+  // delay quando /pub vinha primeiro. /export reflete o estado atual da
+  // planilha (sujeito apenas ao revalidate=30s do Vercel).
   for (const id of SHEETS_CONFIG.spreadsheet_ids) {
     try {
       const url = `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}`;
@@ -1379,6 +1372,20 @@ async function fetchSheetCSV(gid = 0) {
         if (text && !text.includes("<!DOCTYPE")) return text;
       }
     } catch (e) { errors.push(`export(${id}): ${e.message}`); }
+  }
+
+  // (3) URL publicada (pub CSV) — fallback quando /export falha (ex.: planilha
+  // não compartilhada com link aberto, mas publicada na web). Snapshot pode
+  // estar 5–15 min defasado em relação à planilha viva.
+  for (const key of pubKeys) {
+    try {
+      const pubUrl = `https://docs.google.com/spreadsheets/d/e/${key}/pub?gid=${gid}&single=true&output=csv`;
+      const res = await fetch(pubUrl, { next: { revalidate: 30 } });
+      if (res.ok) {
+        const text = await res.text();
+        if (text && !text.includes("<!DOCTYPE")) return text;
+      }
+    } catch (e) { errors.push(`pub(${key.slice(-8)}): ${e.message}`); }
   }
 
   // (4) Google Visualization API
