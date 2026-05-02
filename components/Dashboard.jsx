@@ -786,14 +786,10 @@ const PREVENTION=[
   {trigger:"Delta BF% > 1.5 em 30 dias",action:"Avaliação nutricional + ajuste biomecânico",priority:"MÉDIA",window:"Semanal",evidence:"Caso G.QUEIROZ — desregulação sistêmica por variação antropométrica"}
 ];
 
-// Calendário Série B 2026
-const SERIE_B=[
-  {rod:1,date:"21/03/2026",time:"19:15",home:"Botafogo SP",away:"Fortaleza",local:"casa",score:null,result:null,played:false},
-  {rod:2,date:"01/04/2026",time:"18:00",home:"América-MG",away:"Botafogo SP",local:"fora",score:null,result:null,played:false},
-  {rod:3,date:"05/04/2026",time:"20:30",home:"Botafogo SP",away:"São Bernardo",local:"casa",score:null,result:null,played:false},
-  {rod:4,date:"10/04/2026",time:"20:30",home:"Criciúma",away:"Botafogo SP",local:"fora",score:null,result:null,played:false},
-  {rod:5,date:"20/04/2026",time:"A confirmar",home:"Botafogo SP",away:"Atlético-GO",local:"casa",score:null,result:null,played:false}
-];
+// Calendário Série B — derivado de sheetData.calendario (aba Calendário do
+// Google Sheets) dentro do componente. O array hardcoded antigo (R1-R5 com
+// R5 errado em 20/04 vs 19/04 da planilha) foi removido para que mudanças
+// na planilha apareçam imediatamente sem edição de código.
 
 // Mapa Semanal — Quadro de Trabalho
 // Fonte: Departamento de Futebol Profissional — Sérgio do Prado / Fillipe Soutto / André Leite
@@ -3455,16 +3451,54 @@ export default function Dashboard(){
             </div>
 
             {/* Calendário Série B */}
-            <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,overflow:"hidden"}}>
+            {(()=>{
+              // Deriva da aba Calendário do Google Sheets (sheetData.calendario).
+              // Antes era um array SERIE_B hardcoded com apenas R1-R5 e R5 com
+              // data errada (20/04 vs 19/04 da planilha) — qualquer atualização
+              // no calendário ficava invisível neste card até alguém editar o
+              // código. Agora reflete a planilha em tempo real via /export.
+              const serieBGames=(sheetData?.calendario||[])
+                .filter(g=>String(g.comp||"").toLowerCase().includes("serie b")||String(g.comp||"").toLowerCase().includes("série b"))
+                .map(g=>{
+                  const rod=parseInt(String(g.rodada||"").replace(/[^0-9]/g,""))||0;
+                  const isHome=String(g.local||"").toUpperCase().startsWith("C");
+                  const resStr=String(g.resultado||"").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
+                  let result=null;
+                  if(/^V|^W/.test(resStr))result="V";
+                  else if(/^E|^DRAW/.test(resStr))result="E";
+                  else if(/^D|^L/.test(resStr))result="D";
+                  else{
+                    const gp=Number(g.gols_pro),gc=Number(g.gols_contra);
+                    if(!isNaN(gp)&&!isNaN(gc)&&(g.gols_pro!==""||g.gols_contra!=="")){
+                      result=gp>gc?"V":gp===gc?"E":"D";
+                    }
+                  }
+                  const hasGols=(g.gols_pro!==""&&g.gols_pro!=null)||(g.gols_contra!==""&&g.gols_contra!=null);
+                  const score=hasGols?`${g.gols_pro??"0"}x${g.gols_contra??"0"}`:null;
+                  const played=!!result||hasGols;
+                  return{
+                    rod,
+                    date:g.data||"",
+                    time:"",
+                    home:isHome?"Botafogo SP":(g.adversario||""),
+                    away:isHome?(g.adversario||""):"Botafogo SP",
+                    local:isHome?"casa":"fora",
+                    score,
+                    result,
+                    played
+                  };
+                })
+                .sort((a,b)=>a.rod-b.rod);
+              return <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,overflow:"hidden"}}>
               <div style={{padding:"12px 16px",background:t.bgMuted,borderBottom:`1px solid ${t.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri}}>Calendário Série B 2026</div>
-                  <div style={{fontSize:10,color:t.textFaint}}>{SERIE_B.filter(g=>g.played).length} jogos realizados · {SERIE_B.filter(g=>!g.played).length} restantes</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>{serieBGames.filter(g=>g.played).length} jogos realizados · {serieBGames.filter(g=>!g.played).length} restantes</div>
                 </div>
                 <Calendar size={18} color={t.textFaint}/>
               </div>
               <div style={{padding:12}}>
-                {SERIE_B.map((g,i)=>{
+                {serieBGames.map((g,i)=>{
                   const rc=g.result==="V"?"#16A34A":g.result==="D"?"#DC2626":g.result==="E"?"#CA8A04":t.textMuted;
                   const isHome=g.local==="casa";
                   return <div key={i} style={{padding:"10px 12px",background:g.played?t.bgMuted:t.bgCard,borderRadius:8,marginBottom:6,border:`1px solid ${g.played?t.border:"#BFDBFE"}`,opacity:g.played?0.85:1}}>
@@ -3484,7 +3518,8 @@ export default function Dashboard(){
                   </div>;
                 })}
               </div>
-            </div>
+            </div>;
+            })()}
           </div>
 
           {/* Player Readiness Map */}
