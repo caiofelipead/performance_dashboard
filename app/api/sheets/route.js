@@ -32,7 +32,7 @@ const SHEETS_CONFIG = {
     questionarios: 1014986912,
     atletas: 1315104851,
     fisioterapia: 1541953765,
-    calendario: 460942009
+    calendario: 1334525431
   },
   // Abas lidas por TÍTULO (gid não conhecido — usa gviz `sheet=` ou Sheets
   // API quando service account configurado). Fonte primária quando publicada.
