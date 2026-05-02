@@ -1017,24 +1017,24 @@ function processAntropometria(rows) {
 // Lesões: Histórico de lesões do elenco (planilha externa)
 function processLesoes(rows) {
   const result = [];
+  // findField em escopo de função para reuso na busca do nome.
+  const findField = (row, ...keys) => {
+    for (const k of keys) {
+      if (row[k] !== undefined && row[k] !== "") return row[k];
+    }
+    const rowKeys = Object.keys(row);
+    for (const k of keys) {
+      const match = rowKeys.find(rk => rk.includes(k));
+      if (match && row[match] !== undefined && row[match] !== "") return row[match];
+    }
+    return "";
+  };
   for (const row of rows) {
-    // Flexível: busca nome por múltiplas colunas possíveis
-    const athlete = row.nome || row.atleta || row.atletas || row.jogador || row.name || "";
+    // Schema interno usa "Nome do Atleta" → "nome_do_atleta". Schema legado
+    // usa "Atleta"/"Nome". findField cobre ambos via substring "nome".
+    const athlete = findField(row, "nome_do_atleta", "nome_atleta", "atleta", "atletas", "nome", "jogador", "name");
     if (!athlete) continue;
     const name = resolveName(athlete);
-
-    // Busca data por múltiplas colunas
-    const findField = (row, ...keys) => {
-      for (const k of keys) {
-        if (row[k] !== undefined && row[k] !== "") return row[k];
-      }
-      const rowKeys = Object.keys(row);
-      for (const k of keys) {
-        const match = rowKeys.find(rk => rk.includes(k));
-        if (match && row[match] !== undefined && row[match] !== "") return row[match];
-      }
-      return "";
-    };
 
     // Schema NOVO da aba `Lesoes` interna (planilha unificada Maio/2026):
     //   Od. | Data da Entrada | Data da Cirurgia | Data Saída do DM/FISIO |
