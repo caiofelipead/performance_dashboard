@@ -1314,7 +1314,7 @@ async function fetchSheetByTitle(title) {
   for (const id of SHEETS_CONFIG.spreadsheet_ids) {
     try {
       const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(title)}`;
-      const res = await fetch(url, { next: { revalidate: 60 } });
+      const res = await fetch(url, { next: { revalidate: 30 } });
       if (res.ok) {
         const text = await res.text();
         if (text && !text.includes("<!DOCTYPE")) return text;
@@ -1344,7 +1344,7 @@ async function fetchSheetCSV(gid = 0) {
   for (const key of pubKeys) {
     try {
       const pubUrl = `https://docs.google.com/spreadsheets/d/e/${key}/pub?gid=${gid}&single=true&output=csv`;
-      const res = await fetch(pubUrl, { next: { revalidate: 60 } });
+      const res = await fetch(pubUrl, { next: { revalidate: 30 } });
       if (res.ok) {
         const text = await res.text();
         if (text && !text.includes("<!DOCTYPE")) return text;
@@ -1356,7 +1356,7 @@ async function fetchSheetCSV(gid = 0) {
   for (const id of SHEETS_CONFIG.spreadsheet_ids) {
     try {
       const url = `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}`;
-      const res = await fetch(url, { next: { revalidate: 60 } });
+      const res = await fetch(url, { next: { revalidate: 30 } });
       if (res.ok) {
         const text = await res.text();
         if (text && !text.includes("<!DOCTYPE")) return text;
@@ -1368,7 +1368,7 @@ async function fetchSheetCSV(gid = 0) {
   for (const id of SHEETS_CONFIG.spreadsheet_ids) {
     try {
       const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&gid=${gid}`;
-      const res = await fetch(url, { next: { revalidate: 60 } });
+      const res = await fetch(url, { next: { revalidate: 30 } });
       if (res.ok) {
         const text = await res.text();
         if (text && !text.includes("<!DOCTYPE")) return text;
@@ -1387,7 +1387,7 @@ async function fetchExternalCSV(config, gid) {
   // Se tem URL direta de CSV
   if (config.csv_url) {
     try {
-      const res = await fetch(config.csv_url, { next: { revalidate: 60 } });
+      const res = await fetch(config.csv_url, { next: { revalidate: 30 } });
       if (res.ok) {
         const text = await res.text();
         if (text && !text.includes("<!DOCTYPE")) return text;
@@ -1399,7 +1399,7 @@ async function fetchExternalCSV(config, gid) {
   if (config.published_key) {
     try {
       const url = `https://docs.google.com/spreadsheets/d/e/${config.published_key}/pub?gid=${gid}&single=true&output=csv`;
-      const res = await fetch(url, { next: { revalidate: 60 } });
+      const res = await fetch(url, { next: { revalidate: 30 } });
       if (res.ok) {
         const text = await res.text();
         if (text && !text.includes("<!DOCTYPE")) return text;
@@ -1411,7 +1411,7 @@ async function fetchExternalCSV(config, gid) {
   if (config.spreadsheet_id) {
     try {
       const url = `https://docs.google.com/spreadsheets/d/${config.spreadsheet_id}/export?format=csv&gid=${gid}`;
-      const res = await fetch(url, { next: { revalidate: 60 } });
+      const res = await fetch(url, { next: { revalidate: 30 } });
       if (res.ok) {
         const text = await res.text();
         if (text && !text.includes("<!DOCTYPE")) return text;
@@ -1420,7 +1420,7 @@ async function fetchExternalCSV(config, gid) {
 
     try {
       const url = `https://docs.google.com/spreadsheets/d/${config.spreadsheet_id}/gviz/tq?tqx=out:csv&gid=${gid}`;
-      const res = await fetch(url, { next: { revalidate: 60 } });
+      const res = await fetch(url, { next: { revalidate: 30 } });
       if (res.ok) {
         const text = await res.text();
         if (text && !text.includes("<!DOCTYPE")) return text;

@@ -2305,10 +2305,10 @@ export default function Dashboard(){
             };
 
             const classifyResult=(g)=>{
-              const r=(g.resultado||"").toUpperCase().trim();
-              if(r==="V"||r==="VITÓRIA"||r==="VITORIA"||r==="W"||r==="WIN")return"V";
-              if(r==="E"||r==="EMPATE"||r==="D"&&false||r==="DRAW")return"E";
-              if(r==="D"||r==="DERROTA"||r==="L"||r==="LOSS")return"D";
+              const r=String(g.resultado||"").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
+              if(/^V|^W/.test(r))return"V";
+              if(/^E|^DRAW/.test(r))return"E";
+              if(/^D|^L/.test(r))return"D";
               const gp=Number(g.gols_pro);const gc=Number(g.gols_contra);
               if(!isNaN(gp)&&!isNaN(gc)&&(g.gols_pro!==""||g.gols_contra!=="")){if(gp>gc)return"V";if(gp===gc)return"E";return"D";}
               return null;
@@ -2975,9 +2975,9 @@ export default function Dashboard(){
                     const escudoUrl=g.escudo||"";
                     const hasEscudo=escudoUrl&&(escudoUrl.startsWith("http")||escudoUrl.startsWith("/"));
                     const athleteData=isExpanded?getAthletesForDate(gDate,g.adversario):[];
-                    // Classify game result
-                    const resStr=(g.resultado||"").toUpperCase().trim();
-                    const gameResult=resStr==="V"||resStr==="VITÓRIA"||resStr==="VITORIA"?"V":resStr==="E"||resStr==="EMPATE"?"E":resStr==="D"||resStr==="DERROTA"?"D":(()=>{const gp=Number(g.gols_pro);const gc=Number(g.gols_contra);if(!isNaN(gp)&&!isNaN(gc)&&(g.gols_pro!==""||g.gols_contra!=="")){if(gp>gc)return"V";if(gp===gc)return"E";return"D";}return null;})();
+                    // Classify game result — tolerant a variações de chip
+                    const resStr=String(g.resultado||"").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
+                    const gameResult=/^V|^W/.test(resStr)?"V":/^E|^DRAW/.test(resStr)?"E":/^D|^L/.test(resStr)?"D":(()=>{const gp=Number(g.gols_pro);const gc=Number(g.gols_contra);if(!isNaN(gp)&&!isNaN(gc)&&(g.gols_pro!==""||g.gols_contra!=="")){if(gp>gc)return"V";if(gp===gc)return"E";return"D";}return null;})();
                     const resColor=gameResult==="V"?"#16A34A":gameResult==="E"?"#CA8A04":gameResult==="D"?"#DC2626":null;
                     const resLabel=gameResult==="V"?"V":gameResult==="E"?"E":gameResult==="D"?"D":null;
                     const placar=(g.gols_pro!==""&&g.gols_pro!==undefined)||(g.gols_contra!==""&&g.gols_contra!==undefined)?`${g.gols_pro??"0"} × ${g.gols_contra??"0"}`:"";
@@ -4075,15 +4075,20 @@ export default function Dashboard(){
             if(!pastGames.length)return null;
             const lastGame=pastGames[0];
             // Classifica V/E/D pelo campo RESULTADO ou, se vazio, pelos gols.
-            // Se nenhum estiver preenchido ainda, exibe estado "AGUARDANDO".
-            const resRaw=(lastGame.resultado||"").toUpperCase().trim();
+            // Tolerante a variações: chip "E", "Empate", "E (Empate)", "EMPATE",
+            // espaços, acentos. Cai em AGUARDANDO só quando ambos res e gols
+            // estão vazios/inválidos.
+            const resRaw=String(lastGame.resultado||"").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
             let res=null;
-            if(resRaw==="V"||resRaw==="VITÓRIA"||resRaw==="VITORIA")res="V";
-            else if(resRaw==="D"||resRaw==="DERROTA")res="D";
-            else if(resRaw==="E"||resRaw==="EMPATE")res="E";
-            else{
+            if(/^V/.test(resRaw))res="V";
+            else if(/^D/.test(resRaw))res="D";
+            else if(/^E/.test(resRaw))res="E";
+            // Fallback: deriva do placar (gols_pro × gols_contra) se a coluna
+            // RESULTADO não estiver preenchida ou usar formato desconhecido.
+            if(!res){
               const gp=Number(lastGame.gols_pro),gc=Number(lastGame.gols_contra);
-              if(!isNaN(gp)&&!isNaN(gc)&&(lastGame.gols_pro!==""||lastGame.gols_contra!=="")){
+              const hasGols=lastGame.gols_pro!=null&&lastGame.gols_pro!==""&&lastGame.gols_contra!=null&&lastGame.gols_contra!=="";
+              if(hasGols&&!isNaN(gp)&&!isNaN(gc)){
                 res=gp>gc?"V":gp===gc?"E":"D";
               }
             }
