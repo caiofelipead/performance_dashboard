@@ -2829,23 +2829,29 @@ export default function Dashboard(){
                 if(!gpsEntries.length&&!diarioEntries.length)continue;
 
                 // Prioridade na escolha da entrada GPS do jogo:
-                //   1. Linha com RESULTADO preenchido (V/E/D) — sinal definitivo
-                //      de jogo no formato gps_individual atual
-                //   2. Match por adversário no sessionTitle (formato legado "J.BOTxFOR")
-                //   3. Sessão tem palavra-chave de jogo ("Jogo", "Match", "Partida")
-                //   4. Sessão não-complemento (qualquer coisa que não seja aquecimento)
-                //   5. Qualquer entrada da data
+                //   1. Linha com rosterStatus (G1/G2/G3) preenchido — sinal direto
+                //      da comissão técnica, mais forte que qualquer heurística.
+                //   2. Linha com RESULTADO preenchido (V/E/D).
+                //   3. Match por adversário no sessionTitle (formato legado "J.BOTxFOR")
+                //   4. Sessão tem palavra-chave de jogo ("Jogo", "Match", "Partida")
+                //   5. Sessão não-complemento na data exata do jogo (±1 dia) —
+                //      antes do fallback genérico, prioriza entrada do próprio
+                //      dia para evitar treino próximo ser confundido com jogo.
+                //   6. Sessão não-complemento (qualquer coisa que não seja aquecimento)
+                //   7. Qualquer entrada da data
                 // IMPORTANTE: o filtro de DATA já restringiu o universo. Não
                 // descartamos atletas só porque o sessionTitle ("Jogo Casa (V)"
                 // do gps_individual) não cita o adversário — confiar na data.
                 // Sem essa prioridade, um atleta que treinou no dia do jogo
                 // (não-relacionado) podia ter o treino selecionado em vez
                 // do jogo, contaminando a metragem exibida.
+                const rosterEntries=gpsEntries.filter(e=>String(e.rosterStatus||"").trim().length>0);
                 const resultadoEntries=gpsEntries.filter(e=>String(e.resultado||"").trim().length>0);
                 const opponentEntries=adversario?gpsEntries.filter(e=>matchesOpponent(e.sessionTitle,adversario)):[];
                 const matchEntries=gpsEntries.filter(e=>isMatchTitle(e.sessionTitle));
+                const sameDateNonComp=gpsEntries.filter(e=>{const eTs=parseDateStr(e.date);return eTs&&!isComplementTitle(e.sessionTitle)&&Math.abs(eTs-gDateTs)<=DAY_MS;});
                 const nonComplEntries=gpsEntries.filter(e=>!isComplementTitle(e.sessionTitle));
-                const pool=resultadoEntries.length?resultadoEntries:(opponentEntries.length?opponentEntries:(matchEntries.length?matchEntries:(nonComplEntries.length?nonComplEntries:gpsEntries)));
+                const pool=rosterEntries.length?rosterEntries:(resultadoEntries.length?resultadoEntries:(opponentEntries.length?opponentEntries:(matchEntries.length?matchEntries:(sameDateNonComp.length?sameDateNonComp:(nonComplEntries.length?nonComplEntries:gpsEntries)))));
                 let bestGpsEntry=pool.length>1?pool.reduce((b,e)=>(e.gps?.dist_total||0)>(b.gps?.dist_total||0)?e:b,pool[0]):pool[0]||null;
 
                 const gps=bestGpsEntry?bestGpsEntry.gps||bestGpsEntry:{};
@@ -2868,7 +2874,8 @@ export default function Dashboard(){
                 // rosterStatus extraído da OBS na API: G1=titular, G2=entrou, G3=banco.
                 // Sinal definitivo da comissão técnica para "atleta participou".
                 const rosterStatus=bestGpsEntry?.rosterStatus||"";
-                results.push({name,pos:pInfo?.pos||diario.pos||"",gps,diario,quest,cmj:cmjBest,pInfo,sessionTitle,tags,allSplits,splitsDetail,duracao,resultado,local,obs,rosterStatus});
+                const gpsEntryDate=bestGpsEntry?.date||"";
+                results.push({name,pos:pInfo?.pos||diario.pos||"",gps,diario,quest,cmj:cmjBest,pInfo,sessionTitle,tags,allSplits,splitsDetail,duracao,resultado,local,obs,rosterStatus,gpsEntryDate});
               }
 
               // Critério "jogou de fato" — combina dois formatos:
@@ -2926,10 +2933,15 @@ export default function Dashboard(){
                   // jogo no calendário, então qualquer atleta com pace de jogo
                   // (≥30 m/min) representa minutos em campo. Suplentes que entraram
                   // 11min/1.282m (116 m/min) eram cortados pelos antigos limiares
-                  // fixos de 60min+5.000m / 7.000m. Treino de não-relacionados
-                  // costuma sustentar pace mais baixo (≤25 m/min) e ainda é
-                  // descartado pelo meetsPlayPace.
-                  if(!stIsMatch&&!resultadoFilled&&meetsPlayPace(dist,dur))return true;
+                  // fixos de 60min+5.000m / 7.000m. Exige que a entrada GPS esteja
+                  // na data exata do jogo (±1 dia para fuso) — sem isso, treinos
+                  // de alta intensidade dentro da janela ±2 dias eram classificados
+                  // como dados do jogo para atletas não-relacionados (ex.: Wesley
+                  // R6 Cuiabá — treino 24/04 6397m/59min era exibido como 26/04).
+                  if(!stIsMatch&&!resultadoFilled&&meetsPlayPace(dist,dur)){
+                    const eTs=parseDateStr(a.gpsEntryDate);
+                    if(eTs&&Math.abs(eTs-gDateTs)<=DAY_MS)return true;
+                  }
                 }
 
                 // (C) Fallback diário marca "Sim" para Partida.
@@ -4135,18 +4147,24 @@ export default function Dashboard(){
             };
             const isGameSplit=sp2=>{const s=(sp2||"").toLowerCase().trim();if(s.includes("aquec")||s.includes("warmup")||s.includes("compl")||s.includes("interv")||s.startsWith("t-")||s.includes("recupera"))return false;if(s==="session"||s==="sessão"||s==="sessao")return true;if(/\d+[.\-]\d+\s*min/.test(s)||/\d+\s*mais/.test(s)||/\b[12]t\b/.test(s))return true;return false;};
             // Pool com priorização (espelha getAthletesForDate da aba Jogos):
-            //   1. Linha com RESULTADO preenchido (V/E/D) — sinal definitivo de
-            //      jogo no formato gps_individual atual.
-            //   2. Match por adversário no sessionTitle (legado "J.BOTxFOR" ou
+            //   1. Linha com rosterStatus (G1/G2/G3) preenchido — sinal direto da
+            //      comissão técnica, mais forte que qualquer heurística.
+            //   2. Linha com RESULTADO preenchido (V/E/D).
+            //   3. Match por adversário no sessionTitle (legado "J.BOTxFOR" ou
             //      novo "Jogo Fortaleza Casa (V)").
-            //   3. Sessão tem palavra-chave de jogo ("Jogo", "Match", "Partida").
-            //   4. Sessão não-complemento (qualquer coisa que não seja aquec).
-            //   5. Qualquer entrada da data.
+            //   4. Sessão tem palavra-chave de jogo ("Jogo", "Match", "Partida").
+            //   5. Sessão não-complemento na data exata do jogo (±1 dia) — antes
+            //      do fallback genérico, prioriza entrada do próprio dia para
+            //      evitar treino próximo ser confundido com dado de jogo.
+            //   6. Sessão não-complemento (qualquer coisa que não seja aquec).
+            //   7. Qualquer entrada da data.
+            const rosterEntries=matchGps.filter(e=>String(e.rosterStatus||"").trim().length>0);
             const resultadoEntries=matchGps.filter(e=>String(e.resultado||"").trim().length>0);
             const oppEntries=lastGame.adversario?matchGps.filter(e=>matchesOpp(e.sessionTitle,lastGame.adversario)):[];
             const matchTitleEntries=matchGps.filter(e=>isMatchT(e.sessionTitle));
+            const sameDateNonComp=matchGps.filter(e=>{const eD=parseDateGame(e.date);return eD&&!isComplement(e.sessionTitle)&&Math.abs(eD.getTime()-gameDateTs)<=DAY;});
             const nonCompEntries=matchGps.filter(e=>!isComplement(e.sessionTitle));
-            const pool=resultadoEntries.length?resultadoEntries:(oppEntries.length?oppEntries:(matchTitleEntries.length?matchTitleEntries:(nonCompEntries.length?nonCompEntries:matchGps)));
+            const pool=rosterEntries.length?rosterEntries:(resultadoEntries.length?resultadoEntries:(oppEntries.length?oppEntries:(matchTitleEntries.length?matchTitleEntries:(sameDateNonComp.length?sameDateNonComp:(nonCompEntries.length?nonCompEntries:matchGps)))));
             const bestGps=pool.length>1?pool.reduce((b,e)=>(e.gps?.dist_total||0)>(b.gps?.dist_total||0)?e:b,pool[0]):pool[0]||null;
             // Verificação "jogou de fato" — combina dois formatos:
             //   (A) gps legado: requer splits de tempo de jogo (30.40min, 2T)
@@ -4190,9 +4208,15 @@ export default function Dashboard(){
               // o universo, então qualquer atleta com pace de jogo (≥30 m/min)
               // representa minutos em campo. Suplentes 11min/1.282m (116 m/min)
               // eram cortados pelos antigos limiares fixos de 60min+5.000m /
-              // 7.000m. Treino de não-relacionados sustenta pace mais baixo
-              // (≤25 m/min) e ainda é descartado pelo meetsPlayPace.
-              else if(!stIsMatch&&!resultadoFilled&&meetsPlayPace(dist,dur))playerPlayed=true;
+              // 7.000m. Exige que a entrada GPS esteja na data exata do jogo
+              // (±1 dia para fuso) — sem isso, treinos de alta intensidade
+              // dentro da janela ±2 dias eram classificados como dados do jogo
+              // para atletas não-relacionados (ex.: Wesley R6 Cuiabá — treino
+              // de 24/04 6397m/59min era exibido como dado do jogo de 26/04).
+              else if(!stIsMatch&&!resultadoFilled&&meetsPlayPace(dist,dur)){
+                const entryDate=parseDateGame(bestGps.date);
+                if(entryDate&&Math.abs(entryDate.getTime()-gameDateTs)<=DAY)playerPlayed=true;
+              }
             }
             // (C) Fallback: diário marca "Sim" para Partida.
             if(!playerPlayed&&rosterStatus!=="G3"){
