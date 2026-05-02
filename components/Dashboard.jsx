@@ -2943,7 +2943,12 @@ export default function Dashboard(){
                       {/* Expanded athlete data */}
                       {isExpanded&&<div style={{borderTop:`1px solid ${t.border}`,padding:0}}>
                         {athleteData.length===0?
-                          <div style={{padding:20,textAlign:"center",color:t.textFaint,fontSize:11}}>Nenhum dado de atletas encontrado para esta data</div>:
+                          <div style={{padding:20,textAlign:"center",color:t.textFaint,fontSize:11}}>
+                            <div style={{fontWeight:600,marginBottom:4}}>Nenhum dado de atletas encontrado para esta data</div>
+                            <div style={{fontSize:10,color:t.textFaintest||t.textFaint}}>
+                              {isNext?"Jogo agendado — dados serão exibidos após a partida.":`Busca em ±2 dias de ${g.data||"—"}. Possíveis causas: jogo fora sem GPS coletado, ou dados ainda não publicados na planilha.`}
+                            </div>
+                          </div>:
                           <div style={{overflowX:"auto"}}>
                             {/* Summary badges */}
                             <div style={{padding:"10px 16px",display:"flex",gap:8,flexWrap:"wrap",borderBottom:`1px solid ${t.borderLight}`}}>
@@ -4000,29 +4005,83 @@ export default function Dashboard(){
             const gpsEntries=sheetData?.gps?.[sp.n]||[];
             const questEntries=sheetData?.questionarios?.[sp.n]||[];
             const diarioEntries=sheetData?.diario?.[sp.n]||[];
-            const dateMatch=e=>{const eD=parseDateGame(e.date);if(!eD)return false;return Math.abs(eD.getTime()-gameDateTs)<=DAY;};
+            // Tolerância ±2 dias (alinhada com getAthletesForDate da aba Jogos):
+            // cobre fusos diferentes, atrasos de sincronização do device GPS e
+            // jogos noturnos que registram data do dia seguinte na aba bruta.
+            const dateMatch=e=>{const eD=parseDateGame(e.date);if(!eD)return false;return Math.abs(eD.getTime()-gameDateTs)<=2*DAY;};
             const matchGps=gpsEntries.filter(dateMatch);
             const matchQuest=questEntries.filter(dateMatch);
             const matchDiario=diarioEntries.filter(dateMatch);
             // Filter GPS: only match sessions (not warmup/complement), verify player actually played
             const isMatchT=st=>{const s=(st||"").toLowerCase().trim();return s.startsWith("j.")||s.startsWith("j ")||s.includes("jogo")||s.includes("match")||s.includes("partida");};
             const isComplement=st=>{const s=(st||"").toLowerCase().trim();return s.includes("compl")||s.includes("aquec")||s.includes("warmup")||s.startsWith("t-")||s.includes("recupera");};
-            const matchesOpp=(st,adv)=>{if(!st||!adv)return false;const s=st.toUpperCase().replace(/\s+/g,""),a=adv.toUpperCase().replace(/\s+/g,"");return a.length>=4&&s.includes(a.substring(0,4));};
-            const isGameSplit=sp2=>{const s=(sp2||"").toLowerCase().trim();if(s.includes("aquec")||s.includes("warmup")||s.includes("compl")||s.includes("interv")||s.startsWith("t-")||s.includes("recupera"))return false;if(s==="session"||s==="sessão")return true;if(/\d+[.\-]\d+\s*min/.test(s)||/\d+\s*mais/.test(s)||/\b[12]t\b/.test(s))return true;return false;};
-            // Find match GPS entries (opponent match or match title, excluding complements)
+            // matchesOpp: cobre legado "J.BOTxFOR" e novo "Jogo Fortaleza Casa (V)".
+            // Sem acentos para casar "Atlético-GO" vs "ATLETICOGO".
+            const matchesOpp=(st,adv)=>{
+              if(!st||!adv)return false;
+              const stRaw=String(st).toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+              const advRaw=String(adv).toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+              const s=stRaw.replace(/\s+/g,""),a=advRaw.replace(/\s+/g,"");
+              if(a.length>=4&&s.includes(a.substring(0,4)))return true;
+              const advWords=advRaw.split(/\s+/).filter(w=>w.length>=3);
+              for(const w of advWords){
+                if(w.length>=4&&stRaw.includes(w))return true;
+              }
+              return false;
+            };
+            const isGameSplit=sp2=>{const s=(sp2||"").toLowerCase().trim();if(s.includes("aquec")||s.includes("warmup")||s.includes("compl")||s.includes("interv")||s.startsWith("t-")||s.includes("recupera"))return false;if(s==="session"||s==="sessão"||s==="sessao")return true;if(/\d+[.\-]\d+\s*min/.test(s)||/\d+\s*mais/.test(s)||/\b[12]t\b/.test(s))return true;return false;};
+            // Pool com priorização (espelha getAthletesForDate da aba Jogos):
+            //   1. Linha com RESULTADO preenchido (V/E/D) — sinal definitivo de
+            //      jogo no formato gps_individual atual.
+            //   2. Match por adversário no sessionTitle (legado "J.BOTxFOR" ou
+            //      novo "Jogo Fortaleza Casa (V)").
+            //   3. Sessão tem palavra-chave de jogo ("Jogo", "Match", "Partida").
+            //   4. Sessão não-complemento (qualquer coisa que não seja aquec).
+            //   5. Qualquer entrada da data.
+            const resultadoEntries=matchGps.filter(e=>String(e.resultado||"").trim().length>0);
             const oppEntries=lastGame.adversario?matchGps.filter(e=>matchesOpp(e.sessionTitle,lastGame.adversario)):[];
             const matchTitleEntries=matchGps.filter(e=>isMatchT(e.sessionTitle));
             const nonCompEntries=matchGps.filter(e=>!isComplement(e.sessionTitle));
-            const pool=oppEntries.length?oppEntries:(matchTitleEntries.length?matchTitleEntries:nonCompEntries);
-            const bestGps=pool.length?pool.reduce((b,e)=>(e.gps?.dist_total||0)>(b.gps?.dist_total||0)?e:b,pool[0]):null;
-            // Verify player actually played: check splits and minimum distance
+            const pool=resultadoEntries.length?resultadoEntries:(oppEntries.length?oppEntries:(matchTitleEntries.length?matchTitleEntries:(nonCompEntries.length?nonCompEntries:matchGps)));
+            const bestGps=pool.length>1?pool.reduce((b,e)=>(e.gps?.dist_total||0)>(b.gps?.dist_total||0)?e:b,pool[0]):pool[0]||null;
+            // Verificação "jogou de fato" — combina dois formatos:
+            //   (A) gps legado: requer splits de tempo de jogo (30.40min, 2T)
+            //   (B) gps_individual (atual): 1 linha agregada por sessão, sem
+            //       splits. Sinal mais forte = coluna RESULTADO preenchida.
+            //       Suplentes que entraram poucos minutos precisam ser capturados.
             const allSplits=bestGps?.allSplits||[];
             const gameTimeCt=allSplits.filter(sp2=>isGameSplit(sp2)).length;
-            const hasPeriods=allSplits.some(sp2=>/\d+[.\-]\d+\s*min/.test((sp2||"").toLowerCase())||/\d+\s*mais/.test((sp2||"").toLowerCase())||/\b[12]t\b/.test((sp2||"").toLowerCase()));
-            const hasSession=allSplits.some(sp2=>{const s=(sp2||"").toLowerCase().trim();return s==="session"||s==="sessão";});
+            const hasPeriods=allSplits.some(sp2=>{const s=(sp2||"").toLowerCase();return/\d+[.\-]\d+\s*min/.test(s)||/\d+\s*mais/.test(s)||/\b[12]t\b/.test(s);});
+            const hasSession=allSplits.some(sp2=>{const s=(sp2||"").toLowerCase().trim();return s==="session"||s==="sessão"||s==="sessao";});
             const dist=bestGps?.gps?.dist_total||0;
+            const dur=Number(bestGps?.duracao)||Number(bestGps?.gps?.duracao)||0;
             const stIsMatch=isMatchT(bestGps?.sessionTitle);
-            const playerPlayed=(hasPeriods&&gameTimeCt>=2)||(hasSession&&stIsMatch&&dist>=4000)||(hasPeriods&&gameTimeCt>=1&&dist>=2000);
+            const resultadoFilled=String(bestGps?.resultado||"").trim().length>0;
+            let playerPlayed=false;
+            // (A) Formato legado com splits detalhados.
+            if(hasPeriods&&gameTimeCt>=2)playerPlayed=true;
+            else if(hasSession&&stIsMatch&&dist>=4000)playerPlayed=true;
+            else if(hasPeriods&&gameTimeCt>=1&&dist>=2000)playerPlayed=true;
+            // (B) gps_individual: sem splits.
+            else if(!allSplits.length){
+              // (B.1) RESULTADO preenchido = jogo confirmado pela comissão.
+              // Aceita qualquer registro GPS (mesmo curto) — fonte da verdade.
+              if(resultadoFilled&&(dist>0||dur>0))playerPlayed=true;
+              // (B.2) sessionTitle "Jogo …" mesmo sem RESULTADO — mínimos baixos
+              // para capturar suplentes (Maranhão: 11min/1.282m).
+              else if(stIsMatch&&(dist>=800||dur>=5))playerPlayed=true;
+              // (B.3) Sem RESULTADO nem title de jogo: distância/duração
+              // consistentes com tempo de jogo, para evitar capturar treino
+              // de não-relacionado feito no mesmo dia.
+              else if(!stIsMatch&&!resultadoFilled&&dur>=60&&dist>=5000)playerPlayed=true;
+              else if(!stIsMatch&&!resultadoFilled&&dist>=7000)playerPlayed=true;
+            }
+            // (C) Fallback: diário marca "Sim" para Partida.
+            if(!playerPlayed){
+              const partida=String(matchDiario.length?matchDiario[matchDiario.length-1]?.partida||"":"").toLowerCase();
+              const playedDiario=partida.includes("sim")||partida==="1"||partida==="s"||partida==="x";
+              if(playedDiario&&(dist>1000||dur>=5))playerPlayed=true;
+            }
             const gps=playerPlayed?bestGps?.gps||null:null;
             const quest=matchQuest.length?matchQuest[matchQuest.length-1]:null;
             const diario=matchDiario.length?matchDiario[matchDiario.length-1]:null;
@@ -4066,7 +4125,10 @@ export default function Dashboard(){
                     </div>)}
                 </div>
               </div>:
-              <div style={{textAlign:"center",padding:"12px 0",color:t.textFaint,fontSize:11}}>{bestGps&&!playerPlayed?"Atleta não participou desta partida":"Sem dados individuais de GPS/wellness para esta partida"}</div>}
+              <div style={{textAlign:"center",padding:"12px 0",color:t.textFaint,fontSize:11}}>
+                <div style={{fontWeight:600}}>{bestGps&&!playerPlayed?"Atleta não participou desta partida":matchGps.length?"Sem dados individuais de GPS/wellness para esta partida":"Sem dados de GPS/wellness importados para esta data"}</div>
+                {!matchGps.length&&<div style={{fontSize:9,color:t.textFaintest||t.textFaint,marginTop:3}}>Busca em ±2 dias de {gameDateFmt}. Dados podem estar pendentes de upload.</div>}
+              </div>}
             </div>;
           })()}
 
