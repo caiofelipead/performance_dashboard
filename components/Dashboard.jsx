@@ -980,6 +980,16 @@ const score=(p)=>{
 };
 
 const LV={CRITICAL:{c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",l:"Crítico"},HIGH:{c:"#EA580C",bg:"#FFF7ED",bc:"#FED7AA",l:"Alto"},MODERATE:{c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",l:"Moderado"},LOW:{c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",l:"Ótimo"}};
+// Versão theme-aware do LV: backgrounds e bordas adaptadas ao dark mode
+// (tons translúcidos sobre o card escuro mantêm a semântica de cor sem
+// quebrar o contraste branco do texto).
+const lvDark={
+  CRITICAL:{c:"#ef4444",bg:"rgba(220,38,38,.14)",bc:"rgba(220,38,38,.4)",l:"Crítico"},
+  HIGH:{c:"#fb923c",bg:"rgba(234,88,12,.14)",bc:"rgba(234,88,12,.4)",l:"Alto"},
+  MODERATE:{c:"#facc15",bg:"rgba(202,138,4,.14)",bc:"rgba(202,138,4,.4)",l:"Moderado"},
+  LOW:{c:"#22c55e",bg:"rgba(22,163,74,.14)",bc:"rgba(22,163,74,.4)",l:"Ótimo"}
+};
+const lvFor=(level,dark)=>{const base=(dark?lvDark:LV)[level]||(dark?lvDark:LV).LOW;return base;};
 
 // Estado unificado: combina Ψ(t) (PCA Fonseca 2020), prob ML 7d (XGBoost) e Risk Score clínico
 // numa só leitura, escolhendo a zona mais pessimista entre as fontes dinâmicas.
@@ -2086,7 +2096,7 @@ export default function Dashboard(){
           <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:18,color:pri,marginBottom:4}}>Alertas Ativos</div>
           <div style={{fontSize:12,color:t.textFaint,marginBottom:16}}>{todayStr} · Score de criticidade composto (ACWR + Bem-estar + CMJ + Dor)</div>
           {players.filter(p=>p.riskScore>=20).map((p,i)=>{
-            const lv=LV[p.risk];
+            const lv=lvFor(p.risk,dark);
             const rx=p.risk==="CRITICAL"?
               (p.ai>1.45?"Reduzir volume 30% por 3 dias. sRPE alvo < 300.":p.d>=4?"Fisioterapia preventiva imediata. Avaliar cadeia posterior.":"Monitoramento diário reforçado."):
               p.risk==="HIGH"?
@@ -3798,61 +3808,69 @@ export default function Dashboard(){
           {/* DM Atual + Calendário Série B */}
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
             {/* DM Atual */}
-            <div style={{background:t.bgCard,borderRadius:12,border:"1px solid #FECACA",overflow:"hidden"}}>
-              <div style={{padding:"12px 16px",background:"#FEF2F2",borderBottom:"1px solid #FECACA",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            {(()=>{
+              const dmRedBg=dark?"rgba(220,38,38,.10)":"#FEF2F2";
+              const dmRedBc=dark?"rgba(220,38,38,.35)":"#FECACA";
+              const dmRedTxt=dark?"#ef4444":"#DC2626";
+              const dmGrnBg=dark?"rgba(22,163,74,.10)":"#F0FDF4";
+              const dmGrnBc=dark?"rgba(22,163,74,.35)":"#BBF7D0";
+              const dmGrnTxt=dark?"#22c55e":"#16A34A";
+              return (
+            <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${dmRedBc}`,overflow:"hidden"}}>
+              <div style={{padding:"12px 16px",background:dmRedBg,borderBottom:`1px solid ${dmRedBc}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:"#DC2626"}}>Departamento Médico — Atual</div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:dmRedTxt}}>Departamento Médico — Atual</div>
                   <div style={{fontSize:10,color:t.textFaint}}>{todayStr} · {liveDmData.afastados.length} afastados · {liveDmData.retornados.length} em manutenção</div>
                 </div>
-                <div style={{fontFamily:"'JetBrains Mono'",fontSize:20,fontWeight:800,color:"#DC2626"}}>{liveDmData.afastados.length}</div>
+                <div style={{fontFamily:"'JetBrains Mono'",fontSize:20,fontWeight:800,color:dmRedTxt}}>{liveDmData.afastados.length}</div>
               </div>
               <div style={{padding:12}}>
                 {/* Afastados */}
                 {liveDmData.afastados.map((p,i)=>{
-                  const ec=p.estagio==="Fase 1"||p.estagio==="Pré-op"?"#DC2626":p.estagio==="Fase 2"?"#EA580C":p.estagio==="Fase 3"?"#CA8A04":"#16A34A";
-                  return <div key={`af-${i}`} style={{padding:"10px 12px",background:i%2===0?"#FEF2F2":t.bgCard,borderRadius:8,marginBottom:6,border:"1px solid #FECACA44"}}>
+                  const ec=p.estagio==="Fase 1"||p.estagio==="Pré-op"?dmRedTxt:p.estagio==="Fase 2"?(dark?"#fb923c":"#EA580C"):p.estagio==="Fase 3"?(dark?"#facc15":"#CA8A04"):dmGrnTxt;
+                  return <div key={`af-${i}`} style={{padding:"10px 12px",background:i%2===0?dmRedBg:t.bgCard,borderRadius:8,marginBottom:6,border:`1px solid ${dmRedBc}`}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
                       <div style={{display:"flex",alignItems:"center",gap:8}}>
-                        <span style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:"#DC2626",cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>{p.n}</span>
+                        <span style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:dmRedTxt,cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>{p.n}</span>
                         <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:t.textFaint}}>{p.pos}</span>
-                        <span style={{padding:"1px 6px",borderRadius:4,fontSize:9,fontWeight:700,background:`${ec}15`,color:ec,border:`1px solid ${ec}33`}}>{p.classif}</span>
+                        <span style={{padding:"1px 6px",borderRadius:4,fontSize:9,fontWeight:700,background:`${ec}22`,color:ec,border:`1px solid ${ec}55`}}>{p.classif}</span>
                       </div>
-                      <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:"#DC2626"}}>{p.dias}d</span>
+                      <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:dmRedTxt}}>{p.dias}d</span>
                     </div>
                     <div style={{fontSize:10,color:t.textMuted}}>{p.regiao}</div>
                     <div style={{display:"flex",gap:12,marginTop:3,fontSize:9,color:t.textFaint,flexWrap:"wrap"}}>
                       <span>Desde: <strong>{p.desde}</strong></span>
                       <span style={{color:ec}}>● {p.estagio}</span>
                       <span>{p.conduta}</span>
-                      <span>Prognóstico: <strong style={{color:"#2563EB"}}>{p.prognostico}</strong></span>
+                      <span>Prognóstico: <strong style={{color:dark?"#60a5fa":"#2563EB"}}>{p.prognostico}</strong></span>
                     </div>
                   </div>;
                 })}
                 {/* Retornados recentes (em manutenção) */}
                 {liveDmData.retornados.length>0&&<>
-                  <div style={{fontSize:9,fontWeight:700,color:"#16A34A",letterSpacing:1,textTransform:"uppercase",marginTop:8,marginBottom:6,paddingLeft:4}}>Retornados — Em Manutenção</div>
+                  <div style={{fontSize:9,fontWeight:700,color:dmGrnTxt,letterSpacing:1,textTransform:"uppercase",marginTop:8,marginBottom:6,paddingLeft:4}}>Retornados — Em Manutenção</div>
                   {liveDmData.retornados.map((p,i)=>{
-                    return <div key={`ret-${i}`} style={{padding:"8px 12px",background:i%2===0?"#F0FDF4":t.bgCard,borderRadius:8,marginBottom:4,border:"1px solid #BBF7D044"}}>
+                    return <div key={`ret-${i}`} style={{padding:"8px 12px",background:i%2===0?dmGrnBg:t.bgCard,borderRadius:8,marginBottom:4,border:`1px solid ${dmGrnBc}`}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
                         <div style={{display:"flex",alignItems:"center",gap:8}}>
-                          <span style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:"#16A34A",cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>{p.n}</span>
+                          <span style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:dmGrnTxt,cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>{p.n}</span>
                           <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:t.textFaint}}>{p.pos}</span>
-                          <span style={{padding:"1px 6px",borderRadius:4,fontSize:9,fontWeight:600,background:"#F0FDF4",color:"#16A34A",border:"1px solid #BBF7D0"}}>{p.classif}</span>
+                          <span style={{padding:"1px 6px",borderRadius:4,fontSize:9,fontWeight:600,background:dmGrnBg,color:dmGrnTxt,border:`1px solid ${dmGrnBc}`}}>{p.classif}</span>
                         </div>
-                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,fontWeight:600,color:"#16A34A"}}>+{p.dias_retorno}d treino</span>
+                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,fontWeight:600,color:dmGrnTxt}}>+{p.dias_retorno}d treino</span>
                       </div>
                       <div style={{fontSize:10,color:t.textMuted}}>{p.regiao}</div>
                       <div style={{display:"flex",gap:12,marginTop:3,fontSize:9,color:t.textFaint,flexWrap:"wrap"}}>
                         <span>Lesão: <strong>{p.desde}</strong></span>
-                        <span>Prognóstico: <strong style={{color:"#CA8A04"}}>{p.prognostico}</strong></span>
-                        <span>Retorno real: <strong style={{color:"#16A34A"}}>{p.retorno_real}</strong></span>
-                        <span style={{color:"#16A34A"}}>● {p.estagio} — Manutenção</span>
+                        <span>Prognóstico: <strong style={{color:dark?"#facc15":"#CA8A04"}}>{p.prognostico}</strong></span>
+                        <span>Retorno real: <strong style={{color:dmGrnTxt}}>{p.retorno_real}</strong></span>
+                        <span style={{color:dmGrnTxt}}>● {p.estagio} — Manutenção</span>
                       </div>
                     </div>;
                   })}
                 </>}
               </div>
-            </div>
+            </div>);})()}
 
             {/* Calendário Série B */}
             {(()=>{
@@ -3929,19 +3947,28 @@ export default function Dashboard(){
           {/* Player Readiness Map */}
           {(()=>{
             const gr=WEEK_READINESS(players,liveAlerts);
+            // Cores theme-aware: tons translúcidos no escuro (mantêm a
+            // semântica vermelho/laranja/amarelo/verde) e tons claros no
+            // light mode. Bordas similares mas com mais opacidade.
+            const tones={
+              red:{bg:dark?"rgba(220,38,38,.10)":"#FEF2F2",bc:dark?"rgba(220,38,38,.35)":"#FECACA",text:dark?"#ef4444":"#DC2626"},
+              org:{bg:dark?"rgba(234,88,12,.10)":"#FFF7ED",bc:dark?"rgba(234,88,12,.35)":"#FED7AA",text:dark?"#fb923c":"#EA580C"},
+              yel:{bg:dark?"rgba(202,138,4,.10)":"#FEFCE8",bc:dark?"rgba(202,138,4,.35)":"#FEF08A",text:dark?"#facc15":"#CA8A04"},
+              grn:{bg:dark?"rgba(22,163,74,.10)":"#F0FDF4",bc:dark?"rgba(22,163,74,.35)":"#BBF7D0",text:dark?"#22c55e":"#16A34A"}
+            };
             return <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
               {/* Excluded */}
-              <div style={{background:t.bgCard,borderRadius:12,border:"1px solid #FECACA",overflow:"hidden"}}>
-                <div style={{padding:"10px 14px",background:"#FEF2F2",borderBottom:"1px solid #FECACA"}}>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:"#DC2626"}}>Excluídos da Sessão</div>
+              <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${tones.red.bc}`,overflow:"hidden"}}>
+                <div style={{padding:"10px 14px",background:tones.red.bg,borderBottom:`1px solid ${tones.red.bc}`}}>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:tones.red.text}}>Excluídos da Sessão</div>
                   <div style={{fontSize:10,color:t.textFaint}}>{gr.excluded.length} atletas</div>
                 </div>
                 <div style={{padding:10}}>
                   {gr.excluded.map((p,i)=>
-                    <div key={i} style={{padding:"6px 8px",background:"#FEF2F2",borderRadius:6,marginBottom:4,cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>
+                    <div key={i} style={{padding:"6px 8px",background:tones.red.bg,borderRadius:6,marginBottom:4,cursor:"pointer",border:`1px solid ${tones.red.bc}`}} onClick={()=>{setSel(p.n);setTab("player")}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                        <span style={{fontWeight:700,fontSize:11,color:"#DC2626"}}>{p.n}</span>
-                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:p.zone==="DM"?"#7c3aed":"#DC2626"}}>{p.zone==="DM"?"DM":(p.prob*100).toFixed(0)+"%"}</span>
+                        <span style={{fontWeight:700,fontSize:11,color:tones.red.text}}>{p.n}</span>
+                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:p.zone==="DM"?(dark?"#a78bfa":"#7c3aed"):tones.red.text}}>{p.zone==="DM"?"DM":(p.prob*100).toFixed(0)+"%"}</span>
                       </div>
                       <div style={{fontSize:9,color:t.textFaint}}>{p.pos} · {p.dose}</div>
                     </div>)}
@@ -3949,49 +3976,49 @@ export default function Dashboard(){
                 </div>
               </div>
               {/* Limited */}
-              <div style={{background:t.bgCard,borderRadius:12,border:"1px solid #FED7AA",overflow:"hidden"}}>
-                <div style={{padding:"10px 14px",background:"#FFF7ED",borderBottom:"1px solid #FED7AA"}}>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:"#EA580C"}}>Carga Limitada (MED)</div>
+              <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${tones.org.bc}`,overflow:"hidden"}}>
+                <div style={{padding:"10px 14px",background:tones.org.bg,borderBottom:`1px solid ${tones.org.bc}`}}>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:tones.org.text}}>Carga Limitada (MED)</div>
                   <div style={{fontSize:10,color:t.textFaint}}>{gr.limited.length} atletas · 50% volume</div>
                 </div>
                 <div style={{padding:10}}>
                   {gr.limited.map((p,i)=>
-                    <div key={i} style={{padding:"6px 8px",background:"#FFF7ED",borderRadius:6,marginBottom:4,cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>
+                    <div key={i} style={{padding:"6px 8px",background:tones.org.bg,borderRadius:6,marginBottom:4,cursor:"pointer",border:`1px solid ${tones.org.bc}`}} onClick={()=>{setSel(p.n);setTab("player")}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                        <span style={{fontWeight:700,fontSize:11,color:"#EA580C"}}>{p.n}</span>
-                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:"#EA580C"}}>{(p.prob*100).toFixed(0)}%</span>
+                        <span style={{fontWeight:700,fontSize:11,color:tones.org.text}}>{p.n}</span>
+                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:tones.org.text}}>{(p.prob*100).toFixed(0)}%</span>
                       </div>
                       <div style={{fontSize:9,color:t.textFaint}}>{p.pos} · {p.dose}</div>
                     </div>)}
                 </div>
               </div>
               {/* Monitored */}
-              <div style={{background:t.bgCard,borderRadius:12,border:"1px solid #FEF08A",overflow:"hidden"}}>
-                <div style={{padding:"10px 14px",background:"#FEFCE8",borderBottom:"1px solid #FEF08A"}}>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:"#CA8A04"}}>Monitorados (HSR -30%)</div>
+              <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${tones.yel.bc}`,overflow:"hidden"}}>
+                <div style={{padding:"10px 14px",background:tones.yel.bg,borderBottom:`1px solid ${tones.yel.bc}`}}>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:tones.yel.text}}>Monitorados (HSR -30%)</div>
                   <div style={{fontSize:10,color:t.textFaint}}>{gr.full.filter(p=>p.zone==="AMARELO").length} atletas</div>
                 </div>
                 <div style={{padding:10}}>
                   {gr.full.filter(p=>p.zone==="AMARELO").map((p,i)=>
-                    <div key={i} style={{padding:"6px 8px",background:"#FEFCE8",borderRadius:6,marginBottom:4,cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>
+                    <div key={i} style={{padding:"6px 8px",background:tones.yel.bg,borderRadius:6,marginBottom:4,cursor:"pointer",border:`1px solid ${tones.yel.bc}`}} onClick={()=>{setSel(p.n);setTab("player")}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                        <span style={{fontWeight:700,fontSize:11,color:"#CA8A04"}}>{p.n}</span>
-                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:"#CA8A04"}}>{(p.prob*100).toFixed(0)}%</span>
+                        <span style={{fontWeight:700,fontSize:11,color:tones.yel.text}}>{p.n}</span>
+                        <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:tones.yel.text}}>{(p.prob*100).toFixed(0)}%</span>
                       </div>
                       <div style={{fontSize:9,color:t.textFaint}}>{p.pos} · {p.dose}</div>
                     </div>)}
                 </div>
               </div>
               {/* Full */}
-              <div style={{background:t.bgCard,borderRadius:12,border:"1px solid #BBF7D0",overflow:"hidden"}}>
-                <div style={{padding:"10px 14px",background:"#F0FDF4",borderBottom:"1px solid #BBF7D0"}}>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:"#16A34A"}}>Liberados — Carga Integral</div>
+              <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${tones.grn.bc}`,overflow:"hidden"}}>
+                <div style={{padding:"10px 14px",background:tones.grn.bg,borderBottom:`1px solid ${tones.grn.bc}`}}>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:12,color:tones.grn.text}}>Liberados — Carga Integral</div>
                   <div style={{fontSize:10,color:t.textFaint}}>{gr.full.filter(p=>p.zone==="VERDE").length} atletas</div>
                 </div>
                 <div style={{padding:10,maxHeight:300,overflowY:"auto"}}>
                   {gr.full.filter(p=>p.zone==="VERDE").map((p,i)=>
                     <div key={i} style={{padding:"4px 8px",borderRadius:4,marginBottom:2,display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>
-                      <span style={{fontWeight:600,fontSize:11,color:"#16A34A"}}>{p.n}</span>
+                      <span style={{fontWeight:600,fontSize:11,color:tones.grn.text}}>{p.n}</span>
                       <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:t.textFaint}}>{p.pos}</span>
                     </div>)}
                 </div>
@@ -4033,7 +4060,7 @@ export default function Dashboard(){
               <div style={{flex:1}}>
                 <div style={{fontFamily:"'Inter Tight'",fontSize:20,fontWeight:900,color:pri,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>{sp.n} <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:t.textFaint,fontWeight:400}}>{sp.pos} · {sp.id} anos · {sp.nc} sessões</span>{sp._questStale&&<span title={`Último questionário há ${sp._questDaysOld} dias — Escore Clínico apoiado em valores anteriores`} style={{fontSize:9,padding:"2px 6px",borderRadius:4,background:"#CA8A0420",color:"#CA8A04",border:"1px solid #CA8A0455",fontWeight:700,letterSpacing:.4}}>QUESTIONÁRIO {sp._questDaysOld}D</span>}</div>
                 {sp.reasons.length>0&&<div style={{display:"flex",gap:6,marginTop:6,flexWrap:"wrap"}}>
-                  {sp.reasons.map((r,i)=><span key={i} style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:LV[sp.risk].bg,color:LV[sp.risk].c,border:`1px solid ${LV[sp.risk].bc}`}}>{r}</span>)}
+                  {sp.reasons.map((r,i)=>{const _lv=lvFor(sp.risk,dark);return(<span key={i} style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:_lv.bg,color:_lv.c,border:`1px solid ${_lv.bc}`}}>{r}</span>);})}
                 </div>}
                 <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:10,marginTop:14}}>
                   {(()=>{
@@ -4491,19 +4518,26 @@ export default function Dashboard(){
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Composição Corporal</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:12}}>
+              {/* 4 cards de info simples + 2 gauges para métricas comparáveis */}
               {[
                 {l:"Idade",v:sp.id?sp.id+" anos":"-",Ic:User},
                 {l:"Altura",v:sp.alt?sp.alt+" cm":"-",Ic:Ruler},
                 {l:"Peso",v:sp.w?sp.w+" kg":"-",Ic:Scale},
-                {l:"% Gordura",v:sp.bf?sp.bf+"%":"-",Ic:Percent,c:sp.bf>14?"#EA580C":sp.bf>12?"#CA8A04":"#16A34A"},
-                {l:"Massa Muscular",v:sp.mm?sp.mm+" kg":"-",Ic:Dumbbell},
-                {l:"IMC",v:sp.imc?sp.imc.toFixed(1):"-",Ic:Sigma,c:sp.imc>25.5?"#CA8A04":"#16A34A"}
+                {l:"Massa Muscular",v:sp.mm?sp.mm+" kg":"-",Ic:Dumbbell}
               ].map((m,i)=>{const Ic=m.Ic;return(
                 <div key={i} style={{textAlign:"center",padding:"12px 8px",background:t.bgMuted,borderRadius:10,border:`1px solid ${t.borderLight}`}}>
-                  <div style={{display:"flex",justifyContent:"center",marginBottom:6}}><Ic size={18} color={m.c||t.textMuted} strokeWidth={1.8}/></div>
+                  <div style={{display:"flex",justifyContent:"center",marginBottom:6}}><Ic size={18} color={t.textMuted} strokeWidth={1.8}/></div>
                   <div style={{fontSize:9,color:t.textFaint,fontWeight:600,textTransform:"uppercase",letterSpacing:.5}}>{m.l}</div>
-                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:16,fontWeight:700,color:m.c||pri,marginTop:2}}>{m.v}</div>
+                  <div style={{fontFamily:"'JetBrains Mono'",fontSize:16,fontWeight:700,color:t.text,marginTop:2}}>{m.v}</div>
                 </div>);})}
+              {/* % Gordura — gauge (referência atletas elite ~10%) */}
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"8px",background:t.bgMuted,borderRadius:10,border:`1px solid ${t.borderLight}`}}>
+                <CircularGauge value={sp.bf||0} max={20} size={86} stroke={7} theme={t} c={sp.bf>14?"#ef4444":sp.bf>12?"#facc15":"#22c55e"} label="% GORDURA"/>
+              </div>
+              {/* IMC — gauge (zona ideal 21–25) */}
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"8px",background:t.bgMuted,borderRadius:10,border:`1px solid ${t.borderLight}`}}>
+                <CircularGauge value={sp.imc||0} max={32} size={86} stroke={7} theme={t} c={sp.imc>27?"#ef4444":sp.imc>25.5?"#facc15":"#22c55e"} label="IMC"/>
+              </div>
             </div>
           </div>
 
