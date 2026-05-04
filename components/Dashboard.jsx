@@ -1073,6 +1073,193 @@ const WBar=({label,v,max=10,inv,theme})=>{
   </div>;
 };
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// MAPA INTERATIVO DE LESÕES — Silhueta corporal (frente + costas)
+// mode="player" → cor por recência (ativo/<90d/<1ano)
+// mode="squad"  → cor por frequência (1 / 2-3 / 4+ casos)
+// ═══════════════════════════════════════════════════════════════════════════════
+function InjuryBodyMap({injuries,mode="player",theme,compact=false}){
+  const t=theme||THEMES.light;
+  const today=useMemo(()=>{const d=new Date();d.setHours(0,0,0,0);return d;},[]);
+  const data=useMemo(()=>{
+    const m={};
+    for(const inj of (injuries||[])){
+      const sides=(inj.lado==="Esquerdo"||inj.lado==="Direito")?[inj.lado]:["Esquerdo","Direito"];
+      for(const side of sides){
+        const key=`${inj.regiao}|${side}`;
+        if(!m[key])m[key]={items:[],count:0,mostRecent:null,hasActive:false,regiao:inj.regiao,lado:side};
+        m[key].items.push(inj);
+        m[key].count++;
+        const d=parseDateBR(inj.date);
+        if(d&&(!m[key].mostRecent||d>m[key].mostRecent))m[key].mostRecent=d;
+        if(!inj.fim_trans)m[key].hasActive=true;
+      }
+    }
+    return m;
+  },[injuries]);
+
+  const fillFor=(regiao,lado)=>{
+    const e=data[`${regiao}|${lado}`];
+    if(!e)return t.bgMuted2;
+    if(mode==="squad"){
+      if(e.count>=4)return "#DC2626";
+      if(e.count>=2)return "#EA580C";
+      return "#FACC15";
+    }
+    if(e.hasActive)return "#DC2626";
+    const days=e.mostRecent?(today-e.mostRecent)/86400000:Infinity;
+    if(days<90)return "#EA580C";
+    if(days<365)return "#FACC15";
+    return "#FED7AA";
+  };
+
+  const [hover,setHover]=useState(null);
+  const base=t.bgMuted2;
+  const stroke=t.borderLight;
+  const strokeW=0.6;
+
+  const Z=({regiao,lado,children})=>{
+    const fill=fillFor(regiao,lado);
+    const entry=data[`${regiao}|${lado}`];
+    const has=!!entry;
+    return React.cloneElement(children,{
+      fill,
+      stroke,
+      strokeWidth:strokeW,
+      style:{cursor:has?"pointer":"default",transition:"fill .2s"},
+      onMouseEnter:e=>setHover({regiao,lado,x:e.clientX,y:e.clientY}),
+      onMouseMove:e=>setHover(h=>h?{...h,x:e.clientX,y:e.clientY}:null),
+      onMouseLeave:()=>setHover(null)
+    });
+  };
+
+  const w=compact?96:124;
+  const h=compact?280:360;
+  const titleStyle={fontSize:9,color:t.textFaint,fontWeight:700,letterSpacing:.5,textTransform:"uppercase",marginBottom:6};
+  const hoverEntry=hover?data[`${hover.regiao}|${hover.lado}`]:null;
+
+  return <div style={{position:"relative"}}>
+    <div style={{display:"flex",justifyContent:"center",gap:compact?16:28,alignItems:"flex-start"}}>
+      {/* ── FRENTE ── */}
+      <div style={{textAlign:"center"}}>
+        <div style={titleStyle}>Frente</div>
+        <svg viewBox="0 0 140 380" width={w} height={h} style={{display:"block",overflow:"visible"}}>
+          {/* Cabeça/pescoço/tronco/braços (decorativo) */}
+          <ellipse cx="70" cy="22" rx="16" ry="20" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          <rect x="63" y="40" width="14" height="10" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          <path d="M40 56 Q40 52 46 52 L94 52 Q100 52 100 56 L104 96 L102 178 L38 178 L36 96 Z" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          {/* Ombros (zonas) */}
+          <Z regiao="Ombro" lado="Esquerdo"><ellipse cx="98" cy="62" rx="13" ry="9"/></Z>
+          <Z regiao="Ombro" lado="Direito"><ellipse cx="42" cy="62" rx="13" ry="9"/></Z>
+          {/* Braços */}
+          <rect x="100" y="64" width="12" height="76" rx="6" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          <rect x="28" y="64" width="12" height="76" rx="6" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          <rect x="102" y="138" width="10" height="60" rx="5" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          <rect x="28" y="138" width="10" height="60" rx="5" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          <ellipse cx="107" cy="206" rx="7" ry="9" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          <ellipse cx="33" cy="206" rx="7" ry="9" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          {/* Pelve */}
+          <path d="M38 178 L102 178 L98 198 L42 198 Z" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          {/* Coxa Anterior — Esq (corpo) = direita do observador */}
+          <Z regiao="Coxa Anterior" lado="Esquerdo"><path d="M72 198 L94 198 L92 278 L78 278 Z"/></Z>
+          <Z regiao="Coxa Anterior" lado="Direito"><path d="M46 198 L68 198 L62 278 L48 278 Z"/></Z>
+          {/* Coxa Medial (adutor) — sobre o lado interno da coxa */}
+          <Z regiao="Coxa Medial" lado="Esquerdo"><ellipse cx="74" cy="220" rx="6" ry="14"/></Z>
+          <Z regiao="Coxa Medial" lado="Direito"><ellipse cx="66" cy="220" rx="6" ry="14"/></Z>
+          {/* Joelho */}
+          <Z regiao="Joelho" lado="Esquerdo"><ellipse cx="85" cy="284" rx="9" ry="7"/></Z>
+          <Z regiao="Joelho" lado="Direito"><ellipse cx="55" cy="284" rx="9" ry="7"/></Z>
+          {/* Perna Anterior (canela/tibial) */}
+          <Z regiao="Perna Anterior" lado="Esquerdo"><path d="M78 292 L92 292 L90 348 L80 348 Z"/></Z>
+          <Z regiao="Perna Anterior" lado="Direito"><path d="M48 292 L62 292 L60 348 L50 348 Z"/></Z>
+          {/* Tornozelo */}
+          <Z regiao="Tornozelo" lado="Esquerdo"><ellipse cx="85" cy="354" rx="6" ry="4"/></Z>
+          <Z regiao="Tornozelo" lado="Direito"><ellipse cx="55" cy="354" rx="6" ry="4"/></Z>
+          {/* Pé */}
+          <Z regiao="Pé" lado="Esquerdo"><ellipse cx="85" cy="368" rx="9" ry="6"/></Z>
+          <Z regiao="Pé" lado="Direito"><ellipse cx="55" cy="368" rx="9" ry="6"/></Z>
+        </svg>
+      </div>
+
+      {/* ── COSTAS ── */}
+      <div style={{textAlign:"center"}}>
+        <div style={titleStyle}>Costas</div>
+        <svg viewBox="0 0 140 380" width={w} height={h} style={{display:"block",overflow:"visible"}}>
+          {/* Silhueta */}
+          <ellipse cx="70" cy="22" rx="16" ry="20" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          <rect x="63" y="40" width="14" height="10" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          <path d="M40 56 Q40 52 46 52 L94 52 Q100 52 100 56 L104 96 L102 178 L38 178 L36 96 Z" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          {/* Cervical */}
+          <Z regiao="Cervical" lado="Esquerdo"><rect x="63" y="40" width="14" height="10" rx="2"/></Z>
+          {/* Ombros (em vista de costas, lado do corpo = lado do observador) */}
+          <Z regiao="Ombro" lado="Direito"><ellipse cx="98" cy="62" rx="13" ry="9"/></Z>
+          <Z regiao="Ombro" lado="Esquerdo"><ellipse cx="42" cy="62" rx="13" ry="9"/></Z>
+          {/* Braços */}
+          <rect x="100" y="64" width="12" height="76" rx="6" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          <rect x="28" y="64" width="12" height="76" rx="6" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          <rect x="102" y="138" width="10" height="60" rx="5" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          <rect x="28" y="138" width="10" height="60" rx="5" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          <ellipse cx="107" cy="206" rx="7" ry="9" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          <ellipse cx="33" cy="206" rx="7" ry="9" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          {/* Lombar */}
+          <Z regiao="Lombar" lado="Esquerdo"><rect x="58" y="148" width="12" height="24" rx="3"/></Z>
+          <Z regiao="Lombar" lado="Direito"><rect x="70" y="148" width="12" height="24" rx="3"/></Z>
+          {/* Pelve / glúteo */}
+          <path d="M38 178 L102 178 L98 198 L42 198 Z" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+          {/* Coxa Posterior — em costas, Esquerdo do corpo = esquerdo do observador */}
+          <Z regiao="Coxa Posterior" lado="Esquerdo"><path d="M46 198 L68 198 L62 278 L48 278 Z"/></Z>
+          <Z regiao="Coxa Posterior" lado="Direito"><path d="M72 198 L94 198 L92 278 L78 278 Z"/></Z>
+          {/* Joelho (cavo poplíteo) */}
+          <Z regiao="Joelho" lado="Esquerdo"><ellipse cx="55" cy="284" rx="9" ry="7"/></Z>
+          <Z regiao="Joelho" lado="Direito"><ellipse cx="85" cy="284" rx="9" ry="7"/></Z>
+          {/* Perna Posterior (panturrilha) */}
+          <Z regiao="Perna Posterior" lado="Esquerdo"><path d="M48 292 L62 292 L60 348 L50 348 Z"/></Z>
+          <Z regiao="Perna Posterior" lado="Direito"><path d="M78 292 L92 292 L90 348 L80 348 Z"/></Z>
+          {/* Tornozelo */}
+          <Z regiao="Tornozelo" lado="Esquerdo"><ellipse cx="55" cy="354" rx="6" ry="4"/></Z>
+          <Z regiao="Tornozelo" lado="Direito"><ellipse cx="85" cy="354" rx="6" ry="4"/></Z>
+          {/* Pé */}
+          <Z regiao="Pé" lado="Esquerdo"><ellipse cx="55" cy="368" rx="9" ry="6"/></Z>
+          <Z regiao="Pé" lado="Direito"><ellipse cx="85" cy="368" rx="9" ry="6"/></Z>
+        </svg>
+      </div>
+    </div>
+
+    {/* Legenda */}
+    <div style={{display:"flex",justifyContent:"center",gap:12,marginTop:10,flexWrap:"wrap"}}>
+      {(mode==="squad"
+        ?[{c:"#DC2626",l:"4+ casos"},{c:"#EA580C",l:"2-3 casos"},{c:"#FACC15",l:"1 caso"},{c:t.bgMuted2,l:"Sem casos"}]
+        :[{c:"#DC2626",l:"Ativo"},{c:"#EA580C",l:"< 90 dias"},{c:"#FACC15",l:"< 1 ano"},{c:"#FED7AA",l:"Histórico"},{c:t.bgMuted2,l:"Sem casos"}]
+      ).map((it,i)=>
+        <div key={i} style={{display:"flex",alignItems:"center",gap:5}}>
+          <div style={{width:10,height:10,background:it.c,border:`1px solid ${stroke}`,borderRadius:2}}/>
+          <span style={{fontSize:9,color:t.textFaint,fontWeight:600}}>{it.l}</span>
+        </div>
+      )}
+    </div>
+
+    {/* Tooltip */}
+    {hover&&hoverEntry&&<div style={{
+      position:"fixed",left:hover.x+14,top:hover.y+14,zIndex:100,
+      background:t.bgCard,border:`1px solid ${t.border}`,borderRadius:8,
+      padding:"10px 12px",boxShadow:`0 4px 14px ${t.shadowMd}`,minWidth:220,maxWidth:320,
+      pointerEvents:"none"
+    }}>
+      <div style={{fontSize:11,fontWeight:700,color:t.text}}>{hover.regiao} — {hover.lado}</div>
+      <div style={{fontSize:9,color:t.textFaint,marginBottom:6}}>{hoverEntry.count} {hoverEntry.count===1?"caso":"casos"} registrado{hoverEntry.count===1?"":"s"}</div>
+      {hoverEntry.items.slice(0,6).map((inj,i)=>{
+        const ic=inj.classif?.includes("4")?"#DC2626":inj.classif?.includes("2")||inj.classif?.includes("3")?"#EA580C":"#CA8A04";
+        return <div key={i} style={{fontSize:10,color:t.textMuted,padding:"4px 0",borderTop:i>0?`1px solid ${t.borderLight}`:"none",lineHeight:1.4}}>
+          {mode==="squad"&&<div style={{fontWeight:700,color:t.text,fontSize:10}}>{inj.n} <span style={{color:t.textFaint,fontWeight:500,fontSize:9}}>· {inj.pos}</span></div>}
+          <div><span style={{padding:"1px 5px",borderRadius:3,fontSize:9,fontWeight:700,background:`${ic}15`,color:ic,marginRight:4}}>{inj.classif}</span>{inj.estrutura} · {inj.total}d{!inj.fim_trans&&<span style={{color:"#DC2626",fontWeight:700}}> · ATIVO</span>}</div>
+          <div style={{fontSize:9,color:t.textFaint}}>{inj.mecanismo} · {(parseDateBR(inj.date)?.toLocaleDateString("pt-BR")||inj.date||"—")}</div>
+        </div>;
+      })}
+      {hoverEntry.items.length>6&&<div style={{fontSize:9,color:t.textFaint,marginTop:4,fontStyle:"italic"}}>+{hoverEntry.items.length-6} caso(s)…</div>}
+    </div>}
+  </div>;
+}
+
 export default function Dashboard(){
   const [sel,setSel]=useState(null);
   const [tab,setTab]=useState("squad");
@@ -4113,6 +4300,10 @@ export default function Dashboard(){
               {/* Histórico de Lesões (Previsão ML agora mora no card Estado acima) */}
               <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
                 <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:10,display:"flex",alignItems:"center",gap:6}}><Shield size={14}/>Histórico de Lesões {playerInj.length>0&&<span style={{fontSize:10,color:t.textFaint,fontWeight:500}}>({playerInj.length} {playerInj.length===1?"caso":"casos"})</span>}</div>
+                {/* Mapa corporal — passe o mouse sobre as zonas coloridas */}
+                <div style={{padding:"10px 0 14px",borderBottom:`1px solid ${t.borderLight}`,marginBottom:12}}>
+                  <InjuryBodyMap injuries={playerInj} mode="player" theme={t} compact={!!dmStatus}/>
+                </div>
                 {playerInj.length===0?<div style={{textAlign:"center",padding:"24px 0",color:t.textFaint,fontSize:11}}>Sem lesões registradas</div>:
                   playerInj.map((inj,i)=>{
                     const ic=inj.classif.includes("4C")?"#DC2626":inj.classif.includes("2")?"#EA580C":inj.classif==="Cirurgia"?"#7c3aed":"#CA8A04";
@@ -6231,6 +6422,45 @@ export default function Dashboard(){
                   <div style={{fontFamily:"'JetBrains Mono'",fontSize:24,fontWeight:800,color:k.c,marginTop:2}}>{k.v}</div>
                 </div>)}
             </div>
+          </div>
+
+          {/* Mapa do Elenco — regiões mais recorrentes */}
+          <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+              <div>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,display:"flex",alignItems:"center",gap:6}}><Shield size={14}/>Mapa Corporal do Elenco — Lesões Recorrentes</div>
+                <div style={{fontSize:10,color:t.textFaint,marginTop:2}}>Frequência de lesões por região e lateralidade. Passe o mouse sobre as zonas para ver os atletas afetados.</div>
+              </div>
+            </div>
+            <InjuryBodyMap injuries={liveInjuries} mode="squad" theme={t}/>
+            {/* Top regiões em texto */}
+            {(()=>{
+              const agg={};
+              for(const inj of liveInjuries){
+                const sides=(inj.lado==="Esquerdo"||inj.lado==="Direito")?[inj.lado]:["Esquerdo","Direito"];
+                for(const s of sides){
+                  const k=`${inj.regiao} ${s[0]}`;
+                  if(!agg[k])agg[k]={count:0,athletes:new Set()};
+                  agg[k].count++;
+                  agg[k].athletes.add(inj.n);
+                }
+              }
+              const top=Object.entries(agg).sort((a,b)=>b[1].count-a[1].count).slice(0,5);
+              if(!top.length)return null;
+              return <div style={{marginTop:14,paddingTop:12,borderTop:`1px solid ${t.borderLight}`}}>
+                <div style={{fontSize:10,color:t.textFaint,fontWeight:700,textTransform:"uppercase",letterSpacing:.5,marginBottom:8}}>Top 5 Regiões Recorrentes</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
+                  {top.map(([k,v],i)=>{
+                    const c=v.count>=4?"#DC2626":v.count>=2?"#EA580C":"#CA8A04";
+                    return <div key={i} style={{padding:"8px 10px",background:`${c}10`,borderLeft:`3px solid ${c}`,borderRadius:6}}>
+                      <div style={{fontSize:11,fontWeight:700,color:t.text}}>{k}</div>
+                      <div style={{fontFamily:"'JetBrains Mono'",fontSize:14,fontWeight:800,color:c,marginTop:2}}>{v.count}<span style={{fontSize:9,color:t.textFaint,fontWeight:600,marginLeft:4}}>casos</span></div>
+                      <div style={{fontSize:9,color:t.textMuted,marginTop:1}}>{v.athletes.size} atleta{v.athletes.size===1?"":"s"}</div>
+                    </div>;
+                  })}
+                </div>
+              </div>;
+            })()}
           </div>
 
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
