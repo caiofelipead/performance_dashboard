@@ -1165,72 +1165,77 @@ function InjuryBodyMap({injuries,mode="player",theme,compact=false}){
   // Silhueta orgânica: cabeça ovalada → trapézio → ombros sloped → tronco em V →
   // quadril com flare → coxas afuniladas → joelhos → panturrilha → tornozelo → pé.
   const Decor = () => <>
-    {/* Cabeça — oval com queixo natural */}
-    <path d="M 100 6 C 84 6 74 18 74 32 C 74 44 78 54 86 60 L 114 60 C 122 54 126 44 126 32 C 126 18 116 6 100 6 Z"
+    {/* Cabeça — oval anatômica com queixo definido */}
+    <path d="M 100 6 C 84 6 74 18 73 32 C 73 44 78 54 86 60 L 114 60 C 122 54 127 44 127 32 C 126 18 116 6 100 6 Z"
           fill={base} stroke={stroke} strokeWidth={strokeW}/>
-    {/* Tronco completo: pescoço → trapézio → ombros sloped → tórax → cintura afunilada → quadril com flare */}
+    {/* Tronco anatômico: pescoço + trapézio + ombros largos (deltoide) + tórax pectoral + cintura em V + quadril com flare */}
     <path d="M 88 60
              C 86 66 86 72 84 78
-             C 72 80 62 86 54 94
-             C 46 102 42 112 42 124
-             L 46 140
-             C 50 158 56 176 60 194
-             C 60 206 60 218 60 230
-             C 60 236 60 238 62 240
-             L 138 240
-             C 140 238 140 236 140 230
-             C 140 218 140 206 140 194
-             C 144 176 150 158 154 140
-             L 158 124
-             C 158 112 154 102 146 94
-             C 138 86 128 80 116 78
+             C 70 80 56 86 46 96
+             C 44 110 48 122 50 134
+             C 56 152 60 168 62 184
+             C 60 196 60 210 60 224
+             C 58 232 58 238 60 240
+             L 140 240
+             C 142 238 142 232 140 224
+             C 140 210 140 196 138 184
+             C 140 168 144 152 150 134
+             C 152 122 156 110 154 96
+             C 144 86 130 80 116 78
              C 114 72 114 66 112 60 Z"
           fill={base} stroke={stroke} strokeWidth={strokeW}/>
-    {/* Braço esquerdo (lado direito do observador) — banana orgânica ombro→bíceps→antebraço→mão */}
-    <path d="M 146 86
-             C 164 88 178 104 180 128
-             C 180 156 174 188 166 222
-             C 162 240 158 254 154 260
-             C 150 264 144 262 142 256
-             C 144 232 148 200 150 168
-             C 152 140 150 110 146 86 Z"
+    {/* Braço esquerdo do corpo (direita do observador) — ombro→bíceps→cotovelo→antebraço→mão com polegar */}
+    <path d="M 150 92
+             C 152 110 152 130 152 150
+             C 150 170 150 190 148 210
+             C 148 228 148 246 150 252
+             C 146 256 144 262 148 268
+             C 152 272 158 272 162 270
+             C 168 270 174 268 176 262
+             C 176 256 174 252 172 250
+             C 174 230 178 210 176 190
+             C 174 170 176 150 178 130
+             C 178 116 174 102 168 96
+             C 160 92 154 92 150 92 Z"
           fill={base} stroke={stroke} strokeWidth={strokeW}/>
     {/* Braço direito (mirror) */}
-    <path d="M 54 86
-             C 36 88 22 104 20 128
-             C 20 156 26 188 34 222
-             C 38 240 42 254 46 260
-             C 50 264 56 262 58 256
-             C 56 232 52 200 50 168
-             C 48 140 50 110 54 86 Z"
+    <path d="M 50 92
+             C 48 110 48 130 48 150
+             C 50 170 50 190 52 210
+             C 52 228 52 246 50 252
+             C 54 256 56 262 52 268
+             C 48 272 42 272 38 270
+             C 32 270 26 268 24 262
+             C 24 256 26 252 28 250
+             C 26 230 22 210 24 190
+             C 26 170 24 150 22 130
+             C 22 116 26 102 32 96
+             C 40 92 46 92 50 92 Z"
           fill={base} stroke={stroke} strokeWidth={strokeW}/>
   </>;
 
   // ── Zonas das pernas/tornozelos/pés (frente) ──
-  // Curvas suaves que dão forma muscular natural à coxa, joelho, panturrilha, tornozelo e pé.
-  // Coxa anterior — afunilando do quadril ao joelho com curva orgânica
-  const COXA_L_FRONT = "M 102 240 C 122 240 134 244 138 252 C 140 272 138 294 132 314 C 128 320 120 322 112 322 L 102 322 Z";
-  const COXA_R_FRONT = "M 98 240 C 78 240 66 244 62 252 C 60 272 62 294 68 314 C 72 320 80 322 88 322 L 98 322 Z";
+  // Coxa anterior — quadríceps amplo no quadril, afunilando ao joelho
+  const COXA_L_FRONT = "M 102 240 C 124 240 138 244 142 254 C 144 274 140 296 134 314 C 130 320 122 322 116 322 L 102 322 Z";
+  const COXA_R_FRONT = "M 98 240 C 76 240 62 244 58 254 C 56 274 60 296 66 314 C 70 320 78 322 84 322 L 98 322 Z";
   // Joelho — rótula arredondada
-  const JOELHO_L = "M 102 322 L 132 322 C 132 332 130 342 126 348 C 120 350 110 350 102 348 Z";
-  const JOELHO_R = "M 98 322 L 68 322 C 68 332 70 342 74 348 C 80 350 90 350 98 348 Z";
-  // Perna anterior — canela com leve curva da panturrilha
-  const PERNA_L_FRONT = "M 104 348 C 114 348 122 348 126 350 C 130 374 130 400 124 420 C 118 422 110 422 106 420 C 104 396 102 372 104 348 Z";
-  const PERNA_R_FRONT = "M 96 348 C 86 348 78 348 74 350 C 70 374 70 400 76 420 C 82 422 90 422 94 420 C 96 396 98 372 96 348 Z";
-  // Tornozelo — afunilamento natural
-  const TORN_L = "M 106 420 L 124 420 C 124 428 122 434 118 436 L 110 436 C 106 432 106 426 106 420 Z";
-  const TORN_R = "M 94 420 L 76 420 C 76 428 78 434 82 436 L 90 436 C 94 432 94 426 94 420 Z";
-  // Pé — formato estilizado com leve curva no peito do pé
-  const PE_L = "M 108 436 C 118 436 128 438 132 444 C 134 450 132 454 126 454 L 110 454 C 106 450 106 442 108 436 Z";
-  const PE_R = "M 92 436 C 82 436 72 438 68 444 C 66 450 68 454 74 454 L 90 454 C 94 450 94 442 92 436 Z";
+  const JOELHO_L = "M 102 322 L 134 322 C 134 334 130 344 124 348 L 102 348 Z";
+  const JOELHO_R = "M 98 322 L 66 322 C 66 334 70 344 76 348 L 98 348 Z";
+  // Perna anterior — gastrocnêmio com bulbo natural, afunila ao tornozelo
+  const PERNA_L_FRONT = "M 104 348 C 116 348 124 350 128 356 C 130 376 126 398 120 416 C 116 422 110 422 106 420 C 102 396 100 372 104 348 Z";
+  const PERNA_R_FRONT = "M 96 348 C 84 348 76 350 72 356 C 70 376 74 398 80 416 C 84 422 90 422 94 420 C 98 396 100 372 96 348 Z";
+  // Tornozelo
+  const TORN_L = "M 106 420 L 120 420 C 120 428 118 434 114 436 L 108 436 C 106 432 106 426 106 420 Z";
+  const TORN_R = "M 94 420 L 80 420 C 80 428 82 434 86 436 L 92 436 C 94 432 94 426 94 420 Z";
+  // Pé — pequeno, ligeiramente projetado para frente
+  const PE_L = "M 108 436 C 116 436 124 438 128 444 C 130 450 128 454 124 454 L 108 454 C 106 450 106 442 108 436 Z";
+  const PE_R = "M 92 436 C 84 436 76 438 72 444 C 70 450 72 454 76 454 L 92 454 C 94 450 94 442 92 436 Z";
 
-  // ── Zonas para costas (mesmas pernas, mas labels diferentes) ──
-  // Lombar — região lombar natural com leve curva
+  // ── Zonas para costas ──
   const LOMBAR_L = "M 80 168 C 88 166 96 166 100 168 L 100 200 C 92 200 86 198 80 196 C 78 186 78 176 80 168 Z";
   const LOMBAR_R = "M 100 168 C 104 166 112 166 120 168 C 122 176 122 186 120 196 C 114 198 108 200 100 200 Z";
-  // Glúteo — formato arredondado natural
-  const GLUTEO_L = "M 60 200 C 78 198 92 198 100 200 L 100 240 L 62 240 C 58 226 58 212 60 200 Z";
-  const GLUTEO_R = "M 100 200 C 108 198 122 198 140 200 C 142 212 142 226 138 240 L 100 240 Z";
+  const GLUTEO_L = "M 60 200 C 78 198 92 198 100 200 L 100 240 L 60 240 C 58 226 58 212 60 200 Z";
+  const GLUTEO_R = "M 100 200 C 108 198 122 198 140 200 C 142 212 142 226 140 240 L 100 240 Z";
 
   return <div style={{position:"relative"}}>
     <div style={{display:"flex",justifyContent:"center",gap:compact?16:32,alignItems:"flex-start"}}>
