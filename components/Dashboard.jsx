@@ -1078,15 +1078,35 @@ const WBar=({label,v,max=10,inv,theme})=>{
 // mode="player" → cor por recência (ativo/<90d/<1ano)
 // mode="squad"  → cor por frequência (1 / 2-3 / 4+ casos)
 // ═══════════════════════════════════════════════════════════════════════════════
+
+// Normalização para casar variações da planilha (ex.: "Perna Posterior" vs "Perna posterior").
+const normReg = (s) => String(s||"").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+const normSide = (s) => {
+  const x = normReg(s);
+  if (x.startsWith("e")) return "Esquerdo";
+  if (x.startsWith("d")) return "Direito";
+  return "";
+};
+
+// Ícone de lesão (cruz médica em círculo) — substitui o Shield genérico
+function MedicalCross({size=14}){
+  return <svg width={size} height={size} viewBox="0 0 100 100" style={{display:"inline-block",verticalAlign:"middle"}}>
+    <circle cx="50" cy="50" r="50" fill="#E5E7EB"/>
+    <path d="M40 14 H60 V40 H86 V60 H60 V86 H40 V60 H14 V40 H40 Z" fill="#DC2626"/>
+  </svg>;
+}
+
 function InjuryBodyMap({injuries,mode="player",theme,compact=false}){
   const t=theme||THEMES.light;
   const today=useMemo(()=>{const d=new Date();d.setHours(0,0,0,0);return d;},[]);
   const data=useMemo(()=>{
     const m={};
     for(const inj of (injuries||[])){
-      const sides=(inj.lado==="Esquerdo"||inj.lado==="Direito")?[inj.lado]:["Esquerdo","Direito"];
+      const ladoIn = normSide(inj.lado);
+      const sides = ladoIn ? [ladoIn] : ["Esquerdo","Direito"];
+      const regKey = normReg(inj.regiao);
       for(const side of sides){
-        const key=`${inj.regiao}|${side}`;
+        const key=`${regKey}|${side}`;
         if(!m[key])m[key]={items:[],count:0,mostRecent:null,hasActive:false,regiao:inj.regiao,lado:side};
         m[key].items.push(inj);
         m[key].count++;
@@ -1098,8 +1118,10 @@ function InjuryBodyMap({injuries,mode="player",theme,compact=false}){
     return m;
   },[injuries]);
 
+  const lookup = (regiao, lado) => data[`${normReg(regiao)}|${lado}`];
+
   const fillFor=(regiao,lado)=>{
-    const e=data[`${regiao}|${lado}`];
+    const e=lookup(regiao,lado);
     if(!e)return t.bgMuted2;
     if(mode==="squad"){
       if(e.count>=4)return "#DC2626";
@@ -1115,12 +1137,12 @@ function InjuryBodyMap({injuries,mode="player",theme,compact=false}){
 
   const [hover,setHover]=useState(null);
   const base=t.bgMuted2;
-  const stroke=t.borderLight;
-  const strokeW=0.6;
+  const stroke=t.textFaintest||t.borderLight;
+  const strokeW=0.8;
 
   const Z=({regiao,lado,children})=>{
     const fill=fillFor(regiao,lado);
-    const entry=data[`${regiao}|${lado}`];
+    const entry=lookup(regiao,lado);
     const has=!!entry;
     return React.cloneElement(children,{
       fill,
@@ -1133,94 +1155,115 @@ function InjuryBodyMap({injuries,mode="player",theme,compact=false}){
     });
   };
 
-  const w=compact?96:124;
-  const h=compact?280:360;
+  const w=compact?108:140;
+  const h=compact?320:420;
   const titleStyle={fontSize:9,color:t.textFaint,fontWeight:700,letterSpacing:.5,textTransform:"uppercase",marginBottom:6};
-  const hoverEntry=hover?data[`${hover.regiao}|${hover.lado}`]:null;
+  const hoverEntry=hover?lookup(hover.regiao,hover.lado):null;
+
+  // ─── Caminhos anatômicos compartilhados (vista frente e costas usam o mesmo desenho) ───
+  // ViewBox: 0 0 200 460. Origem topo-esquerda. Centro x=100.
+  // Lados: "L_view" = direito do observador (corpo Esquerdo na frente, Direito nas costas)
+  //         "R_view" = esquerdo do observador
+  const Decor = () => <>
+    {/* Cabeça */}
+    <ellipse cx="100" cy="32" rx="22" ry="26" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+    {/* Pescoço */}
+    <path d="M88 56 C 88 64 88 70 84 74 L 116 74 C 112 70 112 64 112 56 Z" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+    {/* Tronco */}
+    <path d="M 84 74 C 70 76 58 86 56 100 L 60 138 C 58 156 60 178 64 200 L 136 200 C 140 178 142 156 140 138 L 144 100 C 142 86 130 76 116 74 Z" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+    {/* Braço esquerdo (lado direito do observador) — ombro→cotovelo→mão */}
+    <path d="M 144 92 C 156 96 162 110 162 132 L 158 200 C 156 212 152 224 154 240 C 156 252 152 256 146 256 C 140 256 138 250 138 240 C 138 224 142 212 142 200 L 140 132 C 140 110 142 100 144 92 Z" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+    {/* Braço direito (mirror) */}
+    <path d="M 56 92 C 44 96 38 110 38 132 L 42 200 C 44 212 48 224 46 240 C 44 252 48 256 54 256 C 60 256 62 250 62 240 C 62 224 58 212 58 200 L 60 132 C 60 110 58 100 56 92 Z" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+    {/* Pelve / quadril */}
+    <path d="M 64 200 L 136 200 C 140 214 142 226 138 240 L 62 240 C 58 226 60 214 64 200 Z" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+  </>;
+
+  // ── Zonas das pernas/tornozelos/pés (frente) ──
+  // Coxa anterior (preenche toda a coxa, frente)
+  const COXA_L_FRONT = "M 102 240 L 138 240 C 140 268 138 296 134 322 L 104 322 C 102 296 102 268 102 240 Z";
+  const COXA_R_FRONT = "M 98 240 L 62 240 C 60 268 62 296 66 322 L 96 322 C 98 296 98 268 98 240 Z";
+  // Joelho
+  const JOELHO_L = "M 104 320 L 134 320 C 134 332 132 342 128 348 L 110 348 C 106 342 104 332 104 320 Z";
+  const JOELHO_R = "M 96 320 L 66 320 C 66 332 68 342 72 348 L 90 348 C 94 342 96 332 96 320 Z";
+  // Perna anterior (canela)
+  const PERNA_L_FRONT = "M 110 348 L 128 348 C 130 374 130 400 126 422 L 112 422 C 110 400 110 374 110 348 Z";
+  const PERNA_R_FRONT = "M 90 348 L 72 348 C 70 374 70 400 74 422 L 88 422 C 90 400 90 374 90 348 Z";
+  // Tornozelo
+  const TORN_L = "M 112 422 L 126 422 C 126 430 124 434 120 434 L 116 434 C 113 434 112 430 112 422 Z";
+  const TORN_R = "M 88 422 L 74 422 C 74 430 76 434 80 434 L 84 434 C 87 434 88 430 88 422 Z";
+  // Pé (visto de cima/frente)
+  const PE_L = "M 110 434 L 130 434 C 134 438 134 446 130 450 L 112 450 C 110 446 110 440 110 434 Z";
+  const PE_R = "M 90 434 L 70 434 C 66 438 66 446 70 450 L 88 450 C 90 446 90 440 90 434 Z";
+
+  // ── Zonas para costas (mesmas pernas, mas labels diferentes) ──
+  const LOMBAR_L = "M 84 168 L 100 168 L 100 196 L 84 196 Z"; // observador esquerdo
+  const LOMBAR_R = "M 100 168 L 116 168 L 116 196 L 100 196 Z";
+  const GLUTEO_L = "M 64 200 L 100 200 L 100 240 L 62 240 C 58 226 60 214 64 200 Z";
+  const GLUTEO_R = "M 100 200 L 136 200 L 138 240 L 100 240 Z";
 
   return <div style={{position:"relative"}}>
-    <div style={{display:"flex",justifyContent:"center",gap:compact?16:28,alignItems:"flex-start"}}>
+    <div style={{display:"flex",justifyContent:"center",gap:compact?16:32,alignItems:"flex-start"}}>
       {/* ── FRENTE ── */}
       <div style={{textAlign:"center"}}>
         <div style={titleStyle}>Frente</div>
-        <svg viewBox="0 0 140 380" width={w} height={h} style={{display:"block",overflow:"visible"}}>
-          {/* Cabeça/pescoço/tronco/braços (decorativo) */}
-          <ellipse cx="70" cy="22" rx="16" ry="20" fill={base} stroke={stroke} strokeWidth={strokeW}/>
-          <rect x="63" y="40" width="14" height="10" fill={base} stroke={stroke} strokeWidth={strokeW}/>
-          <path d="M40 56 Q40 52 46 52 L94 52 Q100 52 100 56 L104 96 L102 178 L38 178 L36 96 Z" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+        <svg viewBox="0 0 200 460" width={w} height={h} style={{display:"block",overflow:"visible"}}>
+          <Decor/>
           {/* Ombros (zonas) */}
-          <Z regiao="Ombro" lado="Esquerdo"><ellipse cx="98" cy="62" rx="13" ry="9"/></Z>
-          <Z regiao="Ombro" lado="Direito"><ellipse cx="42" cy="62" rx="13" ry="9"/></Z>
-          {/* Braços */}
-          <rect x="100" y="64" width="12" height="76" rx="6" fill={base} stroke={stroke} strokeWidth={strokeW}/>
-          <rect x="28" y="64" width="12" height="76" rx="6" fill={base} stroke={stroke} strokeWidth={strokeW}/>
-          <rect x="102" y="138" width="10" height="60" rx="5" fill={base} stroke={stroke} strokeWidth={strokeW}/>
-          <rect x="28" y="138" width="10" height="60" rx="5" fill={base} stroke={stroke} strokeWidth={strokeW}/>
-          <ellipse cx="107" cy="206" rx="7" ry="9" fill={base} stroke={stroke} strokeWidth={strokeW}/>
-          <ellipse cx="33" cy="206" rx="7" ry="9" fill={base} stroke={stroke} strokeWidth={strokeW}/>
-          {/* Pelve */}
-          <path d="M38 178 L102 178 L98 198 L42 198 Z" fill={base} stroke={stroke} strokeWidth={strokeW}/>
-          {/* Coxa Anterior — Esq (corpo) = direita do observador */}
-          <Z regiao="Coxa Anterior" lado="Esquerdo"><path d="M72 198 L94 198 L92 278 L78 278 Z"/></Z>
-          <Z regiao="Coxa Anterior" lado="Direito"><path d="M46 198 L68 198 L62 278 L48 278 Z"/></Z>
-          {/* Coxa Medial (adutor) — sobre o lado interno da coxa */}
-          <Z regiao="Coxa Medial" lado="Esquerdo"><ellipse cx="74" cy="220" rx="6" ry="14"/></Z>
-          <Z regiao="Coxa Medial" lado="Direito"><ellipse cx="66" cy="220" rx="6" ry="14"/></Z>
-          {/* Joelho */}
-          <Z regiao="Joelho" lado="Esquerdo"><ellipse cx="85" cy="284" rx="9" ry="7"/></Z>
-          <Z regiao="Joelho" lado="Direito"><ellipse cx="55" cy="284" rx="9" ry="7"/></Z>
-          {/* Perna Anterior (canela/tibial) */}
-          <Z regiao="Perna Anterior" lado="Esquerdo"><path d="M78 292 L92 292 L90 348 L80 348 Z"/></Z>
-          <Z regiao="Perna Anterior" lado="Direito"><path d="M48 292 L62 292 L60 348 L50 348 Z"/></Z>
+          <Z regiao="Ombro" lado="Esquerdo"><ellipse cx="148" cy="92" rx="16" ry="12"/></Z>
+          <Z regiao="Ombro" lado="Direito"><ellipse cx="52" cy="92" rx="16" ry="12"/></Z>
+          {/* Coxa Anterior — Esq do corpo = direita do observador */}
+          <Z regiao="Coxa Anterior" lado="Esquerdo"><path d={COXA_L_FRONT}/></Z>
+          <Z regiao="Coxa Anterior" lado="Direito"><path d={COXA_R_FRONT}/></Z>
+          {/* Coxa Medial (adutor) — sobre o lado interno superior da coxa */}
+          <Z regiao="Coxa Medial" lado="Esquerdo"><ellipse cx="106" cy="262" rx="6" ry="18"/></Z>
+          <Z regiao="Coxa Medial" lado="Direito"><ellipse cx="94" cy="262" rx="6" ry="18"/></Z>
+          {/* Joelho (rótula) */}
+          <Z regiao="Joelho" lado="Esquerdo"><path d={JOELHO_L}/></Z>
+          <Z regiao="Joelho" lado="Direito"><path d={JOELHO_R}/></Z>
+          {/* Perna Anterior (canela / tibial) */}
+          <Z regiao="Perna Anterior" lado="Esquerdo"><path d={PERNA_L_FRONT}/></Z>
+          <Z regiao="Perna Anterior" lado="Direito"><path d={PERNA_R_FRONT}/></Z>
           {/* Tornozelo */}
-          <Z regiao="Tornozelo" lado="Esquerdo"><ellipse cx="85" cy="354" rx="6" ry="4"/></Z>
-          <Z regiao="Tornozelo" lado="Direito"><ellipse cx="55" cy="354" rx="6" ry="4"/></Z>
+          <Z regiao="Tornozelo" lado="Esquerdo"><path d={TORN_L}/></Z>
+          <Z regiao="Tornozelo" lado="Direito"><path d={TORN_R}/></Z>
           {/* Pé */}
-          <Z regiao="Pé" lado="Esquerdo"><ellipse cx="85" cy="368" rx="9" ry="6"/></Z>
-          <Z regiao="Pé" lado="Direito"><ellipse cx="55" cy="368" rx="9" ry="6"/></Z>
+          <Z regiao="Pé" lado="Esquerdo"><path d={PE_L}/></Z>
+          <Z regiao="Pé" lado="Direito"><path d={PE_R}/></Z>
         </svg>
       </div>
 
       {/* ── COSTAS ── */}
       <div style={{textAlign:"center"}}>
         <div style={titleStyle}>Costas</div>
-        <svg viewBox="0 0 140 380" width={w} height={h} style={{display:"block",overflow:"visible"}}>
-          {/* Silhueta */}
-          <ellipse cx="70" cy="22" rx="16" ry="20" fill={base} stroke={stroke} strokeWidth={strokeW}/>
-          <rect x="63" y="40" width="14" height="10" fill={base} stroke={stroke} strokeWidth={strokeW}/>
-          <path d="M40 56 Q40 52 46 52 L94 52 Q100 52 100 56 L104 96 L102 178 L38 178 L36 96 Z" fill={base} stroke={stroke} strokeWidth={strokeW}/>
+        <svg viewBox="0 0 200 460" width={w} height={h} style={{display:"block",overflow:"visible"}}>
+          <Decor/>
           {/* Cervical */}
-          <Z regiao="Cervical" lado="Esquerdo"><rect x="63" y="40" width="14" height="10" rx="2"/></Z>
-          {/* Ombros (em vista de costas, lado do corpo = lado do observador) */}
-          <Z regiao="Ombro" lado="Direito"><ellipse cx="98" cy="62" rx="13" ry="9"/></Z>
-          <Z regiao="Ombro" lado="Esquerdo"><ellipse cx="42" cy="62" rx="13" ry="9"/></Z>
-          {/* Braços */}
-          <rect x="100" y="64" width="12" height="76" rx="6" fill={base} stroke={stroke} strokeWidth={strokeW}/>
-          <rect x="28" y="64" width="12" height="76" rx="6" fill={base} stroke={stroke} strokeWidth={strokeW}/>
-          <rect x="102" y="138" width="10" height="60" rx="5" fill={base} stroke={stroke} strokeWidth={strokeW}/>
-          <rect x="28" y="138" width="10" height="60" rx="5" fill={base} stroke={stroke} strokeWidth={strokeW}/>
-          <ellipse cx="107" cy="206" rx="7" ry="9" fill={base} stroke={stroke} strokeWidth={strokeW}/>
-          <ellipse cx="33" cy="206" rx="7" ry="9" fill={base} stroke={stroke} strokeWidth={strokeW}/>
-          {/* Lombar */}
-          <Z regiao="Lombar" lado="Esquerdo"><rect x="58" y="148" width="12" height="24" rx="3"/></Z>
-          <Z regiao="Lombar" lado="Direito"><rect x="70" y="148" width="12" height="24" rx="3"/></Z>
-          {/* Pelve / glúteo */}
-          <path d="M38 178 L102 178 L98 198 L42 198 Z" fill={base} stroke={stroke} strokeWidth={strokeW}/>
-          {/* Coxa Posterior — em costas, Esquerdo do corpo = esquerdo do observador */}
-          <Z regiao="Coxa Posterior" lado="Esquerdo"><path d="M46 198 L68 198 L62 278 L48 278 Z"/></Z>
-          <Z regiao="Coxa Posterior" lado="Direito"><path d="M72 198 L94 198 L92 278 L78 278 Z"/></Z>
+          <Z regiao="Cervical" lado="Esquerdo"><path d="M88 56 C 88 64 88 70 84 74 L 116 74 C 112 70 112 64 112 56 Z"/></Z>
+          {/* Ombros (em costas: lado do corpo = lado do observador) */}
+          <Z regiao="Ombro" lado="Direito"><ellipse cx="148" cy="92" rx="16" ry="12"/></Z>
+          <Z regiao="Ombro" lado="Esquerdo"><ellipse cx="52" cy="92" rx="16" ry="12"/></Z>
+          {/* Lombar — vista costas: corpo Esq = lado esquerdo do observador */}
+          <Z regiao="Lombar" lado="Esquerdo"><path d={LOMBAR_L}/></Z>
+          <Z regiao="Lombar" lado="Direito"><path d={LOMBAR_R}/></Z>
+          {/* Glúteo */}
+          <Z regiao="Glúteo" lado="Esquerdo"><path d={GLUTEO_L}/></Z>
+          <Z regiao="Glúteo" lado="Direito"><path d={GLUTEO_R}/></Z>
+          {/* Coxa Posterior — vista costas, Esq do corpo = esquerda do observador */}
+          <Z regiao="Coxa Posterior" lado="Esquerdo"><path d={COXA_R_FRONT}/></Z>
+          <Z regiao="Coxa Posterior" lado="Direito"><path d={COXA_L_FRONT}/></Z>
           {/* Joelho (cavo poplíteo) */}
-          <Z regiao="Joelho" lado="Esquerdo"><ellipse cx="55" cy="284" rx="9" ry="7"/></Z>
-          <Z regiao="Joelho" lado="Direito"><ellipse cx="85" cy="284" rx="9" ry="7"/></Z>
+          <Z regiao="Joelho" lado="Esquerdo"><path d={JOELHO_R}/></Z>
+          <Z regiao="Joelho" lado="Direito"><path d={JOELHO_L}/></Z>
           {/* Perna Posterior (panturrilha) */}
-          <Z regiao="Perna Posterior" lado="Esquerdo"><path d="M48 292 L62 292 L60 348 L50 348 Z"/></Z>
-          <Z regiao="Perna Posterior" lado="Direito"><path d="M78 292 L92 292 L90 348 L80 348 Z"/></Z>
+          <Z regiao="Perna Posterior" lado="Esquerdo"><path d={PERNA_R_FRONT}/></Z>
+          <Z regiao="Perna Posterior" lado="Direito"><path d={PERNA_L_FRONT}/></Z>
           {/* Tornozelo */}
-          <Z regiao="Tornozelo" lado="Esquerdo"><ellipse cx="55" cy="354" rx="6" ry="4"/></Z>
-          <Z regiao="Tornozelo" lado="Direito"><ellipse cx="85" cy="354" rx="6" ry="4"/></Z>
+          <Z regiao="Tornozelo" lado="Esquerdo"><path d={TORN_R}/></Z>
+          <Z regiao="Tornozelo" lado="Direito"><path d={TORN_L}/></Z>
           {/* Pé */}
-          <Z regiao="Pé" lado="Esquerdo"><ellipse cx="55" cy="368" rx="9" ry="6"/></Z>
-          <Z regiao="Pé" lado="Direito"><ellipse cx="85" cy="368" rx="9" ry="6"/></Z>
+          <Z regiao="Pé" lado="Esquerdo"><path d={PE_R}/></Z>
+          <Z regiao="Pé" lado="Direito"><path d={PE_L}/></Z>
         </svg>
       </div>
     </div>
@@ -4299,7 +4342,7 @@ export default function Dashboard(){
             return <div style={{display:"grid",gridTemplateColumns:dmStatus?"1fr 1fr":"1fr",gap:16,marginBottom:16}}>
               {/* Histórico de Lesões (Previsão ML agora mora no card Estado acima) */}
               <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
-                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:10,display:"flex",alignItems:"center",gap:6}}><Shield size={14}/>Histórico de Lesões {playerInj.length>0&&<span style={{fontSize:10,color:t.textFaint,fontWeight:500}}>({playerInj.length} {playerInj.length===1?"caso":"casos"})</span>}</div>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:10,display:"flex",alignItems:"center",gap:6}}><MedicalCross size={16}/>Histórico de Lesões {playerInj.length>0&&<span style={{fontSize:10,color:t.textFaint,fontWeight:500}}>({playerInj.length} {playerInj.length===1?"caso":"casos"})</span>}</div>
                 {/* Mapa corporal — passe o mouse sobre as zonas coloridas */}
                 <div style={{padding:"10px 0 14px",borderBottom:`1px solid ${t.borderLight}`,marginBottom:12}}>
                   <InjuryBodyMap injuries={playerInj} mode="player" theme={t} compact={!!dmStatus}/>
@@ -6428,7 +6471,7 @@ export default function Dashboard(){
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
               <div>
-                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,display:"flex",alignItems:"center",gap:6}}><Shield size={14}/>Mapa Corporal do Elenco — Lesões Recorrentes</div>
+                <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,display:"flex",alignItems:"center",gap:6}}><MedicalCross size={16}/>Mapa Corporal do Elenco — Lesões Recorrentes</div>
                 <div style={{fontSize:10,color:t.textFaint,marginTop:2}}>Frequência de lesões por região e lateralidade. Passe o mouse sobre as zonas para ver os atletas afetados.</div>
               </div>
             </div>
