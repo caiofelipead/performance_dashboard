@@ -612,6 +612,27 @@ const PROJECTIONS={
 const SESSION_DATA_EMPTY={meta:{date:"",tipo:"",duracao:0,local:"",md:"",condicao:"",rpe_alvo:""},atletas:{}};
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// Parser de data tolerante: aceita ISO (YYYY-MM-DD), brasileiro (DD/MM/YYYY,
+// DD-MM-YYYY) e detecta heurística MM/DD vs DD/MM quando ambíguo. JS nativo
+// `new Date("12/01/2026")` lê como MM/DD (Dec 1) — quebra leitura de planilha
+// brasileira. Default aqui é DD/MM, com flip só quando o primeiro número > 31.
+// (Definido antes de INJ_HISTORY/getDmAtual para evitar TDZ no load do módulo.)
+const parseDateBR=(d)=>{
+  if(!d)return null;
+  if(d instanceof Date)return isNaN(d)?null:d;
+  const s=String(d).trim();if(!s)return null;
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)){const dt=new Date(s);return isNaN(dt)?null:dt;}
+  const p=s.split(/[\/\-\.\s]/).filter(Boolean);
+  if(p.length>=3){
+    const[a,b,c]=p.map(Number);
+    if(!Number.isFinite(a)||!Number.isFinite(b)||!Number.isFinite(c))return null;
+    if(a>31){const dt=new Date(a,b-1,c);return isNaN(dt)?null:dt;}      // YYYY/MM/DD
+    const yr=c<100?c+2000:c;const dt=new Date(yr,b-1,a);                 // DD/MM/YY(YY)
+    return isNaN(dt)?null:dt;
+  }
+  const dt=new Date(s);return isNaN(dt)?null:dt;
+};
+
 // LESÕES REAIS — Fonte: Planilha Botafogo FSA - Dados Performance-2.xlsx (aba lesoes)
 // Responsável: TIAGO ROCHA · Temporada 2025/2026 (elenco atual)
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -704,15 +725,18 @@ function getDmAtual() {
   const latestByAthlete = {};
   for (const inj of INJ_HISTORY) {
     const existing = latestByAthlete[inj.n];
-    if (!existing || new Date(inj.date) > new Date(existing.date)) {
+    const dCur = parseDateBR(inj.date);
+    const dPrev = existing ? parseDateBR(existing.date) : null;
+    if (!existing || (dCur && (!dPrev || dCur > dPrev))) {
       latestByAthlete[inj.n] = inj;
     }
   }
 
   for (const inj of Object.values(latestByAthlete)) {
-    const dtLesao = new Date(inj.date);
+    const dtLesao = parseDateBR(inj.date);
+    if (!dtLesao) continue;
     const dias = Math.round((today - dtLesao) / 86400000);
-    const fimTrans = inj.fim_trans ? new Date(inj.fim_trans) : null;
+    const fimTrans = inj.fim_trans ? parseDateBR(inj.fim_trans) : null;
     const retornou = fimTrans && fimTrans < today;
     const diasRetorno = retornou ? Math.round((today - fimTrans) / 86400000) : null;
 
@@ -731,7 +755,7 @@ function getDmAtual() {
       regiao: `${inj.regiao} ${inj.lado?inj.lado[0]:""} — ${inj.estrutura}`,
       dias, estagio,
       conduta: retornou ? "Retornou" : inj.conduta,
-      prognostico: inj.prognostico ? new Date(inj.prognostico).toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}) : "Em avaliação",
+      prognostico: (()=>{const dt=parseDateBR(inj.prognostico);return dt?dt.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}):"Em avaliação";})(),
       retorno_real: fimTrans ? fimTrans.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}) : null,
       dias_retorno: diasRetorno,
       desde: dtLesao.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})
@@ -1091,16 +1115,18 @@ export default function Dashboard(){
     const latestByAthlete = {};
     for (const inj of liveInjuries) {
       const existing = latestByAthlete[inj.n];
-      if (!existing || new Date(inj.date) > new Date(existing.date)) {
+      const dCur = parseDateBR(inj.date);
+      const dPrev = existing ? parseDateBR(existing.date) : null;
+      if (!existing || (dCur && (!dPrev || dCur > dPrev))) {
         latestByAthlete[inj.n] = inj;
       }
     }
     for (const inj of Object.values(latestByAthlete)) {
-      const dtLesao = new Date(inj.date);
-      if (isNaN(dtLesao.getTime())) continue;
+      const dtLesao = parseDateBR(inj.date);
+      if (!dtLesao) continue;
       const dias = Math.round((today - dtLesao) / 86400000);
-      const fimTrans = inj.fim_trans ? new Date(inj.fim_trans) : null;
-      const retornou = fimTrans && !isNaN(fimTrans.getTime()) && fimTrans < today;
+      const fimTrans = inj.fim_trans ? parseDateBR(inj.fim_trans) : null;
+      const retornou = fimTrans && fimTrans < today;
       const diasRetorno = retornou ? Math.round((today - fimTrans) / 86400000) : null;
       let estagio = inj.estagio || "";
       if (retornou) { estagio = "Fase 4"; }
@@ -1114,8 +1140,8 @@ export default function Dashboard(){
         regiao: inj.regiao && inj.estrutura ? `${inj.regiao} ${inj.lado?String(inj.lado)[0]:""} — ${inj.estrutura}` : (inj.regiao || ""),
         dias, estagio,
         conduta: retornou ? "Retornou" : (inj.conduta || "Afastado"),
-        prognostico: inj.prognostico ? (() => { const d = new Date(inj.prognostico); return isNaN(d.getTime()) ? inj.prognostico : d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}); })() : "Em avaliação",
-        retorno_real: fimTrans && !isNaN(fimTrans.getTime()) ? fimTrans.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}) : null,
+        prognostico: (()=>{const d=parseDateBR(inj.prognostico);return d?d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}):(inj.prognostico||"Em avaliação");})(),
+        retorno_real: fimTrans ? fimTrans.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}) : null,
         dias_retorno: diasRetorno,
         desde: dtLesao.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})
       };
@@ -1459,12 +1485,12 @@ export default function Dashboard(){
       const today = new Date(); today.setHours(0,0,0,0);
       const playerInj = liveInjuries.filter(inj => inj.n === a.n);
       const recentInj = playerInj.filter(inj => {
-        const d = new Date(inj.date);
-        return (today - d) / 86400000 < 90;
+        const d = parseDateBR(inj.date);
+        return d && (today - d) / 86400000 < 90;
       });
       const injBase = recentInj.length > 0
         ? Math.min(0.25, recentInj.reduce((max, inj) => {
-            const daysSince = (today - new Date(inj.date)) / 86400000;
+            const daysSince = (today - parseDateBR(inj.date)) / 86400000;
             const severity = daysSince < 30 ? 0.20 : daysSince < 60 ? 0.15 : 0.10;
             const recidiva = playerInj.filter(j => j.regiao === inj.regiao).length > 1 ? 0.05 : 0;
             return Math.max(max, severity + recidiva);
@@ -4098,7 +4124,7 @@ export default function Dashboard(){
                           {!inj.fim_trans&&<span style={{fontSize:8,fontWeight:700,color:"#DC2626",textTransform:"uppercase"}}>ativo</span>}
                         </div>
                         <div style={{display:"flex",alignItems:"center",gap:8}}>
-                          <span style={{fontSize:10,color:t.textMuted}}>{new Date(inj.date).toLocaleDateString("pt-BR")}</span>
+                          <span style={{fontSize:10,color:t.textMuted}}>{(parseDateBR(inj.date)?.toLocaleDateString("pt-BR")||inj.date||"—")}</span>
                           <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,fontWeight:700,color:ic}}>{inj.total}d</span>
                         </div>
                       </div>
@@ -6266,7 +6292,7 @@ export default function Dashboard(){
                       {isActive&&<span style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:700,background:"#DC262620",color:"#DC2626",border:"1px solid #DC262633"}}>ATIVO — {inj.estagio}</span>}
                     </div>
                     <div style={{display:"flex",alignItems:"center",gap:12}}>
-                      <span style={{fontSize:11,color:t.textMuted}}>{new Date(inj.date).toLocaleDateString("pt-BR")}</span>
+                      <span style={{fontSize:11,color:t.textMuted}}>{(parseDateBR(inj.date)?.toLocaleDateString("pt-BR")||inj.date||"—")}</span>
                       <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,fontWeight:700,color:"#DC2626"}}>{inj.total} dias{isActive?" (em curso)":""}</span>
                     </div>
                   </div>
@@ -6298,13 +6324,13 @@ export default function Dashboard(){
                     <div style={{marginBottom:10,padding:"8px 12px",background:t.bgMuted,borderRadius:8}}>
                       <div style={{fontSize:10,color:t.textFaint,fontWeight:700,marginBottom:4}}>TIMELINE</div>
                       <div style={{display:"flex",gap:16,fontSize:10,color:t.textMuted}}>
-                        <span>Lesão: <strong>{new Date(inj.date).toLocaleDateString("pt-BR")}</strong></span>
-                        {inj.saida_dm&&<span>Saída DM: <strong>{new Date(inj.saida_dm).toLocaleDateString("pt-BR")}</strong></span>}
-                        {inj.ini_trans&&<span>Início Trans.: <strong>{new Date(inj.ini_trans).toLocaleDateString("pt-BR")}</strong></span>}
-                        {inj.fim_trans?<span>Fim Trans.: <strong>{new Date(inj.fim_trans).toLocaleDateString("pt-BR")}</strong></span>:<span style={{color:"#DC2626",fontWeight:600}}>Em andamento</span>}
+                        <span>Lesão: <strong>{(parseDateBR(inj.date)?.toLocaleDateString("pt-BR")||inj.date||"—")}</strong></span>
+                        {inj.saida_dm&&<span>Saída DM: <strong>{(parseDateBR(inj.saida_dm)?.toLocaleDateString("pt-BR")||inj.saida_dm)}</strong></span>}
+                        {inj.ini_trans&&<span>Início Trans.: <strong>{(parseDateBR(inj.ini_trans)?.toLocaleDateString("pt-BR")||inj.ini_trans)}</strong></span>}
+                        {inj.fim_trans?<span>Fim Trans.: <strong>{(parseDateBR(inj.fim_trans)?.toLocaleDateString("pt-BR")||inj.fim_trans)}</strong></span>:<span style={{color:"#DC2626",fontWeight:600}}>Em andamento</span>}
                         <span>Estágio: <strong style={{color:svC}}>{inj.estagio}</strong></span>
                         <span>Conduta: <strong>{inj.conduta}</strong></span>
-                        {inj.prognostico&&<span>Prognóstico: <strong style={{color:"#2563EB"}}>{new Date(inj.prognostico).toLocaleDateString("pt-BR")}</strong></span>}
+                        {inj.prognostico&&<span>Prognóstico: <strong style={{color:"#2563EB"}}>{(parseDateBR(inj.prognostico)?.toLocaleDateString("pt-BR")||inj.prognostico)}</strong></span>}
                       </div>
                     </div>
                     {/* Lesson Learned */}
