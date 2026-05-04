@@ -101,6 +101,27 @@ const NAME_MAP = {
   "Luizao G": "LUIZAO",
   "Ze Hugo": "ZE HUGO",
   "Ruan R": "RUAN",
+  // Aliases de nome único (planilha Lesoes / questionários antigos usam só o
+  // sobrenome ou primeiro nome). Mantém a relação atleta → roster mesmo sem
+  // o prefixo "X Sobrenome" usado em outras abas.
+  "Mariano": "GUI MARIANO",
+  "Jhonatan": "JONATHAN",
+  "Jonathan": "JONATHAN",
+  "Queiroz": "GUILHERME QUEIROZ",
+  "Erick": "ERIK",
+  "Walace": "WALLACE",
+  "Wallace": "WALLACE",
+  "Gava": "RAFAEL GAVA",
+  "Jeferson": "JEFERSON",
+  "Hygor": "HYGOR",
+  "Morelli": "MORELLI",
+  "Patrick Brey": "PATRICK BREY",
+  "Thalles": "THALLES",
+  "Ericson": "ERICSON",
+  "Gabriel Inocencio": "GABRIEL INOCENCIO",
+  "Gabriel Inocêncio": "GABRIEL INOCENCIO",
+  "Maranhao": "MARANHAO",
+  "Maranhão": "MARANHAO",
   // Nomes truncados da aba Fisioterapia
   "CARLOS EDUA": "CARLOS EDUARDO",
   "CARLOS EDUARDO": "CARLOS EDUARDO",
@@ -175,6 +196,19 @@ function resolveName(sheetName) {
   const lower = norm(trimmed);
   for (const [k, v] of Object.entries(NAME_MAP)) {
     if (norm(k) === lower) return v;
+  }
+  // Fallback por sobrenome: input de token único (ex.: "Mariano", "Queiroz")
+  // — casa contra o ÚLTIMO token de qualquer chave do NAME_MAP. Cobre planilhas
+  // que usam só o sobrenome sem o prefixo abreviado ("G Mariano", "G Queiroz").
+  const inpTokens = lower.split(/\s+/).filter(Boolean);
+  if (inpTokens.length === 1 && inpTokens[0].length >= 3) {
+    for (const [k, v] of Object.entries(NAME_MAP)) {
+      const kTokens = norm(k).split(/\s+/).filter(Boolean);
+      if (kTokens.length > 1) {
+        const last = kTokens[kTokens.length - 1];
+        if (last === inpTokens[0] && last.length >= 3) return v;
+      }
+    }
   }
   // Fallback: usa o primeiro nome em maiúsculas (sem acentos)
   // Isso garante que "Jonathan Ferreira" → "JONATHAN" (match com P array)
