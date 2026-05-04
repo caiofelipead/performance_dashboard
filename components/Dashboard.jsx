@@ -17,17 +17,17 @@ const THEMES={
     ringBg:"#f1f5f9",
     tooltipBg:"#fff"},
   dark:{
-    // Paleta alinhada ao Scouting BFSA: preto puro como bg, cards com elevação
-    // sutil (#0c0e15), bordas finas em cinza-grafite, vermelho Botafogo como
-    // acento primário. Texto branco quente, secundários elevados em luminância.
-    bg:"#000000",bgCard:"#0c0e15",bgMuted:"#13161f",bgMuted2:"#1c2030",
-    text:"#fafafa",textMuted:"#d6dae0",textFaint:"#8d96a4",textFaintest:"#5e6878",
-    border:"#262a38",borderLight:"#1a1e2a",
-    scrollThumb:"#3b4156",scrollTrack:"transparent",
+    // Identidade Botafogo SA: preto neutro puro como bg, cards em tons grafite
+    // sem viés azul, vermelho Botafogo (#DC2626) como acento primário.
+    // Texto branco com cinza neutro para hierarquia.
+    bg:"#000000",bgCard:"#0a0a0a",bgMuted:"#121212",bgMuted2:"#1a1a1a",
+    text:"#fafafa",textMuted:"#d4d4d4",textFaint:"#909090",textFaintest:"#5e5e5e",
+    border:"#262626",borderLight:"#1a1a1a",
+    scrollThumb:"#3a3a3a",scrollTrack:"transparent",
     shadow:"rgba(0,0,0,.7)",shadowMd:"rgba(0,0,0,.8)",shadowLg:"rgba(0,0,0,.9)",
     headerBg:"#000000",headerShadow:"rgba(0,0,0,.8)",
-    ringBg:"#1c2030",
-    tooltipBg:"#13161f",
+    ringBg:"#1a1a1a",
+    tooltipBg:"#121212",
     accent:"#dc2626",            // Vermelho Botafogo (primário)
     accentGlow:"rgba(220,38,38,.45)",
     neonGreen:"#22c55e",
@@ -149,7 +149,7 @@ function posGroup(pos) {
   return p;
 }
 
-const P=[{n:"ADRIANO",pos:"GOL",id:19,h:5,e:4,rg:7,rp:6,d:2,sq:7,rpa:7,da:1.6,sa:7.3,nw:39,pse:3,sra:331,w:82.7,alt:183,bf:12.4,mm:38.2,imc:24.2,nc:60,ai:1.24,cmj:49.6,ct:[54.2,50.3,48.5,51.4,52,52.2,52.6,49.6],wt:{dt:["02","03","07","09","10","11","12"],s:[10,8,7,7,8,7,7],r:[8,6,6,8,8,7,6],dr:[1,1,1,1,2,1,2]}},{n:"ARTHUR CAIKE",pos:"ATA",id:33,h:4,e:3,rg:7,rp:7,d:1,sq:8,rpa:7.1,da:.8,sa:7.8,nw:54,pse:5,sra:372,w:76.5,alt:177,bf:10.7,mm:35.3,imc:24.4,nc:68,ai:1.06,cmj:43.6,ct:[44.2,45.1,42.8,44.6,43.9,44.0,45.2,43.6],wt:{dt:["05","06","07","09","10","11","12"],s:[8,7,8,8,7,8,8],r:[7,7,7,8,7,8,7],dr:[1,1,0,0,1,1,1]}},{n:"BRENNO",pos:"GOL",id:23,h:4,e:4,rg:8,rp:8,d:3,sq:7,rpa:7.3,da:1.3,sa:7.3,nw:50,pse:4,sra:310,w:90.8,alt:191,bf:13.8,mm:41.5,imc:24.9,nc:75,ai:1.17,cmj:44.6,ct:[45,47.8,49.3,48,47.6,49.3,46.2,44.6],wt:{dt:["04","05","06","07","09","10","11"],s:[7,7,7,6,10,8,7],r:[7,7,8,5,8,7,8],dr:[0,0,0,0,0,2,3]}},{n:"CARLOS EDUARDO",pos:"ZAG",id:25,h:5,e:3,rg:8,rp:8,d:2,sq:8,rpa:7.9,da:1,sa:9.2,nw:57,pse:3,sra:391,w:85.9,alt:186,bf:11.9,mm:39.8,imc:24.6,nc:75,ai:1.07,cmj:46.7,ct:[49.1,44,47.1,44.5,48.8,46.5,52.6,46.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,9,8,8,9,10,8],r:[9,5,6,9,8,6,8],dr:[1,1,0,0,0,2,2]}},{n:"DARLAN",pos:"ZAG",id:20,h:4,e:3,rg:9,rp:8,d:0,sq:8,rpa:7.8,da:.7,sa:7.8,nw:17,pse:5,sra:317,w:80.2,alt:186,bf:10.5,mm:37.1,imc:25.3,nc:20,ai:.95,cmj:31.1,ct:[31.1]},{n:"ERICSON",pos:"ZAG",id:26,h:5,e:3,rg:10,rp:9,d:3,sq:9,rpa:6.7,da:1.1,sa:8.8,nw:51,pse:0,sra:431,w:91.6,alt:184,bf:13.2,mm:42.0,imc:25.4,nc:75,ai:.64,cmj:43.1,ct:[44.3,47.4,42.4,47.1,50.9,50.9,55.5,43.1],wt:{dt:["26","27","28","02","03","04","06"],s:[9,9,9,7,9,8,9],r:[6,6,5,8,7,9,9],dr:[1,1,1,1,4,3,3]}},{n:"ERIK",pos:"VOL",id:20,h:5,e:4,rg:7,rp:7,d:0,sq:9,rpa:7.2,da:.2,sa:9.3,nw:22,pse:6,sra:308,w:75.5,alt:176,bf:9.8,mm:35.4,imc:24.4,nc:59,ai:1.97,ct:[54.1,52.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,8,8,10,10,9],r:[7,8,7,10,7,7,7],dr:[0,0,0,0,0,0,0]}},{n:"FELIPE VIEIRA",pos:"LAT",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.2,da:.3,sa:8.2,nw:27,pse:7,sra:385,w:77,alt:176,bf:7.7,mm:35.8,imc:24.9,nc:27,ai:1.0,cmj:39.3,ct:[45.0,39.3],wt:{dt:["03","04","05","06","07","09","10"],s:[7,7,8,9,6,5,7],r:[7,7,7,8,6,5,7],dr:[0,0,0,0,0,0,0]}},{n:"GABRIEL INOCENCIO",pos:"LAT",id:31,h:4,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.8,da:.4,sa:7.2,nw:58,pse:3,sra:407,w:78.5,alt:177,bf:10.8,mm:36.5,imc:25.1,nc:75,ai:.97,cmj:48.2,ct:[48.2,52.3,45.3,48.9,53.6,49.3,50.8,48.2],wt:{dt:["04","05","06","09","10","11","12"],s:[8,9,8,8,7,7,8],r:[7,7,7,8,8,8,8],dr:[1,2,7,2,2,2,1]}},{n:"GUI MARIANO",pos:"ZAG",id:26,h:5,e:4,rg:8,rp:8,d:4,sq:8,rpa:7.6,da:.3,sa:8.2,nw:59,pse:7,sra:476,w:89.7,alt:191,bf:12.7,mm:41.0,imc:25.1,nc:75,ai:1.1,cmj:53.1,ct:[52.4,52.2,52,55.1,47.5,53.7,53.5,53.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,9,9,8,8],r:[7,7,5,10,8,6,8],dr:[0,0,0,0,0,0,4]}},{n:"GUILHERME QUEIROZ",pos:"ATA",id:35,h:5,e:3,rg:7,rp:7,d:2,sq:8,rpa:7.3,da:1.5,sa:6.9,nw:56,pse:6,sra:369,w:87.9,alt:180,bf:13.1,mm:40.2,imc:24.9,nc:75,ai:1.14,cmj:46,ct:[43.3,43.3,46.2,47.4,44.7,48.3,48,46],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,7,7,5,8],r:[10,7,6,8,6,7,7],dr:[0,0,1,0,1,1,2]}},{n:"GUSTAVO VILAR",pos:"ZAG",id:25,h:5,e:3,rg:6,rp:6,d:0,sq:7,rpa:6.5,da:.2,sa:7.7,nw:55,pse:5,sra:410,w:86.4,alt:189,bf:12.9,mm:39.5,imc:25.8,nc:75,ai:1.07,cmj:43.5,ct:[43.3,42.9,47.9,42.8,43.1,44,44.8,43.5]},{n:"HEBERT",pos:"ZAG",id:20,h:5,e:3,rg:8,rp:7,d:0,sq:7,rpa:6.7,da:.1,sa:7.7,nw:46,pse:5,sra:366,w:88.1,alt:187,bf:12.5,mm:40.8,imc:25.5,nc:59,ai:1.04,cmj:46.9,ct:[50.1,49.8,50,52.5,48.6,51.2,53.3,46.9]},{n:"HENRIQUE TELES",pos:"LAT",id:19,h:5,e:4,rg:8,rp:8,d:2,sq:8,rpa:7,da:1.4,sa:7.7,nw:54,pse:6,sra:415,w:80.1,alt:179,bf:11.3,mm:37.2,imc:24.7,nc:69,ai:1.14,cmj:45.5,ct:[53.1,55.5,49.8,54.9,51.6,50.8,55.1,45.5],wt:{dt:["04","05","07","09","10","11","12"],s:[8,9,6,9,8,9,8],r:[6,8,6,10,8,9,8],dr:[2,1,7,5,3,3,2]}},{n:"HYGOR",pos:"ATA",id:33,h:5,e:4,rg:10,rp:8,d:2,sq:7,rpa:8.8,da:1.6,sa:9.2,nw:57,pse:4,sra:387,w:83.3,alt:183,bf:11.6,mm:38.6,imc:25.2,nc:75,ai:1.12,cmj:42.1,ct:[40.8,44.5,39.9,44.2,43.5,42.4,41.9,42.1],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,10,10,10,10,7],r:[10,6,8,10,8,8,8],dr:[0,2,0,0,0,3,2]}},{n:"JEFFERSON NEM",pos:"EXT",id:29,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:7.1,da:.8,sa:7.9,nw:57,pse:7,sra:423,w:72.5,alt:166,bf:10.1,mm:33.8,imc:23.9,nc:75,ai:.97,cmj:47.5,ct:[44,48.2,44.5,50.4,50,44.1,47.2,47.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,7],r:[7,6,7,8,8,7,7],dr:[0,0,0,0,0,0,2]}},{n:"JONATHAN",pos:"LAT",id:33,h:5,e:4,rg:5,rp:5,d:4,sq:7,rpa:5.8,da:2.9,sa:5.9,nw:51,pse:4,sra:333,w:73.7,alt:177,bf:10.9,mm:34.3,imc:24.1,nc:75,ai:1.14,cmj:42.8,ct:[46.4,46.8,46.9,37.3,45,44.7,45,42.8],wt:{dt:["04","05","07","09","10","11","12"],s:[5,7,6,6,6,6,7],r:[6,7,4,7,5,6,5],dr:[3,3,3,2,3,3,4]}},{n:"JORDAN",pos:"GOL",id:28,h:5,e:3,rg:7,rp:7,d:0,sq:9,rpa:8,da:.7,sa:8,nw:60,pse:4,sra:418,w:92.2,alt:189,bf:12.0,mm:42.8,imc:25.0,nc:75,ai:1.1,cmj:54.1,ct:[52.2,53.4,53.4,53.2,54.5,56,55.7,54.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,9],r:[8,8,6,8,8,7,7],dr:[1,0,0,0,0,0,0]}},{n:"KELVIN",pos:"EXT",id:28,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:6.9,da:3,sa:7.4,nw:49,pse:3,sra:288,w:74.6,alt:170,bf:10.3,mm:34.8,imc:23.8,nc:67,ai:.86,cmj:38.4,ct:[40.4,38.3,40.8,40.2,40.6,39.5,42.3,38.4],wt:{dt:["04","05","06","09","10","11","12"],s:[7,9,8,9,9,8,7],r:[7,7,7,10,10,9,7],dr:[3,3,3,0,0,2,2]}},{n:"LEANDRO MACIEL",pos:"VOL",id:30,h:4,e:3,rg:8,rp:8,d:0,sq:9,rpa:7.7,da:.5,sa:8.6,nw:57,pse:4,sra:399,w:91.3,alt:175,bf:13.5,mm:41.6,imc:25.8,nc:75,ai:1.08,cmj:43.8,ct:[41.7,47.4,40.5,46.2,47.8,44.3,50.4,43.8],wt:{dt:["05","06","07","09","10","11","12"],s:[8,7,9,8,8,8,9],r:[8,7,8,8,7,7,8],dr:[0,1,0,0,0,1,0]}},{n:"MARANHAO",pos:"EXT",id:26,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:6.9,da:1,sa:6.8,nw:58,pse:4,sra:339,w:75.1,alt:171,bf:11.0,mm:34.9,imc:24.2,nc:75,ai:.95,cmj:42.2,ct:[45.2,45.2,44.4,48.8,44.9,43.8,54.1,42.2],wt:{dt:["05","06","07","09","10","11","12"],s:[7,5,6,7,7,7,7],r:[7,6,5,7,7,7,7],dr:[1,1,1,1,1,1,1]}},{n:"MARCO ANTONIO",pos:"VOL",id:22,h:5,e:4,rg:7,rp:7,d:1,sq:8,rpa:7.0,da:.5,sa:7.5,nw:45,pse:5,sra:350,w:74.4,alt:180,bf:10.2,mm:34.5,imc:23.0,nc:55,ai:1.1,cmj:42.0,ct:[43.5,44.1,42.8,43.2,42.5,41.9,43.0,42.0],wt:{dt:["05","06","07","09","10","11","12"],s:[8,7,8,8,7,8,7],r:[7,7,7,8,7,7,7],dr:[0,1,0,0,1,0,1]}},{n:"MARQUINHO JR.",pos:"MEI",id:23,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.4,da:0,sa:8.1,nw:58,pse:5,sra:360,w:64.9,alt:182,bf:9.2,mm:30.8,imc:22.5,nc:75,ai:1.17,cmj:41.3,ct:[44.4,45.7,42.6,46.7,43.1,42.5,47.6,41.3]},{n:"MATHEUS SALES",pos:"VOL",id:30,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:7.2,da:.6,sa:6.8,nw:58,pse:7,sra:454,w:80.1,alt:176,bf:11.7,mm:37.0,imc:24.7,nc:75,ai:1.06,cmj:44.3,ct:[47.4,47.9,46.1,47.3,44.3,49.1,49.8,44.3],wt:{dt:["05","06","07","09","10","11","12"],s:[6,4,8,7,7,5,7],r:[7,4,5,8,8,7,7],dr:[1,2,1,0,1,2,1]}},{n:"MORELLI",pos:"VOL",id:28,h:5,e:3,rg:6,rp:7,d:0,sq:8,rpa:7,da:.5,sa:7.4,nw:56,pse:3,sra:356,w:82.4,alt:181,bf:12.1,mm:38.0,imc:24.6,nc:75,ai:1.07,cmj:43.8,ct:[46,50.6,44.9,44.8,43.8,38.1,46.6,43.8]},{n:"PATRICK BREY",pos:"LAT",id:28,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.9,da:2,sa:7.3,nw:33,pse:3,sra:385,w:73.5,alt:176,bf:10.0,mm:34.5,imc:24.0,nc:63,ai:1.3,ct:[43.2,42.6,42.3,41.9,41,45.8,42.8,45.1],wt:{dt:["05","06","07","09","10","11","12"],s:[4,7,2,9,8,7,8],r:[4,5,3,9,8,7,8],dr:[3,2,4,0,0,3,1]}},{n:"PEDRINHO",pos:"LAT",id:19,h:5,e:3,rg:8,rp:8,d:0,sq:10,rpa:7.3,da:.4,sa:9.9,nw:44,pse:6,sra:343,w:67.5,alt:175,bf:9.5,mm:31.9,imc:22.8,nc:52,ai:1.02,cmj:45.5,ct:[41.6,42.6,38.6,42.9,44.9,40.1,44,45.5]},{n:"PEDRO TORTELLO",pos:"VOL",id:21,h:5,e:3,rg:7,rp:7,d:0,sq:10,rpa:8.4,da:.3,sa:9.2,nw:56,pse:4,sra:381,w:75.1,alt:176,bf:10.6,mm:35.0,imc:23.7,nc:75,ai:1.14,cmj:41,ct:[40.6,47.6,41.3,43.7,39.2,41.6,44,41]},{n:"RAFAEL GAVA",pos:"MEI",id:32,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:6.2,da:1,sa:5.8,nw:55,pse:7,sra:364,w:78.3,alt:178,bf:11.4,mm:36.3,imc:24.4,nc:75,ai:1.1,ct:[36.2,38.9,33.8,33.6,39.2,35.3,36.7,38.7],wt:{dt:["05","06","07","09","10","11","12"],s:[4,4,6,4,5,6,8],r:[5,5,6,4,7,7,7],dr:[1,1,1,0,0,0,0]}},{n:"THALLES",pos:"ATA",id:20,h:5,e:4,rg:10,rp:10,d:2,sq:7,rpa:5.7,da:.5,sa:7.4,dpo:1,nw:60,pse:3,sra:409,w:83.9,alt:178,bf:12.2,mm:38.7,imc:24.8,nc:75,ai:1.19,cmj:43.3,ct:[46.4,44.1,44,45.1,43,47.4,44.9,43.3],wt:{dt:["04","05","06","07","09","11","12"],s:[7,7,10,6,7,8,7],r:[5,5,7,4,7,10,10],dr:[3,0,0,3,3,3,2]}},{n:"THIAGUINHO",pos:"VOL",id:27,h:3,e:4,rg:7,rp:7,d:0,sq:7,rpa:6.5,da:.2,sa:7.4,nw:17,pse:7,sra:390,w:64.5,alt:176,bf:7.7,mm:30.0,imc:20.8,nc:17,ai:1.0,cmj:41.5,ct:[41.5],wt:{dt:["03","04","05","06","07","09","10"],s:[7,6,7,8,5,9,6],r:[7,6,7,7,5,8,6],dr:[0,0,0,0,0,0,0]}},{n:"VICTOR SOUZA",pos:"GOL",id:33,h:4,e:3,rg:7,rp:7,d:0,sq:6,rpa:7.2,da:.5,sa:6.1,nw:57,pse:3,sra:473,w:92.8,alt:187,bf:14.1,mm:42.2,imc:24.9,nc:75,ai:1.04,cmj:46.9,ct:[55.4,56.5,60.9,57.9,58.7,53.2,59.5,46.9]},{n:"WALLACE",pos:"ZAG",id:31,h:4,e:3,rg:7,rp:7,d:0,sq:8,rpa:6.7,da:.8,sa:7.8,nw:47,pse:5,sra:305,w:91.6,alt:192,bf:14.0,mm:41.3,imc:26.5,nc:75,ai:.98,cmj:40.8,ct:[43.6,38.3,40.3,39.4,40.8],wt:{dt:["04","05","06","09","10","11","12"],s:[8,8,8,8,8,8,8],r:[7,8,5,8,7,7,7],dr:[2,2,2,0,2,2,0]}},{n:"YURI",pos:"VOL",id:19,h:4,e:4,rg:8,rp:8,d:0,sq:8,rpa:7.9,da:0,sa:8.1,nw:49,pse:6,sra:320,w:66.4,alt:172,bf:9.0,mm:31.5,imc:23.2,nc:69,ai:1.16,cmj:41.5,ct:[40.8,44.9,43.8,43.2,42.8,42.9,43.5,41.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,8,8,8],r:[9,8,7,8,7,8,8],dr:[0,0,0,0,0,0,0]}},{n:"WESLEY",pos:"EXT",id:25,h:5,e:4,rg:8,rp:7,d:1,sq:8,rpa:7.4,da:.6,sa:7.8,nw:52,pse:5,sra:378,w:76.8,alt:185,bf:10.4,mm:35.8,imc:24.2,nc:68,ai:1.08,cmj:43.2,ct:[44.8,45.1,43.5,44.2,42.8,43.9,44.5,43.2],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,7,8,8],r:[8,7,7,8,8,7,7],dr:[0,0,1,0,1,1,0]}},{n:"LUIZAO",pos:"ATA",id:23,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:7.5,da:.4,sa:8.0,nw:55,pse:4,sra:395,w:88.5,alt:183,bf:12.8,mm:40.6,imc:25.0,nc:72,ai:1.05,cmj:45.2,ct:[46.8,44.5,47.2,45.8,46.1,44.9,45.6,45.2],wt:{dt:["05","06","07","09","10","11","12"],s:[9,8,8,8,9,8,8],r:[8,7,7,9,8,7,8],dr:[0,1,0,0,0,1,1]}},{n:"ZE HUGO",pos:"EXT",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.6,da:.3,sa:8.2,nw:48,pse:5,sra:342,w:72.1,alt:178,bf:9.6,mm:33.6,imc:23.5,nc:62,ai:1.12,cmj:42.5,ct:[43.8,44.2,41.9,43.5,42.8,43.1,42.6,42.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,8,8,7,8],r:[8,8,7,9,7,8,7],dr:[0,0,0,0,0,0,0]}}];
+const P=[{n:"ADRIANO",pos:"GOL",id:19,h:5,e:4,rg:7,rp:6,d:2,sq:7,rpa:7,da:1.6,sa:7.3,nw:39,pse:3,sra:331,w:82.7,alt:183,bf:12.4,mm:38.2,imc:24.2,nc:60,ai:1.24,cmj:49.6,ct:[54.2,50.3,48.5,51.4,52,52.2,52.6,49.6],wt:{dt:["02","03","07","09","10","11","12"],s:[10,8,7,7,8,7,7],r:[8,6,6,8,8,7,6],dr:[1,1,1,1,2,1,2]}},{n:"ARTHUR CAIKE",pos:"ATA",id:33,h:4,e:3,rg:7,rp:7,d:1,sq:8,rpa:7.1,da:.8,sa:7.8,nw:54,pse:5,sra:372,w:76.5,alt:177,bf:10.7,mm:35.3,imc:24.4,nc:68,ai:1.06,cmj:43.6,ct:[44.2,45.1,42.8,44.6,43.9,44.0,45.2,43.6],wt:{dt:["05","06","07","09","10","11","12"],s:[8,7,8,8,7,8,8],r:[7,7,7,8,7,8,7],dr:[1,1,0,0,1,1,1]}},{n:"BRENNO",pos:"GOL",id:23,h:4,e:4,rg:8,rp:8,d:3,sq:7,rpa:7.3,da:1.3,sa:7.3,nw:50,pse:4,sra:310,w:90.8,alt:191,bf:13.8,mm:41.5,imc:24.9,nc:75,ai:1.17,cmj:44.6,ct:[45,47.8,49.3,48,47.6,49.3,46.2,44.6],wt:{dt:["04","05","06","07","09","10","11"],s:[7,7,7,6,10,8,7],r:[7,7,8,5,8,7,8],dr:[0,0,0,0,0,2,3]}},{n:"CARLOS EDUARDO",pos:"ZAG",id:25,h:5,e:3,rg:8,rp:8,d:2,sq:8,rpa:7.9,da:1,sa:9.2,nw:57,pse:3,sra:391,w:85.9,alt:186,bf:11.9,mm:39.8,imc:24.6,nc:75,ai:1.07,cmj:46.7,ct:[49.1,44,47.1,44.5,48.8,46.5,52.6,46.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,9,8,8,9,10,8],r:[9,5,6,9,8,6,8],dr:[1,1,0,0,0,2,2]}},{n:"DARLAN",pos:"ZAG",id:20,h:4,e:3,rg:9,rp:8,d:0,sq:8,rpa:7.8,da:.7,sa:7.8,nw:17,pse:5,sra:317,w:80.2,alt:186,bf:10.5,mm:37.1,imc:25.3,nc:20,ai:.95,cmj:31.1,ct:[31.1]},{n:"ERICSON",pos:"ZAG",id:26,h:5,e:3,rg:10,rp:9,d:3,sq:9,rpa:6.7,da:1.1,sa:8.8,nw:51,pse:0,sra:431,w:91.6,alt:184,bf:13.2,mm:42.0,imc:25.4,nc:75,ai:.64,cmj:43.1,ct:[44.3,47.4,42.4,47.1,50.9,50.9,55.5,43.1],wt:{dt:["26","27","28","02","03","04","06"],s:[9,9,9,7,9,8,9],r:[6,6,5,8,7,9,9],dr:[1,1,1,1,4,3,3]}},{n:"ERIK",pos:"VOL",id:20,h:5,e:4,rg:7,rp:7,d:0,sq:9,rpa:7.2,da:.2,sa:9.3,nw:22,pse:6,sra:308,w:75.5,alt:176,bf:9.8,mm:35.4,imc:24.4,nc:59,ai:1.97,ct:[54.1,52.7],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,8,8,10,10,9],r:[7,8,7,10,7,7,7],dr:[0,0,0,0,0,0,0]}},{n:"FELIPE VIEIRA",pos:"LAT",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.2,da:.3,sa:8.2,nw:27,pse:7,sra:385,w:77,alt:176,bf:7.7,mm:35.8,imc:24.9,nc:27,ai:1.0,cmj:39.3,ct:[45.0,39.3],wt:{dt:["03","04","05","06","07","09","10"],s:[7,7,8,9,6,5,7],r:[7,7,7,8,6,5,7],dr:[0,0,0,0,0,0,0]}},{n:"GABRIEL INOCENCIO",pos:"LAT",id:31,h:4,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.8,da:.4,sa:7.2,nw:58,pse:3,sra:407,w:78.5,alt:177,bf:10.8,mm:36.5,imc:25.1,nc:75,ai:.97,cmj:48.2,ct:[48.2,52.3,45.3,48.9,53.6,49.3,50.8,48.2],wt:{dt:["04","05","06","09","10","11","12"],s:[8,9,8,8,7,7,8],r:[7,7,7,8,8,8,8],dr:[1,2,7,2,2,2,1]}},{n:"GUI MARIANO",pos:"ZAG",id:26,h:5,e:4,rg:8,rp:8,d:4,sq:8,rpa:7.6,da:.3,sa:8.2,nw:59,pse:7,sra:476,w:89.7,alt:191,bf:12.7,mm:41.0,imc:25.1,nc:75,ai:1.1,cmj:53.1,ct:[52.4,52.2,52,55.1,47.5,53.7,53.5,53.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,9,9,8,8],r:[7,7,5,10,8,6,8],dr:[0,0,0,0,0,0,4]}},{n:"GUILHERME QUEIROZ",pos:"ATA",id:35,h:5,e:3,rg:7,rp:7,d:2,sq:8,rpa:7.3,da:1.5,sa:6.9,nw:56,pse:6,sra:369,w:87.9,alt:180,bf:13.1,mm:40.2,imc:24.9,nc:75,ai:1.14,cmj:46,ct:[43.3,43.3,46.2,47.4,44.7,48.3,48,46],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,7,7,5,8],r:[10,7,6,8,6,7,7],dr:[0,0,1,0,1,1,2]}},{n:"GUSTAVO VILAR",pos:"ZAG",id:25,h:5,e:3,rg:6,rp:6,d:0,sq:7,rpa:6.5,da:.2,sa:7.7,nw:55,pse:5,sra:410,w:86.4,alt:189,bf:12.9,mm:39.5,imc:25.8,nc:75,ai:1.07,cmj:43.5,ct:[43.3,42.9,47.9,42.8,43.1,44,44.8,43.5]},{n:"HEBERT",pos:"ZAG",id:20,h:5,e:3,rg:8,rp:7,d:0,sq:7,rpa:6.7,da:.1,sa:7.7,nw:46,pse:5,sra:366,w:88.1,alt:187,bf:12.5,mm:40.8,imc:25.5,nc:59,ai:1.04,cmj:46.9,ct:[50.1,49.8,50,52.5,48.6,51.2,53.3,46.9]},{n:"HENRIQUE TELES",pos:"LAT",id:19,h:5,e:4,rg:8,rp:8,d:2,sq:8,rpa:7,da:1.4,sa:7.7,nw:54,pse:6,sra:415,w:80.1,alt:179,bf:11.3,mm:37.2,imc:24.7,nc:69,ai:1.14,cmj:45.5,ct:[53.1,55.5,49.8,54.9,51.6,50.8,55.1,45.5],wt:{dt:["04","05","07","09","10","11","12"],s:[8,9,6,9,8,9,8],r:[6,8,6,10,8,9,8],dr:[2,1,7,5,3,3,2]}},{n:"HYGOR",pos:"ATA",id:33,h:5,e:4,rg:10,rp:8,d:2,sq:7,rpa:8.8,da:1.6,sa:9.2,nw:57,pse:4,sra:387,w:83.3,alt:183,bf:11.6,mm:38.6,imc:25.2,nc:75,ai:1.12,cmj:42.1,ct:[40.8,44.5,39.9,44.2,43.5,42.4,41.9,42.1],wt:{dt:["05","06","07","09","10","11","12"],s:[10,8,10,10,10,10,7],r:[10,6,8,10,8,8,8],dr:[0,2,0,0,0,3,2]}},{n:"JEFFERSON NEM",pos:"EXT",id:29,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:7.1,da:.8,sa:7.9,nw:57,pse:7,sra:423,w:72.5,alt:166,bf:10.1,mm:33.8,imc:23.9,nc:75,ai:.97,cmj:47.5,ct:[44,48.2,44.5,50.4,50,44.1,47.2,47.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,7],r:[7,6,7,8,8,7,7],dr:[0,0,0,0,0,0,2]}},{n:"JONATHAN",pos:"LAT",id:33,h:5,e:4,rg:5,rp:5,d:4,sq:7,rpa:5.8,da:2.9,sa:5.9,nw:51,pse:4,sra:333,w:73.7,alt:177,bf:10.9,mm:34.3,imc:24.1,nc:75,ai:1.14,cmj:42.8,ct:[46.4,46.8,46.9,37.3,45,44.7,45,42.8],wt:{dt:["04","05","07","09","10","11","12"],s:[5,7,6,6,6,6,7],r:[6,7,4,7,5,6,5],dr:[3,3,3,2,3,3,4]}},{n:"JORDAN",pos:"GOL",id:28,h:5,e:3,rg:7,rp:7,d:0,sq:9,rpa:8,da:.7,sa:8,nw:60,pse:4,sra:418,w:92.2,alt:189,bf:12.0,mm:42.8,imc:25.0,nc:75,ai:1.1,cmj:54.1,ct:[52.2,53.4,53.4,53.2,54.5,56,55.7,54.1],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,8,8,8,8,9],r:[8,8,6,8,8,7,7],dr:[1,0,0,0,0,0,0]}},{n:"KELVIN",pos:"EXT",id:28,h:5,e:3,rg:7,rp:7,d:2,sq:7,rpa:6.9,da:3,sa:7.4,nw:49,pse:3,sra:288,w:74.6,alt:170,bf:10.3,mm:34.8,imc:23.8,nc:67,ai:.86,cmj:38.4,ct:[40.4,38.3,40.8,40.2,40.6,39.5,42.3,38.4],wt:{dt:["04","05","06","09","10","11","12"],s:[7,9,8,9,9,8,7],r:[7,7,7,10,10,9,7],dr:[3,3,3,0,0,2,2]}},{n:"LEANDRO MACIEL",pos:"VOL",id:30,h:4,e:3,rg:8,rp:8,d:0,sq:9,rpa:7.7,da:.5,sa:8.6,nw:57,pse:4,sra:399,w:91.3,alt:175,bf:13.5,mm:41.6,imc:25.8,nc:75,ai:1.08,cmj:43.8,ct:[41.7,47.4,40.5,46.2,47.8,44.3,50.4,43.8],wt:{dt:["05","06","07","09","10","11","12"],s:[8,7,9,8,8,8,9],r:[8,7,8,8,7,7,8],dr:[0,1,0,0,0,1,0]}},{n:"MARANHAO",pos:"EXT",id:26,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:6.9,da:1,sa:6.8,nw:58,pse:4,sra:339,w:75.1,alt:171,bf:11.0,mm:34.9,imc:24.2,nc:75,ai:.95,cmj:42.2,ct:[45.2,45.2,44.4,48.8,44.9,43.8,54.1,42.2],wt:{dt:["05","06","07","09","10","11","12"],s:[7,5,6,7,7,7,7],r:[7,6,5,7,7,7,7],dr:[1,1,1,1,1,1,1]}},{n:"MARCO ANTONIO",pos:"VOL",id:22,h:5,e:4,rg:7,rp:7,d:1,sq:8,rpa:7.0,da:.5,sa:7.5,nw:45,pse:5,sra:350,w:74.4,alt:180,bf:10.2,mm:34.5,imc:23.0,nc:55,ai:1.1,cmj:42.0,ct:[43.5,44.1,42.8,43.2,42.5,41.9,43.0,42.0],wt:{dt:["05","06","07","09","10","11","12"],s:[8,7,8,8,7,8,7],r:[7,7,7,8,7,7,7],dr:[0,1,0,0,1,0,1]}},{n:"MARQUINHO JR.",pos:"MEI",id:23,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.4,da:0,sa:8.1,nw:58,pse:5,sra:360,w:64.9,alt:182,bf:9.2,mm:30.8,imc:22.5,nc:75,ai:1.17,cmj:41.3,ct:[44.4,45.7,42.6,46.7,43.1,42.5,47.6,41.3]},{n:"MATHEUS SALES",pos:"VOL",id:30,h:4,e:3,rg:7,rp:7,d:1,sq:7,rpa:7.2,da:.6,sa:6.8,nw:58,pse:7,sra:454,w:80.1,alt:176,bf:11.7,mm:37.0,imc:24.7,nc:75,ai:1.06,cmj:44.3,ct:[47.4,47.9,46.1,47.3,44.3,49.1,49.8,44.3],wt:{dt:["05","06","07","09","10","11","12"],s:[6,4,8,7,7,5,7],r:[7,4,5,8,8,7,7],dr:[1,2,1,0,1,2,1]}},{n:"MORELLI",pos:"VOL",id:28,h:5,e:3,rg:6,rp:7,d:0,sq:8,rpa:7,da:.5,sa:7.4,nw:56,pse:3,sra:356,w:82.4,alt:181,bf:12.1,mm:38.0,imc:24.6,nc:75,ai:1.07,cmj:43.8,ct:[46,50.6,44.9,44.8,43.8,38.1,46.6,43.8]},{n:"PATRICK BREY",pos:"LAT",id:28,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:6.9,da:2,sa:7.3,nw:33,pse:3,sra:385,w:73.5,alt:176,bf:10.0,mm:34.5,imc:24.0,nc:63,ai:1.3,ct:[43.2,42.6,42.3,41.9,41,45.8,42.8,45.1],wt:{dt:["05","06","07","09","10","11","12"],s:[4,7,2,9,8,7,8],r:[4,5,3,9,8,7,8],dr:[3,2,4,0,0,3,1]}},{n:"PEDRINHO",pos:"LAT",id:19,h:5,e:3,rg:8,rp:8,d:0,sq:10,rpa:7.3,da:.4,sa:9.9,nw:44,pse:6,sra:343,w:67.5,alt:175,bf:9.5,mm:31.9,imc:22.8,nc:52,ai:1.02,cmj:45.5,ct:[41.6,42.6,38.6,42.9,44.9,40.1,44,45.5]},{n:"RAFAEL GAVA",pos:"MEI",id:32,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:6.2,da:1,sa:5.8,nw:55,pse:7,sra:364,w:78.3,alt:178,bf:11.4,mm:36.3,imc:24.4,nc:75,ai:1.1,ct:[36.2,38.9,33.8,33.6,39.2,35.3,36.7,38.7],wt:{dt:["05","06","07","09","10","11","12"],s:[4,4,6,4,5,6,8],r:[5,5,6,4,7,7,7],dr:[1,1,1,0,0,0,0]}},{n:"THALLES",pos:"ATA",id:20,h:5,e:4,rg:10,rp:10,d:2,sq:7,rpa:5.7,da:.5,sa:7.4,dpo:1,nw:60,pse:3,sra:409,w:83.9,alt:178,bf:12.2,mm:38.7,imc:24.8,nc:75,ai:1.19,cmj:43.3,ct:[46.4,44.1,44,45.1,43,47.4,44.9,43.3],wt:{dt:["04","05","06","07","09","11","12"],s:[7,7,10,6,7,8,7],r:[5,5,7,4,7,10,10],dr:[3,0,0,3,3,3,2]}},{n:"THIAGUINHO",pos:"VOL",id:27,h:3,e:4,rg:7,rp:7,d:0,sq:7,rpa:6.5,da:.2,sa:7.4,nw:17,pse:7,sra:390,w:64.5,alt:176,bf:7.7,mm:30.0,imc:20.8,nc:17,ai:1.0,cmj:41.5,ct:[41.5],wt:{dt:["03","04","05","06","07","09","10"],s:[7,6,7,8,5,9,6],r:[7,6,7,7,5,8,6],dr:[0,0,0,0,0,0,0]}},{n:"VICTOR SOUZA",pos:"GOL",id:33,h:4,e:3,rg:7,rp:7,d:0,sq:6,rpa:7.2,da:.5,sa:6.1,nw:57,pse:3,sra:473,w:92.8,alt:187,bf:14.1,mm:42.2,imc:24.9,nc:75,ai:1.04,cmj:46.9,ct:[55.4,56.5,60.9,57.9,58.7,53.2,59.5,46.9]},{n:"WALLACE",pos:"ZAG",id:31,h:4,e:3,rg:7,rp:7,d:0,sq:8,rpa:6.7,da:.8,sa:7.8,nw:47,pse:5,sra:305,w:91.6,alt:192,bf:14.0,mm:41.3,imc:26.5,nc:75,ai:.98,cmj:40.8,ct:[43.6,38.3,40.3,39.4,40.8],wt:{dt:["04","05","06","09","10","11","12"],s:[8,8,8,8,8,8,8],r:[7,8,5,8,7,7,7],dr:[2,2,2,0,2,2,0]}},{n:"YURI",pos:"VOL",id:19,h:4,e:4,rg:8,rp:8,d:0,sq:8,rpa:7.9,da:0,sa:8.1,nw:49,pse:6,sra:320,w:66.4,alt:172,bf:9.0,mm:31.5,imc:23.2,nc:69,ai:1.16,cmj:41.5,ct:[40.8,44.9,43.8,43.2,42.8,42.9,43.5,41.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,8,8,8],r:[9,8,7,8,7,8,8],dr:[0,0,0,0,0,0,0]}},{n:"WESLEY",pos:"EXT",id:25,h:5,e:4,rg:8,rp:7,d:1,sq:8,rpa:7.4,da:.6,sa:7.8,nw:52,pse:5,sra:378,w:76.8,alt:185,bf:10.4,mm:35.8,imc:24.2,nc:68,ai:1.08,cmj:43.2,ct:[44.8,45.1,43.5,44.2,42.8,43.9,44.5,43.2],wt:{dt:["05","06","07","09","10","11","12"],s:[8,8,7,8,7,8,8],r:[8,7,7,8,8,7,7],dr:[0,0,1,0,1,1,0]}},{n:"LUIZAO",pos:"ATA",id:23,h:5,e:3,rg:8,rp:8,d:1,sq:8,rpa:7.5,da:.4,sa:8.0,nw:55,pse:4,sra:395,w:88.5,alt:183,bf:12.8,mm:40.6,imc:25.0,nc:72,ai:1.05,cmj:45.2,ct:[46.8,44.5,47.2,45.8,46.1,44.9,45.6,45.2],wt:{dt:["05","06","07","09","10","11","12"],s:[9,8,8,8,9,8,8],r:[8,7,7,9,8,7,8],dr:[0,1,0,0,0,1,1]}},{n:"ZE HUGO",pos:"EXT",id:26,h:5,e:4,rg:7,rp:7,d:0,sq:8,rpa:7.6,da:.3,sa:8.2,nw:48,pse:5,sra:342,w:72.1,alt:178,bf:9.6,mm:33.6,imc:23.5,nc:62,ai:1.12,cmj:42.5,ct:[43.8,44.2,41.9,43.5,42.8,43.1,42.6,42.5],wt:{dt:["05","06","07","09","10","11","12"],s:[8,9,7,8,8,7,8],r:[8,8,7,9,7,8,7],dr:[0,0,0,0,0,0,0]}}];
 
 // Tooltip customizado para Recharts
 const TT=({active,payload,label,theme})=>{
@@ -1165,72 +1165,77 @@ function InjuryBodyMap({injuries,mode="player",theme,compact=false}){
   // Silhueta orgânica: cabeça ovalada → trapézio → ombros sloped → tronco em V →
   // quadril com flare → coxas afuniladas → joelhos → panturrilha → tornozelo → pé.
   const Decor = () => <>
-    {/* Cabeça — oval com queixo natural */}
-    <path d="M 100 6 C 84 6 74 18 74 32 C 74 44 78 54 86 60 L 114 60 C 122 54 126 44 126 32 C 126 18 116 6 100 6 Z"
+    {/* Cabeça — oval anatômica com queixo definido */}
+    <path d="M 100 6 C 84 6 74 18 73 32 C 73 44 78 54 86 60 L 114 60 C 122 54 127 44 127 32 C 126 18 116 6 100 6 Z"
           fill={base} stroke={stroke} strokeWidth={strokeW}/>
-    {/* Tronco completo: pescoço → trapézio → ombros sloped → tórax → cintura afunilada → quadril com flare */}
+    {/* Tronco anatômico: pescoço + trapézio + ombros largos (deltoide) + tórax pectoral + cintura em V + quadril com flare */}
     <path d="M 88 60
              C 86 66 86 72 84 78
-             C 72 80 62 86 54 94
-             C 46 102 42 112 42 124
-             L 46 140
-             C 50 158 56 176 60 194
-             C 60 206 60 218 60 230
-             C 60 236 60 238 62 240
-             L 138 240
-             C 140 238 140 236 140 230
-             C 140 218 140 206 140 194
-             C 144 176 150 158 154 140
-             L 158 124
-             C 158 112 154 102 146 94
-             C 138 86 128 80 116 78
+             C 70 80 56 86 46 96
+             C 44 110 48 122 50 134
+             C 56 152 60 168 62 184
+             C 60 196 60 210 60 224
+             C 58 232 58 238 60 240
+             L 140 240
+             C 142 238 142 232 140 224
+             C 140 210 140 196 138 184
+             C 140 168 144 152 150 134
+             C 152 122 156 110 154 96
+             C 144 86 130 80 116 78
              C 114 72 114 66 112 60 Z"
           fill={base} stroke={stroke} strokeWidth={strokeW}/>
-    {/* Braço esquerdo (lado direito do observador) — banana orgânica ombro→bíceps→antebraço→mão */}
-    <path d="M 146 86
-             C 164 88 178 104 180 128
-             C 180 156 174 188 166 222
-             C 162 240 158 254 154 260
-             C 150 264 144 262 142 256
-             C 144 232 148 200 150 168
-             C 152 140 150 110 146 86 Z"
+    {/* Braço esquerdo do corpo (direita do observador) — ombro→bíceps→cotovelo→antebraço→mão com polegar */}
+    <path d="M 150 92
+             C 152 110 152 130 152 150
+             C 150 170 150 190 148 210
+             C 148 228 148 246 150 252
+             C 146 256 144 262 148 268
+             C 152 272 158 272 162 270
+             C 168 270 174 268 176 262
+             C 176 256 174 252 172 250
+             C 174 230 178 210 176 190
+             C 174 170 176 150 178 130
+             C 178 116 174 102 168 96
+             C 160 92 154 92 150 92 Z"
           fill={base} stroke={stroke} strokeWidth={strokeW}/>
     {/* Braço direito (mirror) */}
-    <path d="M 54 86
-             C 36 88 22 104 20 128
-             C 20 156 26 188 34 222
-             C 38 240 42 254 46 260
-             C 50 264 56 262 58 256
-             C 56 232 52 200 50 168
-             C 48 140 50 110 54 86 Z"
+    <path d="M 50 92
+             C 48 110 48 130 48 150
+             C 50 170 50 190 52 210
+             C 52 228 52 246 50 252
+             C 54 256 56 262 52 268
+             C 48 272 42 272 38 270
+             C 32 270 26 268 24 262
+             C 24 256 26 252 28 250
+             C 26 230 22 210 24 190
+             C 26 170 24 150 22 130
+             C 22 116 26 102 32 96
+             C 40 92 46 92 50 92 Z"
           fill={base} stroke={stroke} strokeWidth={strokeW}/>
   </>;
 
   // ── Zonas das pernas/tornozelos/pés (frente) ──
-  // Curvas suaves que dão forma muscular natural à coxa, joelho, panturrilha, tornozelo e pé.
-  // Coxa anterior — afunilando do quadril ao joelho com curva orgânica
-  const COXA_L_FRONT = "M 102 240 C 122 240 134 244 138 252 C 140 272 138 294 132 314 C 128 320 120 322 112 322 L 102 322 Z";
-  const COXA_R_FRONT = "M 98 240 C 78 240 66 244 62 252 C 60 272 62 294 68 314 C 72 320 80 322 88 322 L 98 322 Z";
+  // Coxa anterior — quadríceps amplo no quadril, afunilando ao joelho
+  const COXA_L_FRONT = "M 102 240 C 124 240 138 244 142 254 C 144 274 140 296 134 314 C 130 320 122 322 116 322 L 102 322 Z";
+  const COXA_R_FRONT = "M 98 240 C 76 240 62 244 58 254 C 56 274 60 296 66 314 C 70 320 78 322 84 322 L 98 322 Z";
   // Joelho — rótula arredondada
-  const JOELHO_L = "M 102 322 L 132 322 C 132 332 130 342 126 348 C 120 350 110 350 102 348 Z";
-  const JOELHO_R = "M 98 322 L 68 322 C 68 332 70 342 74 348 C 80 350 90 350 98 348 Z";
-  // Perna anterior — canela com leve curva da panturrilha
-  const PERNA_L_FRONT = "M 104 348 C 114 348 122 348 126 350 C 130 374 130 400 124 420 C 118 422 110 422 106 420 C 104 396 102 372 104 348 Z";
-  const PERNA_R_FRONT = "M 96 348 C 86 348 78 348 74 350 C 70 374 70 400 76 420 C 82 422 90 422 94 420 C 96 396 98 372 96 348 Z";
-  // Tornozelo — afunilamento natural
-  const TORN_L = "M 106 420 L 124 420 C 124 428 122 434 118 436 L 110 436 C 106 432 106 426 106 420 Z";
-  const TORN_R = "M 94 420 L 76 420 C 76 428 78 434 82 436 L 90 436 C 94 432 94 426 94 420 Z";
-  // Pé — formato estilizado com leve curva no peito do pé
-  const PE_L = "M 108 436 C 118 436 128 438 132 444 C 134 450 132 454 126 454 L 110 454 C 106 450 106 442 108 436 Z";
-  const PE_R = "M 92 436 C 82 436 72 438 68 444 C 66 450 68 454 74 454 L 90 454 C 94 450 94 442 92 436 Z";
+  const JOELHO_L = "M 102 322 L 134 322 C 134 334 130 344 124 348 L 102 348 Z";
+  const JOELHO_R = "M 98 322 L 66 322 C 66 334 70 344 76 348 L 98 348 Z";
+  // Perna anterior — gastrocnêmio com bulbo natural, afunila ao tornozelo
+  const PERNA_L_FRONT = "M 104 348 C 116 348 124 350 128 356 C 130 376 126 398 120 416 C 116 422 110 422 106 420 C 102 396 100 372 104 348 Z";
+  const PERNA_R_FRONT = "M 96 348 C 84 348 76 350 72 356 C 70 376 74 398 80 416 C 84 422 90 422 94 420 C 98 396 100 372 96 348 Z";
+  // Tornozelo
+  const TORN_L = "M 106 420 L 120 420 C 120 428 118 434 114 436 L 108 436 C 106 432 106 426 106 420 Z";
+  const TORN_R = "M 94 420 L 80 420 C 80 428 82 434 86 436 L 92 436 C 94 432 94 426 94 420 Z";
+  // Pé — pequeno, ligeiramente projetado para frente
+  const PE_L = "M 108 436 C 116 436 124 438 128 444 C 130 450 128 454 124 454 L 108 454 C 106 450 106 442 108 436 Z";
+  const PE_R = "M 92 436 C 84 436 76 438 72 444 C 70 450 72 454 76 454 L 92 454 C 94 450 94 442 92 436 Z";
 
-  // ── Zonas para costas (mesmas pernas, mas labels diferentes) ──
-  // Lombar — região lombar natural com leve curva
+  // ── Zonas para costas ──
   const LOMBAR_L = "M 80 168 C 88 166 96 166 100 168 L 100 200 C 92 200 86 198 80 196 C 78 186 78 176 80 168 Z";
   const LOMBAR_R = "M 100 168 C 104 166 112 166 120 168 C 122 176 122 186 120 196 C 114 198 108 200 100 200 Z";
-  // Glúteo — formato arredondado natural
-  const GLUTEO_L = "M 60 200 C 78 198 92 198 100 200 L 100 240 L 62 240 C 58 226 58 212 60 200 Z";
-  const GLUTEO_R = "M 100 200 C 108 198 122 198 140 200 C 142 212 142 226 138 240 L 100 240 Z";
+  const GLUTEO_L = "M 60 200 C 78 198 92 198 100 200 L 100 240 L 60 240 C 58 226 58 212 60 200 Z";
+  const GLUTEO_R = "M 100 200 C 108 198 122 198 140 200 C 142 212 142 226 140 240 L 100 240 Z";
 
   return <div style={{position:"relative"}}>
     <div style={{display:"flex",justifyContent:"center",gap:compact?16:32,alignItems:"flex-start"}}>
@@ -1529,7 +1534,15 @@ export default function Dashboard(){
       return ts > 0 && (nowTs - ts) <= ACTIVITY_WINDOW_MS;
     };
 
-    const baseP = cadastroLoaded ? P.filter(p => cadSet.has(p.n) && isRecentlyActive(p.n)) : P;
+    // Lista forçada de inclusões: garante presença mesmo se ainda não houver
+    // entrada no cadastro do Sheets (jogadores recém-contratados).
+    const FORCE_INCLUDE = new Set(["ARTHUR CAIKE"]);
+    // Lista forçada de exclusões: jogadores que saíram mas ainda aparecem em
+    // dados legados.
+    const FORCE_EXCLUDE = new Set(["PEDRO TORTELLO"]);
+    const baseP = cadastroLoaded
+      ? P.filter(p => !FORCE_EXCLUDE.has(p.n) && (FORCE_INCLUDE.has(p.n) || (cadSet.has(p.n) && isRecentlyActive(p.n))))
+      : P.filter(p => !FORCE_EXCLUDE.has(p.n));
     const inP = new Set(baseP.map(p => p.n));
     const extras = [];
     if (cadastroLoaded) {
@@ -2589,16 +2602,16 @@ export default function Dashboard(){
             const botaShield="/icon.png";
             const advShield=g.escudo&&(g.escudo.startsWith("http")||g.escudo.startsWith("/"))?g.escudo:null;
 
-            return <div style={{borderRadius:16,padding:0,marginBottom:18,overflow:"hidden",position:"relative",background:dark?"linear-gradient(135deg, rgba(15,19,32,.92) 0%, rgba(7,10,20,.96) 60%, rgba(15,19,32,.92) 100%)":"linear-gradient(135deg, #f8fafb 0%, #fff 100%)",border:`1px solid ${t.border}`,boxShadow:dark?"0 8px 32px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05)":"0 4px 20px rgba(0,0,0,.08)"}}>
-              {/* Faixa decorativa neon */}
-              <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg, transparent 0%, #3b82f6 30%, #22c55e 70%, transparent 100%)",opacity:.7}}/>
+            return <div style={{borderRadius:16,padding:0,marginBottom:18,overflow:"hidden",position:"relative",background:dark?"linear-gradient(135deg, #0a0a0a 0%, #000000 60%, #0a0a0a 100%)":"linear-gradient(135deg, #f8fafb 0%, #fff 100%)",border:`1px solid ${dark?"#1f1f1f":t.border}`,boxShadow:dark?"0 8px 32px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.04)":"0 4px 20px rgba(0,0,0,.08)"}}>
+              {/* Faixa decorativa Botafogo (vermelho) */}
+              <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:dark?"linear-gradient(90deg, transparent 0%, #DC2626 30%, #DC2626 70%, transparent 100%)":"linear-gradient(90deg, transparent 0%, #3b82f6 30%, #22c55e 70%, transparent 100%)",opacity:dark?.85:.7}}/>
               <div style={{display:"grid",gridTemplateColumns:"1fr auto 1fr",gap:24,alignItems:"center",padding:"32px 40px"}}>
                 {/* Time da casa (Botafogo SA) */}
                 <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
                   <div style={{width:84,height:84,borderRadius:"50%",background:dark?"rgba(255,255,255,.05)":"#fff",border:`2px solid ${dark?"rgba(255,255,255,.1)":t.border}`,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",boxShadow:dark?"0 4px 16px rgba(0,0,0,.4)":"0 2px 8px rgba(0,0,0,.1)"}}>
                     <img src={botaShield} alt="Botafogo SA" style={{width:64,height:64,objectFit:"contain"}}/>
                   </div>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:13,color:pri,textAlign:"center",letterSpacing:.3}}>{isHome?"BOTAFOGO SP":g.adversario||"—"}</div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:900,fontSize:14,color:dark?"#ffffff":"#0a0a0a",textAlign:"center",letterSpacing:.3,textShadow:dark?"0 1px 8px rgba(0,0,0,.6)":"none"}}>{isHome?"BOTAFOGO SA":(g.adversario||"—").toUpperCase()}</div>
                   <span style={{padding:"3px 10px",borderRadius:999,fontSize:9,fontWeight:700,background:isHome?"rgba(34,197,94,.15)":"rgba(239,68,68,.15)",color:isHome?"#22c55e":"#ef4444",border:`1px solid ${isHome?"#22c55e":"#ef4444"}66`}}>{isHome?"CASA":"FORA"}</span>
                 </div>
 
@@ -2626,7 +2639,7 @@ export default function Dashboard(){
                     {advShield?<img src={advShield} alt={g.adversario} style={{width:64,height:64,objectFit:"contain"}} onError={e=>{e.target.style.display="none"}}/>
                     :<div style={{fontSize:28,fontWeight:900,color:t.textFaint}}>{(g.adversario||"?").charAt(0).toUpperCase()}</div>}
                   </div>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:13,color:pri,textAlign:"center",letterSpacing:.3}}>{isHome?(g.adversario||"—").toUpperCase():"BOTAFOGO SP"}</div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:900,fontSize:14,color:dark?"#ffffff":"#0a0a0a",textAlign:"center",letterSpacing:.3,textShadow:dark?"0 1px 8px rgba(0,0,0,.6)":"none"}}>{isHome?(g.adversario||"—").toUpperCase():"BOTAFOGO SA"}</div>
                   <span style={{padding:"3px 10px",borderRadius:999,fontSize:9,fontWeight:700,background:isHome?"rgba(239,68,68,.15)":"rgba(34,197,94,.15)",color:isHome?"#ef4444":"#22c55e",border:`1px solid ${isHome?"#ef4444":"#22c55e"}66`}}>{isHome?"FORA":"CASA"}</span>
                 </div>
               </div>
@@ -4491,8 +4504,13 @@ export default function Dashboard(){
             }
             const resLabel=res==="V"?"VITÓRIA":res==="D"?"DERROTA":res==="E"?"EMPATE":"AGUARDANDO RESULTADO";
             const resColor=res==="V"?"#16A34A":res==="D"?"#DC2626":res==="E"?"#CA8A04":"#64748b";
-            const resBg=res==="V"?"#F0FDF4":res==="D"?"#FEF2F2":res==="E"?"#FEFCE8":"#F8FAFC";
-            const resBc=res==="V"?"#BBF7D0":res==="D"?"#FECACA":res==="E"?"#FEF08A":"#E2E8F0";
+            const resBg=dark
+              ?(res==="V"?"rgba(22,163,74,.12)":res==="D"?"rgba(220,38,38,.14)":res==="E"?"rgba(202,138,4,.12)":"rgba(255,255,255,.04)")
+              :(res==="V"?"#F0FDF4":res==="D"?"#FEF2F2":res==="E"?"#FEFCE8":"#F8FAFC");
+            const resBc=dark
+              ?(res==="V"?"rgba(22,163,74,.45)":res==="D"?"rgba(220,38,38,.5)":res==="E"?"rgba(202,138,4,.45)":"rgba(255,255,255,.1)")
+              :(res==="V"?"#BBF7D0":res==="D"?"#FECACA":res==="E"?"#FEF08A":"#E2E8F0");
+            const advNameColor=dark?"#ffffff":"#0a0a0a";
             // Find player GPS data for the game date — verify player actually played
             // parseDateGame retorna Date|null. Entradas com date vazio (placeholders
             // que sobreviveram ao filtro do API) precisam ser ignoradas no match,
@@ -4629,8 +4647,8 @@ export default function Dashboard(){
               <div style={{display:"flex",alignItems:"center",gap:14,padding:"12px 16px",background:resBg,borderRadius:10,border:`1px solid ${resBc}`,marginBottom:14}}>
                 {lastGame.escudo&&<img src={lastGame.escudo} alt="" style={{width:32,height:32,objectFit:"contain"}} onError={e=>{e.target.style.display="none"}}/>}
                 <div style={{flex:1}}>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:15,color:pri}}>{lastGame.adversario||"—"}</div>
-                  <div style={{fontSize:10,color:t.textFaint}}>{lastGame.local==="C"?"Casa":"Fora"}</div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:900,fontSize:16,color:advNameColor,letterSpacing:.2,textShadow:dark?"0 1px 6px rgba(0,0,0,.5)":"none"}}>{lastGame.adversario||"—"}</div>
+                  <div style={{fontSize:10,color:dark?"rgba(255,255,255,.6)":t.textFaint,fontWeight:600}}>{lastGame.local==="C"?"Casa":"Fora"}</div>
                 </div>
                 <div style={{fontFamily:"'JetBrains Mono'",fontSize:24,fontWeight:900,color:resColor}}>{placar}</div>
               </div>
