@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { BarChart, Bar, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, AreaChart, Cell, ReferenceLine, LineChart, Line } from "recharts";
-import { Activity, TrendingUp, AlertTriangle, CheckCircle2, ChevronRight, ChevronDown, Heart, Zap, Shield, Users, Eye, Brain, Target, Calendar, RefreshCw, Wifi, WifiOff, Moon, Sun, Trophy, BookOpen, Info } from "lucide-react";
+import { Activity, TrendingUp, AlertTriangle, CheckCircle2, ChevronRight, ChevronDown, Heart, Zap, Shield, Users, Eye, Brain, Target, Calendar, RefreshCw, Wifi, WifiOff, Moon, Sun, Trophy, BookOpen, Info, Ruler, Scale, Percent, Dumbbell, Sigma, User } from "lucide-react";
 import { useSheetData } from "./useSheetData";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -2149,10 +2149,12 @@ export default function Dashboard(){
               {players.filter(p=>p.ai).sort((a,b)=>(b.ai||0)-(a.ai||0)).map((p,i)=>{
                 const acwr=p.ai||1;const c=acwr>1.5?"#DC2626":acwr>1.3?"#EA580C":acwr>1.0?"#CA8A04":acwr>0.8?"#16A34A":"#2563eb";
                 const zone=acwr>1.5?"ALTO RISCO":acwr>1.3?"ATENÇÃO":acwr>0.8?"ÓTIMO":"SUBTREINADO";
-                return <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",background:i<3?"#FEF2F2":"transparent",borderRadius:8,border:`1px solid ${t.borderLight}`}} onClick={()=>{setSel(p.n);setTab("player")}}>
+                const topBg=i<3?(dark?"rgba(220,38,38,.12)":"#FEF2F2"):"transparent";
+                const topBorder=i<3?(dark?"rgba(220,38,38,.35)":t.borderLight):t.borderLight;
+                return <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",background:topBg,borderRadius:8,border:`1px solid ${topBorder}`}} onClick={()=>{setSel(p.n);setTab("player")}}>
                   <PlayerPhoto theme={t} name={p.n} sz={28}/>
                   <div style={{flex:1}}>
-                    <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:11,color:pri,cursor:"pointer"}}>{p.n}</div>
+                    <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:11,color:t.text,cursor:"pointer"}}>{p.n}</div>
                     <div style={{fontSize:9,color:t.textFaint}}>{p.pos}</div>
                   </div>
                   <div style={{textAlign:"right"}}>
@@ -4462,12 +4464,19 @@ export default function Dashboard(){
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:13,color:pri,marginBottom:12}}>Composição Corporal</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:12}}>
-              {[{l:"Idade",v:sp.id?sp.id+" anos":"-",ic:"🎂"},{l:"Altura",v:sp.alt?sp.alt+" cm":"-",ic:"📏"},{l:"Peso",v:sp.w?sp.w+" kg":"-",ic:"⚖️"},{l:"% Gordura",v:sp.bf?sp.bf+"%":"-",ic:"📊",c:sp.bf>14?"#EA580C":sp.bf>12?"#CA8A04":"#16A34A"},{l:"Massa Muscular",v:sp.mm?sp.mm+" kg":"-",ic:"💪"},{l:"IMC",v:sp.imc?sp.imc.toFixed(1):"-",ic:"📐",c:sp.imc>25.5?"#CA8A04":"#16A34A"}].map((m,i)=>
+              {[
+                {l:"Idade",v:sp.id?sp.id+" anos":"-",Ic:User},
+                {l:"Altura",v:sp.alt?sp.alt+" cm":"-",Ic:Ruler},
+                {l:"Peso",v:sp.w?sp.w+" kg":"-",Ic:Scale},
+                {l:"% Gordura",v:sp.bf?sp.bf+"%":"-",Ic:Percent,c:sp.bf>14?"#EA580C":sp.bf>12?"#CA8A04":"#16A34A"},
+                {l:"Massa Muscular",v:sp.mm?sp.mm+" kg":"-",Ic:Dumbbell},
+                {l:"IMC",v:sp.imc?sp.imc.toFixed(1):"-",Ic:Sigma,c:sp.imc>25.5?"#CA8A04":"#16A34A"}
+              ].map((m,i)=>{const Ic=m.Ic;return(
                 <div key={i} style={{textAlign:"center",padding:"12px 8px",background:t.bgMuted,borderRadius:10,border:`1px solid ${t.borderLight}`}}>
-                  <div style={{fontSize:16,marginBottom:4}}>{m.ic}</div>
+                  <div style={{display:"flex",justifyContent:"center",marginBottom:6}}><Ic size={18} color={m.c||t.textMuted} strokeWidth={1.8}/></div>
                   <div style={{fontSize:9,color:t.textFaint,fontWeight:600,textTransform:"uppercase",letterSpacing:.5}}>{m.l}</div>
                   <div style={{fontFamily:"'JetBrains Mono'",fontSize:16,fontWeight:700,color:m.c||pri,marginTop:2}}>{m.v}</div>
-                </div>)}
+                </div>);})}
             </div>
           </div>
 
