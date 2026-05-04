@@ -1118,7 +1118,42 @@ function processLesoes(rows) {
 
     // dias_dm prefere CalculoDiasDM (planilha calcula diretamente) sobre legado
     const diasDmCalc = toNum(findField(row, "calculodiasdm", "dias_dm", "dias_afastado", "dias_departamento_medico"));
-    const diasTransCalc = toNum(findField(row, "calculodiastransicao", "dias_trans", "dias_transicao"));
+    const diasTransRaw = toNum(findField(row, "calculodiastransicao", "dias_trans", "dias_transicao"));
+
+    // Quando "Final Transição" está em branco (lesão em curso), a fórmula da
+    // planilha pode retornar valor enorme negativo (artefato do serial date
+    // 1900 do Sheets). Recalcula manualmente: se transição em curso, usa hoje
+    // como fim; se não há ini_trans, retorna 0.
+    const parseLesaoDate = (s) => {
+      if (!s) return null;
+      const str = String(s).trim();
+      if (!str) return null;
+      // ISO ou yyyy-mm-dd
+      if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+        const d = new Date(str);
+        return isNaN(d.getTime()) ? null : d;
+      }
+      // dd/mm/yyyy ou dd-mm-yyyy
+      const parts = str.split(/[\/\-\.]/);
+      if (parts.length >= 3) {
+        const [a, b, c] = parts.map(Number);
+        if (a > 31) return new Date(a, b - 1, c);
+        if (c < 100) return new Date(c + 2000, b - 1, a);
+        return new Date(c, b - 1, a);
+      }
+      const fb = new Date(str);
+      return isNaN(fb.getTime()) ? null : fb;
+    };
+    let diasTransCalc = diasTransRaw;
+    if (!Number.isFinite(diasTransCalc) || diasTransCalc < 0 || diasTransCalc > 5000) {
+      const ini = parseLesaoDate(iniTrans);
+      const fim = parseLesaoDate(fimTrans) || (ini ? new Date() : null);
+      if (ini && fim && fim >= ini) {
+        diasTransCalc = Math.floor((fim.getTime() - ini.getTime()) / 86400000);
+      } else {
+        diasTransCalc = 0;
+      }
+    }
 
     result.push({
       n: name,
