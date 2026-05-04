@@ -2376,13 +2376,21 @@ export default function Dashboard(){
                   const asiC=ext.slcmj_asi>15?"#DC2626":ext.slcmj_asi>12?"#EA580C":ext.slcmj_asi>8?"#CA8A04":"#16A34A";
                   const hqC=ext.hq_ratio<0.50?"#DC2626":ext.hq_ratio<0.55?"#EA580C":"#16A34A";
                   const status=ext.slcmj_asi>12||ext.hq_ratio<0.55?"ATENÇÃO":"NORMAL";
-                  return <tr key={i} style={{borderBottom:"1px solid #f1f5f9",cursor:"pointer"}} onClick={()=>{setSel(name);setTab("player")}}>
-                    <td style={{padding:"6px",fontWeight:600}}><div style={{display:"flex",alignItems:"center",gap:6}}><PlayerPhoto theme={t} name={name} sz={24}/>{name}</div></td>
-                    <td style={{padding:"6px",color:t.textMuted}}>{players.find(p=>p.n===name)?.pos||"-"}</td>
-                    <td style={{padding:"6px",fontFamily:"'JetBrains Mono'",fontWeight:700,color:asiC}}>{ext.slcmj_asi?.toFixed(1)}%</td>
-                    <td style={{padding:"6px",fontFamily:"'JetBrains Mono'",fontWeight:700,color:hqC}}>{ext.hq_ratio?.toFixed(2)}</td>
-                    <td style={{padding:"6px",fontFamily:"'JetBrains Mono'",color:ext.cop_sway>18?"#DC2626":t.textMuted}}>{ext.cop_sway?.toFixed(1)}mm</td>
-                    <td style={{padding:"6px"}}><span style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:700,background:status==="ATENÇÃO"?"#FEF2F2":"#F0FDF4",color:status==="ATENÇÃO"?"#DC2626":"#16A34A"}}>{status}</span></td>
+                  const asiPct=Math.min(100,(ext.slcmj_asi||0)/20*100);
+                  return <tr key={i} style={{borderBottom:`1px solid ${t.borderLight}`,cursor:"pointer"}} onClick={()=>{setSel(name);setTab("player")}}>
+                    <td style={{padding:"8px 6px",fontWeight:700,color:t.text}}><div style={{display:"flex",alignItems:"center",gap:8}}><PlayerPhoto theme={t} name={name} sz={26}/>{name}</div></td>
+                    <td style={{padding:"8px 6px",color:t.textMuted,fontWeight:600,fontSize:10}}>{players.find(p=>p.n===name)?.pos||"-"}</td>
+                    <td style={{padding:"8px 6px"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8}}>
+                        <span style={{fontFamily:"'JetBrains Mono'",fontWeight:700,color:asiC,minWidth:42}}>{ext.slcmj_asi?.toFixed(1)}%</span>
+                        <div style={{flex:1,height:5,background:t.bgMuted2,borderRadius:3,overflow:"hidden",minWidth:60}}>
+                          <div style={{height:"100%",width:`${asiPct}%`,background:asiC,borderRadius:3}}/>
+                        </div>
+                      </div>
+                    </td>
+                    <td style={{padding:"8px 6px",fontFamily:"'JetBrains Mono'",fontWeight:700,color:hqC}}>{ext.hq_ratio?.toFixed(2)}</td>
+                    <td style={{padding:"8px 6px",fontFamily:"'JetBrains Mono'",color:ext.cop_sway>18?"#DC2626":t.textMuted}}>{ext.cop_sway?.toFixed(1)}mm</td>
+                    <td style={{padding:"8px 6px"}}><span style={{padding:"3px 10px",borderRadius:999,fontSize:9,fontWeight:800,background:status==="ATENÇÃO"?"rgba(220,38,38,.12)":"rgba(22,163,74,.12)",color:status==="ATENÇÃO"?"#ef4444":"#22c55e",border:`1px solid ${status==="ATENÇÃO"?"rgba(220,38,38,.35)":"rgba(22,163,74,.35)"}`,letterSpacing:.5}}>{status}</span></td>
                   </tr>;
                 })}
               </tbody>
@@ -2445,16 +2453,25 @@ export default function Dashboard(){
               <tbody>
                 {players.sort((a,b)=>(a.sq||10)-(b.sq||10)).slice(0,15).map((p,i)=>{
                   const sonoC=(p.sq||10)<6?"#DC2626":(p.sq||10)<7?"#CA8A04":"#16A34A";
-                  return <tr key={i} style={{borderBottom:"1px solid #f1f5f9",cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>
-                    <td style={{padding:"6px 4px",fontWeight:600}}><div style={{display:"flex",alignItems:"center",gap:6}}><PlayerPhoto theme={t} name={p.n} sz={22}/>{p.n}</div></td>
-                    <td style={{padding:"6px 4px",color:t.textMuted}}>{p.pos}</td>
-                    <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'",fontWeight:700,color:sonoC}}>{p.sq||"-"}</td>
-                    <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'",color:(p.rg||10)<6?"#DC2626":t.textMuted}}>{p.rg||"-"}</td>
-                    <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'",color:(p.rp||10)<6?"#DC2626":t.textMuted}}>{p.rp||"-"}</td>
-                    <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'",color:(p.d||0)>3?"#DC2626":t.textMuted}}>{p.d||"0"}</td>
-                    <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'"}}>{p.h||"-"}</td>
-                    <td style={{padding:"6px 4px",fontFamily:"'JetBrains Mono'"}}>{p.e||"-"}</td>
-                    <td style={{padding:"6px 4px"}}><span style={{padding:"2px 6px",borderRadius:4,fontSize:9,fontWeight:700,background:(p.sq||10)<6||((p.d||0)>4)?"#FEF2F2":"#F0FDF4",color:(p.sq||10)<6||((p.d||0)>4)?"#DC2626":"#16A34A"}}>{(p.sq||10)<6||((p.d||0)>4)?"ALERTA":"OK"}</span></td>
+                  const isAlert=(p.sq||10)<6||((p.d||0)>4);
+                  const sonoPct=Math.min(100,((p.sq||0)/10)*100);
+                  return <tr key={i} style={{borderBottom:`1px solid ${t.borderLight}`,cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>
+                    <td style={{padding:"8px 4px",fontWeight:700,color:t.text}}><div style={{display:"flex",alignItems:"center",gap:8}}><PlayerPhoto theme={t} name={p.n} sz={24}/>{p.n}</div></td>
+                    <td style={{padding:"8px 4px",color:t.textMuted,fontWeight:600,fontSize:10}}>{p.pos}</td>
+                    <td style={{padding:"8px 4px"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:6}}>
+                        <span style={{fontFamily:"'JetBrains Mono'",fontWeight:700,color:sonoC,minWidth:18}}>{p.sq||"-"}</span>
+                        <div style={{flex:1,height:4,background:t.bgMuted2,borderRadius:2,overflow:"hidden",minWidth:40}}>
+                          <div style={{height:"100%",width:`${sonoPct}%`,background:sonoC,borderRadius:2}}/>
+                        </div>
+                      </div>
+                    </td>
+                    <td style={{padding:"8px 4px",fontFamily:"'JetBrains Mono'",color:(p.rg||10)<6?"#DC2626":t.text}}>{p.rg||"-"}</td>
+                    <td style={{padding:"8px 4px",fontFamily:"'JetBrains Mono'",color:(p.rp||10)<6?"#DC2626":t.text}}>{p.rp||"-"}</td>
+                    <td style={{padding:"8px 4px",fontFamily:"'JetBrains Mono'",color:(p.d||0)>3?"#DC2626":t.text}}>{p.d||"0"}</td>
+                    <td style={{padding:"8px 4px",fontFamily:"'JetBrains Mono'",color:t.text}}>{p.h||"-"}</td>
+                    <td style={{padding:"8px 4px",fontFamily:"'JetBrains Mono'",color:t.text}}>{p.e||"-"}</td>
+                    <td style={{padding:"8px 4px"}}><span style={{padding:"3px 10px",borderRadius:999,fontSize:9,fontWeight:800,background:isAlert?"rgba(220,38,38,.12)":"rgba(22,163,74,.12)",color:isAlert?"#ef4444":"#22c55e",border:`1px solid ${isAlert?"rgba(220,38,38,.35)":"rgba(22,163,74,.35)"}`,letterSpacing:.5}}>{isAlert?"ALERTA":"OK"}</span></td>
                   </tr>;
                 })}
               </tbody>
@@ -2608,12 +2625,12 @@ export default function Dashboard(){
               {/* Faixa decorativa Botafogo (vermelho) */}
               <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:dark?"linear-gradient(90deg, transparent 0%, #DC2626 30%, #DC2626 70%, transparent 100%)":"linear-gradient(90deg, transparent 0%, #3b82f6 30%, #22c55e 70%, transparent 100%)",opacity:dark?.85:.7}}/>
               <div style={{display:"grid",gridTemplateColumns:"1fr auto 1fr",gap:24,alignItems:"center",padding:"32px 40px"}}>
-                {/* Time da casa (Botafogo SA) */}
+                {/* Botafogo SA — sempre na esquerda, com badge CASA/FORA conforme isHome */}
                 <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
                   <div style={{width:84,height:84,borderRadius:"50%",background:dark?"rgba(255,255,255,.05)":"#fff",border:`2px solid ${dark?"rgba(255,255,255,.1)":t.border}`,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",boxShadow:dark?"0 4px 16px rgba(0,0,0,.4)":"0 2px 8px rgba(0,0,0,.1)"}}>
                     <img src={botaShield} alt="Botafogo SA" style={{width:64,height:64,objectFit:"contain"}}/>
                   </div>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:900,fontSize:14,color:dark?"#ffffff":"#0a0a0a",textAlign:"center",letterSpacing:.3,textShadow:dark?"0 1px 8px rgba(0,0,0,.6)":"none"}}>{isHome?"BOTAFOGO SA":(g.adversario||"—").toUpperCase()}</div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:900,fontSize:14,color:dark?"#ffffff":"#0a0a0a",textAlign:"center",letterSpacing:.3,textShadow:dark?"0 1px 8px rgba(0,0,0,.6)":"none"}}>BOTAFOGO SA</div>
                   <span style={{padding:"3px 10px",borderRadius:999,fontSize:9,fontWeight:700,background:isHome?"rgba(34,197,94,.15)":"rgba(239,68,68,.15)",color:isHome?"#22c55e":"#ef4444",border:`1px solid ${isHome?"#22c55e":"#ef4444"}66`}}>{isHome?"CASA":"FORA"}</span>
                 </div>
 
@@ -2635,13 +2652,13 @@ export default function Dashboard(){
                   <div style={{fontSize:10,color:t.textFaint}}>{g.rodada||""}</div>
                 </div>
 
-                {/* Adversário ou Botafogo conforme local */}
+                {/* Adversário — sempre na direita, com badge oposto */}
                 <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
                   <div style={{width:84,height:84,borderRadius:"50%",background:dark?"rgba(255,255,255,.05)":"#fff",border:`2px solid ${dark?"rgba(255,255,255,.1)":t.border}`,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",boxShadow:dark?"0 4px 16px rgba(0,0,0,.4)":"0 2px 8px rgba(0,0,0,.1)"}}>
                     {advShield?<img src={advShield} alt={g.adversario} style={{width:64,height:64,objectFit:"contain"}} onError={e=>{e.target.style.display="none"}}/>
                     :<div style={{fontSize:28,fontWeight:900,color:t.textFaint}}>{(g.adversario||"?").charAt(0).toUpperCase()}</div>}
                   </div>
-                  <div style={{fontFamily:"'Inter Tight'",fontWeight:900,fontSize:14,color:dark?"#ffffff":"#0a0a0a",textAlign:"center",letterSpacing:.3,textShadow:dark?"0 1px 8px rgba(0,0,0,.6)":"none"}}>{isHome?(g.adversario||"—").toUpperCase():"BOTAFOGO SA"}</div>
+                  <div style={{fontFamily:"'Inter Tight'",fontWeight:900,fontSize:14,color:dark?"#ffffff":"#0a0a0a",textAlign:"center",letterSpacing:.3,textShadow:dark?"0 1px 8px rgba(0,0,0,.6)":"none"}}>{(g.adversario||"—").toUpperCase()}</div>
                   <span style={{padding:"3px 10px",borderRadius:999,fontSize:9,fontWeight:700,background:isHome?"rgba(239,68,68,.15)":"rgba(34,197,94,.15)",color:isHome?"#ef4444":"#22c55e",border:`1px solid ${isHome?"#ef4444":"#22c55e"}66`}}>{isHome?"FORA":"CASA"}</span>
                 </div>
               </div>
@@ -3711,7 +3728,17 @@ export default function Dashboard(){
         </div>}
 
         {tab==="mapa"&&<div>
-          {WEEK_MAPS.map((wm,wi)=><div key={wi} style={{marginBottom:24}}>
+          {(()=>{
+            // Filtra microciclos: descarta semanas inteiramente passadas para
+            // que "Semana Atual" sempre reflita a semana corrente real.
+            const today=new Date();today.setHours(0,0,0,0);
+            const parseEnd=(wkStr)=>{
+              const m=String(wkStr||"").match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s*$/);
+              if(!m)return null;
+              return new Date(+m[3],+m[2]-1,+m[1]);
+            };
+            return WEEK_MAPS.filter(wm=>{const e=parseEnd(wm.week);return !e||e>=today;});
+          })().map((wm,wi)=><div key={wi} style={{marginBottom:24}}>
           {/* Weekly Map Header */}
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18,marginBottom:16}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -5694,12 +5721,13 @@ export default function Dashboard(){
                     const hsrPct=g.hsr_baseline>0?Math.round((g.hsr/g.hsr_baseline)*100):0;
                     const distColor=distPct>120?"#DC2626":distPct>100?"#CA8A04":"#16A34A";
                     const hsrColor=hsrPct>130?"#DC2626":hsrPct>100?"#CA8A04":"#16A34A";
-                    return <tr key={p.n} style={{borderBottom:`1px solid ${t.border}`,background:idx%2===0?"transparent":t.bgMuted+"44",cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>
-                      <td style={{padding:"8px",fontWeight:700,color:pri,whiteSpace:"nowrap"}}>
-                        <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    return <tr key={p.n} style={{borderBottom:`1px solid ${t.border}`,background:idx%2===0?"transparent":(dark?"rgba(255,255,255,.02)":t.bgMuted+"44"),cursor:"pointer"}} onClick={()=>{setSel(p.n);setTab("player")}}>
+                      <td style={{padding:"8px",fontWeight:700,color:t.text,whiteSpace:"nowrap"}}>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <PlayerPhoto theme={t} name={p.n} sz={26}/>
                           <div style={{width:6,height:6,borderRadius:3,background:classC,flexShrink:0}}/>
-                          {p.n}
-                          <span style={{fontSize:8,color:t.textFaint}}>{p.pos}</span>
+                          <span style={{color:t.text,fontWeight:700}}>{p.n}</span>
+                          <span style={{fontSize:8,color:t.textFaint,fontWeight:600}}>{p.pos}</span>
                         </div>
                       </td>
                       <td style={{padding:"8px",textAlign:"center"}}><span style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:700,color:classC,background:classC+"15"}}>{classif.toUpperCase()}</span></td>
