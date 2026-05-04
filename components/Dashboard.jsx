@@ -1802,13 +1802,13 @@ export default function Dashboard(){
     <header style={{background:t.headerBg,borderBottom:dark?`2px solid #DC2626`:`1px solid ${t.border}`,boxShadow:dark?"0 2px 16px rgba(220,38,38,.18)":"none",padding:"0 28px",position:"sticky",top:0,zIndex:100}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",height:54}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <img src="https://www.ogol.com.br/img/logos/equipas/3154_imgbank_1685113109.png" alt="Botafogo-SP" style={{width:32,height:32,objectFit:"contain"}}/>
+          <img src="https://www.ogol.com.br/img/logos/equipas/3154_imgbank_1685113109.png" alt="Botafogo SA" style={{width:32,height:32,objectFit:"contain"}}/>
           <div>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:13,color:"#fff",letterSpacing:-.2,display:"flex",alignItems:"center",gap:8}}>
               Saúde &amp; Performance
               {dark&&<span style={{width:5,height:5,borderRadius:"50%",background:"#DC2626",boxShadow:"0 0 8px rgba(220,38,38,.8)"}}/>}
             </div>
-            <div style={{fontSize:8.5,color:dark?"#DC2626":"rgba(255,255,255,.45)",fontWeight:700,letterSpacing:1,textTransform:"uppercase"}}>Botafogo-SP · 2026</div>
+            <div style={{fontSize:8.5,color:dark?"#DC2626":"rgba(255,255,255,.45)",fontWeight:700,letterSpacing:1,textTransform:"uppercase"}}>Botafogo SA · 2026</div>
           </div>
         </div>
         <div style={{display:"flex",gap:1,overflowX:"auto",maxWidth:"calc(100vw - 380px)",scrollbarWidth:"none",msOverflowStyle:"none"}}>
@@ -2585,7 +2585,7 @@ export default function Dashboard(){
             const dateStr=d.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"short"});
             const timeStr=d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})||"—";
 
-            // Botafogo SP (assets/public placeholder do escudo)
+            // Botafogo SA (assets/public placeholder do escudo)
             const botaShield="/icon.png";
             const advShield=g.escudo&&(g.escudo.startsWith("http")||g.escudo.startsWith("/"))?g.escudo:null;
 
@@ -2593,10 +2593,10 @@ export default function Dashboard(){
               {/* Faixa decorativa neon */}
               <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg, transparent 0%, #3b82f6 30%, #22c55e 70%, transparent 100%)",opacity:.7}}/>
               <div style={{display:"grid",gridTemplateColumns:"1fr auto 1fr",gap:24,alignItems:"center",padding:"32px 40px"}}>
-                {/* Time da casa (Botafogo SP) */}
+                {/* Time da casa (Botafogo SA) */}
                 <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
                   <div style={{width:84,height:84,borderRadius:"50%",background:dark?"rgba(255,255,255,.05)":"#fff",border:`2px solid ${dark?"rgba(255,255,255,.1)":t.border}`,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",boxShadow:dark?"0 4px 16px rgba(0,0,0,.4)":"0 2px 8px rgba(0,0,0,.1)"}}>
-                    <img src={botaShield} alt="Botafogo SP" style={{width:64,height:64,objectFit:"contain"}}/>
+                    <img src={botaShield} alt="Botafogo SA" style={{width:64,height:64,objectFit:"contain"}}/>
                   </div>
                   <div style={{fontFamily:"'Inter Tight'",fontWeight:800,fontSize:13,color:pri,textAlign:"center",letterSpacing:.3}}>{isHome?"BOTAFOGO SP":g.adversario||"—"}</div>
                   <span style={{padding:"3px 10px",borderRadius:999,fontSize:9,fontWeight:700,background:isHome?"rgba(34,197,94,.15)":"rgba(239,68,68,.15)",color:isHome?"#22c55e":"#ef4444",border:`1px solid ${isHome?"#22c55e":"#ef4444"}66`}}>{isHome?"CASA":"FORA"}</span>
@@ -3842,8 +3842,8 @@ export default function Dashboard(){
                     rod,
                     date:g.data||"",
                     time:"",
-                    home:isHome?"Botafogo SP":(g.adversario||""),
-                    away:isHome?(g.adversario||""):"Botafogo SP",
+                    home:isHome?"Botafogo SA":(g.adversario||""),
+                    away:isHome?(g.adversario||""):"Botafogo SA",
                     local:isHome?"casa":"fora",
                     score,
                     result,
