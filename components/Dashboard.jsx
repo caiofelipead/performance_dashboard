@@ -946,7 +946,7 @@ const WEEK_READINESS=(players,alerts)=>{
 
 const score=(p)=>{
   let s=0,reasons=[];
-  if(p.ai>1.45){s+=30;reasons.push("ACWR "+p.ai.toFixed(2));}else if(p.ai>1.3){s+=15;reasons.push("ACWR "+p.ai.toFixed(2));}else if(p.ai&&p.ai<.8){s+=20;reasons.push("Subcarga "+p.ai.toFixed(2));}
+  if(p.ai>1.45){s+=30;reasons.push("ACWR "+p.ai.toFixed(2));}else if(p.ai>1.3){s+=15;reasons.push("ACWR "+p.ai.toFixed(2));}
   if(p.d>=4){s+=20;reasons.push("Dor "+p.d+"/10");}else if(p.d>=2){s+=8;reasons.push("Dor "+p.d+"/10");}
   if(p.rp<=5){s+=18;reasons.push("RecP "+p.rp+"/10");}else if(p.rp<=6){s+=8;}
   if(p.da>=2.5){s+=10;reasons.push("Dor avg "+p.da);}
@@ -956,6 +956,42 @@ const score=(p)=>{
 };
 
 const LV={CRITICAL:{c:"#DC2626",bg:"#FEF2F2",bc:"#FECACA",l:"Crítico"},HIGH:{c:"#EA580C",bg:"#FFF7ED",bc:"#FED7AA",l:"Alto"},MODERATE:{c:"#CA8A04",bg:"#FEFCE8",bc:"#FEF08A",l:"Moderado"},LOW:{c:"#16A34A",bg:"#F0FDF4",bc:"#BBF7D0",l:"Ótimo"}};
+
+// Estado unificado: combina Ψ(t) (PCA Fonseca 2020), prob ML 7d (XGBoost) e Risk Score clínico
+// numa só leitura, escolhendo a zona mais pessimista entre as fontes dinâmicas.
+// Usado tanto no sidebar quanto na ficha individual para evitar mismatches entre painéis.
+const ZRANK={"#16A34A":0,"#CA8A04":1,"#EA580C":2,"#DC2626":3};
+const estado=(p,alert,psiSeries)=>{
+  const psiLast=psiSeries&&psiSeries.length>=3?psiSeries[psiSeries.length-1]:null;
+  const psiDev=psiLast&&psiLast.baseline!==null&&psiLast.baseline!==undefined&&psiLast.sd>0
+    ?(psiLast.psi-psiLast.baseline)/psiLast.sd:null;
+  const psiEws=psiLast?.ews?.risingCount||0;
+  const mlProb=alert&&typeof alert.prob==="number"?alert.prob:null;
+  let c="#16A34A",l="Estável";
+  if(psiDev!==null){
+    if(psiDev>=3||(psiDev>=1.5&&psiEws>=2)){c="#DC2626";l="Transição iminente";}
+    else if(psiDev>=2||(psiDev>=1&&psiEws>=2)){c="#EA580C";l="Sinal de alerta";}
+    else if(psiDev>=1||psiEws>=2){c="#CA8A04";l=psiEws>=2&&psiDev<1?"Sinais precoces":"Atenção";}
+    else if(psiEws>=1){l="Estável c/ sinal precoce";}
+  }
+  if(mlProb!==null){
+    const mlC=mlProb>=0.5?"#DC2626":mlProb>=0.3?"#EA580C":mlProb>=0.15?"#CA8A04":"#16A34A";
+    const mlL=mlProb>=0.5?"Risco alto":mlProb>=0.3?"Risco moderado-alto":mlProb>=0.15?"Risco moderado":"Risco baixo";
+    if(ZRANK[mlC]>ZRANK[c]){c=mlC;l=mlL;}
+  }
+  const hasDyn=psiDev!==null||mlProb!==null;
+  if(!hasDyn&&p?.risk&&LV[p.risk]){c=LV[p.risk].c;l=LV[p.risk].l;}
+  return {c,l,psiDev,psiEws,mlProb,hasDyn};
+};
+// Idade em dias de uma string de data (formatos dd/mm/yyyy, yyyy-mm-dd, dd-mm-yyyy, etc.)
+const daysOld=(d)=>{
+  if(!d)return null;
+  const s=String(d).trim();let dt;
+  if(/^\d{4}-\d{2}-\d{2}/.test(s))dt=new Date(s);
+  else{const p=s.split(/[\/\-\.]/);if(p.length>=3){const[a,b,c]=p.map(Number);if(a>31)dt=new Date(a,b-1,c);else if(c>31)dt=new Date(c,b-1,a);else dt=new Date(c<100?c+2000:c,b-1,a);}}
+  if(!dt||isNaN(dt))return null;
+  return Math.round((Date.now()-dt.getTime())/86400000);
+};
 const acc="#dc2626"; // Vermelho Botafogo (alinhado ao Scouting BFSA)
 const humorL={1:"Raiva",2:"Confuso",3:"Preocupado",4:"Confiante",5:"Tranquilo"};
 
@@ -968,9 +1004,9 @@ const Tip=({active,payload,label,theme})=>{
   </div>;
 };
 
-const ScoreRing=({v,sz=48,th=4,theme})=>{
+const ScoreRing=({v,sz=48,th=4,theme,c:cOverride})=>{
   const t=theme||THEMES.light;
-  const c=v>=65?"#DC2626":v>=50?"#EA580C":v>=20?"#CA8A04":"#16A34A";
+  const c=cOverride||(v>=65?"#DC2626":v>=50?"#EA580C":v>=20?"#CA8A04":"#16A34A");
   const pct=Math.min(v/100,1),r=(sz-th)/2,ci=2*Math.PI*r;
   return <div style={{position:"relative",width:sz,height:sz,display:"flex",alignItems:"center",justifyContent:"center"}}>
     <svg width={sz} height={sz} style={{transform:"rotate(-90deg)"}}>
@@ -990,7 +1026,14 @@ const PlayerPhoto=({name,sz=40,theme})=>{
   </div>;
 };
 
-const Badge=({level})=>{const l=LV[level];return <span style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,background:l.bg,color:l.c,border:`1px solid ${l.bc}`}}>{l.l}</span>;};
+const Badge=({level,color,label,title})=>{
+  const l=level&&LV[level]?LV[level]:null;
+  const bg=color?`${color}1A`:l?l.bg:"transparent";
+  const c=color||(l?l.c:"#666");
+  const bc=color?`${color}55`:l?l.bc:"#ccc";
+  const text=label!==undefined?label:(l?l.l:"");
+  return <span title={title} style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,background:bg,color:c,border:`1px solid ${bc}`}}>{text}</span>;
+};
 
 const WBar=({label,v,max=10,inv,theme})=>{
   const t=theme||THEMES.light;
@@ -1273,12 +1316,20 @@ export default function Dashboard(){
       const questEntries = sheetData?.questionarios?.[p.n];
       if(questEntries?.length) {
         const lastQ = questEntries[questEntries.length-1];
+        // Freshness: questionário >14d vira "stale". Não sobrescreve campos do dia
+        // com dados velhos (evita Risk Score baseado em dor/recuperação defasada).
+        const _qDaysOld = daysOld(lastQ.date);
+        const _qFresh = _qDaysOld===null||_qDaysOld<=14;
+        merged._questDaysOld = _qDaysOld;
+        merged._questStale = _qDaysOld!==null && _qDaysOld>14;
         // Dados pontuais do último questionário (sobrescrevem hardcoded E live)
+        if(_qFresh){
         if(lastQ.sono_qualidade>0) merged.sq=lastQ.sono_qualidade;
         if(lastQ.recuperacao_geral>0) merged.rg=lastQ.recuperacao_geral;
         if(lastQ.recuperacao_pernas>0) merged.rp=lastQ.recuperacao_pernas;
         if(lastQ.dor>=0) merged.d=lastQ.dor;
         if(lastQ.sono_horas>0) merged.sh=lastQ.sono_horas;
+        }
         // Peso atualizado do questionário (composição corporal)
         if(lastQ.peso>0) { merged.w=lastQ.peso; merged.imc=merged.alt>0?Math.round(lastQ.peso/((merged.alt/100)**2)*10)/10:merged.imc; }
         // Humor do questionário
@@ -1293,8 +1344,10 @@ export default function Dashboard(){
           if(ev) merged.e=ev;
         }
         merged._questDate=lastQ.date||"";
-        // Averages dos últimos 7
+        // Averages dos últimos 7 — só aplicar se o último questionário for fresco;
+        // caso contrário a janela "últimos 7" também está defasada e contamina o Risk Score.
         const recent = questEntries.slice(-7);
+        if(_qFresh){
         const rpVals = recent.map(q => q.recuperacao_pernas).filter(v => v > 0);
         if(rpVals.length) merged.rpa = Math.round(rpVals.reduce((a,b)=>a+b,0)/rpVals.length*10)/10;
         const sqVals = recent.map(q => q.sono_qualidade).filter(v => v > 0);
@@ -1303,6 +1356,7 @@ export default function Dashboard(){
         if(dVals.length) merged.da = Math.round(dVals.reduce((a,b)=>a+b,0)/dVals.length*10)/10;
         const rgVals = recent.map(q => q.recuperacao_geral).filter(v => v > 0);
         if(rgVals.length) merged.rga = Math.round(rgVals.reduce((a,b)=>a+b,0)/rgVals.length*10)/10;
+        }
         // Tendência 7 Dias dinâmica (substitui wt hardcoded)
         if(recent.length>=1) {
           const fmtDate=(d)=>{if(!d)return"?";const s=String(d);const parts=s.split(/[\/\-\.]/);if(parts.length>=2){const day=parts[0].length<=2?parts[0]:parts[2];const mon=parts[0].length<=2?parts[1]:parts[1];const mNames=["","Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];return (mNames[Number(mon)]||mon)+"/"+day;}return s.slice(-5);};
@@ -1496,23 +1550,36 @@ export default function Dashboard(){
       <aside style={{width:230,flexShrink:0}}>
         <div style={{fontSize:9,fontWeight:800,color:t.textFaint,letterSpacing:2,textTransform:"uppercase",marginBottom:6,paddingLeft:4}}>Elenco</div>
         {/* Legenda compacta de zonas + tooltip detalhado oculto sob hover */}
-        <div title="Risk Score clínico 0–100 (regras do dia: ACWR, Dor, Rec. Pernas, Sono, Bem-estar). Inteira-se com Ψ(t) observável (PCA Fonseca 2020) e Previsão ML 7d (XGBoost) na ficha individual." style={{display:"flex",gap:3,marginBottom:8,paddingLeft:4,flexWrap:"wrap",cursor:"help"}}>
-          {[{l:"Crítico",c:"#DC2626"},{l:"Alto",c:"#EA580C"},{l:"Mod.",c:"#CA8A04"},{l:"Ótimo",c:"#16A34A"}].map((z,i)=>
+        <div title="Estado unificado: Ψ(t) observável (PCA Fonseca 2020) + Prob ML 7d (XGBoost) + Risk Score clínico. Cor = leitura mais pessimista entre as fontes dinâmicas." style={{display:"flex",gap:3,marginBottom:8,paddingLeft:4,flexWrap:"wrap",cursor:"help"}}>
+          {[{l:"Alto",c:"#DC2626"},{l:"Mod-Alto",c:"#EA580C"},{l:"Atenção",c:"#CA8A04"},{l:"Estável",c:"#16A34A"}].map((z,i)=>
             <span key={i} style={{fontSize:7,padding:"1px 5px",borderRadius:3,background:`${z.c}18`,color:z.c,border:`1px solid ${z.c}40`,fontWeight:700,letterSpacing:.3}}>{z.l}</span>
           )}
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:4,maxHeight:"calc(100vh - 100px)",overflowY:"auto",paddingRight:4}}>
-          {players.map(p=><div key={p.n} onClick={()=>{setSel(p.n);setTab("player")}} style={{background:sel===p.n?t.bgCard:"transparent",border:`1px solid ${sel===p.n?t.border:"transparent"}`,borderRadius:10,padding:"8px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,transition:"all .15s",boxShadow:sel===p.n?`0 2px 8px ${t.shadow}`:"none"}}>
+          {players.map(p=>{
+            const _alert=liveAlerts.find(a=>a.n===p.n);
+            const _psiSeries=sheetData?.psi?.series?.[p.n]||[];
+            const _e=estado(p,_alert,_psiSeries);
+            const _mlPct=_e.mlProb!==null?Math.round(_e.mlProb*100):null;
+            const _ringV=_mlPct!==null?_mlPct:p.riskScore;
+            const _ringC=_e.c;
+            const _stale=p._questStale;
+            const _tip=`${_e.l}${_mlPct!==null?` · ML ${_mlPct}%`:""}${_e.psiDev!==null?` · Ψ ${_e.psiDev>=0?"+":""}${_e.psiDev.toFixed(1)}σ`:""}${!_e.hasDyn?` · Risk ${p.riskScore}`:""}${_stale?" · dados defasados":""}`;
+            return <div key={p.n} onClick={()=>{setSel(p.n);setTab("player")}} title={_tip} style={{background:sel===p.n?t.bgCard:"transparent",border:`1px solid ${sel===p.n?t.border:"transparent"}`,borderRadius:10,padding:"8px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,transition:"all .15s",boxShadow:sel===p.n?`0 2px 8px ${t.shadow}`:"none"}}>
             <PlayerPhoto theme={t} name={p.n} sz={34}/>
-            <ScoreRing theme={t} v={p.riskScore} sz={32} th={3}/>
+            <ScoreRing theme={t} v={_ringV} sz={32} th={3} c={_ringC}/>
             <div style={{flex:1,minWidth:0}}>
-              <div style={{fontSize:11,fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",color:t.text}}>{p.n}</div>
+              <div style={{fontSize:11,fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",color:t.text,display:"flex",alignItems:"center",gap:4}}>
+                {p.n}
+                {_stale&&<span title={`Questionário ${p._questDaysOld}d atrás`} style={{fontSize:8,padding:"1px 4px",borderRadius:3,background:"#CA8A0420",color:"#CA8A04",fontWeight:700,letterSpacing:.3}}>STALE</span>}
+              </div>
               <div style={{display:"flex",gap:4,marginTop:2,alignItems:"center"}}>
-                <Badge level={p.risk}/>
+                <Badge color={_e.c} label={_e.l}/>
                 <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:t.textFaint}}>{p.pos}</span>
               </div>
             </div>
-          </div>)}
+          </div>;
+          })}
         </div>
       </aside>
 
@@ -3601,33 +3668,16 @@ export default function Dashboard(){
           //   (a) Ψ(t) — estado observável via PCA (Fonseca 2020), quando há dados suficientes
           //   (b) Prob. Lesão ML (7d) — forecast XGBoost
           //   (c) Risk Score 0–100 — fallback baseado em regras clínicas do dia
-          // A cor/zone prioriza a leitura mais pessimista entre (a) e (b); (c) entra se nenhuma das duas tiver dado.
-          const _psi=sheetData?.psi;
-          const _psiSeries=_psi?.series?.[sp.n]||[];
-          const _psiLast=_psiSeries.length>=3?_psiSeries[_psiSeries.length-1]:null;
-          const _psiDev=_psiLast&&_psiLast.baseline!==null&&_psiLast.baseline!==undefined&&_psiLast.sd>0
-            ?(_psiLast.psi-_psiLast.baseline)/_psiLast.sd:null;
-          const _psiEwsCount=_psiLast?.ews?.risingCount||0;
+          // Mesma lógica do sidebar (helper estado()) para garantir consistência.
+          const _psiSeries=sheetData?.psi?.series?.[sp.n]||[];
           const _mlAlert=liveAlerts.find(a=>a.n===sp.n);
-          const _mlProb=_mlAlert?_mlAlert.prob:null;
+          const _e=estado(sp,_mlAlert,_psiSeries);
+          const _psiDev=_e.psiDev;
+          const _psiEwsCount=_e.psiEws;
+          const _mlProb=_e.mlProb;
           const _mlPct=_mlProb!==null?Math.round(_mlProb*100):null;
-          // Zoneamento unificado: cor = pior (mais pessimista) entre Ψ e ML
-          const rank={"#16A34A":0,"#CA8A04":1,"#EA580C":2,"#DC2626":3};
-          let _zC="#16A34A",_zL="Estável";
-          if(_psiDev!==null){
-            if(_psiDev>=3||(_psiDev>=1.5&&_psiEwsCount>=2)){_zC="#DC2626";_zL="Transição iminente";}
-            else if(_psiDev>=2||(_psiDev>=1&&_psiEwsCount>=2)){_zC="#EA580C";_zL="Sinal de alerta";}
-            else if(_psiDev>=1||_psiEwsCount>=2){_zC="#CA8A04";_zL=_psiEwsCount>=2&&_psiDev<1?"Sinais precoces":"Atenção";}
-            else if(_psiEwsCount>=1){_zL="Estável c/ sinal precoce";}
-          }
-          if(_mlProb!==null){
-            const mlC=_mlProb>=0.5?"#DC2626":_mlProb>=0.3?"#EA580C":_mlProb>=0.15?"#CA8A04":"#16A34A";
-            const mlL=_mlProb>=0.5?"Risco alto":_mlProb>=0.3?"Risco moderado-alto":_mlProb>=0.15?"Risco moderado":"Risco baixo";
-            if(rank[mlC]>rank[_zC]){_zC=mlC;_zL=mlL;}
-          }
-          // Se não há Ψ nem ML, usa Risk Score clínico como fallback
-          const _hasDyn=_psiDev!==null||_mlProb!==null;
-          if(!_hasDyn){_zC=LV[sp.risk].c;_zL=LV[sp.risk].l;}
+          let _zC=_e.c,_zL=_e.l;
+          const _hasDyn=_e.hasDyn;
           // Score numérico principal exibido no header
           const _scoreVal=_mlPct!==null?_mlPct:(sp.riskScore!==undefined?sp.riskScore:0);
           const _scoreUnit=_mlPct!==null?"%":"";
@@ -3644,7 +3694,7 @@ export default function Dashboard(){
                 <div style={{fontSize:8.5,color:t.textFaint,fontWeight:600,letterSpacing:.3,textAlign:"center",maxWidth:120}}>{_scoreSub}{_psiFmt&&<> · Ψ {_psiFmt}</>}</div>
               </div>
               <div style={{flex:1}}>
-                <div style={{fontFamily:"'Inter Tight'",fontSize:20,fontWeight:900,color:pri}}>{sp.n} <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:t.textFaint,fontWeight:400,marginLeft:6}}>{sp.pos} · {sp.id} anos · {sp.nc} sessões</span></div>
+                <div style={{fontFamily:"'Inter Tight'",fontSize:20,fontWeight:900,color:pri,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>{sp.n} <span style={{fontFamily:"'JetBrains Mono'",fontSize:11,color:t.textFaint,fontWeight:400}}>{sp.pos} · {sp.id} anos · {sp.nc} sessões</span>{sp._questStale&&<span title={`Último questionário há ${sp._questDaysOld} dias — Risk Score baseado em valores de fallback`} style={{fontSize:9,padding:"2px 6px",borderRadius:4,background:"#CA8A0420",color:"#CA8A04",border:"1px solid #CA8A0455",fontWeight:700,letterSpacing:.4}}>QUESTIONÁRIO {sp._questDaysOld}D</span>}</div>
                 {sp.reasons.length>0&&<div style={{display:"flex",gap:6,marginTop:6,flexWrap:"wrap"}}>
                   {sp.reasons.map((r,i)=><span key={i} style={{padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:600,background:LV[sp.risk].bg,color:LV[sp.risk].c,border:`1px solid ${LV[sp.risk].bc}`}}>{r}</span>)}
                 </div>}
