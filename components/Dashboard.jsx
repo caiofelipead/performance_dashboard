@@ -6662,11 +6662,6 @@ export default function Dashboard(){
                         {inj.prognostico&&<span>Prognóstico: <strong style={{color:"#2563EB"}}>{(parseDateBR(inj.prognostico)?.toLocaleDateString("pt-BR")||inj.prognostico)}</strong></span>}
                       </div>
                     </div>
-                    {/* Lesson Learned */}
-                    <div style={{padding:"10px 14px",background:"#EFF6FF",borderRadius:8,border:"1px solid #BFDBFE",marginBottom:8}}>
-                      <div style={{fontSize:10,color:"#2563EB",fontWeight:700,marginBottom:2}}>LIÇÃO APRENDIDA</div>
-                      <div style={{fontSize:11,color:"#1e40af",lineHeight:1.5}}>{inj.lesson}</div>
-                    </div>
                     {/* Protocol */}
                     <div style={{padding:"10px 14px",background:"#F0FDF4",borderRadius:8,border:"1px solid #BBF7D0"}}>
                       <div style={{fontSize:10,color:"#16A34A",fontWeight:700,marginBottom:2}}>PROTOCOLO PREVENTIVO</div>
