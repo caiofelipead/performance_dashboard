@@ -32,7 +32,8 @@ const SHEETS_CONFIG = {
     questionarios: 1014986912,
     atletas: 1315104851,
     fisioterapia: 1541953765,
-    calendario: 1334525431
+    calendario: 1334525431,
+    lesoes: 1445323249
   },
   // Abas lidas por TÍTULO (gid não conhecido — usa gviz `sheet=` ou Sheets
   // API quando service account configurado). Fonte primária quando publicada.
@@ -1885,17 +1886,26 @@ export async function GET(request) {
       // única de verdade da temporada corrente, com thresholds HSR > 19.8 km/h
       // e Sprint > 25.2 km/h. Aba `gps` legada não é mais consumida no tab=all.
       // Lesões: tenta primeiro a aba interna `Lesoes` da planilha unificada
-      // (mais atualizada, sob controle do clube). Cai para o CSV externo
-      // legado quando a aba interna falha (sem service account ou aba
-      // ainda não publicada).
+      // (mais atualizada, sob controle do clube). Estratégia em cascata:
+      //   1) Por TÍTULO (gviz/sheet ou Sheets API quando autenticado)
+      //   2) Por GID explícito (1445323249) — funciona em planilha publicada
+      //      sem service account, mais robusto que busca por título.
+      //   3) Fallback para CSV externo legado (planilha antiga). Esse fallback
+      //      tem dados defasados — só serve para não quebrar a UI. Se a UI
+      //      mostrar dados velhos, é porque (1) e (2) falharam.
       const lesoesInternalP = fetchSheetByTitle(SHEETS_CONFIG.tabs_by_title.lesoes)
-        .then(csv => ({ source: "internal", csv }))
-        .catch(async (errInt) => {
+        .then(csv => ({ source: "internal_title", csv }))
+        .catch(async (errTitle) => {
           try {
-            const csv = await fetchExternalCSV(SHEETS_CONFIG.external.lesoes);
-            return { source: "external_fallback", csv, internalError: errInt?.message };
-          } catch (errExt) {
-            throw new Error(`internal: ${errInt?.message}; external: ${errExt?.message}`);
+            const csv = await fetchSheetCSV(SHEETS_CONFIG.tabs.lesoes);
+            return { source: "internal_gid", csv, titleError: errTitle?.message };
+          } catch (errGid) {
+            try {
+              const csv = await fetchExternalCSV(SHEETS_CONFIG.external.lesoes);
+              return { source: "external_fallback", csv, titleError: errTitle?.message, gidError: errGid?.message };
+            } catch (errExt) {
+              throw new Error(`title: ${errTitle?.message}; gid: ${errGid?.message}; external: ${errExt?.message}`);
+            }
           }
         });
 
