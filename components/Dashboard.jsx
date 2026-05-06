@@ -5418,7 +5418,7 @@ export default function Dashboard(){
                     <Calendar size={14} color="#2563eb"/>
                     Comparativo Semanal de Treino
                   </div>
-                  <div style={{fontSize:10,color:t.textFaint}}>Últimas {weekData.length} semanas · ACWR semanal, Monotonia, Strain, Δ% (Gabbett, 2016; Foster, 1998)</div>
+                  <div style={{fontSize:10,color:t.textFaint}}>Últimas {weekData.length} semanas · ACWR semanal, Monotonia, Strain, Δ% (Bourdon et al., 2017; Griffin et al., 2020; Impellizzeri et al., 2023)</div>
                 </div>
               </div>
               {/* Summary Indicators */}
@@ -5439,11 +5439,11 @@ export default function Dashboard(){
               </div>
               {/* Alert Banner */}
               {(acwrV>1.3||currentW.monotonia>2||(deltaSrpe!==null&&deltaSrpe>15))&&<div style={{background:acwrV>1.5||currentW.monotonia>2?"#FEF2F2":"#FFF7ED",border:`1px solid ${acwrV>1.5||currentW.monotonia>2?"#FECACA":"#FED7AA"}`,borderRadius:8,padding:"10px 14px",marginBottom:14,fontSize:10,color:acwrV>1.5||currentW.monotonia>2?"#DC2626":"#EA580C",fontWeight:600,lineHeight:1.5}}>
-                {acwrV>1.5?"ACWR semanal acima de 1.5 — aumento abrupto de carga. Risco elevado de lesão (Gabbett, 2016). Considerar redução na próxima sessão."
-                :acwrV>1.3?"ACWR semanal entre 1.3-1.5 — zona de atenção. Monitorar resposta do atleta."
-                :currentW.monotonia>2?"Monotonia alta (>2.0) — carga muito uniforme sem variação adequada entre dias (Foster, 1998). Incluir dias de descarga."
-                :deltaSrpe>20?"Aumento de carga semanal >20% — acima da progressão recomendada de 10-15% (Piggott et al., 2009)."
-                :"Aumento de carga semanal entre 15-20% — no limite superior da progressão segura."}
+                {acwrV>1.5?"ACWR semanal acima de 1.5 — aumento abrupto de carga. Associação com maior risco de lesão em esportes coletivos (Griffin et al., 2020; Maupin et al., 2020). Considerar redução na próxima sessão."
+                :acwrV>1.3?"ACWR semanal entre 1.3-1.5 — zona de atenção. Monitorar resposta do atleta (Andrade et al., 2020)."
+                :currentW.monotonia>2?"Monotonia alta (>2.0) — carga muito uniforme sem variação adequada entre dias (Foster, 1998; Bourdon et al., 2017). Incluir dias de descarga."
+                :deltaSrpe>20?"Aumento de carga semanal >20% — acima da progressão recomendada (Soligard et al., 2016 — Consenso COI)."
+                :"Aumento de carga semanal entre 15-20% — no limite superior da progressão segura (Soligard et al., 2016)."}
               </div>}
               {/* Charts */}
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
@@ -5510,7 +5510,7 @@ export default function Dashboard(){
               </div>
               {/* Reference */}
               <div style={{marginTop:10,padding:"6px 10px",background:t.bgMuted,borderRadius:6,fontSize:9,color:t.textFaint,lineHeight:1.4}}>
-                <strong style={{color:pri}}>Referências:</strong> ACWR sweet spot 0.8-1.3 (Gabbett, 2016) · Monotonia {">"} 2.0 = risco (Foster, 1998) · Δ semanal ideal ≤10-15% (Piggott et al., 2009) · Strain = carga total × monotonia
+                <strong style={{color:pri}}>Referências:</strong> ACWR — zona de atenção 0.8-1.3, evidência heterogênea em revisões recentes (Griffin et al., 2020; Maupin et al., 2020; Impellizzeri et al., 2023) · Monotonia {">"} 2.0 = risco (Foster, 1998; Bourdon et al., 2017) · Progressão semanal e gestão de carga (Soligard et al., 2016 — Consenso COI; West et al., 2021) · Strain = carga total × monotonia
               </div>
             </div>;
           })()}
@@ -7000,14 +7000,29 @@ export default function Dashboard(){
           <div style={{background:t.bgCard,borderRadius:12,border:`1px solid ${t.border}`,padding:18}}>
             <div style={{fontFamily:"'Inter Tight'",fontWeight:700,fontSize:14,color:pri,marginBottom:12}}>7. Referências Científicas</div>
             <div style={{fontSize:10,color:t.textMuted,lineHeight:1.8}}>
-              <div>• <strong>Gabbett, T.J. (2016)</strong> — The training–injury prevention paradox. <em>British Journal of Sports Medicine</em>, 50(5), 273-280. [ACWR, zonas de risco]</div>
-              <div>• <strong>Hulin, B.T. et al. (2014)</strong> — The acute:chronic workload ratio predicts injury. <em>British Journal of Sports Medicine</em>, 48(8), 708-712. [ACWR aplicado]</div>
-              <div>• <strong>Williams, S. et al. (2017)</strong> — Better way to determine ACWR. <em>British Journal of Sports Medicine</em>, 51(3), 209-210. [EWMA vs rolling average]</div>
-              <div>• <strong>Foster, C. et al. (2001)</strong> — A new approach to monitoring exercise training. <em>Journal of Strength and Conditioning Research</em>, 15(1), 109-115. [sRPE, Monotonia, Strain]</div>
-              <div>• <strong>Foster, C. (1998)</strong> — Monitoring training in athletes. <em>Medicine and Science in Sports and Exercise</em>, 30(7), 1164-1168. [Monotonia]</div>
-              <div>• <strong>Claudino, J.G. et al. (2017)</strong> — The countermovement jump to monitor neuromuscular status. <em>Journal of Science and Medicine in Sport</em>, 20(4), 396-402. [CMJ como marcador]</div>
-              <div>• <strong>Watson, A.M. (2017)</strong> — Sleep and athletic performance. <em>Current Sports Medicine Reports</em>, 16(6), 413-418. [Sono e performance]</div>
-              <div>• <strong>Malone, J.J. et al. (2015)</strong> — High chronic training loads and exposure to bouts of maximal velocity running. <em>Journal of Sports Science and Medicine</em>, 14(4), 861. [Match demand baseline]</div>
+              <div style={{fontWeight:700,color:pri,marginTop:4,marginBottom:2,fontSize:10}}>Carga, ACWR e progressão</div>
+              <div>• <strong>Impellizzeri, F.M. et al. (2023)</strong> — The acute-to-chronic workload ratio: time to dismiss it and embrace better load management. <em>Sports Medicine</em>, 53(3), 581-592. [Crítica metodológica e revisão crítica do ACWR]</div>
+              <div>• <strong>Griffin, A. et al. (2020)</strong> — The association between the ACWR and injury and its application in team sports: a systematic review. <em>Sports Medicine</em>, 50(3), 561-580. [Revisão sistemática em esportes coletivos]</div>
+              <div>• <strong>Maupin, D. et al. (2020)</strong> — The relationship between ACWR and injury risk in sports: a systematic review. <em>Open Access Journal of Sports Medicine</em>, 11, 51-75.</div>
+              <div>• <strong>Andrade, R. et al. (2020)</strong> — Is the ACWR associated with risk of time-loss injury in professional team sports? A systematic review and meta-analysis. <em>Sports Medicine</em>, 50, 1613-1635.</div>
+              <div>• <strong>Eckard, T.G. et al. (2018)</strong> — The relationship between training load and injury in athletes: a systematic review. <em>Sports Medicine</em>, 48(8), 1929-1961.</div>
+              <div>• <strong>Soligard, T. et al. (2016)</strong> — How much is too much? IOC consensus statement on load in sport and risk of injury. <em>British Journal of Sports Medicine</em>, 50(17), 1030-1041. [Consenso COI sobre progressão de carga]</div>
+              <div>• <strong>Gabbett, T.J. (2016)</strong> — The training–injury prevention paradox. <em>British Journal of Sports Medicine</em>, 50(5), 273-280. [ACWR clássico, zonas de risco]</div>
+              <div>• <strong>Hulin, B.T. et al. (2014)</strong> — The ACWR predicts injury. <em>British Journal of Sports Medicine</em>, 48(8), 708-712.</div>
+              <div>• <strong>Williams, S. et al. (2017)</strong> — Better way to determine ACWR (EWMA vs rolling average). <em>British Journal of Sports Medicine</em>, 51(3), 209-210.</div>
+
+              <div style={{fontWeight:700,color:pri,marginTop:10,marginBottom:2,fontSize:10}}>sRPE, Monotonia, Strain e monitoramento</div>
+              <div>• <strong>Bourdon, P.C. et al. (2017)</strong> — Monitoring athlete training loads: consensus statement. <em>International Journal of Sports Physiology and Performance</em>, 12(s2), S2-161-S2-170. [Consenso de monitoramento]</div>
+              <div>• <strong>West, S.W. et al. (2021)</strong> — More than a metric: how training load is used in elite sport for athlete management. <em>International Journal of Sports Medicine</em>, 42(4), 300-306.</div>
+              <div>• <strong>McLaren, S.J. et al. (2018)</strong> — The relationships between internal and external measures of training load in team sports: a meta-analysis. <em>Sports Medicine</em>, 48(3), 641-658.</div>
+              <div>• <strong>Foster, C. et al. (2001)</strong> — A new approach to monitoring exercise training. <em>Journal of Strength and Conditioning Research</em>, 15(1), 109-115. [sRPE, Monotonia, Strain — referência fundacional]</div>
+              <div>• <strong>Foster, C. (1998)</strong> — Monitoring training in athletes with reference to overtraining syndrome. <em>Medicine and Science in Sports and Exercise</em>, 30(7), 1164-1168. [Monotonia &gt; 2.0]</div>
+
+              <div style={{fontWeight:700,color:pri,marginTop:10,marginBottom:2,fontSize:10}}>Neuromuscular, sono, recuperação e demandas</div>
+              <div>• <strong>Claudino, J.G. et al. (2017)</strong> — The countermovement jump to monitor neuromuscular status. <em>Journal of Science and Medicine in Sport</em>, 20(4), 396-402. [CMJ como marcador NM]</div>
+              <div>• <strong>Walsh, N.P. et al. (2021)</strong> — Sleep and the athlete: narrative review and 2021 expert consensus recommendations. <em>British Journal of Sports Medicine</em>, 55(7), 356-368. [Consenso atual de sono]</div>
+              <div>• <strong>Watson, A.M. (2017)</strong> — Sleep and athletic performance. <em>Current Sports Medicine Reports</em>, 16(6), 413-418.</div>
+              <div>• <strong>Malone, J.J. et al. (2015)</strong> — High chronic training loads and exposure to bouts of maximal velocity running. <em>Journal of Sports Science and Medicine</em>, 14(4), 861. [Demandas de jogo]</div>
             </div>
           </div>
         </div>}
